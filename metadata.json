@@ -1,0 +1,7 @@
+{
+  "name": "Espiritualizei ",
+  "description": "Uma plataforma completa de acompanhamento espiritual que combina ferramentas práticas, direção espiritual personalizada via IA e comunidade de oração.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
