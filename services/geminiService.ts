@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, OnboardingData, RoutineItem, DailyTopic, MonthlyReviewData } from '../types';
 
-// O SDK exige process.env.API_KEY diretamente.
+// Inicialização conforme as novas diretrizes de engenharia
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const cleanAIOutput = (text: string): string => {
@@ -18,25 +18,25 @@ export const cleanAIOutput = (text: string): string => {
 };
 
 const SAINT_SPIRITUALITY: Record<string, string> = {
-  acutis: "Carisma: Santidade no cotidiano digital e amor radical à Eucaristia. Títulos: 'Ciberapóstolo da Eucaristia', 'Original do Céu'.",
-  michael: "Carisma: Vigilância, combate espiritual e proteção contra as ciladas do mal. Títulos: 'Sentinela do Arcanjo', 'Guerreiro da Luz'.",
-  therese: "Carisma: A Pequena Via, confiança absoluta na misericórdia e atos de amor ocultos. Títulos: 'Pequena Flor da Misericórdia', 'Alma da Confiança'.",
-  joseph: "Carisma: Silêncio operoso, fidelidade no trabalho ordinário e cuidado com a família. Títulos: 'Operário do Silêncio', 'Guardião do Lar'.",
-  mary: "Carisma: Entrega total (Totus Tuus), pureza e imitação das virtudes marianas. Títulos: 'Escravo por Amor', 'Lírio de Maria'."
+  acutis: "Foco: Eucaristia e santificação do mundo digital. Tarefas sugeridas: Adoração, oração antes de usar o computador, oferecer o tempo de internet.",
+  michael: "Foco: Combate espiritual e vigilância. Tarefas sugeridas: Oração de São Miguel, vigilância das virtudes, atos de coragem espiritual.",
+  therese: "Foco: Pequena Via e Confiança. Tarefas sugeridas: Pequenos atos de amor ocultos, aceitar contrariedades com alegria, confiança na misericórdia.",
+  joseph: "Foco: Silêncio e Trabalho. Tarefas sugeridas: Oferecimento do trabalho, oração pela família, prática do silêncio interior.",
+  mary: "Foco: Entrega Total (Totus Tuus). Tarefas sugeridas: Terço diário, imitação das virtudes de humildade e pureza da Virgem."
 };
 
 export const sendMessageToSpiritualDirector = async (message: string, user?: UserProfile): Promise<string> => {
   try {
     const userContext = user 
       ? `Usuário: ${user.name}. Luta: ${user.spiritualFocus}. Santo: ${user.patronSaint}.` 
-      : "Visitante buscando orientação.";
+      : "Visitante em busca de luz.";
 
     const systemInstruction = `
-      Você é um Diretor Espiritual Católico sábio, humilde e firme na sã doutrina.
-      Sempre responda em Português do Brasil.
-      Não use formatação Markdown (negrito, itálico com asteriscos).
-      Seu tom é paternal e encorajador.
-      Integre a espiritualidade do santo padroeiro do usuário em seus conselhos.
+      Você é um Diretor Espiritual Católico sábio, paternal e fiel à Igreja.
+      RESPONDA SEMPRE EM PORTUGUÊS DO BRASIL.
+      Seu tom deve ser acolhedor, mas firme na doutrina.
+      Integre conselhos baseados na vida do santo padroeiro do usuário.
+      Não use negritos ou asteriscos na resposta.
       Contexto: ${userContext}
     `;
 
@@ -46,36 +46,35 @@ export const sendMessageToSpiritualDirector = async (message: string, user?: Use
       config: { systemInstruction },
     });
 
-    return cleanAIOutput(response.text || "Paz e Bem. Como posso iluminar sua caminhada hoje?");
+    return cleanAIOutput(response.text || "Paz e Bem. Como posso ajudar sua alma hoje?");
   } catch (error) {
-    console.error("Erro no chat espiritual:", error);
-    return "Um momento de recolhimento. Tente novamente em breve.";
+    return "Um momento de recolhimento técnico. Em breve retornarei com seu direcionamento.";
   }
 };
 
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string }> => {
-  const saintContext = SAINT_SPIRITUALITY[data.patronSaint || 'michael'] || "";
+  const saintSpirituality = SAINT_SPIRITUALITY[data.patronSaint || 'michael'] || "";
   
   const prompt = `
-    Aja como um Diretor Espiritual. Crie uma REGRA DE VIDA personalizada para ${data.name}.
+    Aja como um Diretor Espiritual Católico. Crie uma REGRA DE VIDA personalizada para ${data.name}.
     
-    PERFIL:
+    PERFIL DO FIEL:
     - Estado: ${data.stateOfLife}
     - Ritmo: ${data.routineType}
-    - Luta principal: ${data.primaryStruggle}
-    - Almeja: ${data.spiritualGoal}
-    - Santo Padroeiro: ${data.patronSaint} (${saintContext})
+    - Luta contra: ${data.primaryStruggle}
+    - Objetivo: ${data.spiritualGoal}
+    - Santo Guia: ${data.patronSaint} (${saintSpirituality})
 
-    ESTRUTURA TEMÁTICA:
+    ESTRUTURA TEMÁTICA DA SEMANA:
     - Seg: Almas | Ter: Anjos | Qua: São José | Qui: Eucaristia | Sex: Paixão | Sáb: Maria | Dom: Ressurreição.
 
     REQUISITOS OBRIGATÓRIOS:
-    1. Responda estritamente em PORTUGUÊS DO BRASIL.
-    2. Cada dia da semana deve conter pelo menos UMA prática baseada diretamente no carisma de ${data.patronSaint}.
-    3. Distribua 4 a 5 tarefas diárias (morning, afternoon, night).
-    4. O campo "profileDescription" deve ser um título místico inspirado no santo do usuário (Ex: "Combatente de Miguel", "Pequena Flor de Lis").
+    1. Responda APENAS em PORTUGUÊS DO BRASIL.
+    2. Cada dia deve ter uma tarefa inspirada no carisma de ${data.patronSaint}.
+    3. Distribua 4-5 tarefas por dia: 'morning', 'afternoon', 'night'.
+    4. "profileDescription" deve ser um título místico curto (Ex: "Combatente de Miguel", "Sentinela do Sacrário").
 
-    FORMATO JSON:
+    RETORNE APENAS JSON:
     {
       "profileDescription": "String",
       "routine": [
@@ -90,7 +89,7 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
         contents: prompt,
         config: { 
           responseMimeType: 'application/json',
-          systemInstruction: "Gere regras de vida católica em JSON. Use os carismas dos santos de forma criativa."
+          systemInstruction: "Você gera regras de vida católica em formato JSON em Português."
         }
     });
 
@@ -108,12 +107,11 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
       profileDescription: cleanAIOutput(json.profileDescription || 'Peregrino da Fé') 
     };
   } catch (e) {
-    console.error("Erro na geração da rotina:", e);
     return {
-        profileDescription: "Peregrino de Cristo",
+        profileDescription: "Peregrino da Fé",
         routine: [
-            { id: 'f1', title: 'Oração da Manhã', description: 'Consagrar o dia ao Senhor', xpReward: 15, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
-            { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a voz do Mestre', xpReward: 25, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
+            { id: 'f1', title: 'Oferecimento do Dia', description: 'Entregar o dia ao Senhor', xpReward: 20, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
+            { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a voz de Cristo', xpReward: 30, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
             { id: 'f3', title: 'Exame de Consciência', description: 'Revisar o dia no amor', xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' }
         ]
     };
@@ -124,9 +122,9 @@ export const generateDailyReflection = async (saint: string): Promise<string> =>
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Gere uma frase curta e profunda de sabedoria católica em PORTUGUÊS. Sem Markdown.`,
+      contents: `Gere uma frase curta e humilde em PORTUGUÊS sobre a fé católica. Sem formatação Markdown.`,
     });
-    return cleanAIOutput(response.text || "Deus é amor.");
+    return cleanAIOutput(response.text || "Deus te abençoe.");
   } catch { return "Caminhe na paz de Cristo."; }
 };
 
@@ -134,7 +132,7 @@ export const generateDailyTheme = async (gospel?: string): Promise<string> => {
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Resuma este Evangelho em 5 palavras em PORTUGUÊS: ${gospel || 'Amor de Deus'}`,
+      contents: `Resuma o Evangelho em 5 palavras em PORTUGUÊS: ${gospel || 'Amor de Deus'}`,
     });
     return cleanAIOutput(response.text || "Santidade Diária");
   } catch { return "Santidade Diária"; }

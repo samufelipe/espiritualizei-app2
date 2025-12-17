@@ -30,11 +30,7 @@ const KnowledgeBase = lazy(() => import('./components/KnowledgeBase'));
 const SpiritualChat = lazy(() => import('./components/SpiritualChat'));
 
 const STRUGGLE_TRANSLATION: Record<string, string> = {
-  anxiety: 'Ansiedade', laziness: 'Preguiça', dryness: 'Aridez', lust: 'Impureza', ignorance: 'Dúvida', pride: 'Soberba', anger: 'Ira'
-};
-
-const GOAL_TRANSLATION: Record<string, string> = {
-  peace: 'Paz Interior', truth: 'Sabedoria', discipline: 'Constância', love: 'Amor', healing: 'Cura'
+  anxiety: 'Ansiedade', laziness: 'Preguiça', dryness: 'Aridez', lust: 'Vícios', ignorance: 'Dúvida', pride: 'Soberba', anger: 'Ira'
 };
 
 const SAINT_TRANSLATION: Record<string, string> = {
@@ -42,7 +38,7 @@ const SAINT_TRANSLATION: Record<string, string> = {
 };
 
 const TabLoader = () => (
-  <div className="h-full w-full flex flex-col items-center justify-center animate-fade-in text-slate-400 py-20">
+  <div className="h-full w-full flex flex-col items-center justify-center animate-fade-in text-slate-400 py-20 bg-brand-dark">
      <BrandLogo size={40} variant="fill" className="text-brand-violet animate-pulse-slow mb-4" />
      <Loader2 size={24} className="animate-spin text-brand-violet" />
   </div>
@@ -78,9 +74,13 @@ const App: React.FC = () => {
        if (!path || path === '') setViewState('landing');
        else if (path === 'login') setViewState('login');
        else if (path === 'onboarding') setViewState('onboarding');
-       else if (Object.values(Tab).includes(path.toUpperCase() as Tab)) {
-          setViewState('app');
-          setCurrentTab(path.toUpperCase() as Tab);
+       else if (path === 'assinatura') setViewState('checkout');
+       else {
+          const tab = path.toUpperCase() as Tab;
+          if (Object.values(Tab).includes(tab)) {
+             setViewState('app');
+             setCurrentTab(tab);
+          }
        }
     };
     window.addEventListener('popstate', handlePopState);
@@ -91,7 +91,7 @@ const App: React.FC = () => {
     setViewState(state);
     if (tab) setCurrentTab(tab);
     
-    // Tratamento robusto para pushState em domínios de sandbox
+    // Tratamento robusto para pushState em ambientes de sandbox (bloqueio de origem)
     try {
         let path = '/';
         if (state === 'login') path = '/login';
@@ -104,8 +104,7 @@ const App: React.FC = () => {
            window.history.pushState({}, '', path);
         }
     } catch (e) {
-        // Ignora erros de pushState em ambientes de teste/frames cruzados
-        console.warn("Navegação de URL limitada neste ambiente.");
+        console.warn("Navegação de URL limitada pelo ambiente (sandbox).");
     }
   };
 
@@ -125,6 +124,7 @@ const App: React.FC = () => {
       const session = getSession();
       if (session) {
         setUser(session.user);
+        // Regra de negócios: Se não for premium e a assinatura não estiver ativa, checkout
         if (!session.user.isPremium && session.user.subscriptionStatus !== 'active') {
            navigate('checkout');
         } else {
@@ -156,9 +156,9 @@ const App: React.FC = () => {
   
   const handleOnboardingComplete = async (data: OnboardingData) => {
     try {
-      // Definimos o estado de carregamento IMEDIATAMENTE para evitar tela preta
-      setIsGeneratingRoutine(true);
+      // ESTADO IMEDIATO PARA EVITAR TELA PRETA
       setViewState('generating');
+      setIsGeneratingRoutine(true);
       
       const session = await registerUser(data);
       
@@ -179,7 +179,7 @@ const App: React.FC = () => {
       setIsGeneratingRoutine(false);
       setGeneratedArchetype({
         title: result.profileDescription, 
-        subtitle: `Sua jornada contra a ${STRUGGLE_TRANSLATION[data.primaryStruggle] || data.primaryStruggle} começa agora, sob o olhar de ${SAINT_TRANSLATION[data.patronSaint || ''] || 'um Santo Guia'}.`
+        subtitle: `Iniciando sua caminhada para vencer a ${STRUGGLE_TRANSLATION[data.primaryStruggle] || data.primaryStruggle} sob a guia de ${SAINT_TRANSLATION[data.patronSaint || ''] || 'um Santo Guia'}.`
       });
     } catch (error) {
       setIsGeneratingRoutine(false);
@@ -300,8 +300,8 @@ const App: React.FC = () => {
                       <div className="space-y-4">
                          <h2 className="text-2xl font-bold text-white">Consultando o Diretor Espiritual...</h2>
                          <div className="space-y-1.5">
-                            <p className="text-slate-400 max-w-xs mx-auto text-sm leading-relaxed animate-fade-in">Buscando na tradição da Igreja a melhor regra de vida para você.</p>
-                            <p className="text-brand-violet/60 text-[10px] font-bold uppercase tracking-widest animate-pulse">Invocando o auxílio dos Santos</p>
+                            <p className="text-slate-400 max-w-xs mx-auto text-sm leading-relaxed animate-fade-in">Buscando na tradição da Igreja e na vida dos Santos a melhor regra de vida para você agora.</p>
+                            <p className="text-brand-violet/60 text-[10px] font-bold uppercase tracking-widest animate-pulse">Invocando o auxílio celeste</p>
                          </div>
                          <div className="flex justify-center gap-2 pt-4">
                             <span className="w-2 h-2 bg-brand-violet rounded-full animate-bounce [animation-delay:-0.3s]"></span>
