@@ -2,8 +2,13 @@
 import { GoogleGenAI } from "@google/genai";
 import { UserProfile, OnboardingData, RoutineItem, DailyTopic, MonthlyReviewData } from '../types';
 
-// Inicialização segura do cliente com a chave que virá do ambiente (Vercel)
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Função auxiliar para pegar a chave de qualquer lugar que ela esteja escondida
+const getApiKey = () => {
+  return process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY || "";
+};
+
+// Inicialização da IA com o modelo correto e atualizado
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 // --- GESTÃO DE COTA E CACHE ---
 const QUOTA_KEY = 'gemini_quota_lock_until';
@@ -25,7 +30,7 @@ const isQuotaError = (error: any) => {
 
 const getFromCache = <T>(baseKey: string): T | null => {
     const today = new Date().toDateString();
-    const cached = localStorage.getItem(`gemini_cache_v3_${baseKey}`);
+    const cached = localStorage.getItem(`gemini_cache_v4_${baseKey}`);
     if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed.date === today) return parsed.data;
@@ -35,13 +40,13 @@ const getFromCache = <T>(baseKey: string): T | null => {
 
 const saveToCache = (baseKey: string, data: any) => {
     const today = new Date().toDateString();
-    localStorage.setItem(`gemini_cache_v3_${baseKey}`, JSON.stringify({ date: today, data }));
+    localStorage.setItem(`gemini_cache_v4_${baseKey}`, JSON.stringify({ date: today, data }));
 };
 
 // --- CHAT COM DIRETOR ESPIRITUAL ---
 export const sendMessageToSpiritualDirector = async (message: string, user?: UserProfile): Promise<string> => {
   if (isQuotaLocked()) return "Estou em silêncio orante no momento. Tente novamente mais tarde.";
-  if (!process.env.API_KEY) return "Configuração de rede pendente. Tente novamente em instantes.";
+  if (!getApiKey()) return "Aguardando conexão com o servidor de oração...";
 
   try {
     const userContext = user 
@@ -54,24 +59,23 @@ export const sendMessageToSpiritualDirector = async (message: string, user?: Use
       Contexto: ${userContext}
     `;
 
-    // Uso do modelo mais moderno: gemini-3-flash-preview
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: message,
       config: { systemInstruction },
     });
 
-    // Acesso correto à propriedade .text conforme documentação oficial
     return response.text || "Paz e Bem. Como posso ajudar?";
   } catch (error: any) {
     if (isQuotaError(error)) lockQuota();
+    console.error("Gemini Error:", error);
     return "Tive um momento de silêncio técnico. Retornarei em breve.";
   }
 };
 
 // --- GERADOR DE ROTINA ADAPTÁVEL ---
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string }> => {
-  if (isQuotaLocked() || !process.env.API_KEY) return getFallbackRoutine();
+  if (isQuotaLocked() || !getApiKey()) return getFallbackRoutine();
 
   const prompt = `
     Crie uma REGRA DE VIDA CATÓLICA para ${data.name}.
@@ -118,7 +122,7 @@ function getFallbackRoutine() {
 export const generateDailyReflection = async (saint: string): Promise<string> => {
   const cached = getFromCache<string>('daily_quote');
   if (cached) return cached;
-  if (!process.env.API_KEY) return "Caminhe na paz de Cristo.";
+  if (!getApiKey()) return "Caminhe na paz de Cristo.";
 
   try {
     const response = await ai.models.generateContent({
