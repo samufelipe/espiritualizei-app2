@@ -2,11 +2,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, OnboardingData, RoutineItem, DailyTopic, MonthlyReviewData } from '../types';
 
-const getApiKey = () => {
-  return process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY || "";
-};
-
-const ai = new GoogleGenAI({ apiKey: getApiKey() });
+// O SDK exige process.env.API_KEY diretamente.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const cleanAIOutput = (text: string): string => {
   if (!text) return "";
@@ -20,40 +17,26 @@ export const cleanAIOutput = (text: string): string => {
     .trim();
 };
 
-const getFromCache = <T>(baseKey: string): T | null => {
-    const today = new Date().toDateString();
-    const cached = localStorage.getItem(`gemini_cache_v7_${baseKey}`);
-    if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed.date === today) return parsed.data;
-    }
-    return null;
-};
-
-const saveToCache = (baseKey: string, data: any) => {
-    const today = new Date().toDateString();
-    localStorage.setItem(`gemini_cache_v7_${baseKey}`, JSON.stringify({ date: today, data }));
-};
-
-const SAINT_CONTEXTS: Record<string, string> = {
-  acutis: "Espiritualidade de Carlo Acutis: Foco na Eucaristia como rodovia para o céu e na santificação do mundo digital e tecnológico.",
-  michael: "Espiritualidade de São Miguel Arcanjo: Foco no combate espiritual, na vigilância contra as tentações e na proteção da Igreja.",
-  therese: "Espiritualidade de Santa Teresinha: A 'Pequena Via'. Foco em fazer pequenas coisas com amor extraordinário e confiança cega na misericórdia.",
-  joseph: "Espiritualidade de São José: Foco no silêncio, na santificação do trabalho ordinário, na castidade e no cuidado com a família.",
-  mary: "Espiritualidade Mariana: Foco na entrega total (Totus Tuus), no Rosário diário e na imitação das virtudes de humildade e obediência da Virgem Maria."
+const SAINT_SPIRITUALITY: Record<string, string> = {
+  acutis: "Carisma: Santidade no cotidiano digital e amor radical à Eucaristia. Títulos: 'Ciberapóstolo da Eucaristia', 'Original do Céu'.",
+  michael: "Carisma: Vigilância, combate espiritual e proteção contra as ciladas do mal. Títulos: 'Sentinela do Arcanjo', 'Guerreiro da Luz'.",
+  therese: "Carisma: A Pequena Via, confiança absoluta na misericórdia e atos de amor ocultos. Títulos: 'Pequena Flor da Misericórdia', 'Alma da Confiança'.",
+  joseph: "Carisma: Silêncio operoso, fidelidade no trabalho ordinário e cuidado com a família. Títulos: 'Operário do Silêncio', 'Guardião do Lar'.",
+  mary: "Carisma: Entrega total (Totus Tuus), pureza e imitação das virtudes marianas. Títulos: 'Escravo por Amor', 'Lírio de Maria'."
 };
 
 export const sendMessageToSpiritualDirector = async (message: string, user?: UserProfile): Promise<string> => {
   try {
     const userContext = user 
-      ? `Usuário: ${user.name}. Estado: ${user.stateOfLife}. Luta: ${user.spiritualFocus}. Padroeiro: ${user.patronSaint}.` 
-      : "Usuário visitante.";
+      ? `Usuário: ${user.name}. Luta: ${user.spiritualFocus}. Santo: ${user.patronSaint}.` 
+      : "Visitante buscando orientação.";
 
     const systemInstruction = `
-      Você é um diretor espiritual católico sábio, humilde e fiel ao Magistério da Igreja.
-      Responda SEMPRE em Português do Brasil.
-      Sua linguagem deve ser acolhedora mas firme na doutrina.
-      Integre conselhos baseados na vida do santo padroeiro do usuário quando relevante.
+      Você é um Diretor Espiritual Católico sábio, humilde e firme na sã doutrina.
+      Sempre responda em Português do Brasil.
+      Não use formatação Markdown (negrito, itálico com asteriscos).
+      Seu tom é paternal e encorajador.
+      Integre a espiritualidade do santo padroeiro do usuário em seus conselhos.
       Contexto: ${userContext}
     `;
 
@@ -63,36 +46,36 @@ export const sendMessageToSpiritualDirector = async (message: string, user?: Use
       config: { systemInstruction },
     });
 
-    return cleanAIOutput(response.text || "Paz e Bem. Como posso ajudar?");
-  } catch (error: any) {
-    console.error("Gemini Error:", error);
-    return "Tive um momento de silêncio técnico. Retornarei em breve.";
+    return cleanAIOutput(response.text || "Paz e Bem. Como posso iluminar sua caminhada hoje?");
+  } catch (error) {
+    console.error("Erro no chat espiritual:", error);
+    return "Um momento de recolhimento. Tente novamente em breve.";
   }
 };
 
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string }> => {
-  const saintSpirituality = SAINT_CONTEXTS[data.patronSaint || 'michael'] || "";
+  const saintContext = SAINT_SPIRITUALITY[data.patronSaint || 'michael'] || "";
   
   const prompt = `
-    Aja como um Diretor Espiritual Católico. Crie uma REGRA DE VIDA personalizada para ${data.name}.
+    Aja como um Diretor Espiritual. Crie uma REGRA DE VIDA personalizada para ${data.name}.
     
-    DADOS DO FIEL:
-    - Estado de Vida: ${data.stateOfLife}
-    - Luta Principal: ${data.primaryStruggle}
-    - Objetivo: ${data.spiritualGoal}
-    - Santo de Devoção: ${data.patronSaint}
-    - CONTEXTO DO SANTO: ${saintSpirituality}
+    PERFIL:
+    - Estado: ${data.stateOfLife}
+    - Ritmo: ${data.routineType}
+    - Luta principal: ${data.primaryStruggle}
+    - Almeja: ${data.spiritualGoal}
+    - Santo Padroeiro: ${data.patronSaint} (${saintContext})
 
-    ESTRUTURA TEMÁTICA DA SEMANA:
-    - Domingo: Ressurreição | Segunda: Almas | Terça: Santos Anjos | Quarta: São José | Quinta: Eucaristia | Sexta: Paixão | Sábado: Maria
+    ESTRUTURA TEMÁTICA:
+    - Seg: Almas | Ter: Anjos | Qua: São José | Qui: Eucaristia | Sex: Paixão | Sáb: Maria | Dom: Ressurreição.
 
     REQUISITOS OBRIGATÓRIOS:
-    1. Integre pelo menos 1 prática ESPECÍFICA da espiritualidade de ${data.patronSaint} em cada dia da semana.
-    2. Ajuste a dificuldade para o ritmo: ${data.routineType}.
-    3. Responda APENAS em Português do Brasil.
-    4. O "profileDescription" deve ser um título místico (ex: "Sentinela de Miguel", "Pequena Flor de Lis").
+    1. Responda estritamente em PORTUGUÊS DO BRASIL.
+    2. Cada dia da semana deve conter pelo menos UMA prática baseada diretamente no carisma de ${data.patronSaint}.
+    3. Distribua 4 a 5 tarefas diárias (morning, afternoon, night).
+    4. O campo "profileDescription" deve ser um título místico inspirado no santo do usuário (Ex: "Combatente de Miguel", "Pequena Flor de Lis").
 
-    RETORNE APENAS O JSON:
+    FORMATO JSON:
     {
       "profileDescription": "String",
       "routine": [
@@ -107,7 +90,7 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
         contents: prompt,
         config: { 
           responseMimeType: 'application/json',
-          systemInstruction: "Você gera regras de vida católica em JSON. Use os temas dos santos de forma criativa e prática."
+          systemInstruction: "Gere regras de vida católica em JSON. Use os carismas dos santos de forma criativa."
         }
     });
 
@@ -122,50 +105,38 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
 
     return { 
       routine, 
-      profileDescription: cleanAIOutput(json.profileDescription || 'Alma em Caminhada') 
+      profileDescription: cleanAIOutput(json.profileDescription || 'Peregrino da Fé') 
     };
   } catch (e) {
-    console.error("Routine Generation Failed:", e);
-    return getFallbackRoutine();
+    console.error("Erro na geração da rotina:", e);
+    return {
+        profileDescription: "Peregrino de Cristo",
+        routine: [
+            { id: 'f1', title: 'Oração da Manhã', description: 'Consagrar o dia ao Senhor', xpReward: 15, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
+            { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a voz do Mestre', xpReward: 25, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
+            { id: 'f3', title: 'Exame de Consciência', description: 'Revisar o dia no amor', xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' }
+        ]
+    };
   }
 };
 
-function getFallbackRoutine() {
-    return {
-        routine: [
-             { id: 'f1', title: 'Oferecimento do Dia', description: 'Entregar o dia ao Senhor', xpReward: 15, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
-             { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a voz do Mestre', xpReward: 20, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
-             { id: 'f3', title: 'Exame de Consciência', description: 'Revisar o dia no amor', xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' }
-        ] as RoutineItem[],
-        profileDescription: 'Peregrino da Fé'
-    };
-}
-
 export const generateDailyReflection = async (saint: string): Promise<string> => {
-  const cached = getFromCache<string>('daily_quote');
-  if (cached) return cached;
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Gere uma frase curta e inspiradora em PORTUGUÊS sobre a fé católica ou o santo ${saint}.`,
+      contents: `Gere uma frase curta e profunda de sabedoria católica em PORTUGUÊS. Sem Markdown.`,
     });
-    const res = cleanAIOutput(response.text || "Deus te abençoe.");
-    saveToCache('daily_quote', res);
-    return res;
+    return cleanAIOutput(response.text || "Deus é amor.");
   } catch { return "Caminhe na paz de Cristo."; }
 };
 
 export const generateDailyTheme = async (gospel?: string): Promise<string> => {
-  const cached = getFromCache<string>('daily_theme');
-  if (cached) return cached;
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Resuma o Evangelho em 5 palavras em PORTUGUÊS: ${gospel || 'Amor de Deus'}`,
+      contents: `Resuma este Evangelho em 5 palavras em PORTUGUÊS: ${gospel || 'Amor de Deus'}`,
     });
-    const res = cleanAIOutput(response.text || "Santidade Diária");
-    saveToCache('daily_theme', res);
-    return res;
+    return cleanAIOutput(response.text || "Santidade Diária");
   } catch { return "Santidade Diária"; }
 };
 
@@ -173,7 +144,7 @@ export const generateLiturgicalDailyTopic = async (day: number, season: string):
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
-            contents: `Crie um desafio prático católico em PORTUGUÊS para o dia ${day} do tempo de ${season}. Retorne JSON com title, description, scripture, actionType, actionContent. Sem Markdown.`,
+            contents: `Crie um desafio prático católico em PORTUGUÊS para o dia ${day} do tempo de ${season}. Retorne JSON com title, description, scripture, actionType, actionContent.`,
             config: { responseMimeType: 'application/json' }
         });
         const data = JSON.parse(response.text || '{}');
@@ -188,6 +159,6 @@ export const generateLiturgicalDailyTopic = async (day: number, season: string):
             scripture: cleanAIOutput(data.scripture)
         };
     } catch {
-        return { day, title: "Pequeno Ato de Amor", description: "Faça uma caridade hoje.", isCompleted: false, isLocked: false };
+        return { day, title: "Ato de Caridade", description: "Faça uma caridade hoje.", isCompleted: false, isLocked: false };
     }
 };
