@@ -37,13 +37,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
   const scrollManual = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const { scrollLeft } = scrollRef.current;
-      // Novo tamanho do card (280px) + gap (24px) = 304px
       const scrollTo = direction === 'left' ? scrollLeft - 304 : scrollLeft + 304;
       scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
     }
   };
 
-  // --- DATA: REALISTIC TESTIMONIALS ---
   const TESTIMONIALS = [
     {
       name: "Mariana R.", role: "Médica e Mãe", avatar: "MR", color: "from-blue-400 to-blue-600",
@@ -82,7 +80,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
   return (
     <div className="min-h-screen bg-white dark:bg-brand-dark font-sans text-brand-dark dark:text-white transition-colors selection:bg-brand-violet/30 overflow-x-hidden">
       
-      {/* --- ESTILOS AVANÇADOS OTIMIZADOS --- */}
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
@@ -130,11 +127,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
           </div>
           
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-400">
-            <button onClick={() => scrollToSection('momentos')} className="hover:text-brand-violet transition-colors">Método</button>
-            <button onClick={() => scrollToSection('acervo')} className="hover:text-brand-violet transition-colors">Aprender</button>
-            <button onClick={() => scrollToSection('gps')} className="hover:text-brand-violet transition-colors">Igrejas</button>
-            <button onClick={() => scrollToSection('depoimentos')} className="hover:text-brand-violet transition-colors">Impacto</button>
-            <button onClick={() => scrollToSection('plano')} className="hover:text-brand-violet transition-colors">Assinar</button>
+            <button onClick={() => scrollToSection('metodo')} className="hover:text-brand-violet transition-colors">Método</button>
+            <button onClick={() => scrollToSection('biblioteca')} className="hover:text-brand-violet transition-colors">Aprender</button>
+            <button onClick={() => scrollToSection('igrejas')} className="hover:text-brand-violet transition-colors">Igrejas</button>
+            <button onClick={() => scrollToSection('impacto')} className="hover:text-brand-violet transition-colors">Impacto</button>
+            <button onClick={() => scrollToSection('assinatura')} className="hover:text-brand-violet transition-colors">Assinar</button>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -169,11 +166,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
 
           {mobileMenuOpen && (
             <div className="absolute top-full left-0 right-0 mt-3 p-4 bg-white/95 dark:bg-[#1A2530]/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col gap-2 md:hidden animate-fade-in origin-top">
-               <button onClick={() => scrollToSection('momentos')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Método</button>
-               <button onClick={() => scrollToSection('acervo')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Aprender</button>
-               <button onClick={() => scrollToSection('gps')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Igrejas</button>
-               <button onClick={() => scrollToSection('depoimentos')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Impacto</button>
-               <button onClick={() => scrollToSection('plano')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Assinar</button>
+               <button onClick={() => scrollToSection('metodo')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Método</button>
+               <button onClick={() => scrollToSection('biblioteca')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Aprender</button>
+               <button onClick={() => scrollToSection('igrejas')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Igrejas</button>
+               <button onClick={() => scrollToSection('impacto')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Impacto</button>
+               <button onClick={() => scrollToSection('assinatura')} className="p-3 text-left font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">Assinar</button>
                
                <div className="h-px bg-slate-100 dark:bg-white/10 my-1" />
                <button 
@@ -316,7 +313,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
       </section>
 
       {/* --- SECTION 2: MÉTODO --- */}
-      <section id="momentos" className="py-24 bg-slate-50 dark:bg-black/20">
+      <section id="metodo" className="py-24 bg-slate-50 dark:bg-black/20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl font-bold text-brand-dark dark:text-white mb-4">Sua fé, organizada e viva.</h2>
@@ -352,7 +349,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
       </section>
 
       {/* --- SECTION 3: APRENDER --- */}
-      <section id="acervo" className="py-24 bg-white dark:bg-brand-dark relative">
+      <section id="biblioteca" className="py-24 bg-white dark:bg-brand-dark relative">
          <div className="max-w-6xl mx-auto px-6">
             <div className="flex flex-col md:flex-row items-center gap-12">
                <div className="flex-1">
@@ -400,7 +397,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
       </section>
 
       {/* --- SECTION 4: IGREJAS --- */}
-      <section id="gps" className="py-24 bg-brand-dark relative overflow-hidden text-white">
+      <section id="igrejas" className="py-24 bg-brand-dark relative overflow-hidden text-white">
          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/city-fields.png')]" />
          <div className="max-w-6xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-16">
             <div className="flex-1 flex justify-center w-full">
@@ -424,13 +421,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                </div>
                <h2 className="text-4xl font-extrabold text-white mb-6 leading-tight">Nunca mais perca <br /> uma Santa Missa.</h2>
                <p className="text-lg text-slate-300 mb-8 leading-relaxed">Viajou? Mudou de bairro? O Espiritualizei localiza todas as igrejas, capelas e santuários católicos ao seu redor em segundos.</p>
-               <div className="mt-10"><button onClick={onStart} className="bg-brand-violet text-white px-8 py-4 rounded-xl font-bold shadow-2xl hover:bg-purple-600 transition-all flex items-center gap-2">Começar Agora</button></div>
+               <div className="mt-10"><button onClick={onStart} className="bg-brand-violet text-white px-8 py-4 rounded-xl font-bold shadow-2xl hover:bg-purple-600 transition-all flex items-center justify-center gap-2">Começar Agora</button></div>
             </div>
          </div>
       </section>
 
-      {/* --- SECTION 5: IMPACTO (SUPER PREMIUM OTIMIZADO) --- */}
-      <section id="depoimentos" className="py-24 bg-slate-50 dark:bg-brand-dark overflow-hidden relative group/section">
+      {/* --- SECTION 5: IMPACTO --- */}
+      <section id="impacto" className="py-24 bg-slate-50 dark:bg-brand-dark overflow-hidden relative group/section">
          <div className="max-w-6xl mx-auto px-6 mb-12 text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-violet/10 border border-brand-violet/20 rounded-full text-brand-violet text-xs font-bold uppercase tracking-widest mb-6">
                <Heart size={12} fill="currentColor" /> Histórias de Graça
@@ -441,9 +438,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             </p>
          </div>
 
-         {/* Container do Carrossel com Efeito de Bordas Suaves e interação mobile melhorada */}
          <div className="relative w-full mask-edges pause-on-interaction py-4">
-            {/* Botões Manuais (Desktop Only) */}
             <div className="absolute inset-y-0 left-2 sm:left-10 z-30 flex items-center opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex">
                <button 
                  onClick={() => scrollManual('left')}
@@ -461,25 +456,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                </button>
             </div>
 
-            {/* Linha Principal - Container animado que permite scroll manual ao interagir */}
             <div 
                ref={scrollRef}
                className="overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth px-6 sm:px-10"
             >
                <div className="animate-marquee-container py-4">
-                  {/* Duplicamos a lista para o loop infinito sem cortes */}
                   {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
                      <div 
                         key={i} 
                         className="card-float w-[260px] sm:w-[280px] shrink-0 bg-white dark:bg-[#1A1F26] p-6 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-soft hover:shadow-glow hover:border-brand-violet/20 transition-all snap-center group flex flex-col justify-between min-h-[320px] relative overflow-hidden"
                      >
-                        {/* Background Pattern Sutil */}
                         <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
                            <Quote size={60} fill="currentColor" />
                         </div>
 
                         <div>
-                           {/* Header com Avatar Compacto */}
                            <div className="flex items-center gap-3 mb-6">
                               <div className={`w-11 h-11 rounded-xl p-[1.5px] bg-gradient-to-tr ${t.color} shadow-lg shrink-0 group-hover:rotate-3 transition-transform duration-500`}>
                                  <div className="w-full h-full bg-white dark:bg-[#1A1F26] rounded-[10px] flex items-center justify-center font-bold text-brand-dark dark:text-white text-xs">
@@ -492,7 +483,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                               </div>
                            </div>
 
-                           {/* Corpo com Tipografia Serifada Premium Otimizada */}
                            <div className="relative">
                               <p className="text-slate-700 dark:text-slate-200 text-sm leading-relaxed font-medium italic text-spiritual relative z-10">
                                  "{t.text}"
@@ -500,7 +490,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                            </div>
                         </div>
 
-                        {/* Footer com Rating Minimalista */}
                         <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-50 dark:border-white/5">
                            <div className="flex gap-0.5">
                               {[1,2,3,4,5].map(star => <Star key={star} size={12} className="text-amber-400 fill-amber-400" />) }
@@ -515,17 +504,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                </div>
             </div>
          </div>
-         
-         {/* Dica Visual para Interação Mobile */}
-         <div className="flex justify-center gap-2 mt-4 md:hidden">
-            <div className="w-8 h-1 rounded-full bg-brand-violet animate-pulse" />
-            <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-            <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-         </div>
       </section>
 
       {/* --- PLANO --- */}
-      <section id="plano" className="py-24 bg-brand-violet/5 dark:bg-black/40 relative overflow-hidden">
+      <section id="assinatura" className="py-24 bg-brand-violet/5 dark:bg-black/40 relative overflow-hidden">
          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-violet/30 to-transparent" />
          <div className="max-w-6xl mx-auto px-6">
             <div className="text-center max-w-3xl mx-auto mb-16">
@@ -609,36 +591,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
          </div>
       </section>
 
-      {/* --- FAQ --- */}
-      <section className="py-24 max-w-4xl mx-auto px-6">
-         <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-brand-dark dark:text-white mb-4">Perguntas Frequentes</h2>
-            <p className="text-slate-500 dark:text-slate-400">Tire suas dúvidas sobre o Espiritualizei.</p>
-         </div>
-         <div className="space-y-4">
-            {[
-               { q: "Por que o app não é gratuito?", a: "Para garantir sua privacidade absoluta (não vendemos dados) e oferecer uma experiência sem anúncios. É um valor simbólico para manter um projeto que nutre sua alma." },
-               { q: "Como funciona a Comunidade de Intercessão?", a: "É um 'Mural de Graças' onde você pede orações e reza pelos irmãos. Você recebe notificações reais sempre que alguém intercede pela sua intenção, criando uma corrente de apoio espiritual." },
-               { q: "O Localizador de Igrejas funciona em todo lugar?", a: "Sim. Utilizamos tecnologia global para localizar paróquias, capelas e santuários católicos onde quer que você esteja, ideal para viagens ou para descobrir novos locais de missa no seu bairro." },
-               { q: "E se eu não conseguir cumprir a rotina?", a: "Fique em paz. O sistema de renovação mensal serve exatamente para isso: a cada 30 dias, ajustamos o plano baseados no que você conseguiu ou não fazer. O foco é o progresso, não a perfeição." },
-               { q: "O conteúdo é fiel à doutrina católica?", a: "Sim. Todo o algoritmo e a biblioteca são curados com base estrita nas Sagradas Escrituras, no Magistério da Igreja e na vida dos Santos. Não há 'achismos'." },
-               { q: "Tenho fidelidade na assinatura?", a: "Nenhuma. Você pode cancelar a renovação automática a qualquer momento nas configurações do seu perfil. Queremos que você fique pelos frutos espirituais, não por contrato." },
-            ].map((item, idx) => (
-               <div key={idx} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden transition-all hover:border-brand-violet/30">
-                  <button onClick={() => toggleFaq(idx)} className="w-full flex justify-between items-center p-6 text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                     <span className="font-bold text-brand-dark dark:text-white text-sm md:text-base">{item.q}</span>
-                     {openFaq === idx ? <ChevronUp className="text-brand-violet" /> : <ChevronDown className="text-slate-400" />}
-                  </button>
-                  {openFaq === idx && (
-                     <div className="px-6 pb-6 pt-0 text-slate-600 dark:text-slate-400 text-sm leading-relaxed animate-fade-in border-t border-slate-100 dark:border-white/5 pt-4 mt-2">
-                        {item.a}
-                     </div>
-                  )}
-               </div>
-            ))}
-         </div>
-      </section>
-
+      {/* --- Rodapé --- */}
       <footer className="bg-white dark:bg-brand-dark border-t border-slate-200 dark:border-white/10 pt-20 pb-10 px-6 relative overflow-hidden">
          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-brand-violet/20 to-transparent" />
          <div className="max-w-6xl mx-auto">
@@ -660,11 +613,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                <div>
                   <h4 className="font-bold text-brand-dark dark:text-white mb-6">Produto</h4>
                   <ul className="space-y-4 text-sm text-slate-500 dark:text-slate-400 font-medium">
-                     <li><button onClick={() => scrollToSection('momentos')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">O Método</button></li>
-                     <li><button onClick={() => scrollToSection('acervo')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">Biblioteca da Fé</button></li>
-                     <li><button onClick={() => scrollToSection('gps')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">Encontrar Igrejas</button></li>
-                     <li><button onClick={() => scrollToSection('depoimentos')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">Impacto Real</button></li>
-                     <li><button onClick={() => scrollToSection('plano')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">Planos de Acesso</button></li>
+                     <li><button onClick={() => scrollToSection('metodo')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">O Método</button></li>
+                     <li><button onClick={() => scrollToSection('biblioteca')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">Biblioteca da Fé</button></li>
+                     <li><button onClick={() => scrollToSection('igrejas')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">Encontrar Igrejas</button></li>
+                     <li><button onClick={() => scrollToSection('impacto')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">Impacto Real</button></li>
+                     <li><button onClick={() => scrollToSection('assinatura')} className="hover:text-brand-violet transition-colors text-left w-full hover:translate-x-1 duration-200">Planos de Acesso</button></li>
                   </ul>
                </div>
                <div>
