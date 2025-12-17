@@ -1,5 +1,5 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, OnboardingData, RoutineItem, DailyTopic, MonthlyReviewData } from '../types';
 
 const getApiKey = () => {
@@ -8,39 +8,21 @@ const getApiKey = () => {
 
 const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
-// Função para remover artefatos de Markdown (**, *, _, etc) e garantir texto natural
 export const cleanAIOutput = (text: string): string => {
   if (!text) return "";
   return text
-    .replace(/\*\*/g, '') // Remove negritos (**exemplo**)
-    .replace(/__/g, '')   // Remove negritos alternativos (__exemplo__)
-    .replace(/\*/g, '')    // Remove itálicos ou marcadores (*exemplo*)
-    .replace(/_/g, '')     // Remove itálicos alternativos (_exemplo_)
-    .replace(/#/g, '')     // Remove headers (# Título)
-    .replace(/`/g, '')     // Remove blocos de código (`exemplo`)
+    .replace(/\*\*/g, '')
+    .replace(/__/g, '')
+    .replace(/\*/g, '')
+    .replace(/_/g, '')
+    .replace(/#/g, '')
+    .replace(/`/g, '')
     .trim();
-};
-
-const QUOTA_KEY = 'gemini_quota_lock_until';
-const isQuotaLocked = (): boolean => {
-  const lockUntil = localStorage.getItem(QUOTA_KEY);
-  if (!lockUntil) return false;
-  return new Date().getTime() < parseInt(lockUntil);
-};
-
-const lockQuota = () => {
-  const cooldown = new Date().getTime() + (60 * 60 * 1000); 
-  localStorage.setItem(QUOTA_KEY, cooldown.toString());
-};
-
-const isQuotaError = (error: any) => {
-    const msg = error?.message || '';
-    return error?.status === 429 || msg.includes('429') || msg.includes('Quota exceeded');
 };
 
 const getFromCache = <T>(baseKey: string): T | null => {
     const today = new Date().toDateString();
-    const cached = localStorage.getItem(`gemini_cache_v5_${baseKey}`);
+    const cached = localStorage.getItem(`gemini_cache_v7_${baseKey}`);
     if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed.date === today) return parsed.data;
@@ -50,23 +32,28 @@ const getFromCache = <T>(baseKey: string): T | null => {
 
 const saveToCache = (baseKey: string, data: any) => {
     const today = new Date().toDateString();
-    localStorage.setItem(`gemini_cache_v5_${baseKey}`, JSON.stringify({ date: today, data }));
+    localStorage.setItem(`gemini_cache_v7_${baseKey}`, JSON.stringify({ date: today, data }));
+};
+
+const SAINT_CONTEXTS: Record<string, string> = {
+  acutis: "Espiritualidade de Carlo Acutis: Foco na Eucaristia como rodovia para o céu e na santificação do mundo digital e tecnológico.",
+  michael: "Espiritualidade de São Miguel Arcanjo: Foco no combate espiritual, na vigilância contra as tentações e na proteção da Igreja.",
+  therese: "Espiritualidade de Santa Teresinha: A 'Pequena Via'. Foco em fazer pequenas coisas com amor extraordinário e confiança cega na misericórdia.",
+  joseph: "Espiritualidade de São José: Foco no silêncio, na santificação do trabalho ordinário, na castidade e no cuidado com a família.",
+  mary: "Espiritualidade Mariana: Foco na entrega total (Totus Tuus), no Rosário diário e na imitação das virtudes de humildade e obediência da Virgem Maria."
 };
 
 export const sendMessageToSpiritualDirector = async (message: string, user?: UserProfile): Promise<string> => {
-  if (isQuotaLocked()) return "Estou em silêncio orante no momento. Tente novamente mais tarde.";
-  if (!getApiKey()) return "Aguardando conexão com o servidor de oração...";
-
   try {
     const userContext = user 
-      ? `Usuário: ${user.name}. Estado: ${user.stateOfLife}. Foco: ${user.spiritualFocus}.` 
+      ? `Usuário: ${user.name}. Estado: ${user.stateOfLife}. Luta: ${user.spiritualFocus}. Padroeiro: ${user.patronSaint}.` 
       : "Usuário visitante.";
 
     const systemInstruction = `
-      Você é um diretor espiritual católico sábio e fiel ao Magistério.
-      Responda com profundidade e brevidade (max 150 palavras).
-      NUNCA use formatação Markdown como asteriscos, negrito ou listas com símbolos.
-      Escreva de forma fluida e humana.
+      Você é um diretor espiritual católico sábio, humilde e fiel ao Magistério da Igreja.
+      Responda SEMPRE em Português do Brasil.
+      Sua linguagem deve ser acolhedora mas firme na doutrina.
+      Integre conselhos baseados na vida do santo padroeiro do usuário quando relevante.
       Contexto: ${userContext}
     `;
 
@@ -78,45 +65,67 @@ export const sendMessageToSpiritualDirector = async (message: string, user?: Use
 
     return cleanAIOutput(response.text || "Paz e Bem. Como posso ajudar?");
   } catch (error: any) {
-    if (isQuotaError(error)) lockQuota();
     console.error("Gemini Error:", error);
     return "Tive um momento de silêncio técnico. Retornarei em breve.";
   }
 };
 
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string }> => {
-  if (isQuotaLocked() || !getApiKey()) return getFallbackRoutine();
-
+  const saintSpirituality = SAINT_CONTEXTS[data.patronSaint || 'michael'] || "";
+  
   const prompt = `
-    Crie uma REGRA DE VIDA CATÓLICA para ${data.name}.
-    Estado: ${data.stateOfLife}. Luta: ${data.primaryStruggle}.
-    ${reviewData ? `Feedback: ${reviewData.intensity}` : ''}
-    Retorne um JSON com "profileDescription" e um array "routine".
-    NUNCA use negrito ou símbolos de formatação nos textos.
-    Use actionLinks: 'OPEN_MAP', 'READ_LITURGY', 'OPEN_COMMUNITY', 'NONE'.
+    Aja como um Diretor Espiritual Católico. Crie uma REGRA DE VIDA personalizada para ${data.name}.
+    
+    DADOS DO FIEL:
+    - Estado de Vida: ${data.stateOfLife}
+    - Luta Principal: ${data.primaryStruggle}
+    - Objetivo: ${data.spiritualGoal}
+    - Santo de Devoção: ${data.patronSaint}
+    - CONTEXTO DO SANTO: ${saintSpirituality}
+
+    ESTRUTURA TEMÁTICA DA SEMANA:
+    - Domingo: Ressurreição | Segunda: Almas | Terça: Santos Anjos | Quarta: São José | Quinta: Eucaristia | Sexta: Paixão | Sábado: Maria
+
+    REQUISITOS OBRIGATÓRIOS:
+    1. Integre pelo menos 1 prática ESPECÍFICA da espiritualidade de ${data.patronSaint} em cada dia da semana.
+    2. Ajuste a dificuldade para o ritmo: ${data.routineType}.
+    3. Responda APENAS em Português do Brasil.
+    4. O "profileDescription" deve ser um título místico (ex: "Sentinela de Miguel", "Pequena Flor de Lis").
+
+    RETORNE APENAS O JSON:
+    {
+      "profileDescription": "String",
+      "routine": [
+        { "title": "String", "description": "String", "detailedContent": "String", "xpReward": Number, "icon": "String", "timeOfDay": "String", "dayOfWeek": [Number], "actionLink": "String" }
+      ]
+    }
   `;
 
   try {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt,
-        config: { responseMimeType: 'application/json' }
+        config: { 
+          responseMimeType: 'application/json',
+          systemInstruction: "Você gera regras de vida católica em JSON. Use os temas dos santos de forma criativa e prática."
+        }
     });
 
     const json = JSON.parse(response.text || '{}');
     const routine = (json.routine || []).map((item: any) => ({
         ...item,
-        title: cleanAIOutput(item.title),
-        description: cleanAIOutput(item.description),
         id: crypto.randomUUID(),
         completed: false,
-        dayOfWeek: item.dayOfWeek || [0,1,2,3,4,5,6],
-        timeOfDay: item.timeOfDay || 'morning',
-        actionLink: item.actionLink || 'NONE'
+        title: cleanAIOutput(item.title),
+        description: cleanAIOutput(item.description)
     }));
 
-    return { routine, profileDescription: cleanAIOutput(json.profileDescription || 'Alma em Caminhada') };
+    return { 
+      routine, 
+      profileDescription: cleanAIOutput(json.profileDescription || 'Alma em Caminhada') 
+    };
   } catch (e) {
+    console.error("Routine Generation Failed:", e);
     return getFallbackRoutine();
   }
 };
@@ -124,9 +133,9 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
 function getFallbackRoutine() {
     return {
         routine: [
-             { id: 'f1', title: 'Oração da Manhã', description: 'Oferecimento do dia ao Senhor', xpReward: 15, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
-             { id: 'f2', title: 'Evangelho do Dia', description: 'Leitura espiritual nutritiva', xpReward: 20, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
-             { id: 'f3', title: 'Missa Dominical', description: 'O cume da vida cristã', xpReward: 100, completed: false, icon: 'church', timeOfDay: 'morning', dayOfWeek: [0], actionLink: 'OPEN_MAP' }
+             { id: 'f1', title: 'Oferecimento do Dia', description: 'Entregar o dia ao Senhor', xpReward: 15, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
+             { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a voz do Mestre', xpReward: 20, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
+             { id: 'f3', title: 'Exame de Consciência', description: 'Revisar o dia no amor', xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' }
         ] as RoutineItem[],
         profileDescription: 'Peregrino da Fé'
     };
@@ -135,29 +144,24 @@ function getFallbackRoutine() {
 export const generateDailyReflection = async (saint: string): Promise<string> => {
   const cached = getFromCache<string>('daily_quote');
   if (cached) return cached;
-  if (!getApiKey()) return "Caminhe na paz de Cristo.";
-
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Gere uma frase curta inspiradora sobre a fé católica ou o santo: ${saint}. NUNCA use negrito. JSON: { "quote": "texto" }`,
-      config: { responseMimeType: 'application/json' }
+      contents: `Gere uma frase curta e inspiradora em PORTUGUÊS sobre a fé católica ou o santo ${saint}.`,
     });
-    const json = JSON.parse(response.text || '{}');
-    const res = cleanAIOutput(json.quote || "Santos e anjos, rogai por nós.");
+    const res = cleanAIOutput(response.text || "Deus te abençoe.");
     saveToCache('daily_quote', res);
     return res;
-  } catch { return "Deus te abençoe."; }
+  } catch { return "Caminhe na paz de Cristo."; }
 };
 
 export const generateDailyTheme = async (gospel?: string): Promise<string> => {
   const cached = getFromCache<string>('daily_theme');
   if (cached) return cached;
-
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Resuma o ensinamento central deste Evangelho em 5 palavras, sem pontuação extra ou negrito: ${gospel || 'Amor de Deus'}`,
+      contents: `Resuma o Evangelho em 5 palavras em PORTUGUÊS: ${gospel || 'Amor de Deus'}`,
     });
     const res = cleanAIOutput(response.text || "Santidade Diária");
     saveToCache('daily_theme', res);
@@ -166,30 +170,24 @@ export const generateDailyTheme = async (gospel?: string): Promise<string> => {
 };
 
 export const generateLiturgicalDailyTopic = async (day: number, season: string): Promise<DailyTopic> => {
-    const cacheKey = `topic_${season}_${day}`;
-    const cached = getFromCache<DailyTopic>(cacheKey);
-    if (cached) return cached;
-
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
-            contents: `Gere um desafio prático católico para o dia ${day} do tempo de ${season}. NUNCA use negrito no JSON. JSON com title, description, scripture, actionType (PRAYER/RELATIONSHIP/SACRIFICE), actionContent.`,
+            contents: `Crie um desafio prático católico em PORTUGUÊS para o dia ${day} do tempo de ${season}. Retorne JSON com title, description, scripture, actionType, actionContent. Sem Markdown.`,
             config: { responseMimeType: 'application/json' }
         });
         const data = JSON.parse(response.text || '{}');
-        const res: DailyTopic = {
+        return {
             day,
-            title: cleanAIOutput(data.title || "Ato de Amor"),
-            description: cleanAIOutput(data.description || "Realize uma pequena caridade."),
+            title: cleanAIOutput(data.title),
+            description: cleanAIOutput(data.description),
             isCompleted: false,
             isLocked: false,
             actionType: data.actionType || 'GENERIC',
             actionContent: cleanAIOutput(data.actionContent),
             scripture: cleanAIOutput(data.scripture)
         };
-        saveToCache(cacheKey, res);
-        return res;
     } catch {
-        return { day, title: "Pequena Oração", description: "Reze por alguém hoje.", isCompleted: false, isLocked: false };
+        return { day, title: "Pequeno Ato de Amor", description: "Faça uma caridade hoje.", isCompleted: false, isLocked: false };
     }
 };

@@ -216,7 +216,8 @@ const App: React.FC = () => {
       const updatedUser: UserProfile = {
         ...session.user,
         spiritualMaturity: result.profileDescription,
-        spiritualGoal: data.spiritualGoal, // ADICIONADO PARA CORRIGIR O ERRO
+        spiritualFocus: data.primaryStruggle,
+        spiritualGoal: data.spiritualGoal,
         patronSaint: data.patronSaint,
         lastRoutineUpdate: new Date()
       };
@@ -230,7 +231,7 @@ const App: React.FC = () => {
 
       setGeneratedArchetype({
         title: result.profileDescription, 
-        subtitle: `Preparamos um caminho sereno para você superar a ${struggleText} e cultivar ${goalText}.`
+        subtitle: `Iniciaremos sua caminhada para vencer a ${struggleText} e cultivar ${goalText}. Este é o seu caminho de santidade.`
       });
     } catch (error: any) {
       console.error("Registration failed:", error);
