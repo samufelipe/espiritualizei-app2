@@ -21,16 +21,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
-    if (element) {
+    const container = document.querySelector('main'); // O App.tsx usa <main> como scroll container
+    
+    if (element && container) {
       const headerOffset = 100;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.scrollY - headerOffset;
+      const elementPosition = element.offsetTop;
+      const offsetPosition = elementPosition - headerOffset;
 
-      window.scrollTo({
+      container.scrollTo({
         top: offsetPosition,
         behavior: "smooth"
       });
       setMobileMenuOpen(false);
+    } else if (id === 'top' && container) {
+      container.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -121,7 +125,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
       {/* --- Navbar --- */}
       <nav className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
         <div className="bg-white/90 dark:bg-brand-dark/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-full px-4 sm:px-6 py-3 flex items-center justify-between shadow-float relative">
-          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => scrollToSection('top')}>
             <BrandLogo size={24} variant="fill" className="text-brand-violet" />
             <span className="font-bold text-lg tracking-tight text-brand-dark dark:text-white block sm:block">Espiritualizei</span>
           </div>
@@ -597,7 +601,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
          <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                <div className="space-y-6">
-                  <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                  <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollToSection('top')}>
                      <BrandLogo size={32} variant="fill" className="text-brand-violet" />
                      <span className="font-bold text-xl text-brand-dark dark:text-white tracking-tight">Espiritualizei</span>
                   </div>
