@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { UserProfile, LiturgyDay, PrayerIntention, RoutineItem } from '../types';
 import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut } from 'lucide-react';
-import { generateDailyReflection, generateDailyTheme } from '../services/geminiService';
+import { generateDailyReflection, generateDailyTheme, cleanAIOutput } from '../services/geminiService';
 import { fetchRealDailyLiturgy } from '../services/liturgyService';
 import JournalModal from './JournalModal';
 import NotificationCenter from './NotificationCenter';
@@ -40,7 +40,6 @@ const DEFAULT_WIDGET_ORDER: WidgetConfig[] = [
   { id: 'invite', isVisible: true },
 ];
 
-// Mapeamento de nomes para exibição amigável
 const WIDGET_LABELS: Record<WidgetId, string> = {
   liturgyHero: 'Liturgia Diária',
   progressSummary: 'Progresso da Rotina',
@@ -70,7 +69,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [showContactModal, setShowContactModal] = useState(false);
   const [isCustomizing, setIsCustomizing] = useState(false);
   
-  // Persistência: Carrega do localStorage ou usa o padrão
   const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>(() => {
     const saved = localStorage.getItem('dashboard_widgets_v6'); 
     return saved ? JSON.parse(saved) : DEFAULT_WIDGET_ORDER;
@@ -81,7 +79,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   
   const hasLoadedRef = useRef(false);
 
-  // --- LOGIC: NEXT STEP & PROGRESS ---
   const today = new Date().getDay();
   const todaysTasks = routineItems.filter(i => i.dayOfWeek.includes(today));
   const nextTask = todaysTasks
@@ -107,7 +104,10 @@ const Dashboard: React.FC<DashboardProps> = ({
         }
         
         const theme = await generateDailyTheme(realLiturgy.readings.gospel.text);
-        if (isMounted) setDailyTheme(theme);
+        if (isMounted) {
+            // Reforçamos a limpeza aqui também por segurança
+            setDailyTheme(cleanAIOutput(theme));
+        }
     };
     loadData();
     
@@ -119,7 +119,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     return () => { isMounted = false; };
   }, []);
 
-  // Persistência: Salva no localStorage sempre que mudar
   useEffect(() => {
     localStorage.setItem('dashboard_widgets_v6', JSON.stringify(widgetConfig));
   }, [widgetConfig]);
@@ -146,13 +145,10 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const handleShareApp = () => {
     const text = `Olá, tudo bem? A paz! 🙏\n\nConheci um app chamado *Espiritualizei* para organizar minha vida de oração e espiritualidade, lembrei muito de você.\n\nÉ um aplicativo católico incrível que ajuda a ter constância espiritual, com liturgia diária e tem até uma comunidade de oração.\n\nAcho que vale muito a pena você conhecer também 💜\nVou te enviar o link aqui:\n${window.location.origin}`;
-    
-    // Usar a URL completa da API do WhatsApp garante melhor compatibilidade de encoding para emojis
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
   };
 
-  // --- LITURGY HELPERS (TEXTOS REAIS E PRECISOS) ---
   const getLiturgyStyle = () => {
      const color = liturgyData?.liturgicalColor?.toLowerCase() || '';
      
@@ -176,7 +172,6 @@ const Dashboard: React.FC<DashboardProps> = ({
         meaning: 'O Rosa marca uma breve pausa de alegria (Domingos Gaudete e Laetare) em meio aos tempos de penitência.',
         text: 'text-pink-100'
      };
-     // Default Roxo
      return {
         gradient: 'bg-gradient-to-br from-[#7C3AED] to-[#4C1D95]',
         meaning: 'O Roxo (Advento e Quaresma) nos convida à conversão profunda, à penitência e à espera vigilante pelo Senhor.',
@@ -186,18 +181,12 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const style = getLiturgyStyle();
 
-  // --- WIDGET RENDERERS ---
-
-  // 1. LITURGY HERO (Foco Principal)
   const renderLiturgyHero = () => (
     <div className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${style.gradient} p-6 md:p-8 text-white flex flex-col justify-between group transition-all duration-500 min-h-[260px] md:min-h-[280px]`}>
-      
-      {/* Texture */}
       <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
       <div className="absolute -top-32 -right-32 w-80 h-80 bg-white/10 rounded-full blur-[80px] pointer-events-none" />
       
       <div className="relative z-10 flex flex-col h-full">
-        {/* Top Header */}
         <div className="flex justify-between items-start mb-4 md:mb-6">
            <div>
               <div className="flex items-center gap-2 mb-1 opacity-90">
@@ -214,7 +203,6 @@ const Dashboard: React.FC<DashboardProps> = ({
            </div>
         </div>
 
-        {/* Center Inspiration */}
         <div className="flex-1 flex flex-col justify-center mb-6">
            <p className="font-serif text-2xl sm:text-3xl md:text-4xl leading-tight mb-4 drop-shadow-md">
              "{dailyTheme}"
@@ -227,7 +215,6 @@ const Dashboard: React.FC<DashboardProps> = ({
            )}
         </div>
 
-        {/* Bottom Educational + Action */}
         <div>
            <p className={`text-xs ${style.text} mb-4 font-medium italic opacity-90 border-l-2 border-white/30 pl-3 leading-relaxed`}>
               {style.meaning}
@@ -244,7 +231,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 
-  // 2. PROGRESS SUMMARY (Compacto)
   const renderProgressSummary = () => (
      <div className="bg-white dark:bg-[#1A1F26] rounded-[2rem] p-5 shadow-card border border-slate-100 dark:border-white/5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -278,7 +264,6 @@ const Dashboard: React.FC<DashboardProps> = ({
      </div>
   );
 
-  // 4. INVITE CARD (New Feature)
   const renderInviteCard = () => (
     <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl shadow-brand-violet/20 flex flex-col justify-between h-full min-h-[220px]">
        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
@@ -302,10 +287,8 @@ const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 
-  // 3. QUICK ACTIONS GRID (Organizado e Didático)
   const renderQuickActions = () => (
      <div className="space-y-4">
-        {/* Cabeçalho Didático */}
         <div className="px-1">
            <h3 className="text-sm font-bold text-brand-dark dark:text-white flex items-center gap-2">
               <LayoutGrid size={16} className="text-brand-violet" /> Ferramentas da Alma
@@ -322,7 +305,6 @@ const Dashboard: React.FC<DashboardProps> = ({
            </button>
 
            <button onClick={onNavigateToCommunity} className="bg-white dark:bg-[#1A1F26] p-4 rounded-[1.8rem] border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center gap-2 hover:border-brand-violet/30 transition-all shadow-card group">
-              {/* Ícone Renomeado de Acender Vela -> Intercessão/Coração */}
               <div className="text-brand-violet group-hover:scale-110 transition-transform"><Heart size={24} strokeWidth={1.5} /></div>
               <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Intercessão</span>
            </button>
@@ -342,8 +324,6 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="p-4 md:p-8 pb-32 space-y-6 animate-fade-in font-sans bg-transparent transition-colors min-h-screen relative">
-      
-      {/* Top Bar (Perfil & Configs) */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={onNavigateToProfile}> 
           <div className="w-12 h-12 rounded-full bg-transparent border-2 border-slate-200 dark:border-white/20 shadow-sm overflow-hidden transition-all group-hover:border-brand-violet p-0.5">
@@ -398,21 +378,14 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       )}
 
-      {/* --- NEW LAYOUT v6 (Liturgy Focused + Desktop Optimized) --- */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-         
-         {/* 1. LEFT COLUMN: LITURGIA HERO + QUICK ACTIONS (Desktop) */}
          <div className="md:col-span-8 flex flex-col gap-6">
-            {/* Liturgy Hero */}
             {widgetConfig.find(w => w.id === 'liturgyHero')?.isVisible && renderLiturgyHero()}
-            
-            {/* Quick Actions (Ferramentas da Alma) - Moved here for DESKTOP ONLY to fill empty space */}
             <div className="hidden md:block">
                {widgetConfig.find(w => w.id === 'quickActions')?.isVisible && renderQuickActions()}
             </div>
          </div>
 
-         {/* 2. RIGHT COLUMN (Progress & Intentions & Invite) */}
          <div className="md:col-span-4 flex flex-col gap-6">
             {widgetConfig.find(w => w.id === 'progressSummary')?.isVisible && renderProgressSummary()}
             
@@ -434,17 +407,14 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
             )}
 
-            {/* INVITE CARD FIXED HERE */}
             {widgetConfig.find(w => w.id === 'invite')?.isVisible && renderInviteCard()}
          </div>
 
-         {/* 3. MOBILE ONLY QUICK ACTIONS (Keep original position on mobile) */}
          <div className="md:hidden col-span-1">
             {widgetConfig.find(w => w.id === 'quickActions')?.isVisible && renderQuickActions()}
          </div>
       </div>
 
-      {/* MOBILE LOGOUT BUTTON (NEW) */}
       <div className="md:hidden mt-8 border-t border-slate-100 dark:border-white/5 pt-6">
          <button 
             onClick={onLogout}
@@ -455,7 +425,6 @@ const Dashboard: React.FC<DashboardProps> = ({
          <p className="text-center text-[10px] text-slate-400 mt-4">Espiritualizei v2.5</p>
       </div>
 
-      {/* --- LITURGY MODAL (Same as before) --- */}
       {showLiturgyModal && liturgyData && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-brand-dark/90 backdrop-blur-md animate-fade-in" onClick={() => setShowLiturgyModal(false)} />
@@ -499,10 +468,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                     
                     <div className="font-sans text-lg leading-loose text-justify text-slate-800 dark:text-slate-200 whitespace-pre-line">
-                       {activeLiturgyTab === 'first' && liturgyData.readings.first.text}
-                       {activeLiturgyTab === 'psalm' && liturgyData.readings.psalm.text}
-                       {activeLiturgyTab === 'second' && liturgyData.readings.second?.text}
-                       {activeLiturgyTab === 'gospel' && liturgyData.readings.gospel.text}
+                       {activeLiturgyTab === 'first' && cleanAIOutput(liturgyData.readings.first.text)}
+                       {activeLiturgyTab === 'psalm' && cleanAIOutput(liturgyData.readings.psalm.text)}
+                       {activeLiturgyTab === 'second' && cleanAIOutput(liturgyData.readings.second?.text || '')}
+                       {activeLiturgyTab === 'gospel' && cleanAIOutput(liturgyData.readings.gospel.text)}
                     </div>
 
                     <div className="mt-12 text-center text-xs font-bold uppercase tracking-widest text-slate-400 font-sans">
