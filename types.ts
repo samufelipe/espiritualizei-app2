@@ -6,7 +6,7 @@ export enum Tab {
   COMMUNITY = 'COMMUNITY',
   MAPS = 'MAPS',
   PROFILE = 'PROFILE',
-  CHAT = 'CHAT' // Nova aba
+  CHAT = 'CHAT'
 }
 
 export interface UserSettings {
@@ -31,10 +31,11 @@ export interface UserProfile {
   streakDays: number;
   spiritualMaturity?: string;
   spiritualFocus?: string; 
+  spiritualGoal?: 'peace' | 'truth' | 'discipline' | 'love' | 'healing';
   stateOfLife?: string;   
   hasSeenTutorial?: boolean;
   joinedDate: Date;
-  lastRoutineUpdate?: Date; // Novo campo para o ciclo de 30 dias
+  lastRoutineUpdate?: Date;
   isPremium?: boolean;
   subscriptionStatus?: 'active' | 'trial' | 'canceled' | 'expired';
   activityHistory?: { date: string; count: number }[];
@@ -83,7 +84,7 @@ export interface ChatMessage {
 export interface PrayerIntention {
   id: string;
   author: string;
-  authorAvatar?: string; // Added field for avatar
+  authorAvatar?: string;
   content: string;
   prayingCount: number;
   isPrayedByUser: boolean;
@@ -153,9 +154,9 @@ export interface DailyTopic {
   day: number;
   title: string;
   description: string;
-  action?: string; // Título curto da ação
-  actionType?: ChallengeActionType; // Tipo para UI
-  actionContent?: string; // Texto longo (ex: a oração inteira, ou instruções passo a passo)
+  action?: string;
+  actionType?: ChallengeActionType;
+  actionContent?: string;
   isCompleted: boolean;
   isLocked: boolean;
   scripture?: string;
@@ -204,12 +205,11 @@ export interface OnboardingData {
   photoUrl?: string;
 }
 
-// Estrutura detalhada para o Feedback Mensal
 export interface MonthlyReviewData {
   intensity: 'too_heavy' | 'balanced' | 'too_light';
-  consistency: 'low' | 'medium' | 'high'; // O quanto conseguiu cumprir
-  likedPractices: string[]; // Ex: ['Rosário', 'Leitura']
-  dislikedPractices: string[]; // Ex: ['Meditação Longa']
+  consistency: 'low' | 'medium' | 'high';
+  likedPractices: string[];
+  dislikedPractices: string[];
   newStruggle: string;
   newGoal: string;
   timeAvailabilityChange: 'same' | 'less' | 'more';
