@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, UserProfile } from '../types';
 import { sendMessageToSpiritualDirector } from '../services/geminiService';
-import { ArrowUp, Sparkles } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
+import BrandLogo from './BrandLogo';
 
 interface SpiritualChatProps {
   user?: UserProfile;
@@ -107,7 +108,7 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
         {isLoading && (
            <div className="flex justify-start w-full animate-pulse pl-1">
               <div className="flex gap-2 items-center">
-                  <Sparkles size={14} className="text-brand-violet animate-spin-slow" aria-hidden="true" />
+                  <BrandLogo size={14} variant="fill" className="text-brand-violet animate-spin-slow" />
                   <span className="text-xs text-stone-400 dark:text-slate-500 font-serif italic">Refletindo...</span>
               </div>
            </div>
@@ -123,8 +124,8 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Escreva para seu diretor..."
-            aria-label="Mensagem para o diretor espiritual"
+            placeholder="Escreva para seu direcionamento espiritual..."
+            aria-label="Mensagem para o direcionamento espiritual"
             className="flex-1 bg-transparent pl-4 py-3 outline-none text-base text-brand-dark dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 font-sans font-light"
             disabled={isLoading}
           />

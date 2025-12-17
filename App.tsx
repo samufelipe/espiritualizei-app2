@@ -1,39 +1,88 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import Navigation from './components/Navigation';
-import Dashboard from './components/Dashboard';
-import Routine from './components/Routine';
-import SpiritualChat from './components/SpiritualChat';
-import Community from './components/Community';
-import Onboarding from './components/Onboarding';
-import ParishFinder from './components/ParishFinder';
-import Profile from './components/Profile';
-import LandingPage from './components/LandingPage';
+import Sidebar from './components/Sidebar';
 import BrandLogo from './components/BrandLogo';
 import Tutorial from './components/Tutorial';
 import Login from './components/Login'; 
 import Checkout from './components/Checkout'; 
-import KnowledgeBase from './components/KnowledgeBase';
 import CreateIntentionModal from './components/CreateIntentionModal';
-import AmbientPlayer from './components/AmbientPlayer';
 import DailyInspiration from './components/DailyInspiration';
-import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge } from './types';
+import UpdatePasswordModal from './components/UpdatePasswordModal'; 
+import MonthlyReviewModal from './components/MonthlyReviewModal'; 
+import InstallPWA from './components/InstallPWA';
+import { TermsPage, PrivacyPage, AboutPage, ContactPage } from './components/LegalPages'; 
+import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine, generateLiturgicalDailyTopic } from './services/geminiService';
-import { getLiturgicalInfo } from './services/liturgyService'; // Import Liturgy Engine
-import { registerUser, getSession, logoutUser, updateUserProfile } from './services/authService';
+import { getSeasonDetailedInfo, calculateDayOfSeason } from './services/liturgyService'; 
+import { registerUser, getSession, logoutUser, updateUserProfile, supabase } from './services/authService'; 
 import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, createJournalEntry, addRoutineItem, deleteRoutineItem, deleteUserAccount, upgradeUserToPremium } from './services/databaseService';
-import { Sparkles, Crown, Star, Shield, Heart, ArrowRight, X } from 'lucide-react';
+import { Sparkles, Crown, ArrowRight, Loader2, Sun, Shield, Heart, User as UserIcon } from 'lucide-react';
+
+// --- LAZY LOADING COMPONENTS ---
+// Isso divide o código em pedaços menores, carregados apenas quando necessários.
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const Routine = lazy(() => import('./components/Routine'));
+const Community = lazy(() => import('./components/Community'));
+const Onboarding = lazy(() => import('./components/Onboarding'));
+const ParishFinder = lazy(() => import('./components/ParishFinder')); // Pesado (Mapas)
+const Profile = lazy(() => import('./components/Profile'));
+const LandingPage = lazy(() => import('./components/LandingPage'));
+const KnowledgeBase = lazy(() => import('./components/KnowledgeBase'));
+const SpiritualChat = lazy(() => import('./components/SpiritualChat'));
+
+// --- TRANSLATION MAPS ---
+const STRUGGLE_TRANSLATION: Record<string, string> = {
+  anxiety: 'Ansiedade',
+  laziness: 'Preguiça',
+  dryness: 'Aridez',
+  lust: 'Impureza',
+  ignorance: 'Dúvida',
+  pride: 'Soberba',
+  anger: 'Ira'
+};
+
+const GOAL_TRANSLATION: Record<string, string> = {
+  peace: 'Paz Interior',
+  truth: 'Sabedoria',
+  discipline: 'Constância',
+  love: 'Amor',
+  healing: 'Cura'
+};
+
+const SAINT_TRANSLATION: Record<string, string> = {
+  acutis: 'Beato Carlo Acutis',
+  michael: 'São Miguel',
+  therese: 'Santa Teresinha',
+  joseph: 'São José',
+  mary: 'Virgem Maria'
+};
+
+// --- LOADING FALLBACK COMPONENT ---
+const TabLoader = () => (
+  <div className="h-full w-full flex flex-col items-center justify-center animate-fade-in text-slate-400">
+     <BrandLogo size={40} variant="fill" className="text-brand-violet animate-pulse-slow mb-4" />
+     <Loader2 size={24} className="animate-spin text-brand-violet" />
+  </div>
+);
 
 const App: React.FC = () => {
+  const path = window.location.pathname;
+  if (path === '/termos') return <TermsPage />;
+  if (path === '/privacidade') return <PrivacyPage />;
+  if (path === '/sobre') return <AboutPage />;
+  if (path === '/contato') return <ContactPage />;
+
   const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'checkout' | 'app'>('landing');
   const [showTutorial, setShowTutorial] = useState(false);
   const [showDailyInspiration, setShowDailyInspiration] = useState(false);
+  const [showUpdatePasswordModal, setShowUpdatePasswordModal] = useState(false);
+  const [showMonthlyReview, setShowMonthlyReview] = useState(false); 
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.DASHBOARD);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showMapsOverlay, setShowMapsOverlay] = useState(false);
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [generatedArchetype, setGeneratedArchetype] = useState<{ title: string; subtitle: string } | null>(null);
-  const [feedInitialContent, setFeedInitialContent] = useState<string>('');
+  const [feedInitialContent, setFeedInitialContent] = useState<string>(''); 
+  const [showLiturgyModal, setShowLiturgyModal] = useState(false);
 
   const [user, setUser] = useState<UserProfile>({
     id: 'guest',
@@ -46,14 +95,15 @@ const App: React.FC = () => {
     spiritualMaturity: 'Iniciante',
     spiritualFocus: 'Paz', 
     stateOfLife: 'single',
-    joinedDate: new Date()
+    joinedDate: new Date(),
+    lastRoutineUpdate: new Date() 
   });
 
   const [routineItems, setRoutineItems] = useState<RoutineItem[]>([]);
   const [intentions, setIntentions] = useState<PrayerIntention[]>([]);
 
+  // Estado inicial do Desafio
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([
-    // Placeholder Initial State - Will be updated by Liturgy Engine
     {
       id: 'liturgy-challenge',
       title: 'Carregando Jornada...',
@@ -78,42 +128,77 @@ const App: React.FC = () => {
     }
   ]);
 
-  // --- LITURGY & CHALLENGE INIT ---
+  // Listener para Recuperação de Senha
   useEffect(() => {
+    if (supabase) {
+      const { data: authListener } = supabase.auth.onAuthStateChange((event: string, session: any) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setViewState('login'); // Garante que não esteja em loading
+          setShowUpdatePasswordModal(true);
+        }
+      });
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    }
+  }, []);
+
+  const liturgyInitializedRef = useRef(false);
+
+  useEffect(() => {
+     if (viewState !== 'app' || liturgyInitializedRef.current) return;
+     liturgyInitializedRef.current = true;
+
      const initLiturgy = async () => {
-        const liturgy = getLiturgicalInfo();
-        const dayOfSeason = 5; // Exemplo: Dia 5 da estação (deveria ser calculado com diff de datas)
+        const seasonInfo = getSeasonDetailedInfo();
+        const currentDay = calculateDayOfSeason(seasonInfo.startDate);
+        const storageKey = `liturgy_completed_${seasonInfo.id}_${new Date().getFullYear()}_day_${currentDay}`;
+        const isCompletedToday = localStorage.getItem(storageKey) === 'true';
         
-        // Tenta gerar o tópico do dia via IA
-        const dailyTopic = await generateLiturgicalDailyTopic(dayOfSeason);
+        // Passando seasonName para gerar desafio contextualizado
+        const dailyTopic = await generateLiturgicalDailyTopic(currentDay, seasonInfo.name);
+        
+        if (isCompletedToday) {
+            dailyTopic.isCompleted = true;
+        }
 
         setChallenges(prev => prev.map(c => {
            if (c.id === 'liturgy-challenge') {
               return {
                  ...c,
-                 title: `Jornada: ${liturgy.seasonName}`,
-                 description: `Vivemos o ${liturgy.seasonName}. Una-se à igreja nesta caminhada espiritual.`,
-                 seasonColor: liturgy.color,
-                 currentDay: dayOfSeason,
-                 totalDays: liturgy.season === 'lent' ? 40 : liturgy.season === 'advent' ? 25 : 30,
-                 dailyTopics: [dailyTopic] // Injeta o tópico gerado
+                 title: `Jornada: ${seasonInfo.name}`,
+                 description: `Dia ${currentDay} do ${seasonInfo.name}. Una-se à igreja nesta caminhada.`,
+                 seasonColor: seasonInfo.color,
+                 currentDay: currentDay,
+                 totalDays: seasonInfo.totalDays,
+                 dailyTopics: [dailyTopic],
+                 isUserParticipating: isCompletedToday || c.isUserParticipating 
               };
            }
            return c;
         }));
      };
-     
-     if (viewState === 'app') {
-        initLiturgy();
-     }
+     initLiturgy();
   }, [viewState]);
 
-  // --- Auth & Session Check ---
   useEffect(() => {
     const initSession = async () => {
       const session = getSession();
       if (session) {
         setUser(session.user);
+        
+        // CHECK 30-DAY ROUTINE CYCLE
+        if (session.user.lastRoutineUpdate) {
+            const lastUpdate = new Date(session.user.lastRoutineUpdate);
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - lastUpdate.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            if (diffDays > 30) {
+               setShowMonthlyReview(true);
+            }
+        }
+
         if (!session.user.isPremium && session.user.subscriptionStatus !== 'active') {
            setViewState('checkout');
         } else {
@@ -141,57 +226,71 @@ const App: React.FC = () => {
       setIntentions(data);
     } catch (e) { console.error(e); }
   };
-
-  // ... (Rest of the existing App.tsx functions: toggleTheme, handleOnboarding, etc. - unchanged)
   
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    setIsDarkMode(prev => {
-      const newMode = !prev;
-      if (newMode) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      }
-      return newMode;
-    });
-  };
-
   const handleOnboardingComplete = async (data: OnboardingData) => {
-    setViewState('generating');
     try {
       const session = await registerUser(data);
+      
+      // If registration succeeds, THEN we switch to generating view
+      setViewState('generating');
+      
       const result = await generateSpiritualRoutine(data);
       const updatedUser = {
         ...session.user,
         spiritualMaturity: result.profileDescription,
-        patronSaint: data.patronSaint
+        patronSaint: data.patronSaint,
+        lastRoutineUpdate: new Date()
       };
       await updateUserProfile(updatedUser);
       setUser(updatedUser);
       setRoutineItems(result.routine);
       await saveUserRoutine(session.user.id, result.routine);
+      
+      // Construir textos humanizados
+      const struggleText = STRUGGLE_TRANSLATION[data.primaryStruggle] || data.primaryStruggle;
+      const goalText = GOAL_TRANSLATION[data.spiritualGoal] || data.spiritualGoal;
+
       setGeneratedArchetype({
-        title: result.profileDescription,
-        subtitle: `Uma rotina moldada para vencer a ${data.primaryStruggle} e encontrar a ${data.spiritualGoal}.`
+        title: result.profileDescription, 
+        subtitle: `Preparamos um caminho sereno para você superar a ${struggleText} e cultivar ${goalText}.`
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration failed:", error);
-      alert("Erro ao criar conta. Tente novamente.");
-      setViewState('onboarding');
+      throw error;
     }
+  };
+
+  const handleMonthlyReviewComplete = async (reviewData: MonthlyReviewData) => {
+      const fullData: OnboardingData = {
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          stateOfLife: user.stateOfLife as any || 'single',
+          routineType: 'flexible', 
+          primaryStruggle: reviewData.newStruggle as any,
+          spiritualGoal: reviewData.newGoal as any,
+          bestMoment: 'morning', 
+          patronSaint: user.patronSaint as any || 'michael'
+      };
+
+      try {
+          const result = await generateSpiritualRoutine(fullData, reviewData);
+          const updatedUser: UserProfile = {
+              ...user,
+              spiritualFocus: reviewData.newStruggle as string, 
+              spiritualMaturity: result.profileDescription,
+              lastRoutineUpdate: new Date() 
+          };
+
+          await updateUserProfile(updatedUser);
+          await saveUserRoutine(user.id, result.routine);
+          setUser(updatedUser);
+          setRoutineItems(result.routine);
+          setShowMonthlyReview(false);
+      } catch (e) {
+          console.error("Monthly update failed", e);
+          setShowMonthlyReview(false);
+      }
   };
 
   const handleFinishRevelation = () => {
@@ -220,28 +319,33 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+     await logoutUser();
+     setViewState('landing');
+     setUser({ id: 'guest', name: 'Visitante', email: '', level: 1, currentXP: 0, nextLevelXP: 100, streakDays: 0, joinedDate: new Date() });
+     setRoutineItems([]);
+  };
+
   const handleToggleRoutine = async (id: string) => {
-    let newStatus = false;
-    setRoutineItems(prev => prev.map(item => {
-      if (item.id === id) {
-        newStatus = !item.completed;
-        if (newStatus) {
-          setUser(u => {
-             const nu = { ...u, currentXP: u.currentXP + item.xpReward };
-             updateUserProfile(nu);
-             return nu;
-          });
-        } else {
-          setUser(u => {
-             const nu = { ...u, currentXP: Math.max(0, u.currentXP - item.xpReward) };
-             updateUserProfile(nu);
-             return nu;
-          });
-        }
-        return { ...item, completed: newStatus };
-      }
-      return item;
-    }));
+    const itemToToggle = routineItems.find(i => i.id === id);
+    if (!itemToToggle) return;
+
+    const newStatus = !itemToToggle.completed;
+    const xpReward = itemToToggle.xpReward;
+
+    let newUserState = user;
+    if (newStatus) {
+       newUserState = { ...user, currentXP: user.currentXP + xpReward };
+    } else {
+       newUserState = { ...user, currentXP: Math.max(0, user.currentXP - xpReward) };
+    }
+    setUser(newUserState);
+    updateUserProfile(newUserState);
+
+    setRoutineItems(prev => prev.map(item => 
+      item.id === id ? { ...item, completed: newStatus } : item
+    ));
+
     await toggleRoutineItemStatus(id, newStatus);
   };
 
@@ -252,7 +356,10 @@ const App: React.FC = () => {
         description: desc,
         xpReward: 10,
         completed: false,
-        icon: 'heart'
+        icon: 'heart',
+        timeOfDay: 'any',
+        dayOfWeek: [0,1,2,3,4,5,6], 
+        actionLink: 'NONE'
      };
      setRoutineItems(prev => [...prev, newItem]);
      await addRoutineItem(user.id, newItem);
@@ -283,7 +390,7 @@ const App: React.FC = () => {
 
   const handleCreateIntention = async (content: string, category: string) => {
      try {
-        const newIntention = await createIntention(user.id, user.name, content, category, []);
+        const newIntention = await createIntention(user.id, user.name, user.photoUrl, content, category, []);
         if (newIntention) {
            setIntentions(prev => [newIntention, ...prev]);
         }
@@ -291,16 +398,39 @@ const App: React.FC = () => {
   };
 
   const handleJoinChallenge = (id: string, amount: number = 0) => {
+    let shouldRewardUser = false;
+    const challenge = challenges.find(c => c.id === id);
+    if (challenge) {
+       const currentDay = challenge.currentDay || 1;
+       const topic = challenge.dailyTopics?.find(t => t.day === currentDay);
+       if (topic && !topic.isCompleted) {
+           shouldRewardUser = true;
+       }
+    }
+
+    if (shouldRewardUser) {
+        const newUserState = { ...user, currentXP: user.currentXP + 50 };
+        setUser(newUserState);
+        updateUserProfile(newUserState);
+    }
+
     setChallenges(prev => prev.map(c => {
       if (c.id === id) {
+        const seasonInfo = getSeasonDetailedInfo();
+        const currentDay = c.currentDay || 1;
+        const storageKey = `liturgy_completed_${seasonInfo.id}_${new Date().getFullYear()}_day_${currentDay}`;
+        localStorage.setItem(storageKey, 'true');
+
         const isNewJoin = !c.isUserParticipating;
         let updatedTopics = c.dailyTopics;
+        
         if (c.dailyTopics && c.currentDay) {
            updatedTopics = c.dailyTopics.map(t => {
               if (t.day === c.currentDay) return { ...t, isCompleted: true };
               return t;
            });
         }
+        
         return {
           ...c,
           isUserParticipating: true,
@@ -320,101 +450,190 @@ const App: React.FC = () => {
      setCurrentTab(Tab.COMMUNITY);
   };
 
+  const handleOpenMaps = () => setCurrentTab(Tab.MAPS);
+
   const renderContent = () => {
-    switch (currentTab) {
-      case Tab.DASHBOARD:
-        return (
-          <Dashboard 
-            user={user} 
-            myIntentions={intentions.filter(i => i.author === user.name)} 
-            onNavigateToCommunity={() => setCurrentTab(Tab.COMMUNITY)}
-            onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)}
-            onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)}
-            onSaveJournal={handleSaveJournal}
-          />
-        );
-      case Tab.ROUTINE: return <Routine items={routineItems} onToggle={handleToggleRoutine} onAdd={handleAddRoutineItem} onDelete={handleDeleteRoutineItem} />;
-      case Tab.KNOWLEDGE: return <KnowledgeBase />;
-      case Tab.CHAT: return <SpiritualChat user={user} />;
-      case Tab.COMMUNITY:
-        return (
-          <Community 
-            intentions={intentions} 
-            challenges={challenges} 
-            onPray={handlePray} 
-            onJoinChallenge={handleJoinChallenge}
-            onOpenMaps={() => setShowMapsOverlay(true)}
-            onOpenCreateModal={() => setShowIntentionModal(true)}
-            onTestify={handleTestifyFromChallenge}
-            feedInitialContent={feedInitialContent}
-            user={user}
-          />
-        );
-      case Tab.PROFILE: return <Profile user={user} onUpdateUser={(u) => { setUser(u); updateUserProfile(u); }} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />;
-      default: return null;
-    }
+    const activeChallenge = challenges.find(c => c.status === 'active');
+
+    return (
+      <Suspense fallback={<TabLoader />}>
+        {(() => {
+          switch (currentTab) {
+            case Tab.DASHBOARD:
+              return (
+                <Dashboard 
+                  user={user} 
+                  myIntentions={intentions.filter(i => i.author === user.name)} 
+                  routineItems={routineItems} 
+                  onToggleRoutine={handleToggleRoutine} 
+                  onNavigateToCommunity={() => setCurrentTab(Tab.COMMUNITY)}
+                  onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)}
+                  onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)}
+                  onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)}
+                  onNavigateToMaps={() => setCurrentTab(Tab.MAPS)}
+                  onSaveJournal={handleSaveJournal}
+                  showLiturgyModal={showLiturgyModal}
+                  setShowLiturgyModal={setShowLiturgyModal}
+                  onLogout={handleLogout}
+                />
+              );
+            case Tab.ROUTINE: 
+              return (
+                <Routine 
+                  items={routineItems} 
+                  activeChallenge={activeChallenge}
+                  onToggle={handleToggleRoutine} 
+                  onAdd={handleAddRoutineItem} 
+                  onDelete={handleDeleteRoutineItem} 
+                  onNavigate={(t) => setCurrentTab(t)}
+                  onOpenMaps={handleOpenMaps}
+                  onOpenLiturgy={() => { setCurrentTab(Tab.DASHBOARD); setTimeout(() => setShowLiturgyModal(true), 100); }}
+                  onOpenPlayer={() => { }}
+                />
+              );
+            case Tab.KNOWLEDGE: return <KnowledgeBase />;
+            case Tab.COMMUNITY:
+              return (
+                <Community 
+                  intentions={intentions} 
+                  challenges={challenges} 
+                  onPray={handlePray} 
+                  onJoinChallenge={handleJoinChallenge}
+                  onOpenCreateModal={() => setShowIntentionModal(true)}
+                  onTestify={handleTestifyFromChallenge}
+                  feedInitialContent={feedInitialContent}
+                  user={user}
+                />
+              );
+            case Tab.MAPS: return <ParishFinder />;
+            case Tab.CHAT: return <SpiritualChat user={user} />;
+            case Tab.PROFILE: return <Profile user={user} onUpdateUser={(u) => { setUser(u); updateUserProfile(u); }} onLogout={handleLogout} />;
+            default: return null;
+          }
+        })()}
+      </Suspense>
+    );
   };
 
-  if (viewState === 'landing') return <LandingPage onStart={() => setViewState('onboarding')} onLogin={() => setViewState('login')} />;
-  if (viewState === 'login') return <Login onLogin={handleLoginSuccess} onRegister={() => setViewState('onboarding')} onBack={() => setViewState('landing')} />;
-  
-  if (viewState === 'generating') {
-      // ... (Generating View - same as before)
-      if (generatedArchetype) {
-        return (
-          <div className="min-h-screen bg-brand-dark relative flex flex-col items-center justify-center p-8 text-center animate-fade-in font-sans overflow-hidden">
-             <div className="relative z-10 max-w-md w-full space-y-8 animate-slide-up">
-              <div className="flex justify-center">
-                <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-2xl shadow-brand-violet/50 relative">
-                    <div className="absolute inset-0 bg-brand-violet/40 rounded-full animate-ping opacity-20" />
-                    <Crown size={40} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+  // --- MAIN RENDER ---
+  return (
+    <div className="flex h-screen overflow-hidden bg-brand-dark font-sans text-slate-100">
+      
+      {/* PWA INSTALL PROMPT */}
+      <InstallPWA />
+
+      {viewState === 'app' && (
+        <div className="flex-shrink-0 hidden md:block h-full">
+          <Sidebar 
+            currentTab={currentTab} 
+            onTabChange={setCurrentTab} 
+            user={user}
+            onLogout={handleLogout}
+          />
+        </div>
+      )}
+
+      <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative scroll-smooth bg-brand-dark md:bg-[#0F1115]">
+        <Suspense fallback={
+           <div className="min-h-screen flex items-center justify-center bg-brand-dark">
+              <Loader2 className="animate-spin text-white" size={32} />
+           </div>
+        }>
+          {viewState === 'landing' && <LandingPage onStart={() => setViewState('onboarding')} onLogin={() => setViewState('login')} />}
+          
+          {viewState === 'login' && (
+            <>
+              <Login onLogin={handleLoginSuccess} onRegister={() => setViewState('onboarding')} onBack={() => setViewState('landing')} />
+              {showUpdatePasswordModal && <UpdatePasswordModal onClose={() => setShowUpdatePasswordModal(false)} />}
+            </>
+          )}
+
+          {viewState === 'onboarding' && <Onboarding onComplete={(data) => handleOnboardingComplete(data)} onBack={() => setViewState('landing')} />}
+          
+          {viewState === 'generating' && (
+             <div className="min-h-screen bg-brand-dark relative flex flex-col items-center justify-center p-8 text-center animate-fade-in font-sans overflow-hidden">
+                {generatedArchetype ? (
+                  <div className="relative z-10 max-w-lg w-full space-y-6 animate-slide-up">
+                    
+                    {/* Header Logo - Cleaned up */}
+                    <div className="flex justify-center mb-2">
+                      <BrandLogo variant="fill" size={80} className="text-brand-violet drop-shadow-[0_0_15px_rgba(167,139,250,0.5)] animate-pulse-slow" />
+                    </div>
+
+                    <div className="space-y-4">
+                      <p className="text-brand-violet font-bold text-xs uppercase tracking-widest animate-fade-in">
+                         A paz, {user.name.split(' ')[0]}
+                      </p>
+                      
+                      <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight drop-shadow-sm">
+                         {generatedArchetype.title}
+                      </h1>
+
+                      {/* --- Personalization Summary Chips --- */}
+                      <div className="flex flex-wrap justify-center gap-2 my-4 opacity-90">
+                         {user.spiritualFocus && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-[10px] font-bold uppercase tracking-wide">
+                               <Shield size={10} /> Vencer {STRUGGLE_TRANSLATION[user.spiritualFocus] || user.spiritualFocus}
+                            </span>
+                         )}
+                         {user.spiritualMaturity && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[10px] font-bold uppercase tracking-wide">
+                               <Heart size={10} /> {GOAL_TRANSLATION[user.spiritualGoal || 'peace'] || 'Paz'}
+                            </span>
+                         )}
+                         {user.patronSaint && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-bold uppercase tracking-wide">
+                               <UserIcon size={10} /> {SAINT_TRANSLATION[user.patronSaint] || user.patronSaint}
+                            </span>
+                         )}
+                      </div>
+
+                      <p className="text-slate-400 text-lg leading-relaxed max-w-sm mx-auto font-medium">
+                         {generatedArchetype.subtitle}
+                      </p>
+                    </div>
+
+                    <div className="pt-8">
+                      <button onClick={handleFinishRevelation} className="w-full bg-white text-brand-dark font-bold py-4 rounded-2xl shadow-xl hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-2 text-sm uppercase tracking-wide group">
+                        Ver meu Plano Espiritual <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <BrandLogo size={64} variant="fill" className="mb-6 animate-pulse-slow relative z-10" />
+                    <h2 className="text-xl font-bold text-white mb-2 relative z-10">Criando sua conta e rotina...</h2>
+                  </>
+                )}
+             </div>
+          )}
+
+          {viewState === 'checkout' && <Checkout onSuccess={handleCheckoutSuccess} userName={user.name} onLogout={handleLogout} />}
+
+          {viewState === 'app' && (
+            <>
+              {showTutorial && <Tutorial user={user} onComplete={() => setShowTutorial(false)} />}
+              {showDailyInspiration && !showTutorial && <DailyInspiration userName={user.name} onClose={() => setShowDailyInspiration(false)} />}
+              {showUpdatePasswordModal && <UpdatePasswordModal onClose={() => setShowUpdatePasswordModal(false)} />}
+              {showMonthlyReview && (
+                  <MonthlyReviewModal 
+                      onClose={() => setShowMonthlyReview(false)} 
+                      onComplete={(data) => handleMonthlyReviewComplete(data as MonthlyReviewData)} 
+                      currentStruggle={user.spiritualFocus} 
+                  />
+              )}
+
+              <div className="w-full max-w-[1600px] mx-auto min-h-full">
+                <div className="h-full relative z-10 md:p-8 lg:p-10">
+                    {renderContent()}
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className="text-brand-violet font-bold text-sm uppercase tracking-widest animate-fade-in">Sua jornada começa</p>
-                <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight drop-shadow-lg">{generatedArchetype.title}</h1>
-                <p className="text-slate-300 text-lg leading-relaxed max-w-xs mx-auto pt-4 font-medium">{generatedArchetype.subtitle}</p>
-              </div>
-              <div className="pt-8">
-                <button onClick={handleFinishRevelation} className="w-full bg-white text-brand-dark font-bold py-4 rounded-2xl shadow-xl shadow-white/10 hover:scale-105 transition-all active:scale-95 flex items-center justify-center gap-2 text-lg group">
-                  Ver minha Regra de Vida <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      }
-      return (
-        <div className="min-h-screen bg-white dark:bg-brand-dark flex flex-col items-center justify-center p-8 text-center animate-fade-in font-sans transition-colors relative overflow-hidden">
-          <BrandLogo size={64} variant="fill" className="mb-6 animate-pulse-slow relative z-10" />
-          <h2 className="text-xl font-bold text-brand-dark dark:text-white mb-2 relative z-10">Criando sua conta e rotina...</h2>
-        </div>
-      );
-  }
-
-  if (viewState === 'onboarding') return <Onboarding onComplete={handleOnboardingComplete} />;
-  if (viewState === 'checkout') return <Checkout onSuccess={handleCheckoutSuccess} userName={user.name} />;
-
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black flex justify-center overflow-hidden font-sans text-slate-800 dark:text-slate-100 transition-colors duration-500">
-      <main className="w-full max-w-md bg-white dark:bg-brand-dark min-h-screen shadow-2xl shadow-slate-200/50 dark:shadow-black/50 relative transition-colors duration-500 overflow-hidden">
-        <AmbientPlayer />
-        {showTutorial && <Tutorial user={user} onComplete={() => setShowTutorial(false)} />}
-        {showDailyInspiration && !showTutorial && <DailyInspiration userName={user.name} onClose={() => setShowDailyInspiration(false)} />}
-        
-        <div key={currentTab} className="h-full relative z-10">
-          {renderContent()}
-        </div>
-        
-        {showMapsOverlay && (
-          <div className="absolute inset-0 z-[80] bg-white dark:bg-brand-dark animate-fade-in">
-             <button onClick={() => setShowMapsOverlay(false)} className="absolute top-4 right-4 z-50 w-10 h-10 bg-white dark:bg-white/10 rounded-full shadow-lg flex items-center justify-center"><X size={24} /></button>
-             <ParishFinder />
-          </div>
-        )}
-
-        {showIntentionModal && <CreateIntentionModal onClose={() => setShowIntentionModal(false)} onSubmit={handleCreateIntention} />}
-        <Navigation currentTab={currentTab} onTabChange={setCurrentTab} />
+              
+              {showIntentionModal && <CreateIntentionModal onClose={() => setShowIntentionModal(false)} onSubmit={handleCreateIntention} />}
+              <Navigation currentTab={currentTab} onTabChange={setCurrentTab} />
+            </>
+          )}
+        </Suspense>
       </main>
     </div>
   );

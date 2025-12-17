@@ -8,9 +8,43 @@ const GOOGLE_MAPS_KEY = 'SUA_CHAVE_GOOGLE_MAPS_AQUI';
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 
 export const searchCatholicChurches = async (lat: number, lng: number): Promise<Parish[]> => {
+  // --- MOCK FALLBACK (Para testes sem pagar API) ---
   if (!GOOGLE_MAPS_KEY || GOOGLE_MAPS_KEY.includes('SUA_CHAVE')) {
-    console.error("Google Maps Key não configurada.");
-    return [];
+    console.warn("Google Maps Key não configurada. Usando dados simulados.");
+    await new Promise(resolve => setTimeout(resolve, 1500)); // Fake delay
+    
+    return [
+       {
+          name: 'Paróquia Sagrado Coração de Jesus',
+          address: 'R. das Flores, 123 - Centro',
+          location: { lat: lat + 0.002, lng: lng + 0.002 },
+          rating: 4.8,
+          userRatingsTotal: 156,
+          openNow: true,
+          photoUrl: 'https://images.unsplash.com/photo-1543357480-c60d40007a3f?auto=format&fit=crop&q=80&w=400',
+          url: 'https://maps.google.com'
+       },
+       {
+          name: 'Catedral Metropolitana',
+          address: 'Av. Paulista, 1000 - Bela Vista',
+          location: { lat: lat - 0.005, lng: lng - 0.001 },
+          rating: 4.9,
+          userRatingsTotal: 2450,
+          openNow: false,
+          photoUrl: 'https://images.unsplash.com/photo-1548625361-888978202d8b?auto=format&fit=crop&q=80&w=400',
+          url: 'https://maps.google.com'
+       },
+       {
+          name: 'Capela N. Sra. das Graças',
+          address: 'Vila Mariana, Travessa 2',
+          location: { lat: lat + 0.01, lng: lng - 0.005 },
+          rating: 5.0,
+          userRatingsTotal: 42,
+          openNow: true,
+          photoUrl: 'https://images.unsplash.com/photo-1601323330058-002235c60201?auto=format&fit=crop&q=80&w=400',
+          url: 'https://maps.google.com'
+       }
+    ];
   }
 
   try {

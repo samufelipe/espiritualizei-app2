@@ -1,460 +1,357 @@
 
-import { GoogleGenAI, Chat } from "@google/genai";
-import { OnboardingData, RoutineItem, Parish, UserProfile, DailyTopic } from '../types';
-import { getLiturgicalInfo } from './liturgyService';
+import { GoogleGenAI } from "@google/genai";
+import { UserProfile, OnboardingData, RoutineItem, DailyTopic, MonthlyReviewData } from '../types';
 
-const API_KEY = process.env.API_KEY || '';
-let ai: GoogleGenAI | null = null;
+// Initialize Gemini Client
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-// Initialize safely
-try {
-  if (API_KEY) {
-    ai = new GoogleGenAI({ apiKey: API_KEY });
+// --- QUOTA MANAGEMENT (CIRCUIT BREAKER) ---
+const QUOTA_KEY = 'gemini_quota_lock_until';
+
+const isQuotaLocked = (): boolean => {
+  const lockUntil = localStorage.getItem(QUOTA_KEY);
+  if (!lockUntil) return false;
+  
+  if (new Date().getTime() > parseInt(lockUntil)) {
+    localStorage.removeItem(QUOTA_KEY); // Expired
+    return false;
   }
-} catch (e) {
-  console.error("Gemini Init Error", e);
-}
-
-// --- LOCAL FALLBACK ENGINE (Motor Offline) ---
-const LOCAL_RESPONSES: Record<string, string[]> = {
-  'ansiedade': [
-    "Respire fundo. Lembre-se das palavras de Santa Teresa: 'Nada te perturbe, nada te espante. Deus não muda'.",
-    "Lance sobre Ele toda a vossa ansiedade, porque Ele tem cuidado de vós (1 Pedro 5, 7).",
-    "A paz que você procura não está no controle, mas na entrega. Reze comigo: 'Jesus, eu confio em Vós'."
-  ],
-  'tristeza': [
-    "O Senhor está perto dos que têm o coração quebrantado. Chore, mas chore nos pés da Cruz.",
-    "Não tenhas medo, porque eu estou contigo (Isaías 41, 10). Sua dor não é eterna, o Amor de Deus é."
-  ],
-  'pecado': [
-    "A misericórdia de Deus é infinitamente maior que sua miséria. Não tenha medo de voltar ao Pai.",
-    "Coragem! A confissão é o tribunal onde o réu se declara culpado e sai perdoado."
-  ],
-  'gratidão': [
-    "Demos graças ao Senhor, porque Ele é bom! Que sua vida seja um eterno Magnificat.",
-    "A gratidão é a memória do coração. Deus sorri ao te ver grato."
-  ],
-  'default': [
-    "Estou aqui com você. Podemos rezar juntos?",
-    "Continue, estou te ouvindo. Onde você sente que Deus está nisso?",
-    "Entregue isso nas mãos de Maria. Ela saberá como desenrolar esses nós.",
-    "O silêncio também é uma resposta. Vamos ficar um instante na presença d'Ele?"
-  ]
+  return true;
 };
 
-const getLocalResponse = (message: string): string => {
-  const lower = message.toLowerCase();
-  if (lower.includes('ansiedade') || lower.includes('medo') || lower.includes('preocupad')) return getRandom(LOCAL_RESPONSES['ansiedade']);
-  if (lower.includes('triste') || lower.includes('dor') || lower.includes('sofri')) return getRandom(LOCAL_RESPONSES['tristeza']);
-  if (lower.includes('pecado') || lower.includes('cai') || lower.includes('err')) return getRandom(LOCAL_RESPONSES['pecado']);
-  if (lower.includes('obrigado') || lower.includes('graça') || lower.includes('feliz')) return getRandom(LOCAL_RESPONSES['gratidão']);
-  return getRandom(LOCAL_RESPONSES['default']);
+const lockQuota = () => {
+  const cooldown = new Date().getTime() + (60 * 60 * 1000); 
+  localStorage.setItem(QUOTA_KEY, cooldown.toString());
+  console.warn("⚠️ Gemini Quota Exceeded. Switching to Offline Mode for 1h.");
 };
 
-const getRandom = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+const isQuotaError = (error: any) => {
+    const msg = error?.message || '';
+    return error?.status === 429 || msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Quota exceeded');
+};
 
-// --- ADVANCED CHAT SYSTEM ---
+// --- CACHE HELPER (STRICT DATE) ---
+const getTodayKey = () => new Date().toDateString();
 
-let chatSession: Chat | null = null;
-let lastUserProfileSignature: string = '';
-
-export const getChatSession = (user?: UserProfile): Chat | null => {
-  if (!ai || !API_KEY) return null;
-
-  const currentSignature = user ? `${user.name}-${user.stateOfLife}-${user.spiritualFocus}` : 'default';
-
-  if (!chatSession || currentSignature !== lastUserProfileSignature) {
-    console.log("Initializing new Spiritual Chat context for:", user?.name);
+const getFromCache = <T>(baseKey: string): T | null => {
+    const today = getTodayKey();
+    const storageKey = `gemini_cache_v3_${baseKey}`; // Versioned key
+    const cached = localStorage.getItem(storageKey);
     
-    const contextPrompt = user ? `
-      CONTEXTO DO FILHO(A) ESPIRITUAL:
-      - Nome: ${user.name}
-      - Estado de Vida: ${user.stateOfLife || 'Não informado'} (Considere as obrigações deste estado).
-      - Luta Principal: ${user.spiritualFocus || 'Busca geral'} (Suas respostas devem ser um bálsamo ou remédio para esta dor específica).
-    ` : '';
+    if (cached) {
+        try {
+            const parsed = JSON.parse(cached);
+            if (parsed.date === today) {
+                return parsed.data;
+            }
+        } catch (e) {
+            console.warn("Cache parse error", e);
+        }
+    }
+    return null;
+};
 
-    const SYSTEM_INSTRUCTION = `
-      Você é o "Espiritualizei", um diretor espiritual católico sábio, ortodoxo, mas extremamente acolhedor e empático.
-      Sua missão não é apenas dar respostas teóricas, mas caminhar junto.
-      
-      ${contextPrompt}
+const saveToCache = (baseKey: string, data: any) => {
+    const today = getTodayKey();
+    const storageKey = `gemini_cache_v3_${baseKey}`;
+    localStorage.setItem(storageKey, safeJsonStringify({ date: today, data }));
+};
 
-      DIRETRIZES DE TOM:
-      1. Acolhimento Radical: Comece validando o sentimento da pessoa.
-      2. Ortodoxia Viva: Use a Bíblia, o Catecismo e os Santos, mas aplicados à vida real moderna.
-      3. Personalização: Se a pessoa é mãe/pai, fale sobre santificar a rotina doméstica. Se é estudante, sobre santificar o estudo.
-      4. Breve e Profundo: Não dê palestras longas. Dê conselhos práticos e espirituais diretos.
-      5. Empatia: Se a luta é ansiedade, traga paz. Se é preguiça, traga ânimo firme.
-
-      Nunca julgue. Sempre aponte para a Misericórdia e a Graça.
-    `;
-
-    chatSession = ai.chats.create({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.7,
-      },
+const safeJsonStringify = (obj: any) => {
+    const cache = new Set();
+    return JSON.stringify(obj, (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+            if (cache.has(value)) return;
+            cache.add(value);
+        }
+        return value;
     });
-    lastUserProfileSignature = currentSignature;
-  }
-  return chatSession;
 };
 
+// --- SPIRITUAL DIRECTOR CHAT ---
 export const sendMessageToSpiritualDirector = async (message: string, user?: UserProfile): Promise<string> => {
-  if (ai && API_KEY) {
-    try {
-      const chat = getChatSession(user);
-      if (chat) {
-        const result = await chat.sendMessage({ message });
-        return result.text || "Silêncio contemplativo...";
-      }
-    } catch (error) {
-      console.error("Gemini Chat Error (Falling back to local):", error);
-    }
+  if (isQuotaLocked()) {
+     return "No momento, estou em silêncio orante (Modo Offline devido a alto tráfego). Por favor, tente novamente mais tarde.";
   }
-  await new Promise(r => setTimeout(r, 1000)); 
-  return getLocalResponse(message);
-};
 
-export const generateDailyReflection = async (saintName: string): Promise<string> => {
-  if (ai && API_KEY) {
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `Gere uma frase curta (max 20 palavras), profunda e poética sobre a vida ou ensinamento de ${saintName}, conectando com a busca por santidade no cotidiano.`,
-      });
-      return response.text || "Que o exemplo deste santo ilumine seu dia.";
-    } catch (error) {
-      console.error("Reflection Error", error);
-    }
-  }
-  return "A santidade não consiste em fazer coisas extraordinárias, mas em fazer coisas ordinárias com um amor extraordinário.";
-};
-
-export const getLiturgyText = async (reference: string): Promise<string> => {
-  if (ai && API_KEY) {
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `Retorne APENAS o texto bíblico completo e formatado do Evangelho de: ${reference}. Use tradução católica (Ave Maria ou Jerusalém). Não adicione comentários, apenas o texto sagrado.`,
-      });
-      return response.text || "Não foi possível carregar o texto.";
-    } catch (error) {
-      console.error("Liturgy Error:", error);
-    }
-  }
-  return `
-    Naquele tempo, disse Jesus aos seus discípulos:
-    "Vós sois o sal da terra. Ora, se o sal se tornar insosso, com que salgaremos?
-    Ele não serve para mais nada, senão para ser jogado fora e pisado pelos homens.
-    Vós sois a luz do mundo." (Texto provisório: Modo Offline)
-  `;
-};
-
-// --- LITURGICAL CHALLENGE GENERATOR ---
-
-export const generateLiturgicalDailyTopic = async (day: number): Promise<DailyTopic> => {
-  const liturgy = getLiturgicalInfo();
-  const today = new Date().toLocaleDateString('pt-BR');
-
-  if (!ai || !API_KEY) {
-     return {
-        day: day,
-        title: "Oração do Dia",
-        description: "Dedique 5 minutos para estar na presença de Deus.",
-        action: "Reze um Pai Nosso com atenção em cada palavra.",
-        isCompleted: false,
-        isLocked: false
-     };
+  if (!process.env.API_KEY) {
+     return "Estou offline no momento. Por favor, verifique sua conexão ou configuração.";
   }
 
   try {
-    const prompt = `
-      Gere um Tópico de Desafio Diário para um app católico.
-      Contexto Litúrgico: Estamos na estação: ${liturgy.seasonName}.
-      Dia da jornada: ${day}.
-      Data de hoje: ${today}.
+    const userContext = user 
+      ? `O usuário se chama ${user.name}. Estado de vida: ${user.stateOfLife}. Foco espiritual (Luta): ${user.spiritualFocus}.` 
+      : "Usuário visitante.";
 
-      Saída estrita em JSON:
-      {
-        "title": "Título curto e inspirador (ex: O Silêncio de Maria)",
-        "description": "Uma meditação de 2 frases sobre o evangelho ou o espírito deste tempo litúrgico.",
-        "action": "Uma ação concreta e realizável hoje (ex: Ligar para um parente, Rezar o terço, Esmola).",
-        "scripture": "Citação bíblica curta (Livro Cap:Ver) relacionada.",
-        "reflection": "Texto de aprofundamento (3 paragrafos curtos) para leitura guiada.",
-        "guidedPrayer": "Uma oração vocal curta para o usuário ler."
-      }
+    const systemInstruction = `
+      Você é um diretor espiritual católico sábio, compassivo e fiel ao Magistério da Igreja (Tom de Bento XVI misturado com Papa Francisco).
+      Seu objetivo é acolher e elevar. Use citações bíblicas ou de santos (especialmente Carlo Acutis, Teresinha, Agostinho) quando apropriado.
+      Contexto do usuário: ${userContext}
+      Responda de forma concisa (máximo 150 palavras) mas profunda.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: message,
+      config: {
+        systemInstruction: systemInstruction,
+      },
+    });
+
+    return response.text || "Desculpe, não consegui formular uma resposta agora.";
+  } catch (error: any) {
+    if (isQuotaError(error)) {
+        lockQuota();
+        return "Minha conexão espiritual está muito intensa agora (cota de uso excedida). Retornarei em breve.";
+    }
+    console.error("Gemini Error:", error);
+    return "Tive um momento de silêncio (erro técnico). Tente novamente mais tarde.";
+  }
+};
+
+// --- ROUTINE GENERATOR (THE ARCHITECT) ---
+export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string }> => {
+  if (isQuotaLocked() || !process.env.API_KEY) {
+      return getFallbackRoutine();
+  }
+
+  // Definição rica do perfil para o Prompt
+  const promptContext = `
+    VOCÊ É UM DIRETOR ESPIRITUAL CATÓLICO EXPERIENTE CRIANDO UMA REGRA DE VIDA.
+    
+    PERFIL DO USUÁRIO:
+    - Nome: ${data.name}
+    - Estado de Vida: ${data.stateOfLife} (Isso define o tempo disponível. Pais/Casados têm pouco tempo. Estudantes precisam de foco. Aposentados têm mais tempo).
+    - Rotina Atual: ${data.routineType} (Se for caótico, crie âncoras fixas. Se for rígido, sugira flexibilidade).
+    - Luta Principal: ${data.primaryStruggle} (O "Vício Dominante" que precisamos combater com a virtude oposta).
+    - Melhor Horário: ${data.bestMoment} (Coloque a oração principal aqui).
+    - Patrono: ${data.patronSaint} (Inclua uma devoção ligada a ele se possível).
+    ${reviewData ? `- FEEDBACK MENSAL: O usuário achou a rotina anterior ${reviewData.intensity}.` : ''}
+
+    OBJETIVO: Criar uma rotina semanal (Segunda a Domingo) REALISTA, PRÁTICA e INTEGRADA ao App.
+    NÃO crie uma lista genérica igual para todos os dias. Varie conforme a tradição da Igreja.
+
+    REGRAS OBRIGATÓRIAS DE ESTRUTURA:
+    1. DOMINGO ([0]): Foco total na Missa (Action: OPEN_MAP), descanso e família.
+    2. SEXTA ([5]): Dia Penitencial. Incluir jejum ou obra de caridade (Action: NONE ou OPEN_COMMUNITY).
+    3. SÁBADO ([6]): Dia Mariano. Incluir Terço ou Ofício (Action: OPEN_PLAYER).
+    4. DIÁRIO ([0,1,2,3,4,5,6]): Apenas 1 ou 2 hábitos essenciais (ex: Oração da Manhã, Exame de Consciência).
+    5. INTERCESSÃO: Pelo menos 2x na semana, mande o usuário orar pelos outros no app (Action: OPEN_COMMUNITY).
+    6. ESTUDO: Pelo menos 1x na semana, sugira leitura espiritual (Action: READ_KNOWLEDGE).
+
+    INTEGRAÇÃO COM O APP (Use estes actionLinks EXATAMENTE):
+    - Ir à Missa/Confissão -> 'OPEN_MAP'
+    - Rezar o Terço/Música -> 'OPEN_PLAYER'
+    - Ler Evangelho/Liturgia -> 'READ_LITURGY'
+    - Estudar Doutrina -> 'READ_KNOWLEDGE'
+    - Pedir/Rezar por alguém -> 'OPEN_COMMUNITY'
+    - Falar com Diretor IA -> 'OPEN_CHAT'
+    - Ação prática offline (Jejum, Esmola, Ligar p/ Mãe) -> 'NONE'
+
+    Gere um JSON com:
+    - "profileDescription": Um título curto, HUMILDE e ACOLHEDOR para este perfil (ex: "Caminho de Paz", "Busca Diária", "Alma em Oração"). EVITE títulos grandiosos como "Guerreiro", "Guardião", "Mestre" ou "Profeta". Seja simples e sereno.
+    - "routine": Array de itens.
+  `;
+
+  const promptSchema = `
+    SCHEMA JSON:
+    {
+      "profileDescription": "string",
+      "routine": [
+        {
+          "title": "Título Curto (Ex: Missa Dominical)",
+          "description": "Motivação curta (Ex: O encontro real com Cristo)",
+          "detailedContent": "Instrução prática (Ex: Chegue 10min antes para se preparar. Ofereça a missa por...)",
+          "icon": "rosary" | "book" | "cross" | "candle" | "sun" | "heart" | "shield" | "moon" | "church" | "music",
+          "timeOfDay": "morning" | "afternoon" | "night" | "any",
+          "dayOfWeek": [inteiros 0-6], 
+          "actionLink": "OPEN_MAP" | "OPEN_PLAYER" | "READ_LITURGY" | "READ_KNOWLEDGE" | "OPEN_COMMUNITY" | "OPEN_CHAT" | "NONE",
+          "xpReward": integer (10-100)
+        }
+      ]
+    }
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: promptContext + promptSchema,
+        config: {
+            responseMimeType: 'application/json'
+        }
+    });
+
+    const json = JSON.parse(response.text || '{}');
+    
+    const routine: RoutineItem[] = (json.routine || []).map((item: any) => ({
+        ...item,
+        id: crypto.randomUUID(),
+        completed: false,
+        // Garantia de fallback se a IA falhar nos dias
+        dayOfWeek: item.dayOfWeek && item.dayOfWeek.length > 0 ? item.dayOfWeek : [0,1,2,3,4,5,6],
+        timeOfDay: (item.timeOfDay || 'morning') as RoutineItem['timeOfDay'],
+        actionLink: (item.actionLink || 'NONE') as RoutineItem['actionLink'],
+        icon: (item.icon || 'heart') as RoutineItem['icon']
+    }));
+
+    return {
+        routine,
+        profileDescription: json.profileDescription || 'Peregrino da Fé'
+    };
+  } catch (e: any) {
+    if (isQuotaError(e)) {
+        lockQuota();
+    }
+    console.error("Gemini Routine Error", e);
+    return getFallbackRoutine();
+  }
+};
+
+function getFallbackRoutine(): { routine: RoutineItem[], profileDescription: string } {
+    return {
+        routine: [
+             { id: 'f1', title: 'Oração da Manhã', description: 'Oferecimento do dia', detailedContent: "Ao acordar, diga: 'Serviam! (Eu servirei)'. Ofereça suas alegrias e dores.", xpReward: 15, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
+             { id: 'f2', title: 'Evangelho do Dia', description: 'Luz para os passos', detailedContent: "Leia o Evangelho da liturgia de hoje e medite por 5 minutos.", xpReward: 20, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
+             { id: 'f3', title: 'Santa Missa', description: 'O cume da fé', detailedContent: "Participe da Santa Missa. É o encontro real com Jesus.", xpReward: 100, completed: false, icon: 'church', timeOfDay: 'morning', dayOfWeek: [0], actionLink: 'OPEN_MAP' },
+             { id: 'f4', title: 'Intercessão', description: 'Rezar pelos irmãos', detailedContent: "Visite a comunidade e reze por 3 pessoas.", xpReward: 30, completed: false, icon: 'heart', timeOfDay: 'any', dayOfWeek: [2, 4], actionLink: 'OPEN_COMMUNITY' },
+             { id: 'f5', title: 'Exame de Consciência', description: 'Revisão do dia', detailedContent: "Antes de dormir, agradeça e peça perdão pelo que falhou.", xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' }
+        ] as RoutineItem[],
+        profileDescription: 'Alma em Busca'
+    };
+  }
+
+// --- DAILY REFLECTION (CACHED BY DATE) ---
+export const generateDailyReflection = async (saintOrFeast: string): Promise<string> => {
+  const CACHE_KEY = 'daily_reflection_content';
+  const cached = getFromCache<string>(CACHE_KEY);
+  
+  if (cached) return cached;
+
+  if (isQuotaLocked() || !process.env.API_KEY) return "Que a paz de Cristo esteja convosco.";
+
+  try {
+    const prompt = `
+      Gere uma única frase curta, poética e inspiradora (máximo 20 palavras) baseada na vida de ${saintOrFeast} ou na fé católica para o dia de hoje.
+      Retorne APENAS um JSON no formato: { "quote": "Texto da frase aqui" }
     `;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
-      config: { responseMimeType: 'application/json' }
+      config: {
+        responseMimeType: 'application/json'
+      }
     });
-
-    let json = JSON.parse(response.text!.replace(/```json/g, '').replace(/```/g, '').trim());
     
-    return {
-       day: day,
-       title: json.title,
-       description: json.description,
-       action: json.action,
-       isCompleted: false,
-       isLocked: false,
-       scripture: json.scripture,
-       reflection: json.reflection,
-       guidedPrayer: json.guidedPrayer
+    const json = JSON.parse(response.text || '{}');
+    const result = json.quote?.trim() || "Santos e anjos, rogai por nós.";
+    
+    saveToCache(CACHE_KEY, result);
+    return result;
+  } catch (e: any) {
+    if (isQuotaError(e)) {
+        lockQuota();
+    }
+    return "Caminhe com fé e esperança.";
+  }
+};
+
+// --- LITURGICAL TOPIC GENERATOR (CACHED BY DATE AND DAY INDEX) ---
+export const generateLiturgicalDailyTopic = async (day: number, seasonContext: string = "Tempo Comum"): Promise<DailyTopic> => {
+    const CACHE_KEY = `liturgical_topic_${seasonContext}_day_${day}`; // Unique per season and day
+    const cached = getFromCache<DailyTopic>(CACHE_KEY);
+    
+    if (cached) return cached;
+
+    const fallbackTopic: DailyTopic = {
+        day,
+        title: "Pequena Caridade",
+        description: "Envie uma mensagem de afeto para alguém que você não vê há tempos.",
+        isCompleted: false,
+        isLocked: false,
+        actionType: 'RELATIONSHIP',
+        action: "Ligar para um amigo",
+        actionContent: "Reserve 5 minutos para ligar ou mandar áudio para alguém distante."
     };
 
-  } catch (e) {
-    console.error("Liturgical Gen Error", e);
-    return {
-        day: day,
-        title: "Fidelidade no Pouco",
-        description: "Hoje, ofereça seu trabalho como oração.",
-        action: "Faça uma pequena mortificação (ex: não reclamar).",
-        isCompleted: false,
-        isLocked: false
-     };
-  }
-};
+    if (isQuotaLocked() || !process.env.API_KEY) return fallbackTopic;
 
-// --- DIAGNOSTIC ---
-export const testGeminiConnection = async (): Promise<{ success: boolean; message: string }> => {
-  if (!API_KEY) return { success: false, message: "Chave API não configurada." };
-  if (!ai) return { success: false, message: "Cliente Gemini não inicializado." };
-  try {
-    await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: "Test" });
-    return { success: true, message: "IA Conectada e Operante!" };
-  } catch (e: any) {
-    return { success: false, message: `Erro na IA: ${e.message}` };
-  }
-};
+    const prompt = `
+      CONTEXTO: Estamos vivendo o tempo litúrgico: "${seasonContext}". Hoje é o Dia ${day} desta jornada.
+      OBJETIVO: Criar uma DESAFIO DIÁRIO (Micro-missão) para uma comunidade católica jovem e engajada.
+      
+      REGRAS DE OURO:
+      1. NÃO repita desafios genéricos como "Reze um Pai Nosso".
+      2. O desafio deve ser progressivo e conectado com o dia ${day} do tempo de ${seasonContext}.
+      3. Seja criativo! Misture oração, caridade real e pequenos sacrifícios.
+      
+      Gere um JSON com:
+      - title: Título curto e impactante (Ex: "O Silêncio de Maria", "Esmola Digital").
+      - description: Motivação teológica curta (1 frase).
+      - scripture: Uma citação bíblica curta que fundamente o desafio.
+      - actionType: Escolha UM entre 'PRAYER' (oração), 'RELATIONSHIP' (falar com alguém/perdoar), 'SACRIFICE' (jejum/mortificação).
+      - actionContent: Instrução passo a passo de como realizar (Max 3 passos).
+    `;
 
-// --- ROUTINE GENERATION ---
-const getEnrichedGuide = (title: string, struggle?: string): string => {
-  const t = title.toLowerCase();
-  const s = struggle?.toLowerCase() || '';
-  let advice = "Realize esta prática com amor e atenção plena.";
-
-  if (s.includes('ansiedade')) advice = "Foque na respiração e entregue cada preocupação a Deus. Não tenha pressa.";
-  if (s.includes('preguiça')) advice = "Ofereça o sacrifício de começar. A graça vem no movimento.";
-  if (s.includes('aridez')) advice = "Reze mesmo sem sentir nada. A fidelidade na secura é prova de amor puro.";
-  
-  if (t.includes('terço') || t.includes('rosário')) return `1. Inicie com o Sinal da Cruz.\n2. Reze o Credo e o Pai Nosso.\n3. Medite os mistérios.\n\nConselho: ${advice}`;
-  if (t.includes('exame')) return `1. Agradeça.\n2. Peça Luz.\n3. Revise o dia.\n4. Peça Perdão.\n5. Proponha Emenda.\n\nConselho: ${advice}`;
-  return `Encontre um momento breve. Respire fundo.\n\n${advice}`;
-};
-
-const generateLocalRoutine = (data: OnboardingData): { routine: RoutineItem[], profileDescription: string } => {
-  const items: RoutineItem[] = [];
-  let archetype = "Filho Amado";
-
-  if (data.patronSaint === 'michael') items.push({ id: 'loc-p1', title: 'Oração a São Miguel', description: 'Proteção para começar o dia.', xpReward: 20, completed: false, icon: 'shield' });
-  else if (data.patronSaint === 'mary') items.push({ id: 'loc-p1', title: 'Consagração a Nossa Senhora', description: 'Totus Tuus Mariae.', xpReward: 20, completed: false, icon: 'heart' });
-
-  switch(data.primaryStruggle) {
-    case 'anxiety':
-      items.push({ id: 'loc-1', title: 'Oração da Respiração', description: 'Acalme a alma invocando Jesus.', xpReward: 15, completed: false, icon: 'heart' });
-      archetype = "Buscador da Paz";
-      break;
-    default:
-      items.push({ id: 'loc-1', title: 'Leitura do Evangelho', description: 'Conhecer Jesus para amá-Lo.', xpReward: 20, completed: false, icon: 'book' });
-      archetype = "Peregrino da Verdade";
-  }
-
-  const finalItems = items.map(i => ({ ...i, detailedContent: getEnrichedGuide(i.title, data.primaryStruggle) }));
-  return { routine: finalItems, profileDescription: archetype };
-};
-
-export const generateSpiritualRoutine = async (data: OnboardingData): Promise<{ routine: RoutineItem[], profileDescription: string }> => {
-  const localResult = generateLocalRoutine(data);
-  if (!ai || !API_KEY) return localResult;
-
-  const liturgy = getLiturgicalInfo();
-
-  const aiPromise = (async () => {
-      try {
-        const prompt = `
-          Gere um JSON estrito para um perfil católico.
-          Perfil: ${data.name}, Luta: ${data.primaryStruggle}, Estado: ${data.stateOfLife}, Patrono: ${data.patronSaint}.
-          Tempo Litúrgico Atual: ${liturgy.seasonName}.
-          
-          Saída JSON:
-          {
-            "archetype": "Título poético curto",
-            "routine": [
-              { "title": "Nome Prática", "description": "Por que ajuda (max 10 palavras)", "icon": "rosary|book|candle|sun|shield", "xp": 10-50 }
-            ]
-          }
-        `;
-
+    try {
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-          config: { responseMimeType: 'application/json', maxOutputTokens: 500 }
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: { responseMimeType: 'application/json' }
         });
-
-        let text = response.text || '{}';
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const json = JSON.parse(text);
         
-        const routineItems: RoutineItem[] = (json.routine || []).map((item: any, index: number) => ({
-          id: `gen-${index}`,
-          title: item.title,
-          description: item.description,
-          detailedContent: getEnrichedGuide(item.title, data.primaryStruggle),
-          xpReward: item.xp,
-          completed: false,
-          icon: item.icon || 'candle'
-        }));
+        const data = JSON.parse(response.text || '{}');
+        const result: DailyTopic = {
+            day,
+            title: data.title || `Missão do Dia ${day}`,
+            description: data.description || "Realize um ato de amor hoje.",
+            action: data.title, // Use title as generic action label
+            scripture: data.scripture,
+            actionType: data.actionType || 'GENERIC',
+            actionContent: data.actionContent || "Realize este ato com amor e intenção.",
+            isCompleted: false,
+            isLocked: false
+        };
 
-        return { routine: routineItems, profileDescription: json.archetype || localResult.profileDescription };
-      } catch (e) { return localResult; }
-  })();
-
-  const timeoutPromise = new Promise<{ routine: RoutineItem[], profileDescription: string }>((resolve) => {
-    setTimeout(() => resolve(localResult), 5000);
-  });
-
-  try { return await Promise.race([aiPromise, timeoutPromise]); } catch (e) { return localResult; }
-};
-
-// --- PARISH FINDER (FIXED & HARD FILTERED) ---
-
-const generateFallbackParishes = (lat: number, lng: number): Parish[] => {
-  return [
-    {
-      name: "Paróquia Sagrado Coração de Jesus",
-      address: "Centro",
-      rating: 4.9,
-      userRatingsTotal: 320,
-      openNow: true,
-      url: "#",
-      directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${lat+0.002},${lng+0.002}`,
-      location: { lat: lat + 0.002, lng: lng + 0.002 } // ~300m
-    },
-    {
-      name: "Santuário Nossa Senhora de Fátima",
-      address: "Jardim das Flores",
-      rating: 5.0,
-      userRatingsTotal: 1500,
-      openNow: true,
-      url: "#",
-      directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${lat-0.005},${lng-0.005}`,
-      location: { lat: lat - 0.005, lng: lng - 0.005 } // ~800m
-    },
-    {
-      name: "Catedral Metropolitana",
-      address: "Praça da Sé",
-      rating: 4.8,
-      userRatingsTotal: 5000,
-      openNow: false,
-      url: "#",
-      directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${lat+0.01},${lng}`,
-      location: { lat: lat + 0.01, lng: lng } // ~1.5km
-    },
-    {
-      name: "Capela São José Operário",
-      address: "Vila Operária",
-      rating: 4.7,
-      userRatingsTotal: 150,
-      openNow: true,
-      url: "#",
-      directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng+0.015}`,
-      location: { lat: lat, lng: lng + 0.015 } // ~2km
+        saveToCache(CACHE_KEY, result);
+        return result;
+    } catch (e: any) {
+        if (isQuotaError(e)) lockQuota();
+        return fallbackTopic;
     }
-  ];
-};
+}
 
-export const findNearbyParishes = async (lat: number, lng: number): Promise<Parish[]> => {
-  if (!ai || !API_KEY) return generateFallbackParishes(lat, lng);
+// --- DAILY THEME ---
+export const generateDailyTheme = async (gospelText?: string): Promise<string> => {
+  const CACHE_KEY = 'daily_theme_dashboard';
+  const cached = getFromCache<string>(CACHE_KEY);
+  if (cached) return cached; 
+
+  const context = gospelText || "Tempo Comum - Santidade no Cotidiano"; 
+
+  if (isQuotaLocked() || !process.env.API_KEY) {
+     return "Santidade no Cotidiano"; 
+  }
 
   try {
     const prompt = `
-      Find exactly 20 Catholic Churches ("Igreja Católica", "Paróquia", "Santuário") within 10km of coordinate (${lat}, ${lng}).
-      
-      CRITICAL:
-      1. RETURN STRICT JSON array.
-      2. IGNORE "Loja", "Artigos", "Center", "Umbanda", "Spiritist", "School", "Decor", "Presentes".
-      3. INCLUDE LATITUDE AND LONGITUDE for each item.
-      
-      Output Schema:
-      [
-        { "name": "Name", "address": "Address", "lat": 0.0, "lng": 0.0, "open_now": true, "rating": 4.5, "user_ratings_total": 100 }
-      ]
+      Você é um teólogo católico.
+      Leia este contexto: "${context.substring(0, 500)}..."
+      Crie uma "Frase de Impacto" curta (máx 5 palavras) resumindo o ensinamento.
+      Saída: Apenas a frase.
     `;
-    
+
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
-      config: {
-        tools: [{ googleMaps: {} }],
-        toolConfig: { retrievalConfig: { latLng: { latitude: lat, longitude: lng } } }
-      },
     });
 
-    let jsonString = response.text || '[]';
-    jsonString = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
-    
-    let rawData: any[] = [];
-    try { rawData = JSON.parse(jsonString); } catch (e) { 
-        console.error("JSON Parse Error", e); 
-        return generateFallbackParishes(lat, lng); 
-    }
+    const result = response.text?.replace(/"/g, '').trim() || "Caminhe com Fé";
+    if (result) saveToCache(CACHE_KEY, result);
+    return result;
 
-    // --- HARD FILTER (CENSURA) ---
-    // Palavras proibidas (Case Insensitive)
-    const BLOCKLIST = [
-        'artigos', 'loja', 'livraria', 'presentes', 'umbanda', 'candomblé', 'espirita', 'espírita', 
-        'centro', 'evangélica', 'batista', 'universal', 'assembleia', 'deus é amor', 'congregacao',
-        'testemunhas', 'reino', 'confecções', 'papelaria', 'bazar', 'floricultura',
-        'decor', 'home', 'by home', 'decorações', 'religiosos', 'art'
-    ];
-
-    // Palavras permitidas (Prioridade)
-    const ALLOWLIST = ['paróquia', 'paroquia', 'igreja', 'santuário', 'santuario', 'capela', 'catedral', 'basílica', 'basilica', 'comunidade', 'matriz'];
-
-    const parishes: Parish[] = [];
-
-    rawData.forEach((item: any) => {
-        const titleLower = (item.name || '').toLowerCase();
-        
-        // 1. Regra de Ouro: Se tiver palavra proibida, TCHAU.
-        if (BLOCKLIST.some(forbidden => titleLower.includes(forbidden))) return;
-
-        // 2. Regra de Prata: Se não tiver palavra de igreja católica, suspeite.
-        const isCatholicLikely = ALLOWLIST.some(allowed => titleLower.includes(allowed));
-        
-        // Se não parece católico E não temos certeza, melhor não mostrar
-        if (!isCatholicLikely && (!item.lat || !item.lng)) return;
-
-        const destination = encodeURIComponent((item.name || '') + ' ' + (item.address || ''));
-        
-        parishes.push({
-          name: item.name || 'Igreja Católica',
-          address: item.address || 'Endereço indisponível',
-          url: `https://www.google.com/maps/search/?api=1&query=${destination}`,
-          directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${destination}`,
-          rating: item.rating || 4.8, 
-          userRatingsTotal: item.user_ratings_total || 100,
-          openNow: item.open_now ?? true,
-          location: (item.lat && item.lng) ? { lat: Number(item.lat), lng: Number(item.lng) } : undefined
-        });
-    });
-    
-    const uniqueParishes = parishes.filter((p, index, self) => 
-        index === self.findIndex((t) => (t.name === p.name))
-    );
-    
-    if (uniqueParishes.length === 0) {
-        return generateFallbackParishes(lat, lng);
-    }
-
-    return uniqueParishes.slice(0, 20); 
-  } catch (error) { 
-      console.error("Parish Search Error (API Failure)", error); 
-      return generateFallbackParishes(lat, lng);
+  } catch (e: any) {
+    if (isQuotaError(e)) lockQuota();
+    return "Luz para o Dia";
   }
 };

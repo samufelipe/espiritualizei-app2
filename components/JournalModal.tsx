@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { X, PenLine, Sparkles, Save, BookOpen } from 'lucide-react';
+import { X, PenLine, Save, BookOpen } from 'lucide-react';
 import { JournalEntry } from '../types';
 import { sendMessageToSpiritualDirector } from '../services/geminiService';
+import BrandLogo from './BrandLogo';
 
 interface JournalModalProps {
   mood: 'peace' | 'struggle';
@@ -85,7 +86,7 @@ const JournalModal: React.FC<JournalModalProps> = ({ mood, onClose, onSave }) =>
 
         <div className="mt-6 flex items-center justify-between">
            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <Sparkles size={14} className="text-brand-violet" />
+              <BrandLogo size={14} variant="fill" className="text-brand-violet" />
               <span>Receber conselho espiritual</span>
            </div>
            <button

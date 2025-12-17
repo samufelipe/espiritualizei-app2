@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { OnboardingData } from '../types';
-import { ArrowRight, Check, User, Clock, Zap, CloudRain, Heart, Coffee, Car, Moon, Sun, Anchor, Shield, Brain, Lightbulb, Mail, Phone, Lock, Eye, EyeOff, BookOpen, Users, Sword, Flower, Hammer, Crown } from 'lucide-react';
+import { ArrowRight, Check, User, Clock, Zap, CloudRain, Heart, Coffee, Car, Moon, Sun, Anchor, Shield, Brain, Lightbulb, Mail, Phone, Lock, Eye, EyeOff, BookOpen, Users, Sword, Flower, Hammer, Crown, Wifi, AlertCircle, ArrowLeft } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 interface OnboardingProps {
-  onComplete: (data: OnboardingData) => void;
+  onComplete: (data: OnboardingData) => Promise<void>; // Updated to Promise for error handling
+  onBack: () => void;
 }
 
 // --- Premium Selection Card Component ---
@@ -72,10 +73,12 @@ const SelectionCard: React.FC<SelectionCardProps> = ({
   </button>
 );
 
-const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
+const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
   const [step, setStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string, phone?: string }>({});
+  
   const [formData, setFormData] = useState<OnboardingData>({
     name: '',
     email: '',
@@ -94,18 +97,48 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const handleNext = async () => {
     if (step === 1 && !formData.name.trim()) return;
     if (step === 8) {
-       // Validate Account Data
-       if (!/\S+@\S+\.\S+/.test(formData.email)) return;
-       if (!formData.password || formData.password.length < 6) return;
+       // Validate Account Data (Cleaned)
+       const cleanEmail = formData.email.trim();
+       const cleanPassword = formData.password?.trim() || '';
+
+       if (!/\S+@\S+\.\S+/.test(cleanEmail)) {
+          setFieldErrors(prev => ({ ...prev, email: 'Digite um e-mail válido.' }));
+          return;
+       }
+       if (cleanPassword.length < 6) {
+          alert('A senha deve ter no mínimo 6 caracteres.');
+          return;
+       }
        
        setIsSubmitting(true);
+       setFieldErrors({}); // Clear previous errors
+
+       // Prepare data for submission with cleaned values
+       const submissionData = {
+          ...formData,
+          email: cleanEmail,
+          password: cleanPassword
+       };
+
        try {
-         await onComplete(formData);
-         // If successful, the parent will change viewState.
-       } catch (e) {
+         await onComplete(submissionData);
+         // If successful, parent changes view, component unmounts.
+       } catch (error: any) {
          setIsSubmitting(false);
-         // Error handled by parent logic or internal catch if needed, 
-         // but usually parent controls flow. 
+         const msg = error.message?.toLowerCase() || '';
+         
+         // Visual Feedback Logic
+         if (msg.includes('e-mail') || msg.includes('email') || msg.includes('user already registered')) {
+            setFieldErrors(prev => ({ ...prev, email: 'Este e-mail já está em uso.' }));
+         }
+         
+         if (msg.includes('telefone') || msg.includes('phone')) {
+            setFieldErrors(prev => ({ ...prev, phone: 'Este telefone já está cadastrado.' }));
+         }
+
+         if (!msg.includes('e-mail') && !msg.includes('phone') && !msg.includes('user already registered')) {
+             alert(error.message || "Erro ao criar conta. Tente novamente.");
+         }
        }
        return;
     }
@@ -129,11 +162,22 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     let res = v;
     if (v.length > 2) res = `(${v.slice(0, 2)}) ${v.slice(2)}`;
     if (v.length > 7) res = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+    
+    // Clear phone error on change
+    if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: undefined }));
+    
     setFormData(prev => ({ ...prev, phone: res }));
   };
 
   const renderWelcome = () => (
-    <div className="flex flex-col h-full justify-center items-center text-center space-y-8 px-6 animate-fade-in">
+    <div className="flex flex-col h-full justify-center items-center text-center space-y-8 px-6 animate-fade-in relative">
+      <button 
+        onClick={onBack}
+        className="absolute top-6 left-6 text-slate-400 hover:text-brand-dark dark:hover:text-white transition-colors flex items-center gap-1 font-bold text-sm"
+      >
+        <ArrowLeft size={18} /> Voltar
+      </button>
+
       <div className="mb-6 relative">
         <div className="absolute inset-0 bg-brand-violet/20 blur-3xl rounded-full animate-pulse-slow" />
         <BrandLogo size={120} className="text-brand-violet relative z-10 drop-shadow-xl" variant="fill" />
@@ -217,7 +261,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 <Shield size={32} />
              </div>
              <h2 className="text-2xl font-bold text-brand-dark dark:text-white mb-2">Salvar meu Plano Espiritual</h2>
-             <p className="text-slate-500 dark:text-slate-400 text-sm">Crie sua conta segura para acessar sua rotina personalizada e o diretor espiritual IA.</p>
+             <p className="text-slate-500 dark:text-slate-400 text-sm">
+                Crie sua conta segura para acessar sua rotina personalizada e fortalecer sua constância na fé.
+             </p>
           </div>
 
           <div className="space-y-4 bg-white dark:bg-white/5 p-6 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-xl">
@@ -225,30 +271,51 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
              <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-slate-400 ml-1">E-mail</label>
                 <div className="relative group">
-                   <Mail className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-brand-violet transition-colors" size={20} />
+                   <Mail className={`absolute left-4 top-3.5 transition-colors ${fieldErrors.email ? 'text-red-500' : 'text-slate-400 group-focus-within:text-brand-violet'}`} size={20} />
                    <input
                      type="email"
                      value={formData.email}
-                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                     className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-12 text-brand-dark dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-violet focus:ring-4 focus:ring-brand-violet/10 transition-all font-medium"
+                     onChange={(e) => {
+                        setFormData(prev => ({ ...prev, email: e.target.value }));
+                        if(fieldErrors.email) setFieldErrors(prev => ({...prev, email: undefined}));
+                     }}
+                     className={`w-full bg-slate-50 dark:bg-black/20 border rounded-xl py-3.5 pl-12 text-brand-dark dark:text-white placeholder:text-slate-400 outline-none transition-all font-medium ${
+                        fieldErrors.email 
+                          ? 'border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                          : 'border-slate-200 dark:border-white/10 focus:border-brand-violet focus:ring-4 focus:ring-brand-violet/10'
+                     }`}
                      placeholder="seu@email.com"
                    />
                 </div>
+                {fieldErrors.email && (
+                   <div className="flex items-center gap-1 text-xs text-red-500 font-bold ml-1 animate-fade-in">
+                      <AlertCircle size={10} /> {fieldErrors.email}
+                   </div>
+                )}
              </div>
 
              {/* Phone */}
              <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-slate-400 ml-1">Celular (Opcional)</label>
                 <div className="relative group">
-                   <Phone className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-brand-violet transition-colors" size={20} />
+                   <Phone className={`absolute left-4 top-3.5 transition-colors ${fieldErrors.phone ? 'text-red-500' : 'text-slate-400 group-focus-within:text-brand-violet'}`} size={20} />
                    <input
                      type="tel"
                      value={formData.phone}
                      onChange={handlePhoneChange}
-                     className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-12 text-brand-dark dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-violet focus:ring-4 focus:ring-brand-violet/10 transition-all font-medium"
+                     className={`w-full bg-slate-50 dark:bg-black/20 border rounded-xl py-3.5 pl-12 text-brand-dark dark:text-white placeholder:text-slate-400 outline-none transition-all font-medium ${
+                        fieldErrors.phone
+                          ? 'border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                          : 'border-slate-200 dark:border-white/10 focus:border-brand-violet focus:ring-4 focus:ring-brand-violet/10'
+                     }`}
                      placeholder="(00) 00000-0000"
                    />
                 </div>
+                {fieldErrors.phone && (
+                   <div className="flex items-center gap-1 text-xs text-red-500 font-bold ml-1 animate-fade-in">
+                      <AlertCircle size={10} /> {fieldErrors.phone}
+                   </div>
+                )}
              </div>
 
              {/* Password */}
@@ -307,6 +374,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         
         {/* STEP 2: Patron Saint */}
         {step === 2 && renderSelectionStep('Quem intercede por você?', 'Escolha um santo para guiar sua jornada.', 'patronSaint', [
+            { val: 'acutis', label: 'B. Carlo Acutis', desc: 'Santidade na era digital. A Eucaristia como rodovia.', icon: Wifi },
             { val: 'michael', label: 'São Miguel', desc: 'Para quem busca combate espiritual e proteção.', icon: Sword },
             { val: 'therese', label: 'Santa Teresinha', desc: 'Para encontrar Deus nas pequenas coisas.', icon: Flower },
             { val: 'joseph', label: 'São José', desc: 'Para santificar o trabalho e a família.', icon: Hammer },

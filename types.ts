@@ -2,14 +2,24 @@
 export enum Tab {
   DASHBOARD = 'DASHBOARD',
   ROUTINE = 'ROUTINE',
-  KNOWLEDGE = 'KNOWLEDGE', // New Tab replacing MAPS
-  CHAT = 'CHAT',
+  KNOWLEDGE = 'KNOWLEDGE',
   COMMUNITY = 'COMMUNITY',
-  PROFILE = 'PROFILE'
+  MAPS = 'MAPS',
+  PROFILE = 'PROFILE',
+  CHAT = 'CHAT' // Nova aba
+}
+
+export interface UserSettings {
+  notifications: {
+    prayers: boolean;
+    community: boolean;
+    director: boolean;
+  };
+  theme?: 'light' | 'dark';
 }
 
 export interface UserProfile {
-  id: string; // Unique ID
+  id: string;
   name: string;
   email: string;
   phone?: string;
@@ -24,20 +34,22 @@ export interface UserProfile {
   stateOfLife?: string;   
   hasSeenTutorial?: boolean;
   joinedDate: Date;
-  // Subscription Fields
+  lastRoutineUpdate?: Date; // Novo campo para o ciclo de 30 dias
   isPremium?: boolean;
   subscriptionStatus?: 'active' | 'trial' | 'canceled' | 'expired';
-  // New: Activity History for Heatmap
   activityHistory?: { date: string; count: number }[];
   patronSaint?: string;
+  lastActiveAt?: Date;
+  settings?: UserSettings;
 }
 
-// Auth Interface
 export interface AuthSession {
   user: UserProfile;
   token: string;
   expiresAt: number;
 }
+
+export type RoutineActionType = 'READ_LITURGY' | 'OPEN_MAP' | 'OPEN_COMMUNITY' | 'OPEN_CHAT' | 'OPEN_PLAYER' | 'READ_KNOWLEDGE' | 'NONE';
 
 export interface RoutineItem {
   id: string;
@@ -46,8 +58,10 @@ export interface RoutineItem {
   detailedContent?: string;
   xpReward: number;
   completed: boolean;
-  icon: 'rosary' | 'book' | 'cross' | 'candle' | 'sun' | 'heart' | 'shield';
-  timeEstimate?: string;
+  icon: 'rosary' | 'book' | 'cross' | 'candle' | 'sun' | 'heart' | 'shield' | 'moon' | 'church' | 'music';
+  timeOfDay: 'morning' | 'afternoon' | 'night' | 'any';
+  dayOfWeek: number[]; 
+  actionLink?: RoutineActionType; 
 }
 
 export interface JournalEntry {
@@ -69,6 +83,7 @@ export interface ChatMessage {
 export interface PrayerIntention {
   id: string;
   author: string;
+  authorAvatar?: string; // Added field for avatar
   content: string;
   prayingCount: number;
   isPrayedByUser: boolean;
@@ -85,54 +100,62 @@ export interface Comment {
   timestamp: Date;
 }
 
-// NEW: Community Feed Interfaces
 export interface CommunityPost {
   id: string;
   userId: string;
   userName: string;
-  userAvatar?: string; // URL or initial
+  userAvatar?: string;
   content: string;
-  imageUrl?: string; // Optional photo
+  imageUrl?: string;
   likesCount: number;
   commentsCount: number;
   isLikedByUser: boolean;
   timestamp: Date;
-  type: 'testimony' | 'challenge_update' | 'inspiration';
-  comments?: Comment[]; // Added comments array
+  type: 'testimony' | 'challenge_update' | 'inspiration' | 'question'; 
+  contextTag?: string; 
+  comments?: Comment[];
+}
+
+export interface LiturgyReading {
+  ref: string; 
+  text: string; 
 }
 
 export interface LiturgyDay {
   date: string;
   liturgicalColor: string;
   season: string;
+  saint: string; 
   readings: {
-    first: string;
-    psalm: string;
-    gospel: string;
+    first: LiturgyReading;
+    psalm: LiturgyReading; 
+    second?: LiturgyReading; 
+    gospel: LiturgyReading;
   };
-  saint: string;
 }
 
 export interface Parish {
   name: string;
   address: string;
-  neighborhood?: string; // Deprecated/Optional
-  distance?: string; // Calculated string
+  distance?: string;
   location?: { lat: number; lng: number }; 
   rating?: number;
   userRatingsTotal?: number;
   openNow?: boolean;
   url?: string;
-  photoUrl?: string; // NEW: Real photo from Google
+  photoUrl?: string;
   directionsUrl?: string;
 }
 
-// NEW: Daily Topic for Liturgical Journey
+export type ChallengeActionType = 'PRAYER' | 'RELATIONSHIP' | 'SACRIFICE' | 'GENERIC';
+
 export interface DailyTopic {
   day: number;
   title: string;
-  description: string; // Short meditation
-  action?: string; // New: Practical action (e.g. "Call your mother")
+  description: string;
+  action?: string; // Título curto da ação
+  actionType?: ChallengeActionType; // Tipo para UI
+  actionContent?: string; // Texto longo (ex: a oração inteira, ou instruções passo a passo)
   isCompleted: boolean;
   isLocked: boolean;
   scripture?: string;
@@ -162,7 +185,6 @@ export interface CommunityChallenge {
     amount: number;
     timestamp: Date;
   }[];
-  // New Fields for Journey
   dailyTopics?: DailyTopic[];
   currentDay?: number;
   totalDays?: number;
@@ -172,7 +194,7 @@ export interface OnboardingData {
   name: string;
   email: string; 
   phone: string; 
-  password?: string; // Added password for account creation
+  password?: string;
   stateOfLife: 'student' | 'single' | 'married' | 'parent' | 'retired'; 
   routineType: 'chaotic' | 'structured' | 'flexible' | 'overwhelmed'; 
   primaryStruggle: 'anxiety' | 'lust' | 'laziness' | 'pride' | 'anger' | 'dryness' | 'ignorance'; 
@@ -182,16 +204,38 @@ export interface OnboardingData {
   photoUrl?: string;
 }
 
-// Knowledge Base Interfaces
+// Estrutura detalhada para o Feedback Mensal
+export interface MonthlyReviewData {
+  intensity: 'too_heavy' | 'balanced' | 'too_light';
+  consistency: 'low' | 'medium' | 'high'; // O quanto conseguiu cumprir
+  likedPractices: string[]; // Ex: ['Rosário', 'Leitura']
+  dislikedPractices: string[]; // Ex: ['Meditação Longa']
+  newStruggle: string;
+  newGoal: string;
+  timeAvailabilityChange: 'same' | 'less' | 'more';
+}
+
 export interface KnowledgeItem {
   id: string;
   title: string;
   description: string;
-  content: string; // Markdown content
+  content: string;
   category: 'doctrine' | 'prayer' | 'mass' | 'saints';
-  duration: string; // e.g. "3 min"
+  duration: string;
   imageUrl?: string;
   isRead?: boolean;
+  status?: 'active' | 'draft' | 'archived';
+  publishedAt?: Date;
+  videoSuggestion?: {
+    title: string;
+    url: string;
+    channelName: string;
+  };
+  musicSuggestion?: {
+    title: string;
+    url: string;
+    artist: string;
+  };
 }
 
 export interface KnowledgeTrack {
@@ -199,4 +243,29 @@ export interface KnowledgeTrack {
   title: string;
   description: string;
   items: KnowledgeItem[];
+}
+
+export interface Notification {
+  id: string;
+  type: 'pray' | 'comment' | 'like' | 'system';
+  content: string;
+  isRead: boolean;
+  createdAt: Date;
+  resourceId?: string;
+  actorName?: string;
+}
+
+export interface LeaderboardEntry {
+  id: string;
+  userId: string;
+  userName: string;
+  avatarUrl?: string;
+  score: number;
+  rank: number;
+  badges?: ('top3' | 'streak' | 'veteran')[];
+}
+
+export interface LeaderboardData {
+  intercessors: LeaderboardEntry[]; 
+  pilgrims: LeaderboardEntry[];     
 }

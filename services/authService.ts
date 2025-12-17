@@ -4,27 +4,26 @@ import { createClient } from '@supabase/supabase-js';
 
 // --- CONFIGURATION ---
 
-// URL do seu projeto Supabase
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://anoqhwpdrztaqmlocnzx.supabase.co';
+// Em produção, estas variáveis DEVEM vir do ambiente (process.env ou import.meta.env)
+// NÃO deixe chaves reais hardcoded aqui para publicação final.
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || '';
 
-// SUA CHAVE ANON (PÚBLICA)
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFub3Fod3Bkcnp0YXFtbG9jbnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2ODM3OTQsImV4cCI6MjA3OTI1OTc5NH0.eUg9hLctWst7nolKxk5OUgka6s8xUaaBNH3dP6kCduY'; 
+// Validação rigorosa para Produção
+const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_KEY && SUPABASE_URL.startsWith('https'));
 
-// Validação simplificada: Se tem URL e Chave, ativa o Supabase
-const isSupabaseEnabled = !!(SUPABASE_URL && SUPABASE_KEY && SUPABASE_KEY.startsWith('eyJ'));
-
-export let supabase: any = null; // Exported for use in databaseService
+export let supabase: any = null;
 
 // Inicialização do Cliente
-if (isSupabaseEnabled) {
+if (isSupabaseConfigured) {
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("🔌 Supabase Client Initialized");
+    console.log("🔌 Supabase: Cliente Inicializado com Sucesso.");
   } catch (e) {
-    console.error("Erro ao inicializar Supabase:", e);
+    console.error("❌ Supabase: Erro crítico na inicialização.", e);
   }
 } else {
-  console.log("⚠️ Supabase: Chave inválida. Usando Modo Simulado (LocalStorage).");
+  console.warn("⚠️ Supabase: Variáveis de ambiente não detectadas. O app está rodando em MOCK MODE (LocalStorage). Dados não serão persistidos na nuvem.");
 }
 
 // --- MOCK DATABASE KEYS ---
@@ -36,26 +35,13 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // --- SAFETY HELPERS (Prevent JSON Crashes) ---
 
-/**
- * Safely stringifies an object, removing circular references and DOM nodes.
- * This prevents the "Converting circular structure to JSON" error.
- */
-const safeStringify = (obj: any) => {
+export const safeStringify = (obj: any) => {
   const cache = new Set();
   return JSON.stringify(obj, (key, value) => {
     if (typeof value === 'object' && value !== null) {
-      // Prevent Circular Refs
-      if (cache.has(value)) {
-        return; // Discard
-      }
-      // Prevent DOM Nodes (HTMLAudioElement, etc)
-      if (value.constructor && value.constructor.name && (value.constructor.name.startsWith('HTML') || value.constructor.name.includes('Element'))) {
-         return; // Discard
-      }
-      // Prevent React Fiber Nodes
-      if (key.startsWith('_react')) {
-         return;
-      }
+      if (cache.has(value)) return;
+      if (value.constructor && value.constructor.name && (value.constructor.name.startsWith('HTML') || value.constructor.name.includes('Element'))) return;
+      if (key.startsWith('_react')) return;
       cache.add(value);
     }
     return value;
@@ -64,7 +50,6 @@ const safeStringify = (obj: any) => {
 
 // --- HELPER FUNCTIONS ---
 
-// Converts Supabase DB format (snake_case) to App format (camelCase)
 const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   id: dbProfile.id,
   name: dbProfile.name,
@@ -78,21 +63,22 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   spiritualFocus: dbProfile.spiritual_focus,
   stateOfLife: dbProfile.state_of_life,
   joinedDate: new Date(dbProfile.joined_date),
-  // Mapping Subscription Fields
+  // Fallback seguro: se last_routine_update não existir, usa joined_date
+  lastRoutineUpdate: dbProfile.last_routine_update ? new Date(dbProfile.last_routine_update) : new Date(dbProfile.joined_date),
   isPremium: dbProfile.is_premium || false,
   subscriptionStatus: dbProfile.subscription_status || 'canceled',
   patronSaint: dbProfile.patron_saint
 });
 
-// --- PUBLIC HELPER FOR UI ---
-export const getConnectionStatus = () => isSupabaseEnabled;
+export const getConnectionStatus = () => isSupabaseConfigured && !!supabase;
 
 // --- AUTH SERVICES ---
 
 export const sendPasswordResetEmail = async (email: string) => {
-  if (isSupabaseEnabled) {
+  if (getConnectionStatus()) {
+    // Usamos a origem atual como redirecionamento para evitar erros de URL não permitida
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/reset-password',
+      redirectTo: window.location.origin, 
     });
     if (error) throw error;
     return true;
@@ -101,16 +87,21 @@ export const sendPasswordResetEmail = async (email: string) => {
   return true;
 };
 
+export const updateUserPassword = async (newPassword: string) => {
+  if (getConnectionStatus()) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+    return true;
+  }
+  await delay(1000); // Mock
+  return true;
+};
+
 export const registerUser = async (data: OnboardingData): Promise<AuthSession> => {
-  
-  // 1. SUPABASE MODE
-  if (isSupabaseEnabled) {
+  if (getConnectionStatus()) {
     console.log("Tentando registrar no Supabase...");
-    
-    // Normalizar email
     const email = data.email.trim().toLowerCase();
 
-    // A. Create Auth User
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email,
       password: data.password,
@@ -118,12 +109,12 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
 
     if (authError) {
       console.error("Supabase Auth Error:", authError);
+      // Repassa a mensagem exata para o frontend tratar
       throw new Error(authError.message); 
     }
     
     if (!authData.user) throw new Error("Erro ao criar usuário. Verifique seus dados.");
 
-    // B. Insert Profile Data (With Fallback Strategy)
     const profilePayload = {
       id: authData.user.id,
       name: data.name,
@@ -131,41 +122,37 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
       spiritual_maturity: 'Iniciante',
       spiritual_focus: data.primaryStruggle,
       state_of_life: data.stateOfLife,
-      patron_saint: data.patronSaint, // New field
+      patron_saint: data.patronSaint,
       level: 1,
       current_xp: 0,
       is_premium: false,
-      subscription_status: 'trial' 
+      subscription_status: 'trial'
+      // last_routine_update será gerenciado pelo DB ou inserido na primeira revisão
     };
 
-    let profileError = null;
-
-    // Tentativa 1: Inserção Completa
     const { error: fullInsertError } = await supabase.from('profiles').insert([profilePayload]);
     
     if (fullInsertError) {
-       console.warn("Full profile insert failed (likely missing columns). Trying basic insert...", fullInsertError);
-       profileError = fullInsertError;
+       console.warn("Full profile insert failed.", fullInsertError.message);
+       // Check duplicate phone in profile
+       if (fullInsertError.message.includes('unique constraint') && fullInsertError.message.includes('phone')) {
+          // Rollback auth user creation if profile fails due to duplicate phone? 
+          // Ideally yes, but for now we just throw so UI can show error.
+          throw new Error("Este telefone já está cadastrado.");
+       }
 
-       // Tentativa 2: Inserção Básica (Fallback para não travar o usuário)
+       // Fallback simples caso falhe por outros motivos de schema
        const basicPayload = {
           id: authData.user.id,
           name: data.name,
           phone: data.phone
        };
        const { error: basicInsertError } = await supabase.from('profiles').insert([basicPayload]);
-       
-       if (basicInsertError) {
-          console.error("Critical: Basic profile insert failed", basicInsertError);
-          // Mesmo se falhar o perfil, o Auth User existe. Prosseguimos para permitir o login.
-       }
+       if (basicInsertError) console.error("Critical: Basic profile insert failed", basicInsertError);
     }
 
-    // C. Return Session
-    const newUser = mapProfileFromDB({ 
-      ...profilePayload, // Usamos o payload local para a sessão imediata
-      joined_date: new Date().toISOString()
-    }, email);
+    // Adiciona joined_date manualmente para o objeto local, já que o DB gera automaticamente
+    const newUser = mapProfileFromDB({ ...profilePayload, joined_date: new Date().toISOString() }, email);
 
     const session: AuthSession = {
       user: newUser,
@@ -177,21 +164,25 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     return session;
   }
 
-  // 2. MOCK MODE (LocalStorage)
-  console.log("Registrando em Modo Simulado...");
+  // MOCK MODE
   await delay(1000);
+  const normalizedEmail = data.email.trim().toLowerCase(); // Normaliza e-mail no registro
+  
   const usersStr = localStorage.getItem(DB_USERS_KEY);
   const users = usersStr ? JSON.parse(usersStr) : [];
   
-  if (users.find((u: any) => u.email === data.email)) {
+  if (users.find((u: any) => u.email === normalizedEmail)) {
     throw new Error("Este e-mail já está cadastrado.");
   }
 
-  // Sanitize Data explicitly
+  if (data.phone && users.find((u: any) => u.phone === data.phone)) {
+    throw new Error("Este telefone já está cadastrado.");
+  }
+
   const newUser: UserProfile = {
     id: crypto.randomUUID(),
     name: String(data.name),
-    email: String(data.email),
+    email: normalizedEmail,
     phone: String(data.phone),
     level: 1,
     currentXP: 0,
@@ -201,12 +192,14 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     spiritualFocus: String(data.primaryStruggle),
     stateOfLife: String(data.stateOfLife),
     joinedDate: new Date(),
+    lastRoutineUpdate: new Date(),
     isPremium: false,
     subscriptionStatus: 'trial',
     patronSaint: data.patronSaint
   };
 
-  const dbRecord = { ...newUser, password: data.password };
+  // STORE TRIMMED PASSWORD
+  const dbRecord = { ...newUser, password: data.password?.trim() };
   users.push(dbRecord);
   localStorage.setItem(DB_USERS_KEY, safeStringify(users));
   
@@ -223,46 +216,43 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
 export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
   const normalizedEmail = email.trim().toLowerCase();
 
-  // 1. SUPABASE MODE
-  if (isSupabaseEnabled) {
+  if (getConnectionStatus()) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password,
     });
 
     if (error) {
-      if (error.message.includes("Email not confirmed")) {
-         throw new Error("Por favor, confirme seu e-mail antes de entrar.");
-      }
+      if (error.message.includes("Email not confirmed")) throw new Error("Por favor, confirme seu e-mail antes de entrar.");
       throw new Error("E-mail ou senha incorretos.");
     }
     
     if (!data.user || !data.session) throw new Error("Erro na sessão.");
 
-    // Fetch Profile Data
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).maybeSingle();
 
-    if (profileError || !profile) {
-       console.error("Profile fetch error:", profileError);
-       // Fallback minimal profile if DB fetch fails but Auth works
+    if (!profile) {
+       // Auto-heal: Create profile if missing
        const fallbackProfile = {
          id: data.user.id,
          name: data.user.user_metadata?.name || 'Usuário',
          email: normalizedEmail,
+         phone: '',
          level: 1,
-         currentXP: 0,
-         nextLevelXP: 100,
-         streakDays: 0,
-         joinedDate: new Date(),
-         isPremium: false,
-         subscriptionStatus: 'canceled'
+         current_xp: 0,
+         next_level_xp: 100,
+         streak_days: 0,
+         joined_date: new Date().toISOString(),
+         is_premium: false,
+         subscription_status: 'trial',
+         spiritual_maturity: 'Iniciante',
+         state_of_life: 'single',
+         spiritual_focus: 'Paz'
        };
-       const session: AuthSession = {
-        user: fallbackProfile as UserProfile,
+       try { supabase.from('profiles').insert([fallbackProfile]).then(() => {}); } catch (err) {}
+       
+       const session = {
+        user: mapProfileFromDB(fallbackProfile, normalizedEmail),
         token: data.session.access_token,
         expiresAt: data.session.expires_at ? data.session.expires_at * 1000 : Date.now() + 86400000
       };
@@ -270,10 +260,8 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
       return session;
     }
 
-    const userProfile = mapProfileFromDB(profile, normalizedEmail);
-
-    const session: AuthSession = {
-      user: userProfile,
+    const session = {
+      user: mapProfileFromDB(profile, normalizedEmail),
       token: data.session.access_token,
       expiresAt: data.session.expires_at ? data.session.expires_at * 1000 : Date.now() + 86400000
     };
@@ -282,18 +270,29 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
     return session;
   }
 
-  // 2. MOCK MODE
+  // MOCK MODE
   await delay(1200);
   const usersStr = localStorage.getItem(DB_USERS_KEY);
   const users = usersStr ? JSON.parse(usersStr) : [];
-  const userRecord = users.find((u: any) => u.email === normalizedEmail && u.password === password);
+  
+  // ROBUST PASSWORD CHECK: Checks normal and trimmed to support legacy/whitespace errors
+  const userRecord = users.find((u: any) => 
+      (u.email?.toLowerCase() === normalizedEmail) && 
+      (u.password === password || u.password === password.trim())
+  );
 
   if (!userRecord) throw new Error("E-mail ou senha incorretos.");
 
   const { password: _, ...userProfile } = userRecord;
-  
-  const session: AuthSession = {
-    user: userProfile as UserProfile,
+  // Restore date objects in mock
+  const user = {
+      ...userProfile,
+      joinedDate: new Date(userProfile.joinedDate),
+      lastRoutineUpdate: userProfile.lastRoutineUpdate ? new Date(userProfile.lastRoutineUpdate) : new Date(userProfile.joinedDate)
+  } as UserProfile;
+
+  const session = {
+    user: user,
     token: 'mock-token-' + Date.now(),
     expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000)
   };
@@ -304,7 +303,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
 
 export const logoutUser = async () => {
   localStorage.removeItem(SESSION_KEY);
-  if (isSupabaseEnabled) {
+  if (getConnectionStatus()) {
     await supabase.auth.signOut();
   }
 };
@@ -312,50 +311,46 @@ export const logoutUser = async () => {
 export const getSession = (): AuthSession | null => {
   const sessionStr = localStorage.getItem(SESSION_KEY);
   if (!sessionStr) return null;
-  
   try {
     const session = JSON.parse(sessionStr) as AuthSession;
-    // Simple expiry check
     if (Date.now() > session.expiresAt) {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
+    // Rehydrate Dates
+    session.user.joinedDate = new Date(session.user.joinedDate);
+    if(session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
     return session;
   } catch (e) {
-    console.error("Session corrupted, clearing storage.", e);
-    localStorage.removeItem(SESSION_KEY); // Auto-recovery
+    localStorage.removeItem(SESSION_KEY);
     return null;
   }
 };
 
 export const updateUserProfile = async (updatedUser: UserProfile) => {
-  // Update Local Session
   const session = getSession();
   if (session) {
     session.user = updatedUser;
     localStorage.setItem(SESSION_KEY, safeStringify(session));
   }
 
-  // 1. SUPABASE MODE
-  if (isSupabaseEnabled) {
-    const { error } = await supabase
-      .from('profiles')
-      .update({
+  if (getConnectionStatus()) {
+    // ATIVANDO GRAVAÇÃO DO last_routine_update
+    await supabase.from('profiles').update({
         name: updatedUser.name,
         phone: updatedUser.phone,
         level: updatedUser.level,
         current_xp: updatedUser.currentXP,
         streak_days: updatedUser.streakDays,
         spiritual_maturity: updatedUser.spiritualMaturity,
-        patron_saint: updatedUser.patronSaint
-      })
-      .eq('id', updatedUser.id);
-      
-    if (error) console.error("Failed to sync profile update to Supabase", error);
+        patron_saint: updatedUser.patronSaint,
+        spiritual_focus: updatedUser.spiritualFocus,
+        last_routine_update: updatedUser.lastRoutineUpdate // AGORA É REAL E PERSISTENTE
+      }).eq('id', updatedUser.id);
     return;
   }
   
-  // 2. MOCK MODE
+  // MOCK MODE UPDATE
   const usersStr = localStorage.getItem(DB_USERS_KEY);
   const users = usersStr ? JSON.parse(usersStr) : [];
   const index = users.findIndex((u: any) => u.id === updatedUser.id);

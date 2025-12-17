@@ -19,7 +19,9 @@ const DailyInspiration: React.FC<DailyInspirationProps> = ({ onClose, userName }
       try {
         const todaySaint = "Santo do Dia"; // Simplificação, idealmente viria do contexto
         const text = await generateDailyReflection(todaySaint);
-        setQuote(text);
+        // Remove aspas se a IA mandar, pois o UI já tem aspas decorativas (se quiséssemos adicionar via CSS)
+        // Mas como estamos renderizando direto, mantemos limpo.
+        setQuote(text.replace(/^"|"$/g, '')); 
       } catch (e) {
         // Fallback mantém o texto padrão
       } finally {
@@ -35,35 +37,35 @@ const DailyInspiration: React.FC<DailyInspirationProps> = ({ onClose, userName }
       <div className="absolute inset-0 bg-brand-dark/95 backdrop-blur-md animate-fade-in" onClick={onClose} />
       
       {/* Card Estilo 'Instagram Story' */}
-      <div className="relative w-full max-w-sm bg-gradient-to-br from-[#2A2136] to-[#1A1625] rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10 animate-slide-up flex flex-col aspect-[9/16] max-h-[80vh]">
+      <div className="relative w-full max-w-sm bg-gradient-to-br from-[#2A2136] to-[#1A1625] rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10 animate-slide-up flex flex-col aspect-[9/16] max-h-[85vh]">
          
          {/* Background Effects */}
          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-violet/20 rounded-full blur-[80px] animate-pulse-slow pointer-events-none" />
          <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none" />
 
          {/* Content */}
-         <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <div className="mb-8 opacity-80">
+         <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-8 text-center overflow-hidden">
+            <div className="mb-8 opacity-80 shrink-0">
                <BrandLogo size={48} variant="fill" className="text-white mx-auto mb-4" />
                <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Inspiração Diária</p>
             </div>
 
-            <div className="mb-8">
+            <div className="mb-8 w-full overflow-y-auto no-scrollbar max-h-[40vh] flex items-center justify-center">
                {loading ? (
                  <Sparkles className="text-white animate-spin mx-auto" />
                ) : (
-                 <blockquote className="text-2xl font-serif text-white leading-relaxed font-medium italic">
+                 <blockquote className="text-2xl sm:text-3xl font-serif text-white leading-relaxed font-medium italic drop-shadow-md">
                    "{quote}"
                  </blockquote>
                )}
             </div>
 
-            <div className="w-12 h-1 bg-white/20 rounded-full mb-4" />
-            <p className="text-sm text-white/80 font-medium">Bom dia, {userName}.</p>
+            <div className="w-12 h-1 bg-white/20 rounded-full mb-4 shrink-0" />
+            <p className="text-sm text-white/80 font-medium shrink-0">Bom dia, {userName}.</p>
          </div>
 
          {/* Footer Actions */}
-         <div className="p-6 pb-8 flex gap-3">
+         <div className="p-6 pb-8 flex gap-3 shrink-0 bg-[#1A1625]/50 backdrop-blur-sm">
             <button 
               onClick={onClose}
               className="flex-1 bg-white text-brand-dark font-bold py-4 rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
