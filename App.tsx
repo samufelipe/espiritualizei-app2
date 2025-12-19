@@ -56,6 +56,7 @@ const App: React.FC = () => {
   const [isGeneratingRoutine, setIsGeneratingRoutine] = useState(false);
   const [feedInitialContent, setFeedInitialContent] = useState<string>(''); 
   const [showLiturgyModal, setShowLiturgyModal] = useState(false);
+  const initializationRef = useRef(false);
 
   const [user, setUser] = useState<UserProfile>({
     id: 'guest', name: 'Visitante', email: '', level: 1, currentXP: 0, nextLevelXP: 100, streakDays: 0, joinedDate: new Date()
@@ -67,7 +68,7 @@ const App: React.FC = () => {
     { id: 'liturgy-challenge', title: 'Carregando Jornada...', description: 'Sincronizando com o tempo litúrgico.', currentAmount: 0, targetAmount: 1000000, unit: 'Orações', daysLeft: 0, seasonColor: '#7C3AED', icon: 'heart', type: 'season', startDate: new Date(), endDate: new Date(), status: 'active', participants: 15420, isUserParticipating: false, userContribution: 0, currentDay: 1, totalDays: 40 }
   ]);
 
-  // Detecção de Retorno da Cakto com Verificação Robusta
+  // Detecção de Retorno de Pagamento
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
@@ -83,6 +84,7 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Sincronização de Histórico/URL
   useEffect(() => {
     const handlePopState = () => {
        const path = window.location.pathname.replace('/', '');
@@ -127,15 +129,21 @@ const App: React.FC = () => {
     }
   };
 
+  // INICIALIZAÇÃO ÚNICA DE SESSÃO
   useEffect(() => {
+    if (initializationRef.current) return;
+    initializationRef.current = true;
+
     const initSession = async () => {
       const session = getSession();
       if (session) {
         setUser(session.user);
         
-        // MODO TESTE: Ignorando a trava de Premium temporariamente
-        const path = window.location.pathname.replace('/', '').toUpperCase() as Tab;
-        navigate('app', Object.values(Tab).includes(path) ? path : Tab.DASHBOARD);
+        // Se já tem sessão e não estamos em fluxo de transição, vai para o dashboard
+        const currentPath = window.location.pathname;
+        if (currentPath === '/' || currentPath === '/login' || currentPath === '/onboarding') {
+            navigate('app', Tab.DASHBOARD);
+        }
         
         const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
         const today = new Date().toDateString();
@@ -148,24 +156,32 @@ const App: React.FC = () => {
         
       } else {
          const currentPath = window.location.pathname;
-         if (currentPath === '/login') navigate('login');
-         else if (currentPath === '/onboarding') navigate('onboarding');
-         else navigate('landing');
+         if (currentPath === '/login') setViewState('login');
+         else if (currentPath === '/onboarding') setViewState('onboarding');
+         else setViewState('landing');
       }
     };
     initSession();
-  }, [viewState]);
+  }, []); // Dependência vazia para rodar apenas no mount
 
   const loadIntentions = async (userId: string) => {
     try { const data = await fetchCommunityIntentions(userId); setIntentions(data); } catch (e) {}
   };
   
   const handleOnboardingComplete = async (data: OnboardingData) => {
+    let registrationSuccess = false;
     try {
       setViewState('generating');
       setIsGeneratingRoutine(true);
+      
+      // 1. Registro do Usuário
       const session = await registerUser(data);
+      registrationSuccess = true; // Se chegou aqui, o e-mail já está no banco
+
+      // 2. Geração da Rotina via Gemini
       const result = await generateSpiritualRoutine(data);
+      
+      // 3. Atualização de Perfil e Estado
       const updatedUser: UserProfile = {
         ...session.user,
         spiritualMaturity: result.profileDescription,
@@ -174,6 +190,7 @@ const App: React.FC = () => {
         patronSaint: data.patronSaint,
         lastRoutineUpdate: new Date()
       };
+      
       await updateUserProfile(updatedUser);
       setUser(updatedUser);
       setRoutineItems(result.routine);
@@ -184,15 +201,22 @@ const App: React.FC = () => {
         title: result.profileDescription, 
         subtitle: `Iniciando sua caminhada para vencer a ${STRUGGLE_TRANSLATION[data.primaryStruggle] || data.primaryStruggle} sob a guia de ${SAINT_TRANSLATION[data.patronSaint || ''] || 'um Santo Guia'}.`
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Erro no onboarding:", error);
       setIsGeneratingRoutine(false);
-      setViewState('onboarding');
-      throw error;
+      
+      // Se o erro foi APENAS na IA mas o registro funcionou, não voltamos para o onboarding!
+      // Levamos o usuário para o app com uma rotina padrão.
+      if (registrationSuccess) {
+         navigate('app', Tab.DASHBOARD);
+      } else {
+         setViewState('onboarding');
+         alert(error.message || "Ocorreu um erro no cadastro. Tente novamente.");
+      }
     }
   };
 
   const handleFinishRevelation = () => {
-    // MODO TESTE: Vai direto para o Dashboard em vez de assinar
     navigate('app', Tab.DASHBOARD);
     setShowTutorial(true);
   };
@@ -212,7 +236,6 @@ const App: React.FC = () => {
     setUser(loggedInUser);
     fetchUserRoutine(loggedInUser.id).then(setRoutineItems);
     loadIntentions(loggedInUser.id);
-    // MODO TESTE: Ignora verificação premium no login
     navigate('app', Tab.DASHBOARD);
   };
 
@@ -271,10 +294,10 @@ const App: React.FC = () => {
       <Suspense fallback={<TabLoader />}>
         {(() => {
           switch (currentTab) {
-            case Tab.DASHBOARD: return <Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onToggleRoutine={id => handleToggleRoutine(id)} onNavigateToCommunity={() => navigate('app', Tab.COMMUNITY)} onNavigateToRoutine={() => navigate('app', Tab.ROUTINE)} onNavigateToKnowledge={() => navigate('app', Tab.KNOWLEDGE)} onNavigateToProfile={() => navigate('app', Tab.PROFILE)} onNavigateToMaps={() => navigate('app', Tab.MAPS)} onSaveJournal={handleSaveJournal} showLiturgyModal={showLiturgyModal} setShowLiturgyModal={setShowLiturgyModal} onLogout={handleLogout} />;
-            case Tab.ROUTINE: return <Routine items={routineItems} activeChallenge={activeChallenge} onToggle={handleToggleRoutine} onAdd={handleAddRoutineItem} onDelete={handleDeleteRoutineItem} onNavigate={t => navigate('app', t)} onOpenMaps={() => navigate('app', Tab.MAPS)} onOpenLiturgy={() => { navigate('app', Tab.DASHBOARD); setTimeout(() => setShowLiturgyModal(true), 100); }} onOpenPlayer={() => { }} />;
+            case Tab.DASHBOARD: return <Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onToggleRoutine={id => handleToggleRoutine(id)} onNavigateToCommunity={() => setCurrentTab(Tab.COMMUNITY)} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToMaps={() => setCurrentTab(Tab.MAPS)} onSaveJournal={handleSaveJournal} showLiturgyModal={showLiturgyModal} setShowLiturgyModal={setShowLiturgyModal} onLogout={handleLogout} />;
+            case Tab.ROUTINE: return <Routine items={routineItems} activeChallenge={activeChallenge} onToggle={handleToggleRoutine} onAdd={handleAddRoutineItem} onDelete={handleDeleteRoutineItem} onNavigate={t => setCurrentTab(t)} onOpenMaps={() => setCurrentTab(Tab.MAPS)} onOpenLiturgy={() => { setCurrentTab(Tab.DASHBOARD); setTimeout(() => setShowLiturgyModal(true), 100); }} onOpenPlayer={() => { }} />;
             case Tab.KNOWLEDGE: return <KnowledgeBase />;
-            case Tab.COMMUNITY: return <Community intentions={intentions} challenges={challenges} onPray={handlePray} onJoinChallenge={handleJoinChallenge} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={c => { setFeedInitialContent(c); navigate('app', Tab.COMMUNITY); }} feedInitialContent={feedInitialContent} user={user} />;
+            case Tab.COMMUNITY: return <Community intentions={intentions} challenges={challenges} onPray={handlePray} onJoinChallenge={handleJoinChallenge} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={c => { setFeedInitialContent(c); setCurrentTab(Tab.COMMUNITY); }} feedInitialContent={feedInitialContent} user={user} />;
             case Tab.MAPS: return <ParishFinder />;
             case Tab.CHAT: return <SpiritualChat user={user} />;
             case Tab.PROFILE: return <Profile user={user} onUpdateUser={u => { setUser(u); updateUserProfile(u); }} onLogout={handleLogout} />;
@@ -288,7 +311,7 @@ const App: React.FC = () => {
   return (
     <div className="flex h-screen overflow-hidden bg-brand-dark font-sans text-slate-100 selection:bg-brand-violet/30">
       <InstallPWA />
-      {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={t => navigate('app', t)} user={user} onLogout={handleLogout} /></div>}
+      {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={t => setCurrentTab(t)} user={user} onLogout={handleLogout} /></div>}
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative scroll-smooth bg-brand-dark">
           {viewState === 'landing' && <LandingPage onStart={() => navigate('onboarding')} onLogin={() => navigate('login')} />}
           {viewState === 'login' && <><Login onLogin={handleLoginSuccess} onRegister={() => navigate('onboarding')} onBack={() => navigate('landing')} />{showUpdatePasswordModal && <UpdatePasswordModal onClose={() => setShowUpdatePasswordModal(false)} />}</>}
@@ -369,7 +392,7 @@ const App: React.FC = () => {
               {showUpdatePasswordModal && <UpdatePasswordModal onClose={() => setShowUpdatePasswordModal(false)} />}
               {showMonthlyReview && <MonthlyReviewModal onClose={() => setShowMonthlyReview(false)} onComplete={() => {}} currentStruggle={user.spiritualFocus} />}
               {showIntentionModal && <CreateIntentionModal onClose={() => setShowIntentionModal(false)} onSubmit={handleCreateIntention} />}
-              <Navigation currentTab={currentTab} onTabChange={t => navigate('app', t)} />
+              <Navigation currentTab={currentTab} onTabChange={t => setCurrentTab(t)} />
             </>
           )}
       </main>
