@@ -30,10 +30,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, user, onLogo
           <BrandLogo size={32} variant="fill" className="text-brand-violet" />
           <h1 className="font-bold text-xl text-white tracking-tight">Espiritualizei</h1>
         </div>
-        {/* Badge de Teste (Removível depois) */}
-        <div className="bg-amber-500/10 text-amber-500 p-1.5 rounded-lg border border-amber-500/20" title="Checkout desativado para testes">
-           <FlaskConical size={14} />
-        </div>
       </div>
 
       {/* Navigation */}

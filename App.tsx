@@ -65,7 +65,38 @@ const App: React.FC = () => {
   const [routineItems, setRoutineItems] = useState<RoutineItem[]>([]);
   const [intentions, setIntentions] = useState<PrayerIntention[]>([]);
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([
-    { id: 'liturgy-challenge', title: 'Carregando Jornada...', description: 'Sincronizando com o tempo litúrgico.', currentAmount: 0, targetAmount: 1000000, unit: 'Orações', daysLeft: 0, seasonColor: '#7C3AED', icon: 'heart', type: 'season', startDate: new Date(), endDate: new Date(), status: 'active', participants: 15420, isUserParticipating: false, userContribution: 0, currentDay: 1, totalDays: 40 }
+    { 
+      id: 'liturgy-challenge', 
+      title: 'Jornada Espiritual', 
+      description: 'Caminhando juntos rumo à santidade.', 
+      currentAmount: 0, 
+      targetAmount: 1000000, 
+      unit: 'Orações', 
+      daysLeft: 12, 
+      seasonColor: '#7C3AED', 
+      icon: 'heart', 
+      type: 'season', 
+      startDate: new Date(), 
+      endDate: new Date(), 
+      status: 'active', 
+      participants: 15420, 
+      isUserParticipating: false, 
+      userContribution: 0, 
+      currentDay: 1, 
+      totalDays: 40,
+      dailyTopics: [
+        { 
+          day: 1, 
+          title: 'O Primeiro Passo', 
+          description: 'Hoje iniciamos nossa jornada com um ato de confiança.', 
+          isCompleted: false, 
+          isLocked: false,
+          scripture: 'Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.',
+          actionContent: 'Dedique 5 minutos de silêncio absoluto hoje, apenas escutando o bater do seu coração e agradecendo a Deus pelo dom da vida.',
+          actionType: 'PRAYER'
+        }
+      ]
+    }
   ]);
 
   // Detecção de Retorno de Pagamento
@@ -139,7 +170,6 @@ const App: React.FC = () => {
       if (session) {
         setUser(session.user);
         
-        // Se já tem sessão e não estamos em fluxo de transição, vai para o dashboard
         const currentPath = window.location.pathname;
         if (currentPath === '/' || currentPath === '/login' || currentPath === '/onboarding') {
             navigate('app', Tab.DASHBOARD);
@@ -162,7 +192,7 @@ const App: React.FC = () => {
       }
     };
     initSession();
-  }, []); // Dependência vazia para rodar apenas no mount
+  }, []); 
 
   const loadIntentions = async (userId: string) => {
     try { const data = await fetchCommunityIntentions(userId); setIntentions(data); } catch (e) {}
@@ -174,14 +204,11 @@ const App: React.FC = () => {
       setViewState('generating');
       setIsGeneratingRoutine(true);
       
-      // 1. Registro do Usuário
       const session = await registerUser(data);
-      registrationSuccess = true; // Se chegou aqui, o e-mail já está no banco
+      registrationSuccess = true; 
 
-      // 2. Geração da Rotina via Gemini
       const result = await generateSpiritualRoutine(data);
       
-      // 3. Atualização de Perfil e Estado
       const updatedUser: UserProfile = {
         ...session.user,
         spiritualMaturity: result.profileDescription,
@@ -204,9 +231,6 @@ const App: React.FC = () => {
     } catch (error: any) {
       console.error("Erro no onboarding:", error);
       setIsGeneratingRoutine(false);
-      
-      // Se o erro foi APENAS na IA mas o registro funcionou, não voltamos para o onboarding!
-      // Levamos o usuário para o app com uma rotina padrão.
       if (registrationSuccess) {
          navigate('app', Tab.DASHBOARD);
       } else {

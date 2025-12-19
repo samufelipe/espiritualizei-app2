@@ -63,7 +63,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   setShowLiturgyModal,
   onLogout
 }) => {
-  const [dailyTheme, setDailyTheme] = useState<string>('Carregando inspiração...');
+  const [dailyTheme, setDailyTheme] = useState<string>('Tudo posso Naquele que me fortalece.');
   const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening'>('morning');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
@@ -104,8 +104,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         }
         
         const theme = await generateDailyTheme(realLiturgy.readings.gospel.text);
-        if (isMounted) {
-            // Reforçamos a limpeza aqui também por segurança
+        if (isMounted && theme) {
             setDailyTheme(cleanAIOutput(theme));
         }
     };
