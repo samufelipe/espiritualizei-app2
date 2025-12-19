@@ -36,6 +36,7 @@ export interface UserProfile {
   hasSeenTutorial?: boolean;
   joinedDate: Date;
   lastRoutineUpdate?: Date;
+  lastConfessionAt?: Date; // Inovação C
   isPremium?: boolean;
   subscriptionStatus?: 'active' | 'trial' | 'canceled' | 'expired';
   activityHistory?: { date: string; count: number }[];

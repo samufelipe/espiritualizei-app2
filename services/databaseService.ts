@@ -1,51 +1,106 @@
 
 import { supabase, getConnectionStatus, getSession, safeStringify } from './authService';
-import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData } from '../types';
+import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData, CommunityChallenge } from '../types';
 
-// Key for local storage fallbacks
 const DB_ROUTINE_KEY = 'espiritualizei_routine_db';
 const DB_INTENTIONS_KEY = 'espiritualizei_intentions_db';
 const DB_POSTS_KEY = 'espiritualizei_posts_db';
 const DB_NOTIFICATIONS_KEY = 'espiritualizei_notifications_db';
 
-/**
- * SALVA UM LEAD PARCIAL (Resend/Recuperação)
- * Chamado assim que o usuário digita o e-mail no onboarding
- */
 export const savePartialLead = async (email: string, name: string, step: number, data: any) => {
   if (getConnectionStatus()) {
     try {
-      // Usamos upsert para atualizar o mesmo lead se ele mudar de passo
-      const { error } = await supabase.from('onboarding_leads').upsert({
+      await supabase.from('onboarding_leads').upsert({
         email: email.toLowerCase().trim(),
         name: name,
         last_step: step,
         metadata: data,
         updated_at: new Date().toISOString()
       }, { onConflict: 'email' });
-      
-      if (error) console.warn("Erro ao salvar lead:", error.message);
     } catch (e) {
-      console.warn("Falha de conexão ao salvar lead parcial", e);
+      console.warn("Falha ao salvar lead parcial", e);
     }
   }
 };
 
-/**
- * ATUALIZA USUÁRIO PARA PREMIUM
- */
-export const upgradeUserToPremium = async (userId: string) => {
+export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
+    if (getConnectionStatus()) {
+        try {
+            const { data, error } = await supabase.from('global_challenges').select('*').eq('status', 'active').maybeSingle();
+            if (error) throw error;
+            if (data) return {
+                ...data,
+                startDate: new Date(data.start_date),
+                endDate: new Date(data.end_date),
+                dailyTopics: data.daily_topics // Assume que o banco já retorna o array de tópicos
+            };
+        } catch (e) {
+            console.error("Erro ao buscar desafio global:", e);
+        }
+    }
+    return null;
+};
+
+export const updateLastConfessionDate = async (userId: string, date: Date) => {
+    if (getConnectionStatus()) {
+        await supabase.from('profiles').update({ last_confession_at: date.toISOString() }).eq('id', userId);
+    }
+};
+
+export const fetchCommunityIntentions = async (userId: string): Promise<PrayerIntention[]> => {
   if (getConnectionStatus()) {
-    await supabase.from('profiles').update({ 
-      is_premium: true, 
-      subscription_status: 'active' 
-    }).eq('id', userId);
+    const { data } = await supabase.from('intentions').select(`
+        *,
+        is_prayed:prayer_intercessions(user_id)
+    `).order('timestamp', { ascending: false });
+    
+    return (data || []).map((i: any) => ({
+        ...i,
+        isPrayedByUser: i.is_prayed?.some((p: any) => p.user_id === userId)
+    }));
+  }
+  const saved = localStorage.getItem(DB_INTENTIONS_KEY);
+  return saved ? JSON.parse(saved) : [];
+};
+
+export const togglePrayerInteraction = async (intentionId: string) => {
+  const session = getSession();
+  if (!session || !getConnectionStatus()) return;
+
+  const { data: existing } = await supabase.from('prayer_intercessions')
+    .select('*')
+    .eq('intention_id', intentionId)
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from('prayer_intercessions').delete().eq('id', existing.id);
+    await supabase.rpc('decrement_praying_count', { row_id: intentionId });
+  } else {
+    await supabase.from('prayer_intercessions').insert([{ intention_id: intentionId, user_id: session.user.id }]);
+    await supabase.rpc('increment_praying_count', { row_id: intentionId });
   }
 };
 
-/**
- * ROTINA DO USUÁRIO
- */
+export const togglePostLike = async (postId: string) => {
+  const session = getSession();
+  if (!session || !getConnectionStatus()) return;
+
+  const { data: existing } = await supabase.from('post_likes')
+    .select('*')
+    .eq('post_id', postId)
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from('post_likes').delete().eq('id', existing.id);
+    await supabase.rpc('decrement_likes_count', { row_id: postId });
+  } else {
+    await supabase.from('post_likes').insert([{ post_id: postId, user_id: session.user.id }]);
+    await supabase.rpc('increment_likes_count', { row_id: postId });
+  }
+};
+
 export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {
   if (getConnectionStatus()) {
     const payload = items.map(item => ({ ...item, user_id: userId }));
@@ -70,30 +125,6 @@ export const toggleRoutineItemStatus = async (id: string, completed: boolean) =>
   }
 };
 
-export const addRoutineItem = async (userId: string, item: RoutineItem) => {
-  if (getConnectionStatus()) {
-    await supabase.from('routines').insert([{ ...item, user_id: userId }]);
-  }
-};
-
-export const deleteRoutineItem = async (id: string) => {
-  if (getConnectionStatus()) {
-    await supabase.from('routines').delete().eq('id', id);
-  }
-};
-
-/**
- * INTENÇÕES E ORAÇÕES
- */
-export const fetchCommunityIntentions = async (userId: string): Promise<PrayerIntention[]> => {
-  if (getConnectionStatus()) {
-    const { data } = await supabase.from('intentions').select('*').order('timestamp', { ascending: false });
-    return data || [];
-  }
-  const saved = localStorage.getItem(DB_INTENTIONS_KEY);
-  return saved ? JSON.parse(saved) : [];
-};
-
 export const createIntention = async (userId: string, author: string, avatar: string | undefined, content: string, category: string, tags: string[]): Promise<PrayerIntention> => {
   const newItem: PrayerIntention = {
     id: crypto.randomUUID(),
@@ -108,49 +139,9 @@ export const createIntention = async (userId: string, author: string, avatar: st
   };
 
   if (getConnectionStatus()) {
-    await supabase.from('intentions').insert([newItem]);
-  } else {
-    const saved = localStorage.getItem(DB_INTENTIONS_KEY);
-    const intentions = saved ? JSON.parse(saved) : [];
-    intentions.unshift(newItem);
-    localStorage.setItem(DB_INTENTIONS_KEY, safeStringify(intentions));
+    await supabase.from('intentions').insert([{ ...newItem, user_id: userId }]);
   }
   return newItem;
-};
-
-export const togglePrayerInteraction = async (id: string) => {
-  if (getConnectionStatus()) {
-    // In a real app, this would update a separate table or use a stored procedure
-  }
-};
-
-/**
- * DIÁRIO DA ALMA
- */
-export const createJournalEntry = async (userId: string, mood: string, content: string, reflection?: string, verse?: string) => {
-  const entry: JournalEntry = {
-    id: crypto.randomUUID(),
-    mood: mood as any,
-    content,
-    aiReflection: reflection,
-    bibleVerse: verse,
-    createdAt: new Date()
-  };
-  if (getConnectionStatus()) {
-    await supabase.from('journal').insert([{ ...entry, user_id: userId }]);
-  }
-};
-
-/**
- * FEED DA COMUNIDADE
- */
-export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
-  if (getConnectionStatus()) {
-    const { data } = await supabase.from('posts').select('*, comments(*)').order('timestamp', { ascending: false });
-    return data || [];
-  }
-  const saved = localStorage.getItem(DB_POSTS_KEY);
-  return saved ? JSON.parse(saved) : [];
 };
 
 export const createCommunityPost = async (userId: string, userName: string, avatar: string | undefined, content: string, imageUrl?: string): Promise<CommunityPost> => {
@@ -171,19 +162,53 @@ export const createCommunityPost = async (userId: string, userName: string, avat
 
   if (getConnectionStatus()) {
     await supabase.from('posts').insert([newPost]);
-  } else {
-    const saved = localStorage.getItem(DB_POSTS_KEY);
-    const posts = saved ? JSON.parse(saved) : [];
-    posts.unshift(newPost);
-    localStorage.setItem(DB_POSTS_KEY, safeStringify(posts));
   }
   return newPost;
 };
 
-export const togglePostLike = async (postId: string) => {
+export const upgradeUserToPremium = async (userId: string) => {
   if (getConnectionStatus()) {
-    // Supabase logic for likes
+    await supabase.from('profiles').update({ is_premium: true, subscription_status: 'active' }).eq('id', userId);
   }
+};
+
+export const addRoutineItem = async (userId: string, item: RoutineItem) => {
+  if (getConnectionStatus()) {
+    await supabase.from('routines').insert([{ ...item, user_id: userId }]);
+  }
+};
+
+export const deleteRoutineItem = async (id: string) => {
+  if (getConnectionStatus()) {
+    await supabase.from('routines').delete().eq('id', id);
+  }
+};
+
+export const createJournalEntry = async (userId: string, mood: string, content: string, reflection?: string, verse?: string) => {
+  if (getConnectionStatus()) {
+    const entry = {
+      id: crypto.randomUUID(),
+      mood,
+      content,
+      ai_reflection: reflection,
+      bible_verse: verse,
+      user_id: userId,
+      created_at: new Date().toISOString()
+    };
+    await supabase.from('journal').insert([entry]);
+  }
+};
+
+export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
+  if (getConnectionStatus()) {
+    const { data } = await supabase.from('posts').select('*, comments(*)').order('timestamp', { ascending: false });
+    return (data || []).map((p: any) => ({
+        ...p,
+        timestamp: new Date(p.timestamp),
+        comments: (p.comments || []).map((c: any) => ({ ...c, timestamp: new Date(c.timestamp) }))
+    }));
+  }
+  return [];
 };
 
 export const addComment = async (postId: string, userId: string, userName: string, content: string): Promise<Comment> => {
@@ -200,32 +225,22 @@ export const addComment = async (postId: string, userId: string, userName: strin
   return newComment;
 };
 
-/**
- * NOTIFICAÇÕES
- */
 export const fetchNotifications = async (userId: string): Promise<Notification[]> => {
   if (getConnectionStatus()) {
-    const { data } = await supabase.from('notifications').select('*').eq('user_id', userId).order('createdAt', { ascending: false });
-    return data || [];
+    const { data } = await supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+    return (data || []).map((n: any) => ({ ...n, createdAt: new Date(n.created_at) }));
   }
-  const saved = localStorage.getItem(DB_NOTIFICATIONS_KEY);
-  return saved ? JSON.parse(saved) : [];
+  return [];
 };
 
 export const markNotificationAsRead = async (id: string) => {
   if (getConnectionStatus()) {
-    await supabase.from('notifications').update({ isRead: true }).eq('id', id);
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
   }
 };
 
-/**
- * RANKING / LEADERBOARD
- */
 export const fetchLeaderboard = async (): Promise<LeaderboardData> => {
-  if (getConnectionStatus()) {
-    // Real query for top users
-  }
-  // Mock data as fallback or for demo
+  // Simulação de ranking real que poderia vir do Supabase
   return {
     intercessors: [
       { id: '1', userId: 'u1', userName: 'Maria Silva', score: 1250, rank: 1, badges: ['top3', 'streak'] },
@@ -242,9 +257,6 @@ export const fetchLeaderboard = async (): Promise<LeaderboardData> => {
   };
 };
 
-/**
- * UPLOAD DE IMAGENS
- */
 export const uploadImage = async (file: File, bucket: 'avatars' | 'posts'): Promise<string | undefined> => {
   if (getConnectionStatus()) {
     const fileName = `${Date.now()}_${file.name}`;
@@ -253,10 +265,5 @@ export const uploadImage = async (file: File, bucket: 'avatars' | 'posts'): Prom
     const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(data.path);
     return publicUrl;
   }
-  // Fallback to Data URL for local testing
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.readAsDataURL(file);
-  });
+  return undefined;
 };
