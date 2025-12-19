@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, UserProfile } from '../types';
-import { sendMessageToSpiritualDirector } from '../services/geminiService';
+import { sendMessageToAssistant } from '../services/geminiService';
 import { ArrowUp } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
@@ -14,7 +14,7 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
     {
       id: 'welcome',
       role: 'model',
-      text: `A paz esteja convosco, ${user?.name || 'filho(a)'}. Conheço suas lutas e sua busca. O que inquieta sua alma hoje?`,
+      text: `A paz de Cristo esteja convosco, ${user?.name || 'irmão(ã)'}. Como está seu coração hoje?`,
       timestamp: new Date()
     }
   ]);
@@ -45,7 +45,7 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
     setIsLoading(true);
 
     try {
-      const responseText = await sendMessageToSpiritualDirector(input, user);
+      const responseText = await sendMessageToAssistant(input, user);
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'model',
@@ -69,10 +69,8 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-brand-dark relative animate-fade-in transition-colors">
-      {/* Subtle Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-white via-white to-slate-50 dark:from-brand-dark dark:via-brand-dark dark:to-black/20 pointer-events-none" />
 
-      {/* Messages Area */}
       <div 
         className="flex-1 overflow-y-auto pt-12 pb-32 px-6 space-y-8 smooth-scroll relative z-10"
         role="log" 
@@ -89,7 +87,7 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
             >
               <div className={`max-w-[90%] ${isUser ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
                 <span className={`text-[10px] tracking-widest uppercase font-bold text-stone-300 dark:text-slate-600 ${isUser ? 'text-right' : 'text-left'}`}>
-                   {isUser ? 'Você' : 'Espiritualizei'}
+                   {isUser ? 'Você' : 'Assistente'}
                 </span>
                 <div
                   className={`text-base leading-relaxed ${
@@ -109,14 +107,13 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
            <div className="flex justify-start w-full animate-pulse pl-1">
               <div className="flex gap-2 items-center">
                   <BrandLogo size={14} variant="fill" className="text-brand-violet animate-spin-slow" />
-                  <span className="text-xs text-stone-400 dark:text-slate-500 font-serif italic">Refletindo...</span>
+                  <span className="text-xs text-stone-400 dark:text-slate-500 font-serif italic">Refletindo com carinho...</span>
               </div>
            </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Minimal Input Area */}
       <div className="absolute bottom-24 left-0 right-0 px-6 z-30">
         <div className="bg-white/80 dark:bg-brand-dark/80 backdrop-blur-xl rounded-3xl p-1.5 shadow-float border border-white/40 dark:border-white/10 flex items-center gap-2 transition-all focus-within:shadow-glow focus-within:border-brand-violet/30">
           <input
@@ -124,8 +121,8 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Escreva para seu direcionamento espiritual..."
-            aria-label="Mensagem para o direcionamento espiritual"
+            placeholder="Conte-me o que está no seu coração..."
+            aria-label="Mensagem para o assistente"
             className="flex-1 bg-transparent pl-4 py-3 outline-none text-base text-brand-dark dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 font-sans font-light"
             disabled={isLoading}
           />

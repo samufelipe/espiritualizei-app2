@@ -15,7 +15,7 @@ import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, Communi
 import { generateSpiritualRoutine } from './services/geminiService';
 import { registerUser, getSession, logoutUser, updateUserProfile } from './services/authService'; 
 import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, createJournalEntry, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge } from './services/databaseService';
-import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame } from 'lucide-react';
+import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const Routine = lazy(() => import('./components/Routine'));
@@ -29,6 +29,10 @@ const SpiritualChat = lazy(() => import('./components/SpiritualChat'));
 
 const SAINT_TRANSLATION: Record<string, string> = {
   acutis: 'Beato Carlo Acutis', michael: 'São Miguel Arcanjo', therese: 'Santa Teresinha', joseph: 'São José', mary: 'Virgem Maria'
+};
+
+const STRUGGLE_TRANSLATION: Record<string, string> = {
+  anxiety: 'Ansiedade', laziness: 'Procrastinação', dryness: 'Aridez', lust: 'Vícios', ignorance: 'Dúvida', pride: 'Soberba', anger: 'Ira'
 };
 
 const TabLoader = () => (
@@ -46,7 +50,7 @@ const App: React.FC = () => {
   const [showUpdatePasswordModal, setShowUpdatePasswordModal] = useState(false);
   const [showMonthlyReview, setShowMonthlyReview] = useState(false); 
   const [showIntentionModal, setShowIntentionModal] = useState(false);
-  const [generatedArchetype, setGeneratedArchetype] = useState<{ title: string; subtitle: string } | null>(null);
+  const [generatedProfile, setGeneratedProfile] = useState<{ title: string; reasoning: string } | null>(null);
   const [isGeneratingRoutine, setIsGeneratingRoutine] = useState(false);
   const [feedInitialContent, setFeedInitialContent] = useState<string>(''); 
   const [showLiturgyModal, setShowLiturgyModal] = useState(false);
@@ -123,11 +127,11 @@ const App: React.FC = () => {
       setRoutineItems(result.routine);
       await saveUserRoutine(session.user.id, result.routine);
       setIsGeneratingRoutine(false);
-      setGeneratedArchetype({ title: result.profileDescription, subtitle: `Pronto para caminhar sob a proteção de ${SAINT_TRANSLATION[data.patronSaint || ''] || 'um Santo'}.` });
+      setGeneratedProfile({ title: result.profileDescription, reasoning: result.profileReasoning });
     } catch (error: any) {
       setIsGeneratingRoutine(false);
       setViewState('onboarding');
-      alert(error.message || "Erro no cadastro.");
+      alert(error.message || "Tivemos um problema ao preparar seu plano. Tente novamente.");
     }
   };
 
@@ -192,17 +196,28 @@ const App: React.FC = () => {
                       <div className="w-20 h-20 bg-brand-violet/10 rounded-full flex items-center justify-center mx-auto">
                         <BrandLogo variant="fill" size={60} className="text-brand-violet" />
                       </div>
-                      <div className="space-y-3">
-                        <h2 className="text-2xl font-bold text-white">Quase tudo pronto...</h2>
-                        <p className="text-slate-400 max-w-xs mx-auto">Analisando suas respostas para elaborar um caminho personalizado que ajude na sua realidade.</p>
+                      <div className="space-y-4">
+                        <h2 className="text-2xl font-bold text-white tracking-tight">Preparando seu caminho com carinho...</h2>
+                        <p className="text-slate-400 max-w-xs mx-auto leading-relaxed">Analisando sua realidade para sugerir pequenos passos de fé que façam sentido para você.</p>
                       </div>
                    </div>
-                ) : generatedArchetype && (
-                   <div className="max-w-lg w-full space-y-6 animate-slide-up">
-                        <Sparkles size={48} className="text-brand-violet mx-auto" />
-                        <h1 className="text-4xl font-extrabold text-white">{generatedArchetype.title}</h1>
-                        <p className="text-slate-400 text-lg">{generatedArchetype.subtitle}</p>
-                        <button onClick={() => { setViewState('app'); setShowTutorial(true); }} className="w-full bg-white text-brand-dark font-bold py-4 rounded-2xl flex items-center justify-center gap-2">Receber Meu Plano <ArrowRight size={18} /></button>
+                ) : generatedProfile && (
+                   <div className="max-w-md w-full space-y-8 animate-slide-up bg-[#242C35] p-8 sm:p-10 rounded-[2.5rem] border border-white/5 shadow-2xl">
+                        <div className="w-16 h-16 bg-brand-violet text-white rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-brand-violet/20">
+                           <Footprints size={32} />
+                        </div>
+                        <div className="space-y-3">
+                           <p className="text-[10px] font-bold text-brand-violet uppercase tracking-[0.2em]">Seu Perfil de Caminhada</p>
+                           <h1 className="text-3xl font-black text-white leading-tight">{generatedProfile.title}</h1>
+                           <div className="h-px w-12 bg-brand-violet/30 mx-auto my-4" />
+                           <p className="text-slate-300 text-sm leading-relaxed italic">"{generatedProfile.reasoning}"</p>
+                        </div>
+                        <div className="space-y-4 pt-4">
+                           <button onClick={() => { setViewState('app'); setShowTutorial(true); }} className="w-full bg-white text-brand-dark font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-100 transition-all active:scale-95 shadow-xl">
+                              Receber Minha Pequena Regra <ArrowRight size={18} />
+                           </button>
+                           <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Baseado no seu combate contra a {STRUGGLE_TRANSLATION[user.spiritualFocus || ''] || 'procrastinação'}</p>
+                        </div>
                    </div>
                 )}
              </div>
@@ -213,8 +228,8 @@ const App: React.FC = () => {
                 <div className="relative z-10 max-w-md w-full space-y-8 animate-slide-up">
                     <CheckCircle2 size={48} className="text-green-400 mx-auto" />
                     <h1 className="text-4xl font-extrabold text-white">Deus seja louvado!</h1>
-                    <p className="text-slate-300 text-lg">Bem-vindo ao Espiritualizei Premium, {user.name.split(' ')[0]}.</p>
-                    <button onClick={() => { setViewState('app'); setShowTutorial(true); }} className="w-full bg-brand-violet text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 text-lg">Entrar no App <ArrowRight size={22} /></button>
+                    <p className="text-slate-300 text-lg">Seu acesso foi liberado com sucesso, {user.name.split(' ')[0]}.</p>
+                    <button onClick={() => { setViewState('app'); setShowTutorial(true); }} className="w-full bg-brand-violet text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 text-lg">Entrar no Santuário <ArrowRight size={22} /></button>
                 </div>
              </div>
           )}
