@@ -75,14 +75,9 @@ const App: React.FC = () => {
     if (status === 'success') {
        const session = getSession();
        if (session?.user) {
-          // Limpa a URL imediatamente para evitar re-triggers no refresh
           window.history.replaceState({}, document.title, "/");
-          
-          // Força o estado visual de boas-vindas
           setUser(prev => ({ ...prev, isPremium: true, subscriptionStatus: 'active' }));
           setViewState('welcome_premium');
-          
-          // Tenta atualizar no banco de dados (Backup caso o webhook falhe ou demore)
           upgradeUserToPremium(session.user.id).catch(console.error);
        }
     }
@@ -92,7 +87,6 @@ const App: React.FC = () => {
     const handlePopState = () => {
        const path = window.location.pathname.replace('/', '');
        if (!path || path === '') {
-          // Se já está logado e é premium, vai pro app. Se não, volta pra landing.
           const session = getSession();
           if (session) setViewState('app');
           else setViewState('landing');
@@ -139,25 +133,19 @@ const App: React.FC = () => {
       if (session) {
         setUser(session.user);
         
-        // Se o usuário está logado mas não é premium, mandamos para o checkout
-        // Exceto se ele acabou de voltar do sucesso da Cakto (controlado pelo viewState)
-        if (viewState !== 'welcome_premium') {
-            if (!session.user.isPremium && session.user.subscriptionStatus !== 'active') {
-               navigate('checkout');
-            } else {
-               const path = window.location.pathname.replace('/', '').toUpperCase() as Tab;
-               navigate('app', Object.values(Tab).includes(path) ? path : Tab.DASHBOARD);
-               
-               const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
-               const today = new Date().toDateString();
-               if (lastSeen !== today) {
-                  setShowDailyInspiration(true);
-                  localStorage.setItem('espiritualizei_daily_inspiration_date', today);
-               }
-               fetchUserRoutine(session.user.id).then(db => db && db.length > 0 && setRoutineItems(db));
-               loadIntentions(session.user.id);
-            }
+        // MODO TESTE: Ignorando a trava de Premium temporariamente
+        const path = window.location.pathname.replace('/', '').toUpperCase() as Tab;
+        navigate('app', Object.values(Tab).includes(path) ? path : Tab.DASHBOARD);
+        
+        const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
+        const today = new Date().toDateString();
+        if (lastSeen !== today) {
+            setShowDailyInspiration(true);
+            localStorage.setItem('espiritualizei_daily_inspiration_date', today);
         }
+        fetchUserRoutine(session.user.id).then(db => db && db.length > 0 && setRoutineItems(db));
+        loadIntentions(session.user.id);
+        
       } else {
          const currentPath = window.location.pathname;
          if (currentPath === '/login') navigate('login');
@@ -203,7 +191,11 @@ const App: React.FC = () => {
     }
   };
 
-  const handleFinishRevelation = () => navigate('checkout');
+  const handleFinishRevelation = () => {
+    // MODO TESTE: Vai direto para o Dashboard em vez de assinar
+    navigate('app', Tab.DASHBOARD);
+    setShowTutorial(true);
+  };
 
   const handleCheckoutSuccess = async () => {
     await upgradeUserToPremium(user.id);
@@ -220,8 +212,8 @@ const App: React.FC = () => {
     setUser(loggedInUser);
     fetchUserRoutine(loggedInUser.id).then(setRoutineItems);
     loadIntentions(loggedInUser.id);
-    if (!loggedInUser.isPremium && loggedInUser.subscriptionStatus !== 'active') navigate('checkout');
-    else navigate('app', Tab.DASHBOARD);
+    // MODO TESTE: Ignora verificação premium no login
+    navigate('app', Tab.DASHBOARD);
   };
 
   const handleLogout = async () => {

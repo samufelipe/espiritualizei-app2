@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, CheckCircle2, Book, User, Heart, LogOut, MapPin } from 'lucide-react';
+import { Home, CheckCircle2, Book, User, Heart, LogOut, MapPin, FlaskConical } from 'lucide-react';
 import { Tab, UserProfile } from '../types';
 import BrandLogo from './BrandLogo';
 
@@ -25,10 +25,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, user, onLogo
     <div className="hidden md:flex flex-col w-[280px] h-screen sticky top-0 bg-[#15191E] border-r border-white/5 p-6 z-50">
       
       {/* Brand */}
-      <div className="flex items-center gap-3 mb-10 px-2">
-        <BrandLogo size={32} variant="fill" className="text-brand-violet" />
-        <div>
-           <h1 className="font-bold text-xl text-white tracking-tight">Espiritualizei</h1>
+      <div className="flex items-center justify-between mb-10 px-2">
+        <div className="flex items-center gap-3">
+          <BrandLogo size={32} variant="fill" className="text-brand-violet" />
+          <h1 className="font-bold text-xl text-white tracking-tight">Espiritualizei</h1>
+        </div>
+        {/* Badge de Teste (Removível depois) */}
+        <div className="bg-amber-500/10 text-amber-500 p-1.5 rounded-lg border border-amber-500/20" title="Checkout desativado para testes">
+           <FlaskConical size={14} />
         </div>
       </div>
 
@@ -61,8 +65,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, user, onLogo
 
       {/* User Footer */}
       <div className="mt-auto pt-6 border-t border-white/5">
-         
-         {/* Settings Row */}
          <div className="flex gap-2 mb-4">
             <button 
                onClick={onLogout}
