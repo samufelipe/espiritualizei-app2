@@ -40,15 +40,6 @@ const DEFAULT_WIDGET_ORDER: WidgetConfig[] = [
   { id: 'invite', isVisible: true },
 ];
 
-const WIDGET_LABELS: Record<WidgetId, string> = {
-  sacramentAlert: 'Alerta Sacramental',
-  liturgyHero: 'Liturgia Diária',
-  progressSummary: 'Progresso da Rotina',
-  quickActions: 'Ferramentas da Alma',
-  intentions: 'Minhas Intenções',
-  invite: 'Convite / Evangelizar'
-};
-
 const Dashboard: React.FC<DashboardProps> = ({ 
   user, 
   myIntentions, 
@@ -63,11 +54,10 @@ const Dashboard: React.FC<DashboardProps> = ({
   setShowLiturgyModal,
   onLogout
 }) => {
-  const [dailyTheme, setDailyTheme] = useState<string>('Tudo posso Naquele que me fortalece.');
+  const [dailyTheme, setDailyTheme] = useState<string>('Buscai as coisas do alto.');
   const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening'>('morning');
   const [showNotifications, setShowNotifications] = useState(false);
   const [isCustomizing, setIsCustomizing] = useState(false);
-  // Added missing state for showContactModal to fix reference errors on line 233
   const [showContactModal, setShowContactModal] = useState(false);
   
   const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>(() => {
@@ -80,8 +70,12 @@ const Dashboard: React.FC<DashboardProps> = ({
   
   const hasLoadedRef = useRef(false);
 
-  // Lógica Sacramento Alert (Inovação C)
+  // Lógica Sacramento Alert Refinada (Inovação C)
   const showConfessionAlert = () => {
+    // Se o usuário nunca se confessou ou faz muito tempo, o alerta é um "convite" suave
+    if (user.confessionFrequency === 'never' || user.confessionFrequency === 'long_time') return true;
+    
+    // Se ele tem hábito, avisamos após 30 dias
     if (!user.lastConfessionAt) return true;
     const diff = Math.floor((new Date().getTime() - new Date(user.lastConfessionAt).getTime()) / (1000 * 60 * 60 * 24));
     return diff > 30;
@@ -93,9 +87,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     const order = { morning: 1, afternoon: 2, night: 3, any: 4 };
     return order[a.timeOfDay as keyof typeof order] - order[b.timeOfDay as keyof typeof order];
   })[0];
-
-  const completedCount = todaysTasks.filter(i => i.completed).length;
-  const totalCount = todaysTasks.length;
 
   useEffect(() => {
     if (hasLoadedRef.current) return;
@@ -121,8 +112,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     return () => { isMounted = false; };
   }, []);
 
-  useEffect(() => { localStorage.setItem('dashboard_widgets_v7', JSON.stringify(widgetConfig)); }, [widgetConfig]);
-
   const greeting = (() => {
     switch(timeOfDay) {
       case 'morning': return { text: 'Bom dia', icon: Sunrise };
@@ -133,51 +122,34 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const style = (() => {
      const color = liturgyData?.liturgicalColor?.toLowerCase() || '';
-     if (color.includes('verde')) return { gradient: 'bg-gradient-to-br from-[#059669] to-[#022C22]', meaning: 'O Verde (Tempo Comum) simboliza esperança e constância.', text: 'text-emerald-100' };
-     if (color.includes('vermelho')) return { gradient: 'bg-gradient-to-br from-[#DC2626] to-[#7F1D1D]', meaning: 'O Vermelho recorda o fogo do Espírito Santo ou os mártires.', text: 'text-red-100' };
-     if (color.includes('branco') || color.includes('dourado')) return { gradient: 'bg-gradient-to-br from-[#D97706] to-[#78350F]', meaning: 'O Branco celebra a Ressurreição e glória de Cristo.', text: 'text-amber-100' };
-     return { gradient: 'bg-gradient-to-br from-[#7C3AED] to-[#4C1D95]', meaning: 'O Roxo convida à conversão profunda e penitência.', text: 'text-purple-100' };
+     if (color.includes('verde')) return { gradient: 'bg-gradient-to-br from-[#059669] to-[#022C22]', meaning: 'Esperança.', text: 'text-emerald-100' };
+     if (color.includes('vermelho')) return { gradient: 'bg-gradient-to-br from-[#DC2626] to-[#7F1D1D]', meaning: 'Fogo do Espírito.', text: 'text-red-100' };
+     if (color.includes('branco')) return { gradient: 'bg-gradient-to-br from-[#D97706] to-[#78350F]', meaning: 'Glória.', text: 'text-amber-100' };
+     return { gradient: 'bg-gradient-to-br from-[#7C3AED] to-[#4C1D95]', meaning: 'Conversão.', text: 'text-purple-100' };
   })();
 
   const renderSacramentAlert = () => {
     if (!showConfessionAlert()) return null;
+    const isNewcomer = user.confessionFrequency === 'never' || user.confessionFrequency === 'long_time';
+
     return (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-[2rem] p-5 flex items-center gap-4 animate-slide-up mb-6 group cursor-pointer hover:bg-amber-500/20 transition-all" onClick={onNavigateToMaps}>
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 shadow-lg shadow-amber-500/10 group-hover:scale-110 transition-transform">
+        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 animate-slide-up mb-6 group cursor-pointer hover:bg-white/10 transition-all" onClick={onNavigateToMaps}>
+            <div className="w-12 h-12 rounded-2xl bg-brand-violet/10 flex items-center justify-center text-brand-violet shrink-0 shadow-lg group-hover:scale-110 transition-transform">
                 <Shield size={24} />
             </div>
             <div className="flex-1">
-                <p className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-0.5">Cuidado da Alma</p>
-                <h4 className="text-sm font-bold text-white leading-tight">Faz mais de 30 dias da sua última confissão.</h4>
-                <p className="text-[11px] text-slate-400 mt-1">"A confissão é o banho da alma." — Santo Agostinho</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Vida Sacramental</p>
+                <h4 className="text-sm font-bold text-white leading-tight">
+                    {isNewcomer ? "Que tal conhecer a alegria da Confissão?" : "Faz tempo que você não se confessa."}
+                </h4>
+                <p className="text-[11px] text-slate-500 mt-1">Busque um horário na paróquia mais próxima.</p>
             </div>
-            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-amber-500 group-hover:text-white transition-all">
+            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-brand-violet group-hover:text-white transition-all">
                 <ArrowRight size={16} />
             </div>
         </div>
     );
   };
-
-  const renderLiturgyHero = () => (
-    <div className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${style.gradient} p-6 md:p-8 text-white flex flex-col justify-between group transition-all duration-500 min-h-[260px]`}>
-      <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
-      <div className="relative z-10 flex flex-col h-full">
-        <div className="flex justify-between items-start mb-6">
-           <div><div className="flex items-center gap-2 mb-1 opacity-90"><Calendar size={14} /><span className="text-xs font-bold uppercase tracking-widest">{liturgyData ? liturgyData.date.split(',')[0] : 'Hoje'}</span></div>
-           {liturgyData?.season && <h2 className="text-2xl font-bold">{liturgyData.season}</h2>}</div>
-           <div className="bg-white/20 backdrop-blur-md border border-white/10 rounded-full px-3 py-1"><span className="text-[10px] font-bold uppercase tracking-wider text-white">Cor Litúrgica</span></div>
-        </div>
-        <div className="flex-1 flex flex-col justify-center mb-6">
-           <p className="font-serif text-2xl sm:text-3xl leading-tight mb-4 drop-shadow-md">"{dailyTheme}"</p>
-           {liturgyData?.saint && <p className="text-sm font-medium opacity-80 flex items-center gap-2"><span className="w-8 h-[1px] bg-white/50"></span>Memória de {liturgyData.saint}</p>}
-        </div>
-        <button onClick={() => setShowLiturgyModal(true)} className="w-full bg-white/95 text-brand-dark py-4 px-6 rounded-2xl font-bold text-sm shadow-xl flex items-center justify-between group/btn">
-          <span className="flex items-center gap-2"><BookOpen size={18} className="text-brand-violet"/> Ler Evangelho de Hoje</span>
-          <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-all" />
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="p-4 md:p-8 pb-32 space-y-6 animate-fade-in font-sans min-h-screen relative">
@@ -197,7 +169,24 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
          <div className="md:col-span-8 flex flex-col gap-6">
             {widgetConfig.find(w => w.id === 'sacramentAlert')?.isVisible && renderSacramentAlert()}
-            {widgetConfig.find(w => w.id === 'liturgyHero')?.isVisible && renderLiturgyHero()}
+            {widgetConfig.find(w => w.id === 'liturgyHero')?.isVisible && (
+                <div className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${style.gradient} p-6 md:p-8 text-white flex flex-col justify-between group transition-all duration-500 min-h-[260px]`}>
+                    <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
+                    <div className="relative z-10 flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-6">
+                            <div><div className="flex items-center gap-2 mb-1 opacity-90"><Calendar size={14} /><span className="text-xs font-bold uppercase tracking-widest">{liturgyData ? liturgyData.date.split(',')[0] : 'Hoje'}</span></div>
+                            {liturgyData?.season && <h2 className="text-2xl font-bold">{liturgyData.season}</h2>}</div>
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center mb-6">
+                            <p className="font-serif text-2xl sm:text-3xl leading-tight mb-4 drop-shadow-md">"{dailyTheme}"</p>
+                        </div>
+                        <button onClick={() => setShowLiturgyModal(true)} className="w-full bg-white/95 text-brand-dark py-4 px-6 rounded-2xl font-bold text-sm shadow-xl flex items-center justify-between group/btn">
+                            <span className="flex items-center gap-2"><BookOpen size={18} className="text-brand-violet"/> Ler Evangelho de Hoje</span>
+                            <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-all" />
+                        </button>
+                    </div>
+                </div>
+            )}
          </div>
          <div className="md:col-span-4 flex flex-col gap-6">
             <div className="bg-white dark:bg-[#1A1F26] rounded-[2rem] p-5 shadow-card border border-slate-100 dark:border-white/5 flex items-center justify-between gap-4">
@@ -205,8 +194,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                {nextTask && <button onClick={() => onToggleRoutine?.(nextTask.id)} className="w-10 h-10 bg-brand-violet/10 text-brand-violet rounded-full flex items-center justify-center"><Check size={20} /></button>}
             </div>
             <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl min-h-[200px] flex flex-col justify-between">
-               <div><h3 className="font-bold text-lg mb-2">Convide amigos</h3><p className="text-purple-100 text-xs leading-relaxed opacity-90">A fé cresce quando é partilhada. Traga alguém para caminhar com você.</p></div>
-               <button className="w-full bg-white text-brand-violet font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 mt-4"><Send size={14} /> Enviar Convite</button>
+               <div><h3 className="font-bold text-lg mb-2">Aprenda a Fé</h3><p className="text-purple-100 text-xs leading-relaxed opacity-90">Acesse nossa biblioteca para entender mais sobre a Missa e os Santos.</p></div>
+               <button onClick={onNavigateToKnowledge} className="w-full bg-white text-brand-violet font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 mt-4"><BookOpen size={14} /> Ir para Biblioteca</button>
             </div>
          </div>
       </div>

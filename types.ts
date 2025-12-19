@@ -36,7 +36,8 @@ export interface UserProfile {
   hasSeenTutorial?: boolean;
   joinedDate: Date;
   lastRoutineUpdate?: Date;
-  lastConfessionAt?: Date; // Inovação C
+  lastConfessionAt?: Date; 
+  confessionFrequency?: 'frequent' | 'rare' | 'long_time' | 'never';
   isPremium?: boolean;
   subscriptionStatus?: 'active' | 'trial' | 'canceled' | 'expired';
   activityHistory?: { date: string; count: number }[];
@@ -66,20 +67,57 @@ export interface RoutineItem {
   actionLink?: RoutineActionType; 
 }
 
-export interface JournalEntry {
-  id: string;
-  mood: 'peace' | 'struggle';
-  content: string;
-  aiReflection?: string;
-  bibleVerse?: string;
-  createdAt: Date;
+export interface OnboardingData {
+  name: string;
+  email: string; 
+  phone: string; 
+  password?: string;
+  stateOfLife: 'student' | 'single' | 'married' | 'parent' | 'retired'; 
+  routineType: 'chaotic' | 'structured' | 'flexible' | 'overwhelmed'; 
+  primaryStruggle: 'anxiety' | 'lust' | 'laziness' | 'pride' | 'anger' | 'dryness' | 'ignorance'; 
+  bestMoment: 'morning' | 'commute' | 'breaks' | 'night' | 'random'; 
+  spiritualGoal: 'peace' | 'truth' | 'discipline' | 'love' | 'healing';
+  confessionFrequency: 'frequent' | 'rare' | 'long_time' | 'never';
+  // Fixed: Added 'acutis' to matches SAINT_TRANSLATION in App.tsx
+  patronSaint?: 'acutis' | 'michael' | 'therese' | 'joseph' | 'mary';
+  photoUrl?: string;
 }
 
-export interface ChatMessage {
+/**
+ * Fixed: Added missing DailyTopic interface used in geminiService and LiturgicalEvents
+ */
+export interface DailyTopic {
+  day: number;
+  title: string;
+  description: string;
+  isCompleted: boolean;
+  isLocked: boolean;
+  actionType?: 'GENERIC' | 'PRAYER' | 'SACRIFICE' | 'RELATIONSHIP';
+  actionContent?: string;
+  scripture?: string;
+}
+
+export interface CommunityChallenge {
   id: string;
-  role: 'user' | 'model';
-  text: string;
-  timestamp: Date;
+  title: string;
+  description: string;
+  currentAmount: number;
+  targetAmount: number;
+  unit: string;
+  daysLeft: number;
+  seasonColor: string;
+  icon: 'cross' | 'heart' | 'star' | 'fire';
+  type: 'season' | 'novena' | 'feast';
+  startDate: Date;
+  endDate: Date;
+  status: 'active' | 'upcoming' | 'completed';
+  participants: number;
+  isUserParticipating?: boolean;
+  userContribution: number; 
+  // Fixed: Specified DailyTopic[] type instead of any[]
+  dailyTopics?: DailyTopic[];
+  currentDay?: number;
+  totalDays?: number;
 }
 
 export interface PrayerIntention {
@@ -92,6 +130,13 @@ export interface PrayerIntention {
   timestamp: Date;
   category?: 'health' | 'family' | 'grace' | 'vocational' | 'other';
   tags?: string[];
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  timestamp: Date;
 }
 
 export interface Comment {
@@ -136,74 +181,37 @@ export interface LiturgyDay {
   };
 }
 
-export interface Parish {
-  name: string;
-  address: string;
-  distance?: string;
-  location?: { lat: number; lng: number }; 
-  rating?: number;
-  userRatingsTotal?: number;
-  openNow?: boolean;
-  url?: string;
-  photoUrl?: string;
-  directionsUrl?: string;
-}
-
-export type ChallengeActionType = 'PRAYER' | 'RELATIONSHIP' | 'SACRIFICE' | 'GENERIC';
-
-export interface DailyTopic {
-  day: number;
-  title: string;
-  description: string;
-  action?: string;
-  actionType?: ChallengeActionType;
-  actionContent?: string;
-  isCompleted: boolean;
-  isLocked: boolean;
-  scripture?: string;
-  reflection?: string;
-  guidedPrayer?: string;
-}
-
-export interface CommunityChallenge {
+export interface KnowledgeItem {
   id: string;
   title: string;
   description: string;
-  currentAmount: number;
-  targetAmount: number;
-  unit: string;
-  daysLeft: number;
-  seasonColor: string;
-  icon: 'cross' | 'heart' | 'star' | 'fire';
-  type: 'season' | 'novena' | 'feast';
-  startDate: Date;
-  endDate: Date;
-  status: 'active' | 'upcoming' | 'completed';
-  participants: number;
-  isUserParticipating?: boolean;
-  userContribution: number; 
-  recentActivity?: {      
-    user: string;
-    amount: number;
-    timestamp: Date;
-  }[];
-  dailyTopics?: DailyTopic[];
-  currentDay?: number;
-  totalDays?: number;
+  content: string;
+  category: 'doctrine' | 'prayer' | 'mass' | 'saints';
+  duration: string;
 }
 
-export interface OnboardingData {
-  name: string;
-  email: string; 
-  phone: string; 
-  password?: string;
-  stateOfLife: 'student' | 'single' | 'married' | 'parent' | 'retired'; 
-  routineType: 'chaotic' | 'structured' | 'flexible' | 'overwhelmed'; 
-  primaryStruggle: 'anxiety' | 'lust' | 'laziness' | 'pride' | 'anger' | 'dryness' | 'ignorance'; 
-  bestMoment: 'morning' | 'commute' | 'breaks' | 'night' | 'random'; 
-  spiritualGoal: 'peace' | 'truth' | 'discipline' | 'love' | 'healing';
-  patronSaint?: 'michael' | 'therese' | 'joseph' | 'mary';
-  photoUrl?: string;
+export interface Notification {
+  id: string;
+  type: 'pray' | 'comment' | 'like' | 'system';
+  content: string;
+  isRead: boolean;
+  createdAt: Date;
+}
+
+export interface LeaderboardEntry {
+  id: string;
+  userId: string;
+  userName: string;
+  avatarUrl?: string;
+  score: number;
+  rank: number;
+  // Fixed: Added badges array to satisfy fetchLeaderboard mock data
+  badges?: string[];
+}
+
+export interface LeaderboardData {
+  intercessors: LeaderboardEntry[]; 
+  pilgrims: LeaderboardEntry[];     
 }
 
 export interface MonthlyReviewData {
@@ -216,57 +224,31 @@ export interface MonthlyReviewData {
   timeAvailabilityChange: 'same' | 'less' | 'more';
 }
 
-export interface KnowledgeItem {
-  id: string;
-  title: string;
-  description: string;
-  content: string;
-  category: 'doctrine' | 'prayer' | 'mass' | 'saints';
-  duration: string;
-  imageUrl?: string;
-  isRead?: boolean;
-  status?: 'active' | 'draft' | 'archived';
-  publishedAt?: Date;
-  videoSuggestion?: {
-    title: string;
-    url: string;
-    channelName: string;
-  };
-  musicSuggestion?: {
-    title: string;
-    url: string;
-    artist: string;
-  };
+/**
+ * Fixed: Added missing Parish interface for ParishFinder and googlePlacesService
+ */
+export interface Parish {
+  name: string;
+  address: string;
+  location?: { lat: number; lng: number };
+  rating?: number;
+  userRatingsTotal?: number;
+  openNow?: boolean;
+  photoUrl?: string;
+  url: string;
+  distance?: string;
+  directionsUrl?: string;
 }
 
-export interface KnowledgeTrack {
-  id: string;
-  title: string;
-  description: string;
-  items: KnowledgeItem[];
-}
-
-export interface Notification {
-  id: string;
-  type: 'pray' | 'comment' | 'like' | 'system';
-  content: string;
-  isRead: boolean;
-  createdAt: Date;
-  resourceId?: string;
-  actorName?: string;
-}
-
-export interface LeaderboardEntry {
+/**
+ * Fixed: Added missing JournalEntry interface for JournalModal and databaseService
+ */
+export interface JournalEntry {
   id: string;
   userId: string;
-  userName: string;
-  avatarUrl?: string;
-  score: number;
-  rank: number;
-  badges?: ('top3' | 'streak' | 'veteran')[];
-}
-
-export interface LeaderboardData {
-  intercessors: LeaderboardEntry[]; 
-  pilgrims: LeaderboardEntry[];     
+  mood: string;
+  content: string;
+  aiReflection?: string;
+  bibleVerse?: string;
+  createdAt: Date;
 }

@@ -2,7 +2,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, OnboardingData, RoutineItem, DailyTopic, MonthlyReviewData } from '../types';
 
-// Inicialização conforme as novas diretrizes de engenharia
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const cleanAIOutput = (text: string): string => {
@@ -17,14 +16,6 @@ export const cleanAIOutput = (text: string): string => {
     .trim();
 };
 
-const SAINT_SPIRITUALITY: Record<string, string> = {
-  acutis: "Foco: Eucaristia e santificação do mundo digital. Tarefas sugeridas: Adoração, oração antes de usar o computador, oferecer o tempo de internet.",
-  michael: "Foco: Combate espiritual e vigilância. Tarefas sugeridas: Oração de São Miguel, vigilância das virtudes, atos de coragem espiritual.",
-  therese: "Foco: Pequena Via e Confiança. Tarefas sugeridas: Pequenos atos de amor ocultos, aceitar contrariedades com alegria, confiança na misericórdia.",
-  joseph: "Foco: Silêncio e Trabalho. Tarefas sugeridas: Oferecimento do trabalho, oração pela família, prática do silêncio interior.",
-  mary: "Foco: Entrega Total (Totus Tuus). Tarefas sugeridas: Terço diário, imitação das virtudes de humildade e pureza da Virgem."
-};
-
 export const sendMessageToSpiritualDirector = async (message: string, user?: UserProfile): Promise<string> => {
   try {
     const userContext = user 
@@ -32,9 +23,10 @@ export const sendMessageToSpiritualDirector = async (message: string, user?: Use
       : "Visitante em busca de luz.";
 
     const systemInstruction = `
-      Você é um Diretor Espiritual Católico sábio, paternal e fiel à Igreja.
+      Você é um assistente católico sábio e acolhedor.
       RESPONDA SEMPRE EM PORTUGUÊS DO BRASIL.
-      Seu tom deve ser acolhedor, mas firme na doutrina.
+      Seu tom deve ser empático, humilde e fiel à Igreja.
+      Não use termos como "Diretor Espiritual" para se referir a si mesmo.
       Integre conselhos baseados na vida do santo padroeiro do usuário.
       Não use negritos ou asteriscos na resposta.
       Contexto: ${userContext}
@@ -46,39 +38,36 @@ export const sendMessageToSpiritualDirector = async (message: string, user?: Use
       config: { systemInstruction },
     });
 
-    return cleanAIOutput(response.text || "Paz e Bem. Como posso ajudar sua alma hoje?");
+    return cleanAIOutput(response.text || "Paz e Bem. Como posso ajudar hoje?");
   } catch (error) {
-    return "Um momento de recolhimento técnico. Em breve retornarei com seu direcionamento.";
+    return "Um momento de recolhimento técnico. Em breve retornarei com seu auxílio.";
   }
 };
 
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string }> => {
-  const saintSpirituality = SAINT_SPIRITUALITY[data.patronSaint || 'michael'] || "";
-  
   const prompt = `
-    Aja como um Diretor Espiritual Católico. Crie uma REGRA DE VIDA personalizada para ${data.name}.
+    Crie uma regra de vida católica personalizada para ${data.name}.
     
-    PERFIL DO FIEL:
-    - Estado: ${data.stateOfLife}
-    - Ritmo: ${data.routineType}
-    - Luta contra: ${data.primaryStruggle}
+    DADOS DO USUÁRIO:
+    - Estado civil/vida: ${data.stateOfLife}
+    - Rotina: ${data.routineType}
+    - Dificuldade principal: ${data.primaryStruggle}
     - Objetivo: ${data.spiritualGoal}
-    - Santo Guia: ${data.patronSaint} (${saintSpirituality})
+    - Relação com Confissão: ${data.confessionFrequency}
+    - Santo Padroeiro: ${data.patronSaint}
 
-    ESTRUTURA TEMÁTICA DA SEMANA:
-    - Seg: Almas | Ter: Anjos | Qua: São José | Qui: Eucaristia | Sex: Paixão | Sáb: Maria | Dom: Ressurreição.
-
-    REQUISITOS OBRIGATÓRIOS:
-    1. Responda APENAS em PORTUGUÊS DO BRASIL.
-    2. Cada dia deve ter uma tarefa inspirada no carisma de ${data.patronSaint}.
-    3. Distribua 4-5 tarefas por dia: 'morning', 'afternoon', 'night'.
-    4. "profileDescription" deve ser um título místico curto (Ex: "Combatente de Miguel", "Sentinela do Sacrário").
+    DIRETRIZES OBRIGATÓRIAS:
+    1. Gere tarefas para TODOS OS 7 DIAS da semana (0 a 6). Domingo (0) deve ser focado na Missa e descanso.
+    2. Pelo menos 1 tarefa a cada 2 dias deve ser de ESTUDO ('READ_KNOWLEDGE') vinculada a temas da biblioteca (Ex: Doutrina, Missa, Vidas de Santos).
+    3. Distribua tarefas entre 'morning', 'afternoon' e 'night'.
+    4. "profileDescription" deve ser um título inspirador curto (Ex: "Combatente de Maria", "Sentinela da Eucaristia").
+    5. Nunca use o termo "Diretor Espiritual".
 
     RETORNE APENAS JSON:
     {
       "profileDescription": "String",
       "routine": [
-        { "title": "String", "description": "String", "detailedContent": "String", "xpReward": Number, "icon": "String", "timeOfDay": "String", "dayOfWeek": [Number], "actionLink": "String" }
+        { "title": "String", "description": "String", "detailedContent": "String", "xpReward": Number, "icon": "rosary|book|cross|candle|sun|heart|shield|moon|church|music", "timeOfDay": "morning|afternoon|night", "dayOfWeek": [Number], "actionLink": "READ_LITURGY|READ_KNOWLEDGE|OPEN_MAP|NONE" }
       ]
     }
   `;
@@ -89,7 +78,7 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
         contents: prompt,
         config: { 
           responseMimeType: 'application/json',
-          systemInstruction: "Você gera regras de vida católica em formato JSON em Português."
+          systemInstruction: "Você gera caminhos de vida católica em formato JSON em Português para 7 dias da semana."
         }
     });
 
@@ -107,12 +96,14 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
       profileDescription: cleanAIOutput(json.profileDescription || 'Peregrino da Fé') 
     };
   } catch (e) {
+    // Fallback garantindo todos os dias
     return {
         profileDescription: "Peregrino da Fé",
         routine: [
             { id: 'f1', title: 'Oferecimento do Dia', description: 'Entregar o dia ao Senhor', xpReward: 20, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
             { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a voz de Cristo', xpReward: 30, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
-            { id: 'f3', title: 'Exame de Consciência', description: 'Revisar o dia no amor', xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' }
+            { id: 'f3', title: 'Santa Missa', description: 'O cume da vida cristã', xpReward: 100, completed: false, icon: 'church', timeOfDay: 'morning', dayOfWeek: [0], actionLink: 'OPEN_MAP' },
+            { id: 'f4', title: 'Estudo da Fé', description: 'Conhecer para amar', xpReward: 40, completed: false, icon: 'book', timeOfDay: 'afternoon', dayOfWeek: [1,3,5], actionLink: 'READ_KNOWLEDGE' }
         ]
     };
   }
@@ -122,7 +113,7 @@ export const generateDailyReflection = async (saint: string): Promise<string> =>
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Gere uma frase curta e humilde em PORTUGUÊS sobre a fé católica. Sem formatação Markdown.`,
+      contents: `Gere uma frase curta de sabedoria católica em PORTUGUÊS. Sem negritos.`,
     });
     return cleanAIOutput(response.text || "Deus te abençoe.");
   } catch { return "Caminhe na paz de Cristo."; }
@@ -134,8 +125,8 @@ export const generateDailyTheme = async (gospel?: string): Promise<string> => {
       model: 'gemini-3-flash-preview',
       contents: `Resuma o Evangelho em 5 palavras em PORTUGUÊS: ${gospel || 'Amor de Deus'}`,
     });
-    return cleanAIOutput(response.text || "Santidade Diária");
-  } catch { return "Santidade Diária"; }
+    return cleanAIOutput(response.text || "Vida de Fé");
+  } catch { return "Vida de Fé"; }
 };
 
 export const generateLiturgicalDailyTopic = async (day: number, season: string): Promise<DailyTopic> => {
