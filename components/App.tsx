@@ -70,7 +70,7 @@ const App: React.FC = () => {
        const session = getSession();
        if (session?.user) {
           window.history.replaceState({}, document.title, "/");
-          setUser((prev: UserProfile) => ({ ...prev, isPremium: true, subscriptionStatus: 'active' }));
+          setUser(prev => ({ ...prev, isPremium: true, subscriptionStatus: 'active' }));
           setViewState('welcome_premium');
           upgradeUserToPremium(session.user.id).catch(console.error);
        }
@@ -93,9 +93,9 @@ const App: React.FC = () => {
             localStorage.setItem('espiritualizei_daily_inspiration_date', new Date().toDateString());
         }
         
-        fetchUserRoutine(session.user.id).then((db: RoutineItem[]) => db && db.length > 0 && setRoutineItems(db));
-        fetchCommunityIntentions(session.user.id).then((intentionsData: PrayerIntention[]) => setIntentions(intentionsData));
-        fetchGlobalChallenge().then((global: CommunityChallenge | null) => global && setChallenges([global]));
+        fetchUserRoutine(session.user.id).then(db => db && db.length > 0 && setRoutineItems(db));
+        fetchCommunityIntentions(session.user.id).then(setIntentions);
+        fetchGlobalChallenge().then(global => global && setChallenges([global]));
         
       } else {
          const path = window.location.pathname;
@@ -149,87 +149,34 @@ const App: React.FC = () => {
     const newUser = { ...user, currentXP: newStatus ? user.currentXP + item.xpReward : Math.max(0, user.currentXP - item.xpReward) };
     setUser(newUser);
     updateUserProfile(newUser);
-    setRoutineItems((prev: RoutineItem[]) => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i));
+    setRoutineItems(prev => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i));
     await toggleRoutineItemStatus(id, newStatus);
   };
 
   const handleCreateIntention = async (content: string, category: string) => {
     const newItem = await createIntention(user.id, user.name, user.photoUrl, content, category, []);
-    setIntentions((prev: PrayerIntention[]) => [newItem, ...prev]);
+    setIntentions(prev => [newItem, ...prev]);
   };
 
   const handlePray = async (id: string) => {
-    setIntentions((prev: PrayerIntention[]) => prev.map(i => i.id === id ? { ...i, prayingCount: i.isPrayedByUser ? i.prayingCount - 1 : i.prayingCount + 1, isPrayedByUser: !i.isPrayedByUser } : i));
+    setIntentions(prev => prev.map(i => i.id === id ? { ...i, prayingCount: i.isPrayedByUser ? i.prayingCount - 1 : i.prayingCount + 1, isPrayedByUser: !i.isPrayedByUser } : i));
     await togglePrayerInteraction(id);
   };
 
   const handleJoinChallenge = (id: string, amount: number = 0) => {
-    setChallenges((prev: CommunityChallenge[]) => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, currentAmount: c.currentAmount + amount } : c));
+    setChallenges(prev => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, currentAmount: c.currentAmount + amount } : c));
   };
 
   const renderContent = () => {
     const activeChallenge = challenges.find(c => c.status === 'active');
     switch (currentTab) {
-      case Tab.DASHBOARD: return (
-        <Suspense fallback={<TabLoader />}>
-          <Dashboard 
-            user={user} 
-            myIntentions={intentions.filter(i => i.author === user.name)} 
-            routineItems={routineItems} 
-            onToggleRoutine={handleToggleRoutine} 
-            onNavigateToCommunity={() => setCurrentTab(Tab.COMMUNITY)} 
-            onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} 
-            onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} 
-            onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} 
-            onNavigateToMaps={() => setCurrentTab(Tab.MAPS)} 
-            onSaveJournal={(mood, content, refl, vers) => createJournalEntry(user.id, mood, content, refl, vers)} 
-            showLiturgyModal={showLiturgyModal} 
-            setShowLiturgyModal={setShowLiturgyModal} 
-            onLogout={handleLogout} 
-          />
-        </Suspense>
-      );
-      case Tab.ROUTINE: return (
-        <Suspense fallback={<TabLoader />}>
-          <Routine 
-            items={routineItems} 
-            activeChallenge={activeChallenge} 
-            onToggle={handleToggleRoutine} 
-            onAdd={(t: string, d: string) => addRoutineItem(user.id, { id: crypto.randomUUID(), title: t, description: d, xpReward: 10, completed: false, icon: 'heart', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] })} 
-            onDelete={(id: string) => deleteRoutineItem(id)} 
-            onNavigate={(t: Tab) => setCurrentTab(t)} 
-            onOpenMaps={() => setCurrentTab(Tab.MAPS)} 
-            onOpenLiturgy={() => { setCurrentTab(Tab.DASHBOARD); setTimeout(() => setShowLiturgyModal(true), 100); }} 
-            onOpenPlayer={() => { }} 
-          />
-        </Suspense>
-      );
-      case Tab.KNOWLEDGE: return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
-      case Tab.COMMUNITY: return (
-        <Suspense fallback={<TabLoader />}>
-          <Community 
-            intentions={intentions} 
-            challenges={challenges} 
-            onPray={handlePray} 
-            onJoinChallenge={handleJoinChallenge} 
-            onOpenCreateModal={() => setShowIntentionModal(true)} 
-            onTestify={(c: string) => { setFeedInitialContent(c); setCurrentTab(Tab.COMMUNITY); }} 
-            feedInitialContent={feedInitialContent} 
-            user={user} 
-          />
-        </Suspense>
-      );
-      case Tab.MAPS: return <Suspense fallback={<TabLoader />}><ParishFinder /></Suspense>;
-      case Tab.CHAT: return <Suspense fallback={<TabLoader />}><SpiritualChat user={user} /></Suspense>;
-      case Tab.PROFILE: return (
-        <Suspense fallback={<TabLoader />}>
-          <Profile 
-            user={user} 
-            onUpdateUser={(u: UserProfile) => { setUser(u); updateUserProfile(u); }} 
-            onLogout={handleLogout} 
-          />
-        </Suspense>
-      );
+      case Tab.DASHBOARD: return <Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onToggleRoutine={handleToggleRoutine} onNavigateToCommunity={() => setCurrentTab(Tab.COMMUNITY)} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToMaps={() => setCurrentTab(Tab.MAPS)} onSaveJournal={createJournalEntry} showLiturgyModal={showLiturgyModal} setShowLiturgyModal={setShowLiturgyModal} onLogout={handleLogout} />;
+      case Tab.ROUTINE: return <Routine items={routineItems} activeChallenge={activeChallenge} onToggle={handleToggleRoutine} onAdd={(t, d) => addRoutineItem(user.id, { id: crypto.randomUUID(), title: t, description: d, xpReward: 10, completed: false, icon: 'heart', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] })} onDelete={deleteRoutineItem} onNavigate={setCurrentTab} onOpenMaps={() => setCurrentTab(Tab.MAPS)} onOpenLiturgy={() => { setCurrentTab(Tab.DASHBOARD); setTimeout(() => setShowLiturgyModal(true), 100); }} onOpenPlayer={() => { }} />;
+      case Tab.KNOWLEDGE: return <KnowledgeBase />;
+      case Tab.COMMUNITY: return <Community intentions={intentions} challenges={challenges} onPray={handlePray} onJoinChallenge={handleJoinChallenge} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={c => { setFeedInitialContent(c); setCurrentTab(Tab.COMMUNITY); }} feedInitialContent={feedInitialContent} user={user} />;
+      case Tab.MAPS: return <ParishFinder />;
+      case Tab.CHAT: return <SpiritualChat user={user} />;
+      case Tab.PROFILE: return <Profile user={user} onUpdateUser={u => { setUser(u); updateUserProfile(u); }} onLogout={handleLogout} />;
       default: return <TabLoader />;
     }
   };
@@ -240,7 +187,7 @@ const App: React.FC = () => {
       {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} /></div>}
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark">
           {viewState === 'landing' && <LandingPage onStart={() => setViewState('onboarding')} onLogin={() => setViewState('login')} />}
-          {viewState === 'login' && <Login onLogin={(u: UserProfile) => { setUser(u); setViewState('app'); }} onRegister={() => setViewState('onboarding')} onBack={() => setViewState('landing')} />}
+          {viewState === 'login' && <Login onLogin={(u) => { setUser(u); setViewState('app'); }} onRegister={() => setViewState('onboarding')} onBack={() => setViewState('landing')} />}
           {viewState === 'onboarding' && <Onboarding onComplete={handleOnboardingComplete} onBack={() => setViewState('landing')} />}
           {viewState === 'generating' && (
              <div className="min-h-screen bg-[#1A2530] flex flex-col items-center justify-center p-8 text-center animate-fade-in font-sans">
