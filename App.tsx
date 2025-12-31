@@ -15,7 +15,7 @@ import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, Communi
 import { generateSpiritualRoutine } from './services/geminiService';
 import { registerUser, getSession, logoutUser, updateUserProfile } from './services/authService'; 
 import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, createJournalEntry, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge } from './services/databaseService';
-import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame } from 'lucide-react';
+import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const Routine = lazy(() => import('./components/Routine'));
@@ -27,12 +27,12 @@ const LandingPage = lazy(() => import('./components/LandingPage'));
 const KnowledgeBase = lazy(() => import('./components/KnowledgeBase'));
 const SpiritualChat = lazy(() => import('./components/SpiritualChat'));
 
-const STRUGGLE_TRANSLATION: Record<string, string> = {
-  anxiety: 'Ansiedade', laziness: 'Preguiça', dryness: 'Aridez', lust: 'Vícios', ignorance: 'Dúvida', pride: 'Soberba', anger: 'Ira'
-};
-
 const SAINT_TRANSLATION: Record<string, string> = {
   acutis: 'Beato Carlo Acutis', michael: 'São Miguel Arcanjo', therese: 'Santa Teresinha', joseph: 'São José', mary: 'Virgem Maria'
+};
+
+const STRUGGLE_TRANSLATION: Record<string, string> = {
+  anxiety: 'Ansiedade', laziness: 'Procrastinação', dryness: 'Aridez', lust: 'Vícios', ignorance: 'Dúvida', pride: 'Soberba', anger: 'Ira'
 };
 
 const TabLoader = () => (
@@ -50,7 +50,7 @@ const App: React.FC = () => {
   const [showUpdatePasswordModal, setShowUpdatePasswordModal] = useState(false);
   const [showMonthlyReview, setShowMonthlyReview] = useState(false); 
   const [showIntentionModal, setShowIntentionModal] = useState(false);
-  const [generatedArchetype, setGeneratedArchetype] = useState<{ title: string; subtitle: string } | null>(null);
+  const [generatedProfile, setGeneratedProfile] = useState<{ title: string; reasoning: string } | null>(null);
   const [isGeneratingRoutine, setIsGeneratingRoutine] = useState(false);
   const [feedInitialContent, setFeedInitialContent] = useState<string>(''); 
   const [showLiturgyModal, setShowLiturgyModal] = useState(false);
@@ -62,28 +62,7 @@ const App: React.FC = () => {
 
   const [routineItems, setRoutineItems] = useState<RoutineItem[]>([]);
   const [intentions, setIntentions] = useState<PrayerIntention[]>([]);
-  const [challenges, setChallenges] = useState<CommunityChallenge[]>([
-    { 
-      id: 'fallback-challenge', 
-      title: 'Caminho de Santidade', 
-      description: 'Caminhando juntos.', 
-      currentAmount: 0, 
-      targetAmount: 1000000, 
-      unit: 'Orações', 
-      daysLeft: 10, 
-      seasonColor: '#7C3AED', 
-      icon: 'heart', 
-      type: 'season', 
-      startDate: new Date(), 
-      endDate: new Date(), 
-      status: 'active', 
-      participants: 1200, 
-      userContribution: 0, 
-      currentDay: 1, 
-      totalDays: 30,
-      dailyTopics: [{ day: 1, title: 'Início', description: 'Reze um Pai Nosso.', isCompleted: false, isLocked: false, actionContent: 'Reze agora.', actionType: 'PRAYER' }]
-    }
-  ]);
+  const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -91,7 +70,7 @@ const App: React.FC = () => {
        const session = getSession();
        if (session?.user) {
           window.history.replaceState({}, document.title, "/");
-          setUser(prev => ({ ...prev, isPremium: true, subscriptionStatus: 'active' }));
+          setUser((prev: UserProfile) => ({ ...prev, isPremium: true, subscriptionStatus: 'active' }));
           setViewState('welcome_premium');
           upgradeUserToPremium(session.user.id).catch(console.error);
        }
@@ -114,9 +93,9 @@ const App: React.FC = () => {
             localStorage.setItem('espiritualizei_daily_inspiration_date', new Date().toDateString());
         }
         
-        fetchUserRoutine(session.user.id).then(db => db && db.length > 0 && setRoutineItems(db));
-        fetchCommunityIntentions(session.user.id).then(setIntentions);
-        fetchGlobalChallenge().then(global => global && setChallenges([global]));
+        fetchUserRoutine(session.user.id).then((db: RoutineItem[]) => db && db.length > 0 && setRoutineItems(db));
+        fetchCommunityIntentions(session.user.id).then((intentionsData: PrayerIntention[]) => setIntentions(intentionsData));
+        fetchGlobalChallenge().then((global: CommunityChallenge | null) => global && setChallenges([global]));
         
       } else {
          const path = window.location.pathname;
@@ -140,6 +119,7 @@ const App: React.FC = () => {
         spiritualFocus: data.primaryStruggle,
         spiritualGoal: data.spiritualGoal,
         patronSaint: data.patronSaint,
+        confessionFrequency: data.confessionFrequency,
         lastRoutineUpdate: new Date()
       };
       await updateUserProfile(updatedUser);
@@ -147,11 +127,11 @@ const App: React.FC = () => {
       setRoutineItems(result.routine);
       await saveUserRoutine(session.user.id, result.routine);
       setIsGeneratingRoutine(false);
-      setGeneratedArchetype({ title: result.profileDescription, subtitle: `Iniciando sua caminhada sob a guia de ${SAINT_TRANSLATION[data.patronSaint || ''] || 'um Santo'}.` });
+      setGeneratedProfile({ title: result.profileDescription, reasoning: result.profileReasoning });
     } catch (error: any) {
       setIsGeneratingRoutine(false);
       setViewState('onboarding');
-      alert(error.message || "Erro no cadastro.");
+      alert(error.message || "Tivemos um problema ao preparar seu plano. Tente novamente.");
     }
   };
 
@@ -169,34 +149,34 @@ const App: React.FC = () => {
     const newUser = { ...user, currentXP: newStatus ? user.currentXP + item.xpReward : Math.max(0, user.currentXP - item.xpReward) };
     setUser(newUser);
     updateUserProfile(newUser);
-    setRoutineItems(prev => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i));
+    setRoutineItems((prev: RoutineItem[]) => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i));
     await toggleRoutineItemStatus(id, newStatus);
   };
 
   const handleCreateIntention = async (content: string, category: string) => {
     const newItem = await createIntention(user.id, user.name, user.photoUrl, content, category, []);
-    setIntentions(prev => [newItem, ...prev]);
+    setIntentions((prev: PrayerIntention[]) => [newItem, ...prev]);
   };
 
   const handlePray = async (id: string) => {
-    setIntentions(prev => prev.map(i => i.id === id ? { ...i, prayingCount: i.isPrayedByUser ? i.prayingCount - 1 : i.prayingCount + 1, isPrayedByUser: !i.isPrayedByUser } : i));
+    setIntentions((prev: PrayerIntention[]) => prev.map(i => i.id === id ? { ...i, prayingCount: i.isPrayedByUser ? i.prayingCount - 1 : i.prayingCount + 1, isPrayedByUser: !i.isPrayedByUser } : i));
     await togglePrayerInteraction(id);
   };
 
   const handleJoinChallenge = (id: string, amount: number = 0) => {
-    setChallenges(prev => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, currentAmount: c.currentAmount + amount } : c));
+    setChallenges((prev: CommunityChallenge[]) => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, currentAmount: c.currentAmount + amount } : c));
   };
 
   const renderContent = () => {
     const activeChallenge = challenges.find(c => c.status === 'active');
     switch (currentTab) {
-      case Tab.DASHBOARD: return <Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onToggleRoutine={handleToggleRoutine} onNavigateToCommunity={() => setCurrentTab(Tab.COMMUNITY)} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToMaps={() => setCurrentTab(Tab.MAPS)} onSaveJournal={createJournalEntry} showLiturgyModal={showLiturgyModal} setShowLiturgyModal={setShowLiturgyModal} onLogout={handleLogout} />;
-      case Tab.ROUTINE: return <Routine items={routineItems} activeChallenge={activeChallenge} onToggle={handleToggleRoutine} onAdd={(t, d) => addRoutineItem(user.id, { id: crypto.randomUUID(), title: t, description: d, xpReward: 10, completed: false, icon: 'heart', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] })} onDelete={deleteRoutineItem} onNavigate={setCurrentTab} onOpenMaps={() => setCurrentTab(Tab.MAPS)} onOpenLiturgy={() => { setCurrentTab(Tab.DASHBOARD); setTimeout(() => setShowLiturgyModal(true), 100); }} onOpenPlayer={() => { }} />;
-      case Tab.KNOWLEDGE: return <KnowledgeBase />;
-      case Tab.COMMUNITY: return <Community intentions={intentions} challenges={challenges} onPray={handlePray} onJoinChallenge={handleJoinChallenge} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={c => { setFeedInitialContent(c); setCurrentTab(Tab.COMMUNITY); }} feedInitialContent={feedInitialContent} user={user} />;
-      case Tab.MAPS: return <ParishFinder />;
-      case Tab.CHAT: return <SpiritualChat user={user} />;
-      case Tab.PROFILE: return <Profile user={user} onUpdateUser={u => { setUser(u); updateUserProfile(u); }} onLogout={handleLogout} />;
+      case Tab.DASHBOARD: return <Suspense fallback={<TabLoader />}><Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onToggleRoutine={handleToggleRoutine} onNavigateToCommunity={() => setCurrentTab(Tab.COMMUNITY)} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToMaps={() => setCurrentTab(Tab.MAPS)} onSaveJournal={(mood, content, refl, vers) => createJournalEntry(user.id, mood, content, refl, vers)} showLiturgyModal={showLiturgyModal} setShowLiturgyModal={setShowLiturgyModal} onLogout={handleLogout} /></Suspense>;
+      case Tab.ROUTINE: return <Suspense fallback={<TabLoader />}><Routine items={routineItems} activeChallenge={activeChallenge} onToggle={handleToggleRoutine} onAdd={(t, d) => addRoutineItem(user.id, { id: crypto.randomUUID(), title: t, description: d, xpReward: 10, completed: false, icon: 'heart', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] })} onDelete={deleteRoutineItem} onNavigate={(tab: Tab) => setCurrentTab(tab)} onOpenMaps={() => setCurrentTab(Tab.MAPS)} onOpenLiturgy={() => { setCurrentTab(Tab.DASHBOARD); setTimeout(() => setShowLiturgyModal(true), 100); }} onOpenPlayer={() => { }} /></Suspense>;
+      case Tab.KNOWLEDGE: return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
+      case Tab.COMMUNITY: return <Suspense fallback={<TabLoader />}><Community intentions={intentions} challenges={challenges} onPray={handlePray} onJoinChallenge={handleJoinChallenge} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={(c: string) => { setFeedInitialContent(c); setCurrentTab(Tab.COMMUNITY); }} feedInitialContent={feedInitialContent} user={user} /></Suspense>;
+      case Tab.MAPS: return <Suspense fallback={<TabLoader />}><ParishFinder /></Suspense>;
+      case Tab.CHAT: return <Suspense fallback={<TabLoader />}><SpiritualChat user={user} /></Suspense>;
+      case Tab.PROFILE: return <Suspense fallback={<TabLoader />}><Profile user={user} onUpdateUser={(u: UserProfile) => { setUser(u); updateUserProfile(u); }} onLogout={handleLogout} /></Suspense>;
       default: return <TabLoader />;
     }
   };
@@ -207,21 +187,37 @@ const App: React.FC = () => {
       {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} /></div>}
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark">
           {viewState === 'landing' && <LandingPage onStart={() => setViewState('onboarding')} onLogin={() => setViewState('login')} />}
-          {viewState === 'login' && <Login onLogin={(u) => { setUser(u); setViewState('app'); }} onRegister={() => setViewState('onboarding')} onBack={() => setViewState('landing')} />}
+          {viewState === 'login' && <Login onLogin={(u: any) => { setUser(u); setViewState('app'); }} onRegister={() => setViewState('onboarding')} onBack={() => setViewState('landing')} />}
           {viewState === 'onboarding' && <Onboarding onComplete={handleOnboardingComplete} onBack={() => setViewState('landing')} />}
           {viewState === 'generating' && (
              <div className="min-h-screen bg-[#1A2530] flex flex-col items-center justify-center p-8 text-center animate-fade-in font-sans">
                 {isGeneratingRoutine ? (
                    <div className="space-y-8 animate-pulse-slow">
-                      <BrandLogo variant="fill" size={80} className="text-brand-violet mx-auto" />
-                      <h2 className="text-2xl font-bold text-white">Consultando o Diretor Espiritual...</h2>
+                      <div className="w-20 h-20 bg-brand-violet/10 rounded-full flex items-center justify-center mx-auto">
+                        <BrandLogo variant="fill" size={60} className="text-brand-violet" />
+                      </div>
+                      <div className="space-y-4">
+                        <h2 className="text-2xl font-bold text-white tracking-tight">Preparando seu caminho com carinho...</h2>
+                        <p className="text-slate-400 max-w-xs mx-auto leading-relaxed">Analisando sua realidade para sugerir pequenos passos de fé que façam sentido para você.</p>
+                      </div>
                    </div>
-                ) : generatedArchetype && (
-                   <div className="max-w-lg w-full space-y-6 animate-slide-up">
-                        <Sparkles size={48} className="text-brand-violet mx-auto" />
-                        <h1 className="text-4xl font-extrabold text-white">{generatedArchetype.title}</h1>
-                        <p className="text-slate-400 text-lg">{generatedArchetype.subtitle}</p>
-                        <button onClick={() => { setViewState('app'); setShowTutorial(true); }} className="w-full bg-white text-brand-dark font-bold py-4 rounded-2xl flex items-center justify-center gap-2">Receber Regra de Vida <ArrowRight size={18} /></button>
+                ) : generatedProfile && (
+                   <div className="max-w-md w-full space-y-8 animate-slide-up bg-[#242C35] p-8 sm:p-10 rounded-[2.5rem] border border-white/5 shadow-2xl">
+                        <div className="w-16 h-16 bg-brand-violet text-white rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-brand-violet/20">
+                           <Footprints size={32} />
+                        </div>
+                        <div className="space-y-3">
+                           <p className="text-[10px] font-bold text-brand-violet uppercase tracking-[0.2em]">Seu Perfil de Caminhada</p>
+                           <h1 className="text-3xl font-black text-white leading-tight">{generatedProfile.title}</h1>
+                           <div className="h-px w-12 bg-brand-violet/30 mx-auto my-4" />
+                           <p className="text-slate-300 text-sm leading-relaxed italic">"{generatedProfile.reasoning}"</p>
+                        </div>
+                        <div className="space-y-4 pt-4">
+                           <button onClick={() => { setViewState('app'); setShowTutorial(true); }} className="w-full bg-white text-brand-dark font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-100 transition-all active:scale-95 shadow-xl">
+                              Receber Minha Pequena Regra <ArrowRight size={18} />
+                           </button>
+                           <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Baseado no seu combate contra a {STRUGGLE_TRANSLATION[user.spiritualFocus || ''] || 'procrastinação'}</p>
+                        </div>
                    </div>
                 )}
              </div>
@@ -232,7 +228,7 @@ const App: React.FC = () => {
                 <div className="relative z-10 max-w-md w-full space-y-8 animate-slide-up">
                     <CheckCircle2 size={48} className="text-green-400 mx-auto" />
                     <h1 className="text-4xl font-extrabold text-white">Deus seja louvado!</h1>
-                    <p className="text-slate-300 text-lg">Bem-vindo ao Espiritualizei Premium, {user.name.split(' ')[0]}.</p>
+                    <p className="text-slate-300 text-lg">Seu acesso foi liberado com sucesso, {user.name.split(' ')[0]}.</p>
                     <button onClick={() => { setViewState('app'); setShowTutorial(true); }} className="w-full bg-brand-violet text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 text-lg">Entrar no Santuário <ArrowRight size={22} /></button>
                 </div>
              </div>
