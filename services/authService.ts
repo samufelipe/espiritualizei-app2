@@ -56,8 +56,9 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
 export const getConnectionStatus = () => isSupabaseConfigured && !!supabase;
 
 export const sendPasswordResetEmail = async (email: string) => {
+  const cleanEmail = email.trim().toLowerCase();
   if (getConnectionStatus()) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
       redirectTo: window.location.origin, 
     });
     if (error) throw error;
@@ -78,19 +79,22 @@ export const updateUserPassword = async (newPassword: string) => {
 };
 
 export const registerUser = async (data: OnboardingData): Promise<AuthSession> => {
+  const email = data.email.trim().toLowerCase();
+  const password = data.password?.trim();
+
   if (getConnectionStatus()) {
-    const email = data.email.trim().toLowerCase();
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email,
-      password: data.password,
+      password: password,
     });
 
     if (authError) throw new Error(authError.message); 
     if (!authData.user) throw new Error("Erro ao criar usuário.");
 
+    // Tenta criar o perfil público
     const profilePayload = {
       id: authData.user.id,
-      name: data.name,
+      name: data.name.trim(),
       phone: data.phone,
       spiritual_maturity: 'Iniciante',
       spiritual_focus: data.primaryStruggle,
@@ -104,8 +108,9 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
       joined_date: new Date().toISOString()
     };
 
+    // Nota: Se a confirmação de e-mail estiver ON, este insert pode falhar dependendo das RLS
     const { error: insertError } = await supabase.from('profiles').insert([profilePayload]);
-    if (insertError) console.error("Profile insert failed", insertError);
+    if (insertError) console.warn("Aviso: Perfil será criado após confirmação de e-mail.", insertError.message);
 
     const newUser = mapProfileFromDB(profilePayload, email);
     const session: AuthSession = {
@@ -114,21 +119,27 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
       expiresAt: authData.session?.expires_at ? authData.session.expires_at * 1000 : Date.now() + 86400000
     };
     
-    localStorage.setItem(SESSION_KEY, safeStringify(session));
+    // Só salva sessão se o login for automático (confirmação OFF)
+    if (authData.session) {
+      localStorage.setItem(SESSION_KEY, safeStringify(session));
+    } else {
+      // Se não há sessão, o Supabase provavelmente enviou e-mail de confirmação
+      throw new Error("Conta criada! Por favor, verifique seu e-mail para confirmar o cadastro antes de fazer login.");
+    }
+    
     return session;
   }
 
   await delay(1000);
-  const normalizedEmail = data.email.trim().toLowerCase();
   const usersStr = localStorage.getItem(DB_USERS_KEY);
   const users = usersStr ? JSON.parse(usersStr) : [];
   
-  if (users.find((u: any) => u.email === normalizedEmail)) throw new Error("Este e-mail já está cadastrado.");
+  if (users.find((u: any) => u.email === email)) throw new Error("Este e-mail já está cadastrado.");
 
   const newUser: UserProfile = {
     id: crypto.randomUUID(),
     name: data.name,
-    email: normalizedEmail,
+    email: email,
     phone: data.phone,
     level: 1,
     currentXP: 0,
@@ -145,7 +156,7 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     patronSaint: data.patronSaint
   };
 
-  users.push({ ...newUser, password: data.password?.trim() });
+  users.push({ ...newUser, password: password });
   localStorage.setItem(DB_USERS_KEY, safeStringify(users));
   
   const session = {
@@ -159,10 +170,24 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
 
 export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
   const normalizedEmail = email.trim().toLowerCase();
+  const normalizedPassword = password.trim();
 
   if (getConnectionStatus()) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
-    if (error) throw new Error("Credenciais inválidas.");
+    const { data, error } = await supabase.auth.signInWithPassword({ 
+      email: normalizedEmail, 
+      password: normalizedPassword 
+    });
+
+    if (error) {
+      // Tradução amigável de erros comuns do Supabase
+      if (error.message.includes("Email not confirmed")) {
+        throw new Error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.");
+      }
+      if (error.message.includes("Invalid login credentials")) {
+        throw new Error("E-mail ou senha incorretos.");
+      }
+      throw new Error(error.message);
+    }
     
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
     const session = {
@@ -177,8 +202,8 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
   await delay(1000);
   const usersStr = localStorage.getItem(DB_USERS_KEY);
   const users = usersStr ? JSON.parse(usersStr) : [];
-  const u = users.find((u: any) => u.email === normalizedEmail && u.password === password.trim());
-  if (!u) throw new Error("Credenciais inválidas.");
+  const u = users.find((u: any) => u.email === normalizedEmail && u.password === normalizedPassword);
+  if (!u) throw new Error("E-mail ou senha incorretos.");
 
   const { password: _, ...profile } = u;
   const session = {
@@ -198,10 +223,14 @@ export const logoutUser = async () => {
 export const getSession = (): AuthSession | null => {
   const s = localStorage.getItem(SESSION_KEY);
   if (!s) return null;
-  const session = JSON.parse(s);
-  session.user.joinedDate = new Date(session.user.joinedDate);
-  if(session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
-  return session;
+  try {
+    const session = JSON.parse(s);
+    session.user.joinedDate = new Date(session.user.joinedDate);
+    if(session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
+    return session;
+  } catch (e) {
+    return null;
+  }
 };
 
 export const updateUserProfile = async (u: UserProfile) => {
