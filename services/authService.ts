@@ -2,24 +2,35 @@
 import { UserProfile, OnboardingData, AuthSession } from '../types';
 import { createClient } from '@supabase/supabase-js';
 
-// Verificação robusta de configuração
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || '';
+/**
+ * BUSCA DE CHAVES - Prioriza process.env (Mapeado no vite.config.ts)
+ */
+// Fixed: Removed import.meta.env which was causing property 'env' does not exist error on line 9
+const SUPABASE_URL = (process.env.VITE_SUPABASE_URL || '').trim();
+// Fixed: Removed import.meta.env which was causing property 'env' does not exist error on line 10
+const SUPABASE_KEY = (process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+
+// Limpeza da URL: Remove barras finais que causam erro no SDK
+const cleanURL = SUPABASE_URL.endsWith('/') ? SUPABASE_URL.slice(0, -1) : SUPABASE_URL;
 
 const isSupabaseConfigured = 
-  SUPABASE_URL && 
+  cleanURL && 
   SUPABASE_KEY && 
-  SUPABASE_URL.startsWith('https://') && 
-  SUPABASE_URL !== 'undefined';
+  cleanURL.startsWith('https://') && 
+  cleanURL !== 'undefined';
 
 export let supabase: any = null;
 
+// Diagnóstico de inicialização (Visível no console do navegador)
 if (isSupabaseConfigured) {
   try {
-    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    supabase = createClient(cleanURL, SUPABASE_KEY);
+    console.log("✅ Espiritualizei: Supabase conectado com sucesso.");
   } catch (e) {
-    console.error("❌ Erro ao inicializar Supabase:", e);
+    console.error("❌ Espiritualizei: Erro na inicialização do cliente:", e);
   }
+} else {
+  console.warn("⚠️ Espiritualizei: Rodando em modo LocalStorage (Variáveis VITE_SUPABASE_* não detectadas).");
 }
 
 const DB_USERS_KEY = 'espiritualizei_users_db';
@@ -40,7 +51,7 @@ export const safeStringify = (obj: any) => {
 
 const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   id: dbProfile.id,
-  name: dbProfile.name,
+  name: dbProfile.name || 'Peregrino',
   email: email,
   phone: dbProfile.phone,
   level: dbProfile.level || 1,
@@ -73,8 +84,14 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
 
       if (error) throw error;
       
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user!.id)
+        .maybeSingle();
       
+      if (profileError) console.error("Erro ao buscar perfil:", profileError);
+
       const session = {
         user: mapProfileFromDB(profile || { id: data.user!.id, name: 'Usuário' }, normalizedEmail),
         token: data.session!.access_token,
@@ -83,8 +100,12 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
       localStorage.setItem(SESSION_KEY, safeStringify(session));
       return session;
     } catch (error: any) {
-      console.error("Erro Supabase Auth:", error.message);
-      throw new Error(error.message === "Failed to fetch" ? "Erro de conexão com o servidor." : error.message);
+      console.error("Erro Auth:", error.message);
+      // Tratamento amigável para o erro de rede
+      if (error.message === "Failed to fetch") {
+         throw new Error("Não foi possível alcançar o servidor. Verifique sua conexão ou se as chaves do Supabase estão corretas.");
+      }
+      throw error;
     }
   }
 
@@ -96,9 +117,9 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
   
   if (!u) throw new Error("E-mail ou senha incorretos.");
 
-  const { password: _, ...profile } = u;
+  const { password: _, ...profileData } = u;
   const session = {
-    user: { ...profile, joinedDate: new Date(profile.joinedDate), lastRoutineUpdate: new Date(profile.lastRoutineUpdate || profile.joinedDate) },
+    user: { ...profileData, joinedDate: new Date(profileData.joinedDate), lastRoutineUpdate: new Date(profileData.lastRoutineUpdate || profileData.joinedDate) },
     token: 'mock-' + Date.now(),
     expiresAt: Date.now() + 604800000
   };
@@ -135,7 +156,9 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
         joined_date: new Date().toISOString()
       };
 
-      await supabase.from('profiles').insert([profilePayload]);
+      // Tenta inserir o perfil
+      const { error: profileError } = await supabase.from('profiles').insert([profilePayload]);
+      if (profileError) console.error("Erro ao criar perfil no BD:", profileError);
 
       const newUser = mapProfileFromDB(profilePayload, email);
       const session: AuthSession = {
@@ -147,11 +170,15 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
       if (authData.session) {
         localStorage.setItem(SESSION_KEY, safeStringify(session));
       } else {
-        throw new Error("Verifique seu e-mail para confirmar o cadastro!");
+        // Se o Supabase exigir confirmação de e-mail e não retornar sessão imediata
+        throw new Error("Conta criada! Por favor, verifique seu e-mail para ativar seu acesso.");
       }
       return session;
     } catch (error: any) {
-      throw new Error(error.message === "Failed to fetch" ? "Servidor inacessível." : error.message);
+      if (error.message === "Failed to fetch") {
+        throw new Error("Erro de rede ao cadastrar. Verifique sua conexão.");
+      }
+      throw error;
     }
   }
 
@@ -192,7 +219,13 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
 
 export const logoutUser = async () => {
   localStorage.removeItem(SESSION_KEY);
-  if (getConnectionStatus()) await supabase.auth.signOut();
+  if (getConnectionStatus()) {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Erro ao deslogar do Supabase:", e);
+    }
+  }
 };
 
 export const getSession = (): AuthSession | null => {
@@ -200,8 +233,10 @@ export const getSession = (): AuthSession | null => {
   if (!s) return null;
   try {
     const session = JSON.parse(s);
-    session.user.joinedDate = new Date(session.user.joinedDate);
-    if(session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
+    if (session.user) {
+        session.user.joinedDate = new Date(session.user.joinedDate);
+        if(session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
+    }
     return session;
   } catch (e) {
     return null;
@@ -213,18 +248,22 @@ export const updateUserProfile = async (u: UserProfile) => {
   if (s) { s.user = u; localStorage.setItem(SESSION_KEY, safeStringify(s)); }
 
   if (getConnectionStatus()) {
-    await supabase.from('profiles').update({
-        name: u.name,
-        phone: u.phone,
-        level: u.level,
-        current_xp: u.currentXP,
-        streak_days: u.streakDays,
-        spiritual_maturity: u.spiritualMaturity,
-        patron_saint: u.patronSaint,
-        spiritual_focus: u.spiritualFocus,
-        spiritual_goal: u.spiritualGoal,
-        last_routine_update: u.lastRoutineUpdate
-      }).eq('id', u.id);
+    try {
+      await supabase.from('profiles').update({
+          name: u.name,
+          phone: u.phone,
+          level: u.level,
+          current_xp: u.current_xp,
+          streak_days: u.streakDays,
+          spiritual_maturity: u.spiritualMaturity,
+          patron_saint: u.patronSaint,
+          spiritual_focus: u.spiritualFocus,
+          spiritual_goal: u.spiritualGoal,
+          last_routine_update: u.lastRoutineUpdate?.toISOString()
+        }).eq('id', u.id);
+    } catch (e) {
+      console.error("Erro ao atualizar perfil no BD:", e);
+    }
   }
 };
 
@@ -232,7 +271,7 @@ export const sendPasswordResetEmail = async (email: string) => {
   const cleanEmail = email.trim().toLowerCase();
   if (getConnectionStatus()) {
     const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo: window.location.origin, 
+      redirectTo: `${window.location.origin}/`, 
     });
     if (error) throw error;
     return true;
