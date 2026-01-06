@@ -2,10 +2,15 @@
 import { UserProfile, OnboardingData, AuthSession } from '../types';
 import { createClient } from '@supabase/supabase-js';
 
+// Verificação robusta de configuração
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || '';
 
-const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_KEY && SUPABASE_URL.startsWith('https'));
+const isSupabaseConfigured = 
+  SUPABASE_URL && 
+  SUPABASE_KEY && 
+  SUPABASE_URL.startsWith('https://') && 
+  SUPABASE_URL !== 'undefined';
 
 export let supabase: any = null;
 
@@ -13,7 +18,7 @@ if (isSupabaseConfigured) {
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
   } catch (e) {
-    console.error("❌ Supabase Init Error", e);
+    console.error("❌ Erro ao inicializar Supabase:", e);
   }
 }
 
@@ -46,8 +51,8 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   spiritualFocus: dbProfile.spiritual_focus,
   spiritualGoal: dbProfile.spiritual_goal,
   stateOfLife: dbProfile.state_of_life,
-  joinedDate: new Date(dbProfile.joined_date),
-  lastRoutineUpdate: dbProfile.last_routine_update ? new Date(dbProfile.last_routine_update) : new Date(dbProfile.joined_date),
+  joinedDate: new Date(dbProfile.joined_date || Date.now()),
+  lastRoutineUpdate: dbProfile.last_routine_update ? new Date(dbProfile.last_routine_update) : new Date(dbProfile.joined_date || Date.now()),
   isPremium: dbProfile.is_premium || false,
   subscriptionStatus: dbProfile.subscription_status || 'canceled',
   patronSaint: dbProfile.patron_saint
@@ -55,27 +60,50 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
 
 export const getConnectionStatus = () => isSupabaseConfigured && !!supabase;
 
-export const sendPasswordResetEmail = async (email: string) => {
-  const cleanEmail = email.trim().toLowerCase();
-  if (getConnectionStatus()) {
-    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo: window.location.origin, 
-    });
-    if (error) throw error;
-    return true;
-  }
-  await delay(1000);
-  return true;
-};
+export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedPassword = password.trim();
 
-export const updateUserPassword = async (newPassword: string) => {
   if (getConnectionStatus()) {
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) throw error;
-    return true;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email: normalizedEmail, 
+        password: normalizedPassword 
+      });
+
+      if (error) throw error;
+      
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
+      
+      const session = {
+        user: mapProfileFromDB(profile || { id: data.user!.id, name: 'Usuário' }, normalizedEmail),
+        token: data.session!.access_token,
+        expiresAt: data.session!.expires_at! * 1000
+      };
+      localStorage.setItem(SESSION_KEY, safeStringify(session));
+      return session;
+    } catch (error: any) {
+      console.error("Erro Supabase Auth:", error.message);
+      throw new Error(error.message === "Failed to fetch" ? "Erro de conexão com o servidor." : error.message);
+    }
   }
-  await delay(1000);
-  return true;
+
+  // Fallback LocalStorage (Modo Offline/Demo)
+  await delay(800);
+  const usersStr = localStorage.getItem(DB_USERS_KEY);
+  const users = usersStr ? JSON.parse(usersStr) : [];
+  const u = users.find((u: any) => u.email === normalizedEmail && u.password === normalizedPassword);
+  
+  if (!u) throw new Error("E-mail ou senha incorretos.");
+
+  const { password: _, ...profile } = u;
+  const session = {
+    user: { ...profile, joinedDate: new Date(profile.joinedDate), lastRoutineUpdate: new Date(profile.lastRoutineUpdate || profile.joinedDate) },
+    token: 'mock-' + Date.now(),
+    expiresAt: Date.now() + 604800000
+  };
+  localStorage.setItem(SESSION_KEY, safeStringify(session));
+  return session;
 };
 
 export const registerUser = async (data: OnboardingData): Promise<AuthSession> => {
@@ -83,58 +111,56 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
   const password = data.password?.trim();
 
   if (getConnectionStatus()) {
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    });
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
 
-    if (authError) throw new Error(authError.message); 
-    if (!authData.user) throw new Error("Erro ao criar usuário.");
+      if (authError) throw authError;
 
-    // Tenta criar o perfil público
-    const profilePayload = {
-      id: authData.user.id,
-      name: data.name.trim(),
-      phone: data.phone,
-      spiritual_maturity: 'Iniciante',
-      spiritual_focus: data.primaryStruggle,
-      spiritual_goal: data.spiritualGoal,
-      state_of_life: data.stateOfLife,
-      patron_saint: data.patronSaint,
-      level: 1,
-      current_xp: 0,
-      is_premium: false,
-      subscription_status: 'trial',
-      joined_date: new Date().toISOString()
-    };
+      const profilePayload = {
+        id: authData.user!.id,
+        name: data.name.trim(),
+        phone: data.phone,
+        spiritual_maturity: 'Iniciante',
+        spiritual_focus: data.primaryStruggle,
+        spiritual_goal: data.spiritualGoal,
+        state_of_life: data.stateOfLife,
+        patron_saint: data.patronSaint,
+        level: 1,
+        current_xp: 0,
+        is_premium: false,
+        subscription_status: 'trial',
+        joined_date: new Date().toISOString()
+      };
 
-    // Nota: Se a confirmação de e-mail estiver ON, este insert pode falhar dependendo das RLS
-    const { error: insertError } = await supabase.from('profiles').insert([profilePayload]);
-    if (insertError) console.warn("Aviso: Perfil será criado após confirmação de e-mail.", insertError.message);
+      await supabase.from('profiles').insert([profilePayload]);
 
-    const newUser = mapProfileFromDB(profilePayload, email);
-    const session: AuthSession = {
-      user: newUser,
-      token: authData.session?.access_token || '',
-      expiresAt: authData.session?.expires_at ? authData.session.expires_at * 1000 : Date.now() + 86400000
-    };
-    
-    // Só salva sessão se o login for automático (confirmação OFF)
-    if (authData.session) {
-      localStorage.setItem(SESSION_KEY, safeStringify(session));
-    } else {
-      // Se não há sessão, o Supabase provavelmente enviou e-mail de confirmação
-      throw new Error("Conta criada! Por favor, verifique seu e-mail para confirmar o cadastro antes de fazer login.");
+      const newUser = mapProfileFromDB(profilePayload, email);
+      const session: AuthSession = {
+        user: newUser,
+        token: authData.session?.access_token || '',
+        expiresAt: authData.session?.expires_at ? authData.session.expires_at * 1000 : Date.now() + 86400000
+      };
+      
+      if (authData.session) {
+        localStorage.setItem(SESSION_KEY, safeStringify(session));
+      } else {
+        throw new Error("Verifique seu e-mail para confirmar o cadastro!");
+      }
+      return session;
+    } catch (error: any) {
+      throw new Error(error.message === "Failed to fetch" ? "Servidor inacessível." : error.message);
     }
-    
-    return session;
   }
 
-  await delay(1000);
+  // LocalStorage Fallback
+  await delay(800);
   const usersStr = localStorage.getItem(DB_USERS_KEY);
   const users = usersStr ? JSON.parse(usersStr) : [];
   
-  if (users.find((u: any) => u.email === email)) throw new Error("Este e-mail já está cadastrado.");
+  if (users.find((u: any) => u.email === email)) throw new Error("E-mail já cadastrado.");
 
   const newUser: UserProfile = {
     id: crypto.randomUUID(),
@@ -159,58 +185,7 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
   users.push({ ...newUser, password: password });
   localStorage.setItem(DB_USERS_KEY, safeStringify(users));
   
-  const session = {
-    user: newUser,
-    token: 'mock-' + Date.now(),
-    expiresAt: Date.now() + 604800000
-  };
-  localStorage.setItem(SESSION_KEY, safeStringify(session));
-  return session;
-};
-
-export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
-  const normalizedEmail = email.trim().toLowerCase();
-  const normalizedPassword = password.trim();
-
-  if (getConnectionStatus()) {
-    const { data, error } = await supabase.auth.signInWithPassword({ 
-      email: normalizedEmail, 
-      password: normalizedPassword 
-    });
-
-    if (error) {
-      // Tradução amigável de erros comuns do Supabase
-      if (error.message.includes("Email not confirmed")) {
-        throw new Error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.");
-      }
-      if (error.message.includes("Invalid login credentials")) {
-        throw new Error("E-mail ou senha incorretos.");
-      }
-      throw new Error(error.message);
-    }
-    
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
-    const session = {
-      user: mapProfileFromDB(profile || { id: data.user!.id, name: 'Usuário' }, normalizedEmail),
-      token: data.session!.access_token,
-      expiresAt: data.session!.expires_at! * 1000
-    };
-    localStorage.setItem(SESSION_KEY, safeStringify(session));
-    return session;
-  }
-
-  await delay(1000);
-  const usersStr = localStorage.getItem(DB_USERS_KEY);
-  const users = usersStr ? JSON.parse(usersStr) : [];
-  const u = users.find((u: any) => u.email === normalizedEmail && u.password === normalizedPassword);
-  if (!u) throw new Error("E-mail ou senha incorretos.");
-
-  const { password: _, ...profile } = u;
-  const session = {
-    user: { ...profile, joinedDate: new Date(profile.joinedDate), lastRoutineUpdate: new Date(profile.lastRoutineUpdate || profile.joinedDate) },
-    token: 'mock-' + Date.now(),
-    expiresAt: Date.now() + 604800000
-  };
+  const session = { user: newUser, token: 'mock-' + Date.now(), expiresAt: Date.now() + 604800000 };
   localStorage.setItem(SESSION_KEY, safeStringify(session));
   return session;
 };
@@ -251,4 +226,27 @@ export const updateUserProfile = async (u: UserProfile) => {
         last_routine_update: u.lastRoutineUpdate
       }).eq('id', u.id);
   }
+};
+
+export const sendPasswordResetEmail = async (email: string) => {
+  const cleanEmail = email.trim().toLowerCase();
+  if (getConnectionStatus()) {
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: window.location.origin, 
+    });
+    if (error) throw error;
+    return true;
+  }
+  await delay(1000);
+  return true;
+};
+
+export const updateUserPassword = async (newPassword: string) => {
+  if (getConnectionStatus()) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+    return true;
+  }
+  await delay(1000);
+  return true;
 };
