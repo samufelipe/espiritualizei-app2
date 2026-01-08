@@ -2,8 +2,14 @@
 import { GoogleGenAI } from "@google/genai";
 import { UserProfile, OnboardingData, RoutineItem, MonthlyReviewData } from '../types';
 
-// GUIDELINE FIX: Use direct initialization from process.env.API_KEY and follow exact naming
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Validação rigorosa da chave
+const safeGet = (val: any) => {
+  const s = String(val).trim();
+  return (s === 'undefined' || s === 'null' || !s) ? '' : s;
+};
+
+const API_KEY = safeGet(process.env.API_KEY);
+const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
 
 export const cleanAIOutput = (text: string): string => {
   if (!text) return "";
@@ -18,6 +24,8 @@ export const cleanAIOutput = (text: string): string => {
 };
 
 export const sendMessageToAssistant = async (message: string, user?: UserProfile): Promise<string> => {
+  if (!ai) return "Estou em momento de silêncio agora. Como posso te ajudar de forma simples?";
+  
   try {
     const userContext = user 
       ? `Usuário: ${user.name}. Luta: ${user.spiritualFocus}. Santo: ${user.patronSaint}.` 
@@ -31,7 +39,6 @@ export const sendMessageToAssistant = async (message: string, user?: UserProfile
       Contexto: ${userContext}
     `;
 
-    // GUIDELINE FIX: Access .text property directly (not as a method)
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: message,
@@ -40,12 +47,13 @@ export const sendMessageToAssistant = async (message: string, user?: UserProfile
 
     return cleanAIOutput(response.text || "Deus te abençoe.");
   } catch (error) {
-    console.error("AI Error:", error);
-    return "Um momento de recolhimento. Em breve voltaremos a conversar.";
+    console.error("Gemini AI Error:", error);
+    return "Um momento de oração silenciosa. Em breve voltaremos a conversar.";
   }
 };
 
 export const generateDailyTheme = async (gospelText: string): Promise<string> => {
+  if (!ai) return "Caminhando na luz de Cristo.";
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -53,12 +61,12 @@ export const generateDailyTheme = async (gospelText: string): Promise<string> =>
     });
     return cleanAIOutput(response.text || "Caminhando na luz de Cristo.");
   } catch (error) {
-    console.error("AI Error:", error);
     return "Buscai as coisas do alto.";
   }
 };
 
 export const sendMessageToSpiritualDirector = async (message: string): Promise<string> => {
+  if (!ai) return JSON.stringify({ reflection: "Deus olha para o seu coração com amor.", verse: "Salmo 23" });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -70,12 +78,12 @@ export const sendMessageToSpiritualDirector = async (message: string): Promise<s
     });
     return response.text || "{}";
   } catch (error) {
-    console.error("AI Error:", error);
     return JSON.stringify({ reflection: "Deus olha para o seu coração com amor.", verse: "Salmo 23" });
   }
 };
 
 export const generateDailyReflection = async (todaySaint: string): Promise<string> => {
+  if (!ai) return "O Senhor é o meu pastor.";
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -83,22 +91,22 @@ export const generateDailyReflection = async (todaySaint: string): Promise<strin
     });
     return cleanAIOutput(response.text || "O Senhor é o meu pastor.");
   } catch (error) {
-    console.error("AI Error:", error);
     return "A paz de Cristo esteja convosco.";
   }
 };
 
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string, profileReasoning: string }> => {
-  // TYPE FIX: Explicitly typing fallback to ensure RoutineItem compatibility and resolving line 116 error
   const fallback: { routine: RoutineItem[], profileDescription: string, profileReasoning: string } = {
         profileDescription: "Buscador de Deus",
-        profileReasoning: "Um caminho simples para começar sua jornada com paz.",
+        profileReasoning: "Um caminho de paz e constância para sua jornada.",
         routine: [
-            { id: 'f1', title: 'Oração da Manhã', description: 'Entregar o dia', xpReward: 20, completed: false, icon: 'sun' as const, timeOfDay: 'morning' as const, dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' as const },
-            { id: 'f2', title: 'Evangelho', description: 'Escutar Jesus', xpReward: 30, completed: false, icon: 'book' as const, timeOfDay: 'morning' as const, dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' as const },
-            { id: 'f3', title: 'Missa Dominical', description: 'O dia do Senhor', xpReward: 100, completed: false, icon: 'church' as const, timeOfDay: 'morning' as const, dayOfWeek: [0], actionLink: 'OPEN_MAP' as const }
+            { id: 'f1', title: 'Oração da Manhã', description: 'Entregar o dia ao Senhor', xpReward: 20, completed: false, icon: 'sun' as const, timeOfDay: 'morning' as const, dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' as const },
+            { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a voz de Jesus', xpReward: 30, completed: false, icon: 'book' as const, timeOfDay: 'morning' as const, dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' as const },
+            { id: 'f3', title: 'Exame de Consciência', description: 'Revisar o dia com gratidão', xpReward: 20, completed: false, icon: 'moon' as const, timeOfDay: 'night' as const, dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' as const }
         ]
   };
+
+  if (!ai) return fallback;
 
   const prompt = `
     Crie um caminho de fé simples para ${data.name}.
@@ -117,7 +125,6 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
   `;
 
   try {
-    // GUIDELINE FIX: Using gemini-3-pro-preview for complex reasoning tasks
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: prompt,
@@ -125,7 +132,6 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
     });
 
     const json = JSON.parse(response.text || '{}');
-    // TYPE FIX: Casting mapped routine items as RoutineItem[] to resolve type mismatch on line 148
     return { 
       routine: (json.routine || fallback.routine).map((i: any) => ({ 
         ...i, 
@@ -136,7 +142,7 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
       profileReasoning: cleanAIOutput(json.profileReasoning || fallback.profileReasoning)
     };
   } catch (e) {
-    console.error("AI Error:", e);
+    console.error("AI Routine Generation Error:", e);
     return fallback;
   }
 };

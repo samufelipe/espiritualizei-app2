@@ -1,19 +1,20 @@
 
 import { Parish } from '../types';
 
-// Acessa a chave injetada pelo Vite/Vercel
-const GOOGLE_MAPS_KEY = process.env.VITE_GOOGLE_MAPS_KEY || ''; 
+// Validador de chave
+const safeGet = (val: any) => {
+  const s = String(val).trim();
+  return (s === 'undefined' || s === 'null' || !s) ? '' : s;
+};
+
+const GOOGLE_MAPS_KEY = safeGet(process.env.VITE_GOOGLE_MAPS_KEY); 
 
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 
 export const searchCatholicChurches = async (lat: number, lng: number): Promise<Parish[]> => {
-  // Fallback seguro caso a chave ainda não tenha sido propagada
-  const isKeyInvalid = !GOOGLE_MAPS_KEY || GOOGLE_MAPS_KEY === '' || GOOGLE_MAPS_KEY.includes('SUA_CHAVE');
-  
-  if (isKeyInvalid) {
-    console.warn("⚠️ Google Maps Key não detectada ou inválida. Verifique o arquivo .env ou Vercel.");
-    // Simulamos um pequeno delay para experiência do usuário não quebrar
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
+  if (!GOOGLE_MAPS_KEY) {
+    console.warn("⚠️ Ambiente: Chave do Google Maps não configurada.");
+    await new Promise(resolve => setTimeout(resolve, 800)); 
     return [
        {
           name: 'Paróquia Sagrado Coração (Simulado)',
@@ -34,7 +35,6 @@ export const searchCatholicChurches = async (lat: number, lng: number): Promise<
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': GOOGLE_MAPS_KEY,
-        // Máscara de campos necessária para a Places API (New)
         'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.currentOpeningHours,places.photos,places.googleMapsUri'
       },
       body: JSON.stringify({
@@ -43,7 +43,7 @@ export const searchCatholicChurches = async (lat: number, lng: number): Promise<
         locationRestriction: {
           circle: {
             center: { latitude: lat, longitude: lng },
-            radius: 10000 // Busca num raio de 10km
+            radius: 10000 
           }
         },
         languageCode: 'pt-BR'
@@ -51,9 +51,7 @@ export const searchCatholicChurches = async (lat: number, lng: number): Promise<
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("❌ Erro Google Places API:", errorData);
-      throw new Error(errorData.error?.message || "Erro na API do Google");
+      throw new Error("Erro na API do Google");
     }
 
     const data = await response.json();
@@ -62,9 +60,8 @@ export const searchCatholicChurches = async (lat: number, lng: number): Promise<
 
     return data.places.map((place: any) => {
       let photoUrl = undefined;
-      // Constrói a URL da foto oficial do Google se disponível
       if (place.photos && place.photos.length > 0) {
-        const photoName = place.photos[0].name; // Formato: places/PLACE_ID/photos/PHOTO_ID
+        const photoName = place.photos[0].name; 
         photoUrl = `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=400&maxWidthPx=400&key=${GOOGLE_MAPS_KEY}`;
       }
 
@@ -84,7 +81,7 @@ export const searchCatholicChurches = async (lat: number, lng: number): Promise<
       };
     });
   } catch (error) {
-    console.error("🚨 Falha crítica ao buscar paróquias:", error);
+    console.error("🚨 Google Places API Error:", error);
     return [];
   }
 };

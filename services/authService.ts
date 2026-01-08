@@ -2,48 +2,31 @@
 import { UserProfile, OnboardingData, AuthSession } from '../types';
 import { createClient } from '@supabase/supabase-js';
 
-/**
- * BUSCADOR ROBUSTO DE VARIÁVEIS
- * Tenta buscar em múltiplas fontes para evitar falhas de injeção do Vite em produção.
- */
-const getEnvVar = (key: string): string => {
-  // 1. Tenta via import.meta.env (Padrão Vite)
-  const metaEnv = (import.meta as any).env;
-  if (metaEnv && metaEnv[key]) return metaEnv[key].trim();
-
-  // 2. Tenta via process.env (Injetado via vite.config.ts define)
-  if (typeof process !== 'undefined' && process.env && (process.env as any)[key]) {
-     const val = (process.env as any)[key];
-     if (val !== 'undefined' && val !== undefined) return val.trim();
-  }
-
-  return '';
+// Função auxiliar para limpar chaves vindo do ambiente
+const safeGet = (val: any) => {
+  const s = String(val).trim();
+  return (s === 'undefined' || s === 'null' || !s) ? '' : s;
 };
 
-const SUPABASE_URL = getEnvVar('VITE_SUPABASE_URL');
-const SUPABASE_KEY = getEnvVar('VITE_SUPABASE_ANON_KEY');
-
-// Limpeza da URL: Remove barras finais
-const cleanURL = SUPABASE_URL.endsWith('/') ? SUPABASE_URL.slice(0, -1) : SUPABASE_URL;
+const SUPABASE_URL = safeGet(process.env.VITE_SUPABASE_URL);
+const SUPABASE_KEY = safeGet(process.env.VITE_SUPABASE_ANON_KEY);
 
 const isSupabaseConfigured = 
-  cleanURL && 
+  SUPABASE_URL && 
   SUPABASE_KEY && 
-  cleanURL.startsWith('https://') && 
-  cleanURL !== 'undefined';
+  SUPABASE_URL.startsWith('https://');
 
 export let supabase: any = null;
 
 if (isSupabaseConfigured) {
   try {
-    supabase = createClient(cleanURL, SUPABASE_KEY);
-    console.log("✅ Conectado ao Supabase com sucesso.");
+    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log("✅ Supabase: Conexão estabelecida.");
   } catch (e) {
-    console.error("❌ Erro ao inicializar cliente Supabase:", e);
+    console.error("❌ Supabase: Falha na inicialização.", e);
   }
 } else {
-  // Se você ver este aviso, verifique se no Vercel as chaves começam com VITE_
-  console.warn("⚠️ Variáveis de ambiente ausentes no navegador. Verifique o prefixo VITE_.");
+  console.warn("⚠️ Ambiente: Chaves do Banco de Dados não detectadas. Verifique as configurações na Vercel.");
 }
 
 const DB_USERS_KEY = 'espiritualizei_users_db';
@@ -79,7 +62,9 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   lastRoutineUpdate: dbProfile.last_routine_update ? new Date(dbProfile.last_routine_update) : new Date(dbProfile.joined_date || Date.now()),
   isPremium: dbProfile.is_premium || false,
   subscriptionStatus: dbProfile.subscription_status || 'canceled',
-  patronSaint: dbProfile.patron_saint
+  patronSaint: dbProfile.patron_saint,
+  lastConfessionAt: dbProfile.last_confession_at ? new Date(dbProfile.last_confession_at) : undefined,
+  confessionFrequency: dbProfile.confession_frequency
 });
 
 export const getConnectionStatus = () => isSupabaseConfigured && !!supabase;
@@ -107,11 +92,13 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
       localStorage.setItem(SESSION_KEY, safeStringify(session));
       return session;
     } catch (error: any) {
-      throw new Error(error.message === "Failed to fetch" ? "Erro de conexão com o banco de dados." : error.message);
+      if (error.message === "Failed to fetch") {
+        throw new Error("Erro de conexão. Verifique sua internet.");
+      }
+      throw error;
     }
   }
 
-  // Fallback LocalStorage (Apenas se as chaves falharem)
   await delay(800);
   const usersStr = localStorage.getItem(DB_USERS_KEY);
   const users = usersStr ? JSON.parse(usersStr) : [];
@@ -151,6 +138,7 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
         spiritual_goal: data.spiritualGoal,
         state_of_life: data.stateOfLife,
         patron_saint: data.patronSaint,
+        confession_frequency: data.confessionFrequency,
         level: 1,
         current_xp: 0,
         is_premium: false,
@@ -170,15 +158,17 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
       if (authData.session) {
         localStorage.setItem(SESSION_KEY, safeStringify(session));
       } else {
-        throw new Error("Verifique seu e-mail para confirmar a conta!");
+        throw new Error("Sucesso! Por favor, confirme seu e-mail para ativar a conta.");
       }
       return session;
     } catch (error: any) {
-       throw new Error(error.message === "Failed to fetch" ? "Erro de rede no cadastro." : error.message);
+      if (error.message === "Failed to fetch") {
+        throw new Error("Não foi possível alcançar o servidor. Tente novamente.");
+      }
+      throw error;
     }
   }
 
-  // LocalStorage Fallback
   await delay(800);
   const usersStr = localStorage.getItem(DB_USERS_KEY);
   const users = usersStr ? JSON.parse(usersStr) : [];
@@ -202,7 +192,8 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     lastRoutineUpdate: new Date(),
     isPremium: false,
     subscriptionStatus: 'trial',
-    patronSaint: data.patronSaint
+    patronSaint: data.patronSaint,
+    confessionFrequency: data.confessionFrequency
   };
 
   users.push({ ...newUser, password: password });
@@ -215,7 +206,11 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
 
 export const logoutUser = async () => {
   localStorage.removeItem(SESSION_KEY);
-  if (getConnectionStatus()) await supabase.auth.signOut();
+  if (getConnectionStatus()) {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {}
+  }
 };
 
 export const getSession = (): AuthSession | null => {
@@ -226,6 +221,7 @@ export const getSession = (): AuthSession | null => {
     if (session.user) {
         session.user.joinedDate = new Date(session.user.joinedDate);
         if(session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
+        if(session.user.lastConfessionAt) session.user.lastConfessionAt = new Date(session.user.lastConfessionAt);
     }
     return session;
   } catch (e) {
@@ -249,10 +245,12 @@ export const updateUserProfile = async (u: UserProfile) => {
           patron_saint: u.patronSaint,
           spiritual_focus: u.spiritualFocus,
           spiritual_goal: u.spiritualGoal,
-          last_routine_update: u.lastRoutineUpdate
+          last_routine_update: u.lastRoutineUpdate,
+          last_confession_at: u.lastConfessionAt,
+          confession_frequency: u.confessionFrequency
         }).eq('id', u.id);
     } catch (e) {
-      console.error("Erro ao atualizar perfil no BD:", e);
+      console.error("Erro ao atualizar perfil:", e);
     }
   }
 };

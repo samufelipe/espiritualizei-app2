@@ -91,11 +91,11 @@
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
-      if ('serviceWorker' in navigator) {
+      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => { console.log('SW registered'); })
-            .catch(err => { console.log('SW error'); });
+          navigator.serviceWorker.register('./sw.js')
+            .then(registration => { console.log('SW ok'); })
+            .catch(err => { console.debug('SW silent error'); });
         });
       }
     </script>
