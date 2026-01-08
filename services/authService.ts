@@ -2,31 +2,36 @@
 import { UserProfile, OnboardingData, AuthSession } from '../types';
 import { createClient } from '@supabase/supabase-js';
 
-// Função auxiliar para limpar chaves vindo do ambiente
-const safeGet = (val: any) => {
+// Função de validação robusta
+const isPopulated = (val: any) => {
+  if (!val) return false;
   const s = String(val).trim();
-  return (s === 'undefined' || s === 'null' || !s) ? '' : s;
+  return s !== "" && s !== "undefined" && s !== "null";
 };
 
-const SUPABASE_URL = safeGet(process.env.VITE_SUPABASE_URL);
-const SUPABASE_KEY = safeGet(process.env.VITE_SUPABASE_ANON_KEY);
+// BUSCA LITERAL (O Vite substituirá estas strings pelos valores reais durante o build)
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
 
-const isSupabaseConfigured = 
-  SUPABASE_URL && 
-  SUPABASE_KEY && 
-  SUPABASE_URL.startsWith('https://');
+// Log de diagnóstico silencioso para o desenvolvedor
+// Fixed: Using process.env.NODE_ENV instead of import.meta.env.DEV to avoid TypeScript error as process.env is defined in vite.config.ts
+if (process.env.NODE_ENV === 'development') {
+  console.log("🛠️ Supabase Check:", { url: !!SUPABASE_URL, key: !!SUPABASE_KEY });
+}
 
 export let supabase: any = null;
+
+const isSupabaseConfigured = isPopulated(SUPABASE_URL) && isPopulated(SUPABASE_KEY);
 
 if (isSupabaseConfigured) {
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("✅ Supabase: Conexão estabelecida.");
+    console.log("✅ Conexão com Supabase preparada.");
   } catch (e) {
-    console.error("❌ Supabase: Falha na inicialização.", e);
+    console.error("❌ Erro ao instanciar Supabase Client:", e);
   }
 } else {
-  console.warn("⚠️ Ambiente: Chaves do Banco de Dados não detectadas. Verifique as configurações na Vercel.");
+  console.warn("⚠️ Banco de Dados Offline: Verifique as chaves VITE_SUPABASE_* na Vercel.");
 }
 
 const DB_USERS_KEY = 'espiritualizei_users_db';
@@ -67,7 +72,7 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   confessionFrequency: dbProfile.confession_frequency
 });
 
-export const getConnectionStatus = () => isSupabaseConfigured && !!supabase;
+export const getConnectionStatus = () => !!supabase;
 
 export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
   const normalizedEmail = email.trim().toLowerCase();
@@ -93,7 +98,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
       return session;
     } catch (error: any) {
       if (error.message === "Failed to fetch") {
-        throw new Error("Erro de conexão. Verifique sua internet.");
+        throw new Error("Erro de conexão.");
       }
       throw error;
     }
@@ -158,12 +163,12 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
       if (authData.session) {
         localStorage.setItem(SESSION_KEY, safeStringify(session));
       } else {
-        throw new Error("Sucesso! Por favor, confirme seu e-mail para ativar a conta.");
+        throw new Error("Cadastro ok! Verifique seu e-mail.");
       }
       return session;
     } catch (error: any) {
       if (error.message === "Failed to fetch") {
-        throw new Error("Não foi possível alcançar o servidor. Tente novamente.");
+        throw new Error("Erro de rede.");
       }
       throw error;
     }

@@ -1,15 +1,9 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, OnboardingData, RoutineItem, MonthlyReviewData } from '../types';
 
-// Validação rigorosa da chave
-const safeGet = (val: any) => {
-  const s = String(val).trim();
-  return (s === 'undefined' || s === 'null' || !s) ? '' : s;
-};
-
-const API_KEY = safeGet(process.env.API_KEY);
-const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+// Fixed: Correctly initializing GoogleGenAI according to guidelines, using process.env.API_KEY directly
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const cleanAIOutput = (text: string): string => {
   if (!text) return "";
@@ -24,8 +18,6 @@ export const cleanAIOutput = (text: string): string => {
 };
 
 export const sendMessageToAssistant = async (message: string, user?: UserProfile): Promise<string> => {
-  if (!ai) return "Estou em momento de silêncio agora. Como posso te ajudar de forma simples?";
-  
   try {
     const userContext = user 
       ? `Usuário: ${user.name}. Luta: ${user.spiritualFocus}. Santo: ${user.patronSaint}.` 
@@ -45,20 +37,21 @@ export const sendMessageToAssistant = async (message: string, user?: UserProfile
       config: { systemInstruction },
     });
 
+    // Fixed: Accessed .text property directly as per guidelines
     return cleanAIOutput(response.text || "Deus te abençoe.");
   } catch (error) {
-    console.error("Gemini AI Error:", error);
+    console.error("AI Error:", error);
     return "Um momento de oração silenciosa. Em breve voltaremos a conversar.";
   }
 };
 
 export const generateDailyTheme = async (gospelText: string): Promise<string> => {
-  if (!ai) return "Caminhando na luz de Cristo.";
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Resuma este Evangelho em uma frase curta e poética (max 10 palavras) em Português: ${gospelText}`,
     });
+    // Fixed: Accessed .text property directly as per guidelines
     return cleanAIOutput(response.text || "Caminhando na luz de Cristo.");
   } catch (error) {
     return "Buscai as coisas do alto.";
@@ -66,16 +59,25 @@ export const generateDailyTheme = async (gospelText: string): Promise<string> =>
 };
 
 export const sendMessageToSpiritualDirector = async (message: string): Promise<string> => {
-  if (!ai) return JSON.stringify({ reflection: "Deus olha para o seu coração com amor.", verse: "Salmo 23" });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: message,
       config: { 
         responseMimeType: 'application/json',
+        // Fixed: Added responseSchema for robust JSON output as recommended in guidelines
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            reflection: { type: Type.STRING, description: 'Breve reflexão espiritual' },
+            verse: { type: Type.STRING, description: 'Versículo bíblico relacionado' }
+          },
+          required: ['reflection', 'verse']
+        },
         systemInstruction: "Irmão na fé. Responda em JSON com { 'reflection': '...', 'verse': '...' }."
       },
     });
+    // Fixed: Accessed .text property directly as per guidelines
     return response.text || "{}";
   } catch (error) {
     return JSON.stringify({ reflection: "Deus olha para o seu coração com amor.", verse: "Salmo 23" });
@@ -83,12 +85,12 @@ export const sendMessageToSpiritualDirector = async (message: string): Promise<s
 };
 
 export const generateDailyReflection = async (todaySaint: string): Promise<string> => {
-  if (!ai) return "O Senhor é o meu pastor.";
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Gere uma frase católica inspirada em ${todaySaint}. Max 20 palavras.`,
     });
+    // Fixed: Accessed .text property directly as per guidelines
     return cleanAIOutput(response.text || "O Senhor é o meu pastor.");
   } catch (error) {
     return "A paz de Cristo esteja convosco.";
@@ -106,31 +108,50 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
         ]
   };
 
-  if (!ai) return fallback;
-
   const prompt = `
     Crie um caminho de fé simples para ${data.name}.
     - Estado: ${data.stateOfLife}
     - Luta principal: ${data.primaryStruggle}
     - Guia: ${data.patronSaint}
 
-    RETORNE APENAS JSON:
-    {
-      "profileDescription": "String",
-      "profileReasoning": "String",
-      "routine": [
-        { "title": "String", "description": "String", "xpReward": Number, "icon": "rosary|book|cross|sun|heart|church", "timeOfDay": "morning|afternoon|night", "dayOfWeek": [0,1,2,3,4,5,6], "actionLink": "READ_LITURGY|OPEN_MAP|NONE" }
-      ]
-    }
+    RETORNE APENAS JSON.
   `;
 
   try {
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: prompt,
-        config: { responseMimeType: 'application/json' }
+        config: { 
+          responseMimeType: 'application/json',
+          // Fixed: Added responseSchema for better reliability in generating complex routine objects
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              profileDescription: { type: Type.STRING },
+              profileReasoning: { type: Type.STRING },
+              routine: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    title: { type: Type.STRING },
+                    description: { type: Type.STRING },
+                    xpReward: { type: Type.NUMBER },
+                    icon: { type: Type.STRING, description: 'rosary, book, cross, sun, heart, church' },
+                    timeOfDay: { type: Type.STRING, description: 'morning, afternoon, night' },
+                    dayOfWeek: { type: Type.ARRAY, items: { type: Type.INTEGER } },
+                    actionLink: { type: Type.STRING, description: 'READ_LITURGY, OPEN_MAP, NONE' }
+                  },
+                  required: ["title", "description", "xpReward", "icon", "timeOfDay", "dayOfWeek"]
+                }
+              }
+            },
+            required: ["profileDescription", "profileReasoning", "routine"]
+          }
+        }
     });
 
+    // Fixed: Accessed .text property directly as per guidelines
     const json = JSON.parse(response.text || '{}');
     return { 
       routine: (json.routine || fallback.routine).map((i: any) => ({ 

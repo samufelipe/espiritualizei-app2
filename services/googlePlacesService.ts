@@ -1,19 +1,19 @@
 
 import { Parish } from '../types';
 
-// Validador de chave
-const safeGet = (val: any) => {
-  const s = String(val).trim();
-  return (s === 'undefined' || s === 'null' || !s) ? '' : s;
+const isValid = (val: any) => {
+  const s = String(val || '').trim();
+  return s !== '' && s !== 'undefined' && s !== 'null';
 };
 
-const GOOGLE_MAPS_KEY = safeGet(process.env.VITE_GOOGLE_MAPS_KEY); 
+// BUSCA LITERAL
+const GOOGLE_MAPS_KEY = process.env.VITE_GOOGLE_MAPS_KEY || ""; 
 
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 
 export const searchCatholicChurches = async (lat: number, lng: number): Promise<Parish[]> => {
-  if (!GOOGLE_MAPS_KEY) {
-    console.warn("⚠️ Ambiente: Chave do Google Maps não configurada.");
+  if (!isValid(GOOGLE_MAPS_KEY)) {
+    console.warn("⚠️ Google Maps Offline: Chave ausente.");
     await new Promise(resolve => setTimeout(resolve, 800)); 
     return [
        {
