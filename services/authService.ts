@@ -6,31 +6,32 @@ import { createClient } from '@supabase/supabase-js';
 const isPopulated = (val: any) => {
   if (!val) return false;
   const s = String(val).trim();
-  return s !== "" && s !== "undefined" && s !== "null";
+  return s !== "" && s !== "undefined" && s !== "null" && s !== "[object Object]";
 };
 
-// BUSCA LITERAL (O Vite substituirá estas strings pelos valores reais durante o build)
+/**
+ * BUSCA DE VARIÁVEIS:
+ * O Vite injeta variáveis no process.env via config define.
+ */
+// Fixed: Replacing import.meta.env with process.env to match vite.config.ts defines
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
+// Fixed: Replacing import.meta.env with process.env to match vite.config.ts defines
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
-
-// Log de diagnóstico silencioso para o desenvolvedor
-// Fixed: Using process.env.NODE_ENV instead of import.meta.env.DEV to avoid TypeScript error as process.env is defined in vite.config.ts
-if (process.env.NODE_ENV === 'development') {
-  console.log("🛠️ Supabase Check:", { url: !!SUPABASE_URL, key: !!SUPABASE_KEY });
-}
 
 export let supabase: any = null;
 
+// Verifica se temos chaves válidas
 const isSupabaseConfigured = isPopulated(SUPABASE_URL) && isPopulated(SUPABASE_KEY);
 
 if (isSupabaseConfigured) {
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("✅ Conexão com Supabase preparada.");
+    console.log("✅ Banco de Dados conectado com sucesso.");
   } catch (e) {
-    console.error("❌ Erro ao instanciar Supabase Client:", e);
+    console.error("❌ Erro ao inicializar cliente Supabase:", e);
   }
 } else {
+  // Esse aviso só deve aparecer se após o REDEPLOY as chaves ainda vierem vazias
   console.warn("⚠️ Banco de Dados Offline: Verifique as chaves VITE_SUPABASE_* na Vercel.");
 }
 

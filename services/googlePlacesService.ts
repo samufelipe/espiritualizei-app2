@@ -1,18 +1,20 @@
 
 import { Parish } from '../types';
 
-const isValid = (val: any) => {
-  const s = String(val || '').trim();
-  return s !== '' && s !== 'undefined' && s !== 'null';
+const isPopulated = (val: any) => {
+  if (!val) return false;
+  const s = String(val).trim();
+  return s !== "" && s !== "undefined" && s !== "null";
 };
 
-// BUSCA LITERAL
+// BUSCA ROBUSTA
+// Fixed: Replacing import.meta.env with process.env to match vite.config.ts defines
 const GOOGLE_MAPS_KEY = process.env.VITE_GOOGLE_MAPS_KEY || ""; 
 
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 
 export const searchCatholicChurches = async (lat: number, lng: number): Promise<Parish[]> => {
-  if (!isValid(GOOGLE_MAPS_KEY)) {
+  if (!isPopulated(GOOGLE_MAPS_KEY)) {
     console.warn("⚠️ Google Maps Offline: Chave ausente.");
     await new Promise(resolve => setTimeout(resolve, 800)); 
     return [
