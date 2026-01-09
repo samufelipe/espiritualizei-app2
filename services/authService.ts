@@ -8,7 +8,11 @@ const isPopulated = (val: any) => {
   return s !== "" && s !== "undefined" && s !== "null" && s !== "[object Object]";
 };
 
-// BUSCA UNIFICADA: O Vite mapeia estas chaves via 'define' em tempo de build
+/**
+ * BUSCA DE VARIÁVEIS:
+ * O Vite injeta variáveis VITE_* em import.meta.env durante o build.
+ */
+// Fixed: Changed import.meta.env to process.env as per vite.config.ts define mapping and to resolve TS errors
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
 
@@ -24,7 +28,8 @@ if (isSupabaseConfigured) {
     console.error("❌ Banco de Dados: Erro crítico de inicialização.", e);
   }
 } else {
-  console.warn("⚠️ Banco de Dados Offline: Verifique as variáveis VITE_SUPABASE_* na Vercel.");
+  // Esse aviso só sumirá após o REDEPLOY na Vercel com as chaves salvas no painel
+  console.warn("⚠️ Banco de Dados Offline: Verifique as chaves VITE_SUPABASE_* na Vercel.");
 }
 
 const DB_USERS_KEY = 'espiritualizei_users_db';
@@ -93,7 +98,6 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
     }
   }
 
-  // Fallback offline (apenas se o banco realmente falhar)
   const usersStr = localStorage.getItem(DB_USERS_KEY);
   const users = usersStr ? JSON.parse(usersStr) : [];
   const u = users.find((u: any) => u.email === normalizedEmail);

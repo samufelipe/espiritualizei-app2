@@ -7,8 +7,8 @@ const isPopulated = (val: any) => {
   return s !== "" && s !== "undefined" && s !== "null";
 };
 
-// BUSCA ROBUSTA
-// Fixed: Replacing import.meta.env with process.env to match vite.config.ts defines
+// BUSCA ROBUSTA VIA VITE ENV
+// Fixed: Changed import.meta.env to process.env as per vite.config.ts define mapping and to resolve TS errors
 const GOOGLE_MAPS_KEY = process.env.VITE_GOOGLE_MAPS_KEY || ""; 
 
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
