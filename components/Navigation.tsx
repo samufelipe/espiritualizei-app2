@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, CheckCircle2, Book, MapPin, Heart, User } from 'lucide-react';
+import { Home, CheckCircle2, Book, MapPin, Heart, User, MessageCircle } from 'lucide-react';
 import { Tab } from '../types';
 
 interface NavigationProps {
@@ -12,16 +12,15 @@ const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange }) => {
   const navItems = [
     { tab: Tab.DASHBOARD, icon: Home, label: 'Início' },
     { tab: Tab.ROUTINE, icon: CheckCircle2, label: 'Rotina' },
-    { tab: Tab.KNOWLEDGE, icon: Book, label: 'Aprender' },
-    { tab: Tab.COMMUNITY, icon: Heart, label: 'Comunidade' },
+    { tab: Tab.CHAT, icon: MessageCircle, label: 'Diretor' },
+    { tab: Tab.COMMUNITY, icon: Heart, label: 'Geral' },
     { tab: Tab.MAPS, icon: MapPin, label: 'Igrejas' },
     { tab: Tab.PROFILE, icon: User, label: 'Perfil' },
   ];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none md:hidden">
-      {/* Gradient fade at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-black dark:via-black/90 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-brand-dark dark:via-brand-dark/90 pointer-events-none" />
 
       <nav 
         role="navigation"
