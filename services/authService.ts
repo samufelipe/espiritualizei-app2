@@ -83,13 +83,14 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
     });
 
     if (error) throw error;
+    if (!data.session) throw new Error("Falha ao iniciar sessão.");
     
-    const { data: profile, error: pError } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
     
-    const session = {
+    const session: AuthSession = {
       user: mapProfileFromDB(profile || { id: data.user!.id, name: 'Usuário' }, normalizedEmail),
-      token: data.session!.access_token,
-      expiresAt: data.session!.expires_at! * 1000
+      token: data.session.access_token,
+      expiresAt: (data.session.expires_at || 0) * 1000
     };
     localStorage.setItem(SESSION_KEY, safeStringify(session));
     return session;
@@ -106,13 +107,14 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
 
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email,
-    password: data.password,
+    password: data.password || '',
   });
 
   if (authError) throw authError;
+  if (!authData.user) throw new Error("Erro ao criar usuário.");
 
   const profilePayload = {
-    id: authData.user!.id,
+    id: authData.user.id,
     name: data.name.trim(),
     phone: data.phone,
     spiritual_maturity: 'Iniciante',
@@ -126,17 +128,23 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     joined_date: new Date().toISOString()
   };
 
-  await supabase.from('profiles').insert([profilePayload]);
+  const { error: dbError } = await supabase.from('profiles').insert([profilePayload]);
+  if (dbError) console.error("Erro ao criar perfil:", dbError);
 
   const newUser = mapProfileFromDB(profilePayload, email);
-  const session = { user: newUser, token: authData.session?.access_token || '', expiresAt: Date.now() + 86400000 };
+  const session: AuthSession = { 
+    user: newUser, 
+    token: authData.session?.access_token || '', 
+    expiresAt: Date.now() + 86400000 
+  };
+  
   localStorage.setItem(SESSION_KEY, safeStringify(session));
   return session;
 };
 
 export const logoutUser = async () => {
   localStorage.removeItem(SESSION_KEY);
-  if (supabase) await supabase.auth.signOut().catch(() => {});
+  if (supabase) await supabase.auth.signOut();
 };
 
 export const getSession = (): AuthSession | null => {
@@ -157,13 +165,17 @@ export const updateUserProfile = async (u: UserProfile) => {
   if (s) { s.user = u; localStorage.setItem(SESSION_KEY, safeStringify(s)); }
 
   if (supabase) {
-    await supabase.from('profiles').update({
+    const { error } = await supabase.from('profiles').update({
         name: u.name,
         level: u.level,
         current_xp: u.currentXP,
         spiritual_maturity: u.spiritualMaturity,
-        last_routine_update: u.lastRoutineUpdate
-    }).eq('id', u.id).catch(console.error);
+        last_routine_update: u.lastRoutineUpdate,
+        last_confession_at: u.lastConfessionAt?.toISOString(),
+        confession_frequency: u.confessionFrequency
+    }).eq('id', u.id);
+    
+    if (error) console.error("Erro ao atualizar perfil no DB:", error);
   }
 };
 
