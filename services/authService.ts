@@ -2,40 +2,38 @@
 import { UserProfile, OnboardingData, AuthSession } from '../types';
 import { createClient } from '@supabase/supabase-js';
 
-const isPopulated = (val: any) => {
-  if (!val) return false;
-  const s = String(val).trim();
-  return s !== "" && s !== "undefined" && s !== "null" && s !== "[object Object]";
-};
-
-/**
- * BUSCA DE VARIÁVEIS:
- * O Vite injeta variáveis VITE_* em import.meta.env durante o build.
- */
-// Fixed: Changed import.meta.env to process.env as per vite.config.ts define mapping and to resolve TS errors
+// Captura as variáveis injetadas pelo define do vite.config.ts
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
 
 export let supabase: any = null;
 
-const isSupabaseConfigured = isPopulated(SUPABASE_URL) && isPopulated(SUPABASE_KEY);
+// Validação de presença das chaves
+const hasKeys = SUPABASE_URL.length > 10 && SUPABASE_KEY.length > 10 && !SUPABASE_URL.includes('process.env');
 
-if (isSupabaseConfigured) {
+if (hasKeys) {
   try {
-    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("✅ Banco de Dados: Conectado com sucesso.");
+    supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      }
+    });
+    console.log("✅ Supabase: Cliente inicializado. Chaves detectadas.");
   } catch (e) {
-    console.error("❌ Banco de Dados: Erro crítico de inicialização.", e);
+    console.error("❌ Supabase: Erro fatal na inicialização do cliente.", e);
   }
 } else {
-  // Esse aviso só sumirá após o REDEPLOY na Vercel com as chaves salvas no painel
-  console.warn("⚠️ Banco de Dados Offline: Verifique as chaves VITE_SUPABASE_* na Vercel.");
+  console.warn("⚠️ Supabase: Chaves de ambiente (VITE_SUPABASE_*) não encontradas no build. O app operará em modo limitado.");
 }
 
-const DB_USERS_KEY = 'espiritualizei_users_db';
-const SESSION_KEY = 'espiritualizei_session';
+export const getConnectionStatus = () => {
+    if (!supabase) return false;
+    // Opcional: Adicionar verificação de saúde se necessário no futuro
+    return true;
+};
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const SESSION_KEY = 'espiritualizei_session';
 
 export const safeStringify = (obj: any) => {
   const cache = new Set();
@@ -70,87 +68,84 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   confessionFrequency: dbProfile.confession_frequency
 });
 
-export const getConnectionStatus = () => !!supabase;
-
 export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
   const normalizedEmail = email.trim().toLowerCase();
   
-  if (getConnectionStatus()) {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email: normalizedEmail, 
-        password: password.trim() 
-      });
+  if (!supabase) throw new Error("Configuração do banco de dados não encontrada.");
 
-      if (error) throw error;
-      
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
-      
-      const session = {
-        user: mapProfileFromDB(profile || { id: data.user!.id, name: 'Usuário' }, normalizedEmail),
-        token: data.session!.access_token,
-        expiresAt: data.session!.expires_at! * 1000
-      };
-      localStorage.setItem(SESSION_KEY, safeStringify(session));
-      return session;
-    } catch (error: any) {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ 
+      email: normalizedEmail, 
+      password: password.trim() 
+    });
+
+    if (error) {
+      if (error.message.includes('FetchError') || error.status === 503) {
+        throw new Error("O servidor está acordando. Tente novamente em alguns segundos.");
+      }
       throw error;
     }
+    
+    const { data: profile, error: pError } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
+    
+    if (pError) console.warn("Erro ao buscar perfil, usando dados básicos:", pError);
+
+    const session = {
+      user: mapProfileFromDB(profile || { id: data.user!.id, name: 'Usuário' }, normalizedEmail),
+      token: data.session!.access_token,
+      expiresAt: data.session!.expires_at! * 1000
+    };
+    localStorage.setItem(SESSION_KEY, safeStringify(session));
+    return session;
+  } catch (error: any) {
+    console.error("Login Error:", error);
+    throw error;
   }
-
-  const usersStr = localStorage.getItem(DB_USERS_KEY);
-  const users = usersStr ? JSON.parse(usersStr) : [];
-  const u = users.find((u: any) => u.email === normalizedEmail);
-  if (!u) throw new Error("Credenciais inválidas ou Banco Offline.");
-
-  const session = {
-    user: u,
-    token: 'offline-token',
-    expiresAt: Date.now() + 86400000
-  };
-  localStorage.setItem(SESSION_KEY, safeStringify(session));
-  return session;
 };
 
 export const registerUser = async (data: OnboardingData): Promise<AuthSession> => {
   const email = data.email.trim().toLowerCase();
 
-  if (getConnectionStatus()) {
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email,
-      password: data.password,
-    });
+  if (!supabase) throw new Error("Banco de dados não configurado.");
 
-    if (authError) throw authError;
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: email,
+    password: data.password,
+  });
 
-    const profilePayload = {
-      id: authData.user!.id,
-      name: data.name.trim(),
-      phone: data.phone,
-      spiritual_maturity: 'Iniciante',
-      spiritual_focus: data.primaryStruggle,
-      spiritual_goal: data.spiritualGoal,
-      stateOfLife: data.stateOfLife,
-      patron_saint: data.patronSaint,
-      confession_frequency: data.confessionFrequency,
-      level: 1,
-      current_xp: 0,
-      joined_date: new Date().toISOString()
-    };
+  if (authError) throw authError;
 
-    await supabase.from('profiles').insert([profilePayload]);
-    const newUser = mapProfileFromDB(profilePayload, email);
-    const session = { user: newUser, token: authData.session?.access_token || '', expiresAt: Date.now() + 86400000 };
-    localStorage.setItem(SESSION_KEY, safeStringify(session));
-    return session;
-  }
+  const profilePayload = {
+    id: authData.user!.id,
+    name: data.name.trim(),
+    phone: data.phone,
+    spiritual_maturity: 'Iniciante',
+    spiritual_focus: data.primaryStruggle,
+    spiritual_goal: data.spiritualGoal,
+    state_of_life: data.stateOfLife,
+    patron_saint: data.patronSaint,
+    confession_frequency: data.confessionFrequency,
+    level: 1,
+    current_xp: 0,
+    joined_date: new Date().toISOString()
+  };
 
-  throw new Error("Conexão com banco de dados indisponível.");
+  const { error: insError } = await supabase.from('profiles').insert([profilePayload]);
+  if (insError) console.error("Erro ao criar perfil:", insError);
+
+  const newUser = mapProfileFromDB(profilePayload, email);
+  const session = { user: newUser, token: authData.session?.access_token || '', expiresAt: Date.now() + 86400000 };
+  localStorage.setItem(SESSION_KEY, safeStringify(session));
+  return session;
 };
 
 export const logoutUser = async () => {
   localStorage.removeItem(SESSION_KEY);
-  if (supabase) await supabase.auth.signOut();
+  if (supabase) {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {}
+  }
 };
 
 export const getSession = (): AuthSession | null => {
@@ -170,14 +165,18 @@ export const updateUserProfile = async (u: UserProfile) => {
   const s = getSession();
   if (s) { s.user = u; localStorage.setItem(SESSION_KEY, safeStringify(s)); }
 
-  if (getConnectionStatus()) {
-    await supabase.from('profiles').update({
-      name: u.name,
-      level: u.level,
-      current_xp: u.currentXP,
-      spiritual_maturity: u.spiritualMaturity,
-      last_routine_update: u.lastRoutineUpdate
-    }).eq('id', u.id);
+  if (supabase) {
+    try {
+      await supabase.from('profiles').update({
+        name: u.name,
+        level: u.level,
+        current_xp: u.currentXP,
+        spiritual_maturity: u.spiritualMaturity,
+        last_routine_update: u.lastRoutineUpdate
+      }).eq('id', u.id);
+    } catch (e) {
+        console.error("Erro ao atualizar perfil remoto:", e);
+    }
   }
 };
 

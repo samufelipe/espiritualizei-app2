@@ -2,8 +2,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, OnboardingData, RoutineItem, MonthlyReviewData } from '../types';
 
-// Inicialização correta conforme diretrizes sênior
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Acesso estático direto para substituição via Vite
+const API_KEY = process.env.VITE_API_KEY || "";
+
+// Inicialização segura
+const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 export const cleanAIOutput = (text: string): string => {
   if (!text) return "";

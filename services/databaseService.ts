@@ -4,11 +4,9 @@ import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Not
 
 const DB_ROUTINE_KEY = 'espiritualizei_routine_db';
 const DB_INTENTIONS_KEY = 'espiritualizei_intentions_db';
-const DB_POSTS_KEY = 'espiritualizei_posts_db';
-const DB_NOTIFICATIONS_KEY = 'espiritualizei_notifications_db';
 
 export const savePartialLead = async (email: string, name: string, step: number, data: any) => {
-  if (getConnectionStatus()) {
+  if (supabase) {
     try {
       await supabase.from('onboarding_leads').upsert({
         email: email.toLowerCase().trim(),
@@ -18,13 +16,13 @@ export const savePartialLead = async (email: string, name: string, step: number,
         updated_at: new Date().toISOString()
       }, { onConflict: 'email' });
     } catch (e) {
-      console.warn("Falha ao salvar lead parcial", e);
+      console.warn("Falha ao salvar lead parcial (tabela pode não existir)", e);
     }
   }
 };
 
 export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
-    if (getConnectionStatus()) {
+    if (supabase) {
         try {
             const { data, error } = await supabase.from('global_challenges').select('*').eq('status', 'active').maybeSingle();
             if (error) throw error;
@@ -32,7 +30,7 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
                 ...data,
                 startDate: new Date(data.start_date),
                 endDate: new Date(data.end_date),
-                dailyTopics: data.daily_topics // Assume que o banco já retorna o array de tópicos
+                dailyTopics: data.daily_topics
             };
         } catch (e) {
             console.error("Erro ao buscar desafio global:", e);
@@ -42,22 +40,28 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
 };
 
 export const updateLastConfessionDate = async (userId: string, date: Date) => {
-    if (getConnectionStatus()) {
+    if (supabase) {
         await supabase.from('profiles').update({ last_confession_at: date.toISOString() }).eq('id', userId);
     }
 };
 
 export const fetchCommunityIntentions = async (userId: string): Promise<PrayerIntention[]> => {
-  if (getConnectionStatus()) {
-    const { data } = await supabase.from('intentions').select(`
-        *,
-        is_prayed:prayer_intercessions(user_id)
-    `).order('timestamp', { ascending: false });
-    
-    return (data || []).map((i: any) => ({
-        ...i,
-        isPrayedByUser: i.is_prayed?.some((p: any) => p.user_id === userId)
-    }));
+  if (supabase) {
+    try {
+        const { data, error } = await supabase.from('intentions').select(`
+            *,
+            prayer_intercessions(user_id)
+        `).order('timestamp', { ascending: false });
+        
+        if (error) throw error;
+
+        return (data || []).map((i: any) => ({
+            ...i,
+            isPrayedByUser: i.prayer_intercessions?.some((p: any) => p.user_id === userId)
+        }));
+    } catch (e) {
+        console.error("Erro ao buscar intenções:", e);
+    }
   }
   const saved = localStorage.getItem(DB_INTENTIONS_KEY);
   return saved ? JSON.parse(saved) : [];
@@ -65,7 +69,7 @@ export const fetchCommunityIntentions = async (userId: string): Promise<PrayerIn
 
 export const togglePrayerInteraction = async (intentionId: string) => {
   const session = getSession();
-  if (!session || !getConnectionStatus()) return;
+  if (!session || !supabase) return;
 
   const { data: existing } = await supabase.from('prayer_intercessions')
     .select('*')
@@ -84,7 +88,7 @@ export const togglePrayerInteraction = async (intentionId: string) => {
 
 export const togglePostLike = async (postId: string) => {
   const session = getSession();
-  if (!session || !getConnectionStatus()) return;
+  if (!session || !supabase) return;
 
   const { data: existing } = await supabase.from('post_likes')
     .select('*')
@@ -102,25 +106,57 @@ export const togglePostLike = async (postId: string) => {
 };
 
 export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {
-  if (getConnectionStatus()) {
-    const payload = items.map(item => ({ ...item, user_id: userId }));
-    await supabase.from('routines').upsert(payload);
+  if (supabase) {
+    try {
+        const payload = items.map(item => ({ 
+            id: item.id,
+            user_id: userId,
+            title: item.title,
+            description: item.description,
+            xp_reward: item.xpReward,
+            completed: item.completed,
+            icon: item.icon,
+            time_of_day: item.timeOfDay,
+            day_of_week: item.dayOfWeek,
+            action_link: item.actionLink || 'NONE'
+        }));
+        const { error } = await supabase.from('routines').upsert(payload);
+        if (error) throw error;
+    } catch (e) {
+        console.error("Erro ao salvar rotina no Supabase:", e);
+    }
   } else {
     localStorage.setItem(`${DB_ROUTINE_KEY}_${userId}`, safeStringify(items));
   }
 };
 
 export const fetchUserRoutine = async (userId: string): Promise<RoutineItem[]> => {
-  if (getConnectionStatus()) {
-    const { data } = await supabase.from('routines').select('*').eq('user_id', userId);
-    return data || [];
+  if (supabase) {
+    try {
+        const { data, error } = await supabase.from('routines').select('*').eq('user_id', userId);
+        if (error) throw error;
+        return (data || []).map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            xpReward: item.xp_reward,
+            completed: item.completed,
+            icon: item.icon,
+            timeOfDay: item.time_of_day,
+            dayOfWeek: item.day_of_week,
+            actionLink: item.action_link
+        }));
+    } catch (e) {
+        console.error("Erro ao buscar rotina:", e);
+        return [];
+    }
   }
   const saved = localStorage.getItem(`${DB_ROUTINE_KEY}_${userId}`);
   return saved ? JSON.parse(saved) : [];
 };
 
 export const toggleRoutineItemStatus = async (id: string, completed: boolean) => {
-  if (getConnectionStatus()) {
+  if (supabase) {
     await supabase.from('routines').update({ completed }).eq('id', id);
   }
 };
@@ -138,8 +174,18 @@ export const createIntention = async (userId: string, author: string, avatar: st
     timestamp: new Date()
   };
 
-  if (getConnectionStatus()) {
-    await supabase.from('intentions').insert([{ ...newItem, user_id: userId }]);
+  if (supabase) {
+    await supabase.from('intentions').insert([{ 
+        id: newItem.id,
+        user_id: userId,
+        author: newItem.author,
+        authorAvatar: newItem.authorAvatar,
+        content: newItem.content,
+        category: newItem.category,
+        tags: newItem.tags,
+        prayingCount: 0,
+        timestamp: newItem.timestamp.toISOString()
+    }]);
   }
   return newItem;
 };
@@ -160,32 +206,54 @@ export const createCommunityPost = async (userId: string, userName: string, avat
     comments: []
   };
 
-  if (getConnectionStatus()) {
-    await supabase.from('posts').insert([newPost]);
+  if (supabase) {
+    await supabase.from('posts').insert([{
+        id: newPost.id,
+        user_id: userId,
+        user_name: userName,
+        user_avatar: avatar,
+        content: content,
+        image_url: imageUrl,
+        likes_count: 0,
+        comments_count: 0,
+        timestamp: newPost.timestamp.toISOString(),
+        type: 'testimony'
+    }]);
   }
   return newPost;
 };
 
 export const upgradeUserToPremium = async (userId: string) => {
-  if (getConnectionStatus()) {
+  if (supabase) {
     await supabase.from('profiles').update({ is_premium: true, subscription_status: 'active' }).eq('id', userId);
   }
 };
 
 export const addRoutineItem = async (userId: string, item: RoutineItem) => {
-  if (getConnectionStatus()) {
-    await supabase.from('routines').insert([{ ...item, user_id: userId }]);
+  if (supabase) {
+    await supabase.from('routines').insert([{ 
+        id: item.id,
+        user_id: userId,
+        title: item.title,
+        description: item.description,
+        xp_reward: item.xpReward,
+        completed: item.completed,
+        icon: item.icon,
+        time_of_day: item.timeOfDay,
+        day_of_week: item.dayOfWeek,
+        action_link: item.actionLink || 'NONE'
+    }]);
   }
 };
 
 export const deleteRoutineItem = async (id: string) => {
-  if (getConnectionStatus()) {
+  if (supabase) {
     await supabase.from('routines').delete().eq('id', id);
   }
 };
 
 export const createJournalEntry = async (userId: string, mood: string, content: string, reflection?: string, verse?: string) => {
-  if (getConnectionStatus()) {
+  if (supabase) {
     const entry = {
       id: crypto.randomUUID(),
       mood,
@@ -200,13 +268,33 @@ export const createJournalEntry = async (userId: string, mood: string, content: 
 };
 
 export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
-  if (getConnectionStatus()) {
-    const { data } = await supabase.from('posts').select('*, comments(*)').order('timestamp', { ascending: false });
-    return (data || []).map((p: any) => ({
-        ...p,
-        timestamp: new Date(p.timestamp),
-        comments: (p.comments || []).map((c: any) => ({ ...c, timestamp: new Date(c.timestamp) }))
-    }));
+  if (supabase) {
+    try {
+        const { data, error } = await supabase.from('posts').select('*, comments(*)').order('timestamp', { ascending: false });
+        if (error) throw error;
+        return (data || []).map((p: any) => ({
+            id: p.id,
+            userId: p.user_id,
+            userName: p.user_name,
+            userAvatar: p.user_avatar,
+            content: p.content,
+            imageUrl: p.image_url,
+            likesCount: p.likes_count,
+            commentsCount: p.comments_count,
+            isLikedByUser: false, // Idealmente checar via post_likes
+            timestamp: new Date(p.timestamp),
+            type: p.type || 'testimony',
+            comments: (p.comments || []).map((c: any) => ({ 
+                id: c.id,
+                userId: c.user_id,
+                userName: c.user_name,
+                content: c.content,
+                timestamp: new Date(c.timestamp) 
+            }))
+        }));
+    } catch (e) {
+        console.error("Erro ao buscar posts:", e);
+    }
   }
   return [];
 };
@@ -219,14 +307,22 @@ export const addComment = async (postId: string, userId: string, userName: strin
     content,
     timestamp: new Date()
   };
-  if (getConnectionStatus()) {
-    await supabase.from('comments').insert([{ ...newComment, post_id: postId }]);
+  if (supabase) {
+    await supabase.from('comments').insert([{ 
+        id: newComment.id,
+        post_id: postId,
+        user_id: userId,
+        user_name: userName,
+        content: content,
+        timestamp: newComment.timestamp.toISOString()
+    }]);
+    await supabase.rpc('increment_comments_count', { row_id: postId });
   }
   return newComment;
 };
 
 export const fetchNotifications = async (userId: string): Promise<Notification[]> => {
-  if (getConnectionStatus()) {
+  if (supabase) {
     const { data } = await supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     return (data || []).map((n: any) => ({ ...n, createdAt: new Date(n.created_at) }));
   }
@@ -234,13 +330,12 @@ export const fetchNotifications = async (userId: string): Promise<Notification[]
 };
 
 export const markNotificationAsRead = async (id: string) => {
-  if (getConnectionStatus()) {
+  if (supabase) {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id);
   }
 };
 
 export const fetchLeaderboard = async (): Promise<LeaderboardData> => {
-  // Simulação de ranking real que poderia vir do Supabase
   return {
     intercessors: [
       { id: '1', userId: 'u1', userName: 'Maria Silva', score: 1250, rank: 1, badges: ['top3', 'streak'] },
@@ -258,7 +353,7 @@ export const fetchLeaderboard = async (): Promise<LeaderboardData> => {
 };
 
 export const uploadImage = async (file: File, bucket: 'avatars' | 'posts'): Promise<string | undefined> => {
-  if (getConnectionStatus()) {
+  if (supabase) {
     const fileName = `${Date.now()}_${file.name}`;
     const { data, error } = await supabase.storage.from(bucket).upload(fileName, file);
     if (error) throw error;
