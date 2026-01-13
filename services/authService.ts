@@ -2,33 +2,39 @@
 import { UserProfile, OnboardingData, AuthSession } from '../types';
 import { createClient } from '@supabase/supabase-js';
 
-// No Vite, usamos process.env que é injetado via define no vite.config.ts
-// Fixed: Removed import.meta.env to resolve TS error and use process.env defined in vite.config.ts
-const SUPABASE_URL = (process.env.VITE_SUPABASE_URL || "").trim();
-const SUPABASE_KEY = (process.env.VITE_SUPABASE_ANON_KEY || "").trim();
+// As chaves são injetadas pelo Vite de forma garantida via define
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
 
-export let supabase: any = null;
-
-// Só inicializamos se tivermos algo que pareça uma URL válida
-if (SUPABASE_URL.startsWith('https://')) {
-  try {
-    supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      }
-    });
-    console.log("✅ Supabase: Conectado com sucesso.");
-  } catch (e) {
-    console.error("❌ Supabase: Erro na inicialização.", e);
+/**
+ * Inicialização Estrita do Supabase.
+ */
+const initSupabase = () => {
+  if (SUPABASE_URL && SUPABASE_URL.startsWith('https://')) {
+    try {
+      return createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+        }
+      });
+    } catch (e) {
+      console.error("❌ Erro fatal na inicialização do Supabase:", e);
+      return null;
+    }
   }
-} else {
-  // Se você chegou aqui e o login funciona, é porque o Vite já fez a troca no código final
-  // e este log é apenas um resquício do ambiente de desenvolvimento.
-  console.log("ℹ️ Supabase: Aguardando injeção de chaves via Build...");
-}
+  return null;
+};
 
-export const getConnectionStatus = () => !!supabase;
+export const supabase = initSupabase();
+
+export const getConnectionStatus = () => {
+    if (!supabase) {
+        console.error("🚨 CONFIGURAÇÃO AUSENTE: Verifique as chaves SUPABASE_URL e SUPABASE_ANON_KEY na Vercel.");
+        return false;
+    }
+    return true;
+};
 
 const SESSION_KEY = 'espiritualizei_session';
 
@@ -66,22 +72,17 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
 });
 
 export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
+  if (!supabase) throw new Error("Banco de dados não configurado. Verifique as chaves de ambiente.");
+  
   const normalizedEmail = email.trim().toLowerCase();
   
-  if (!supabase) throw new Error("Banco de dados em manutenção. Tente novamente em instantes.");
-
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ 
       email: normalizedEmail, 
       password: password.trim() 
     });
 
-    if (error) {
-      if (error.message.includes('FetchError') || error.status === 503) {
-        throw new Error("O servidor está acordando. Tente novamente em 10 segundos.");
-      }
-      throw error;
-    }
+    if (error) throw error;
     
     const { data: profile, error: pError } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
     
@@ -99,8 +100,9 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
 };
 
 export const registerUser = async (data: OnboardingData): Promise<AuthSession> => {
+  if (!supabase) throw new Error("Serviço de registro indisponível por falta de configuração.");
+  
   const email = data.email.trim().toLowerCase();
-  if (!supabase) throw new Error("O sistema está finalizando a configuração. Tente em 5 segundos.");
 
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email,
