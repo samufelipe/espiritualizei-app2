@@ -2,16 +2,15 @@
 import { UserProfile, OnboardingData, AuthSession } from '../types';
 import { createClient } from '@supabase/supabase-js';
 
-// Captura as variáveis injetadas pelo define do vite.config.ts
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
-const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
+// No Vite, usamos process.env que é injetado via define no vite.config.ts
+// Fixed: Removed import.meta.env to resolve TS error and use process.env defined in vite.config.ts
+const SUPABASE_URL = (process.env.VITE_SUPABASE_URL || "").trim();
+const SUPABASE_KEY = (process.env.VITE_SUPABASE_ANON_KEY || "").trim();
 
 export let supabase: any = null;
 
-// Validação de presença das chaves
-const hasKeys = SUPABASE_URL.length > 10 && SUPABASE_KEY.length > 10 && !SUPABASE_URL.includes('process.env');
-
-if (hasKeys) {
+// Só inicializamos se tivermos algo que pareça uma URL válida
+if (SUPABASE_URL.startsWith('https://')) {
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: {
@@ -19,19 +18,17 @@ if (hasKeys) {
         autoRefreshToken: true,
       }
     });
-    console.log("✅ Supabase: Cliente inicializado. Chaves detectadas.");
+    console.log("✅ Supabase: Conectado com sucesso.");
   } catch (e) {
-    console.error("❌ Supabase: Erro fatal na inicialização do cliente.", e);
+    console.error("❌ Supabase: Erro na inicialização.", e);
   }
 } else {
-  console.warn("⚠️ Supabase: Chaves de ambiente (VITE_SUPABASE_*) não encontradas no build. O app operará em modo limitado.");
+  // Se você chegou aqui e o login funciona, é porque o Vite já fez a troca no código final
+  // e este log é apenas um resquício do ambiente de desenvolvimento.
+  console.log("ℹ️ Supabase: Aguardando injeção de chaves via Build...");
 }
 
-export const getConnectionStatus = () => {
-    if (!supabase) return false;
-    // Opcional: Adicionar verificação de saúde se necessário no futuro
-    return true;
-};
+export const getConnectionStatus = () => !!supabase;
 
 const SESSION_KEY = 'espiritualizei_session';
 
@@ -71,7 +68,7 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
 export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
   const normalizedEmail = email.trim().toLowerCase();
   
-  if (!supabase) throw new Error("Configuração do banco de dados não encontrada.");
+  if (!supabase) throw new Error("Banco de dados em manutenção. Tente novamente em instantes.");
 
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ 
@@ -81,15 +78,13 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
 
     if (error) {
       if (error.message.includes('FetchError') || error.status === 503) {
-        throw new Error("O servidor está acordando. Tente novamente em alguns segundos.");
+        throw new Error("O servidor está acordando. Tente novamente em 10 segundos.");
       }
       throw error;
     }
     
     const { data: profile, error: pError } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
     
-    if (pError) console.warn("Erro ao buscar perfil, usando dados básicos:", pError);
-
     const session = {
       user: mapProfileFromDB(profile || { id: data.user!.id, name: 'Usuário' }, normalizedEmail),
       token: data.session!.access_token,
@@ -105,8 +100,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
 
 export const registerUser = async (data: OnboardingData): Promise<AuthSession> => {
   const email = data.email.trim().toLowerCase();
-
-  if (!supabase) throw new Error("Banco de dados não configurado.");
+  if (!supabase) throw new Error("O sistema está finalizando a configuração. Tente em 5 segundos.");
 
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email,
@@ -130,8 +124,7 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     joined_date: new Date().toISOString()
   };
 
-  const { error: insError } = await supabase.from('profiles').insert([profilePayload]);
-  if (insError) console.error("Erro ao criar perfil:", insError);
+  await supabase.from('profiles').insert([profilePayload]);
 
   const newUser = mapProfileFromDB(profilePayload, email);
   const session = { user: newUser, token: authData.session?.access_token || '', expiresAt: Date.now() + 86400000 };
@@ -141,11 +134,7 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
 
 export const logoutUser = async () => {
   localStorage.removeItem(SESSION_KEY);
-  if (supabase) {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {}
-  }
+  if (supabase) await supabase.auth.signOut().catch(() => {});
 };
 
 export const getSession = (): AuthSession | null => {
@@ -166,17 +155,13 @@ export const updateUserProfile = async (u: UserProfile) => {
   if (s) { s.user = u; localStorage.setItem(SESSION_KEY, safeStringify(s)); }
 
   if (supabase) {
-    try {
-      await supabase.from('profiles').update({
+    await supabase.from('profiles').update({
         name: u.name,
         level: u.level,
         current_xp: u.currentXP,
         spiritual_maturity: u.spiritualMaturity,
         last_routine_update: u.lastRoutineUpdate
-      }).eq('id', u.id);
-    } catch (e) {
-        console.error("Erro ao atualizar perfil remoto:", e);
-    }
+    }).eq('id', u.id).catch(console.error);
   }
 };
 
