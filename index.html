@@ -5,9 +5,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#1A2530" />
+    
+    <!-- PWA Meta Tags atualizadas -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Espiritualizei">
+    
     <title>Espiritualizei - Vida Espiritual</title>
 
     <!-- Favicon Oficial -->
@@ -21,6 +25,16 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+      // Desabilita avisos de console do Tailwind em produção
+      if (window.location.hostname !== 'localhost') {
+        window.console.warn = (function(oldWarn) {
+          return function(msg) {
+            if (typeof msg === 'string' && msg.includes('cdn.tailwindcss.com')) return;
+            oldWarn.apply(console, arguments);
+          };
+        })(window.console.warn);
+      }
+
       tailwind.config = {
         darkMode: 'class',
         theme: {
@@ -91,11 +105,13 @@
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
+      // Registro de Service Worker corrigido com verificação de URL
       if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => { console.log('SW ok'); })
-            .catch(err => { console.log('SW err', err); });
+          // Adicionamos um timestamp para forçar atualização se necessário
+          navigator.serviceWorker.register('/sw.js?v=1')
+            .then(registration => { console.log('✅ ServiceWorker registrado'); })
+            .catch(err => { console.error('❌ Erro ServiceWorker:', err); });
         });
       }
     </script>
