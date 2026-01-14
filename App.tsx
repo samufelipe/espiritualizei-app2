@@ -25,6 +25,7 @@ const ParishFinder = lazy(() => import('./components/ParishFinder'));
 const Profile = lazy(() => import('./components/Profile'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const KnowledgeBase = lazy(() => import('./components/KnowledgeBase'));
+// Added lazy loading for SpiritualChat to handle the Tab.CHAT navigation
 const SpiritualChat = lazy(() => import('./components/SpiritualChat'));
 
 const SAINT_TRANSLATION: Record<string, string> = {
@@ -230,8 +231,9 @@ const App: React.FC = () => {
           />
         </Suspense>
       );
-      case Tab.MAPS: return <Suspense fallback={<TabLoader />}><ParishFinder /></Suspense>;
+      // Added case for CHAT tab navigation
       case Tab.CHAT: return <Suspense fallback={<TabLoader />}><SpiritualChat user={user} /></Suspense>;
+      case Tab.MAPS: return <Suspense fallback={<TabLoader />}><ParishFinder /></Suspense>;
       case Tab.PROFILE: return (
         <Suspense fallback={<TabLoader />}>
           <Profile 

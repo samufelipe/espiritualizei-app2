@@ -6,6 +6,7 @@ export enum Tab {
   COMMUNITY = 'COMMUNITY',
   MAPS = 'MAPS',
   PROFILE = 'PROFILE',
+  // Added CHAT tab to resolve reference error in Routine.tsx
   CHAT = 'CHAT'
 }
 
