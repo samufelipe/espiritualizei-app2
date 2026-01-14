@@ -1,16 +1,18 @@
+
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
   // Carrega variáveis do arquivo .env (se existirem)
-  // Added casting to any to fix: Property 'cwd' does not exist on type 'Process'
   const env = loadEnv(mode, (process as any).cwd(), '');
   
   // Captura chaves priorizando o Ambiente do Sistema (Vercel/Produção)
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || env.SUPABASE_URL || env.VITE_SUPABASE_URL || "";
-  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY || "";
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || env.VITE_SUPABASE_URL || env.SUPABASE_URL || "";
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || "";
   const apiKey = process.env.API_KEY || env.API_KEY || "";
-  const mapsKey = process.env.GOOGLE_MAPS_KEY || process.env.VITE_GOOGLE_MAPS_KEY || env.GOOGLE_MAPS_KEY || env.VITE_GOOGLE_MAPS_KEY || "";
+  
+  // Chave de mapas estritamente vinculada à variável correta para evitar InvalidKey
+  const mapsKey = process.env.VITE_GOOGLE_MAPS_KEY || process.env.GOOGLE_MAPS_KEY || env.VITE_GOOGLE_MAPS_KEY || env.GOOGLE_MAPS_KEY || "";
 
   return {
     plugins: [react()],

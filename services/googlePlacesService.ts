@@ -1,38 +1,30 @@
 
 import { Parish } from '../types';
 
-// Declaração global para evitar erros de compilação TS
-declare global {
-  interface Window {
-    google: any;
-  }
-}
-
 /**
  * Serviço de Busca de Igrejas Católicas utilizando o SDK oficial do Google Maps.
- * Isso evita problemas de CORS que ocorrem em chamadas REST diretas do navegador.
+ * Otimizado com tipagem segura para evitar erros de compilação.
  */
 export const searchCatholicChurches = async (lat: number, lng: number): Promise<Parish[]> => {
   return new Promise((resolve, reject) => {
-    // Acesso seguro ao objeto global google
+    // Acesso à propriedade window com cast para satisfazer o compilador conforme solicitado
     const google = (window as any).google;
 
     // Verifica se o SDK do Google foi carregado corretamente
     if (!google || !google.maps || !google.maps.places) {
-      console.error("🚨 SDK do Google Maps não carregado ou chave inválida.");
-      return reject(new Error("Serviço de Mapas temporariamente indisponível. Verifique sua chave API."));
+      console.error("🚨 Google Maps SDK não disponível no objeto window.");
+      return reject(new Error("Serviço de Mapas indisponível."));
     }
 
     try {
-      // Criamos um elemento invisível para o serviço, conforme exigência do SDK
       const dummyElement = document.createElement('div');
       const service = new google.maps.places.PlacesService(dummyElement);
 
-      const request: any = {
+      const request = {
         location: new google.maps.LatLng(lat, lng),
-        radius: 15000, // 15km para maior abrangência
+        radius: 15000,
         type: ['church'],
-        keyword: 'Igreja Católica' // Filtro mais preciso por termo
+        keyword: 'Igreja Católica'
       };
 
       service.nearbySearch(request, (results: any[] | null, status: any) => {
@@ -54,15 +46,12 @@ export const searchCatholicChurches = async (lat: number, lng: number): Promise<
 
           resolve(mappedResults);
         } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-          console.log("ℹ️ Nenhuma igreja católica encontrada nesta área.");
           resolve([]);
         } else {
-          console.error("🚨 Erro na busca do Google Places. Status:", status);
-          reject(new Error(`Erro na API do Google: ${status}`));
+          reject(new Error(`Erro Google: ${status}`));
         }
       });
     } catch (error) {
-      console.error("🚨 Falha crítica no serviço de busca:", error);
       reject(error);
     }
   });
