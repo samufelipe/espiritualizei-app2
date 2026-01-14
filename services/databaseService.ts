@@ -1,18 +1,15 @@
 
 import { supabase, getConnectionStatus, getSession, safeStringify } from './authService';
 import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData, CommunityChallenge, DailyTopic } from '../types';
+import { getSeasonDetailedInfo } from './liturgyService';
 
 /**
  * Persistência de Rotina Espiritual
- * Limpa o plano anterior antes de salvar o novo para garantir integridade semanal.
  */
 export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {
   if (getConnectionStatus()) {
     try {
-        // Remove plano anterior para evitar duplicidade
         await supabase!.from('routines').delete().eq('user_id', userId);
-
-        // Prepara novos itens com a estrutura de dia da semana
         const payload = items.map(item => ({ 
             id: item.id,
             user_id: userId,
@@ -26,7 +23,6 @@ export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {
             day_of_week: item.dayOfWeek,
             action_link: item.actionLink || 'NONE'
         }));
-        
         const { error } = await supabase!.from('routines').insert(payload);
         if (error) throw error;
     } catch (e) {
@@ -60,6 +56,80 @@ export const fetchUserRoutine = async (userId: string): Promise<RoutineItem[]> =
 };
 
 /**
+ * GERAÇÃO DE DESAFIOS INTERATIVOS E RELACIONAIS (FALLBACK DETERMINÍSTICO)
+ */
+const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
+  const season = getSeasonDetailedInfo(date);
+  const dayOfMonth = date.getDate();
+  const dayOfWeek = date.getDay(); // 0-6
+
+  // Banco de tarefas por categoria
+  const tasks = {
+    RELATIONAL: [
+      { title: "Intercessão Amiga", desc: "Ligue para um amigo que não fala há tempo e pergunte como pode rezar por ele.", action: "Faça uma ligação ou mande um áudio pessoal hoje." },
+      { title: "Perdão Oculto", desc: "Reze um mistério do terço por alguém que te magoou profundamente.", action: "Não conte a ninguém, apenas ofereça a oração." },
+      { title: "Honra aos Pais", desc: "Faça um elogio sincero ou um gesto de serviço para seus pais ou alguém mais velho.", action: "Demonstre gratidão por quem te antecedeu." }
+    ],
+    WORK_ROUTINE: [
+      { title: "Trabalho Santificado", desc: "Realize sua tarefa mais difícil hoje com perfeição e sem reclamar.", action: "Ofereça o cansaço pela conversão dos pecadores." },
+      { title: "Ordem na Mesa", desc: "Organize seu ambiente de trabalho ou casa como se estivesse preparando um altar.", action: "Deus habita na ordem e no capricho." },
+      { title: "Silêncio Heroico", desc: "Passe 1 hora do seu expediente ou rotina sem checar redes sociais ou conversas inúteis.", action: "Foque totalmente na sua missão presente." }
+    ],
+    PRAYER_SACRIFICE: [
+      { title: "Visita ao Rei", desc: "Passe em frente a uma Igreja e faça o sinal da cruz, ou entre por 5 minutos.", action: "Reconheça a presença real de Jesus no sacrário." },
+      { title: "Oferta do Gosto", desc: "Abstenha-se de algo que você gosta muito (café, doce, música) por amor a Deus.", action: "Fortaleça sua vontade contra os sentidos." },
+      { title: "Misericórdia Concreta", desc: "Dê um alimento ou uma palavra de esperança real para alguém em necessidade.", action: "Toque na carne sofredora de Cristo." }
+    ]
+  };
+
+  // Seleciona tarefas baseadas no dia do mês para variar
+  const getTask = (list: any[], seed: number) => list[seed % list.length];
+
+  const dailyTopics: DailyTopic[] = [
+    { 
+        day: 1, 
+        ...getTask(tasks.RELATIONAL, dayOfMonth),
+        isCompleted: false, isLocked: false, actionType: 'RELATIONSHIP'
+    },
+    { 
+        day: 2, 
+        ...getTask(tasks.WORK_ROUTINE, dayOfMonth + 1),
+        isCompleted: false, isLocked: false, actionType: 'GENERIC'
+    },
+    { 
+        day: 3, 
+        ...getTask(tasks.PRAYER_SACRIFICE, dayOfMonth + 2),
+        isCompleted: false, isLocked: false, actionType: 'SACRIFICE'
+    }
+  ];
+
+  // Ajusta o desafio baseado na temporada
+  let title = `Jornada: ${season.theme}`;
+  let description = `Um caminho de 3 dias focado em ${season.theme.toLowerCase()} no seu cotidiano.`;
+
+  return {
+    id: `generated-${season.id}-${dayOfMonth}`,
+    title,
+    description,
+    currentAmount: 2450 + (dayOfMonth * 10),
+    targetAmount: 10000,
+    unit: 'gestos',
+    daysLeft: 7 - (dayOfMonth % 7),
+    seasonColor: season.color,
+    icon: season.id === 'lent' ? 'cross' : season.id === 'easter' ? 'star' : 'fire',
+    type: 'season',
+    startDate: new Date(),
+    endDate: new Date(),
+    status: 'active',
+    participants: 1200 + (dayOfMonth * 5),
+    userContribution: 0,
+    currentDay: (dayOfMonth % 3) + 1,
+    totalDays: 3,
+    dailyTopics
+  };
+};
+
+/**
  * BUSCA DE DESAFIO COMUNITÁRIO (Com Garantia de Exibição)
  */
 export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
@@ -72,6 +142,7 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
             .maybeSingle();
         
         if (data && !error) {
+            // Se o dado do Supabase existir, tentamos enriquecer ou usar o que veio
             return {
                 ...data,
                 startDate: new Date(data.start_date),
@@ -80,37 +151,14 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
         }
     }
   } catch (e) {
-    console.warn("Fallback para desafio manual ativado.");
+    console.warn("DB offline ou erro na busca. Gerando desafio determinístico...");
   }
 
-  // FALLBACK DETERMINÍSTICO: Se o DB falhar, o app gera o desafio localmente
-  // Isso garante que a seção de COMUNIDADE NUNCA fique vazia.
-  return {
-    id: 'fallback-challenge',
-    title: 'Caminho de Santidade',
-    description: 'Um gesto concreto de caridade para unir nossa comunidade em Cristo.',
-    currentAmount: 1250,
-    targetAmount: 5000,
-    unit: 'gestos',
-    daysLeft: 7,
-    seasonColor: '#A78BFA',
-    icon: 'cross',
-    type: 'season',
-    startDate: new Date(),
-    endDate: new Date(),
-    status: 'active',
-    participants: 432,
-    userContribution: 0,
-    currentDay: (new Date().getDate() % 3) + 1,
-    totalDays: 3,
-    dailyTopics: [
-        { day: 1, title: 'Silêncio e Escuta', description: 'Dedique 5 minutos ao silêncio total.', isCompleted: false, isLocked: false, actionType: 'PRAYER', actionContent: 'Fique em silêncio diante de um crucifixo.' },
-        { day: 2, title: 'Caridade Oculta', description: 'Faça um favor a alguém sem que percebam.', isCompleted: false, isLocked: false, actionType: 'RELATIONSHIP', actionContent: 'Ajude alguém em uma tarefa simples hoje.' },
-        { day: 3, title: 'Pequena Oferta', description: 'Abstenha-se de algo que você gosta muito.', isCompleted: false, isLocked: false, actionType: 'SACRIFICE', actionContent: 'Troque uma bebida doce por água hoje.' }
-    ]
-  };
+  // RETORNO GARANTIDO: Nunca retorna null
+  return generateDeterministicChallenge(new Date());
 };
 
+// ... restante das funções do databaseService ...
 export const savePartialLead = async (email: string, name: string, step: number, data: any) => {
   if (getConnectionStatus()) {
     try {

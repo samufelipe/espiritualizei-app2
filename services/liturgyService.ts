@@ -4,7 +4,6 @@ import { LiturgyDay } from '../types';
 // Função para remover artefatos de Markdown da API de liturgia
 const cleanText = (text: string): string => {
   if (!text) return "";
-  // Remove asteriscos e aspas desnecessárias vindas da API
   return text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/^"|"$/g, '').trim();
 };
 
@@ -26,7 +25,16 @@ const getEasterDate = (year: number): Date => {
   return new Date(year, month, day);
 };
 
-export const getSeasonDetailedInfo = (date: Date = new Date()) => {
+export interface SeasonInfo {
+  id: 'lent' | 'easter' | 'advent' | 'christmas' | 'ordinary';
+  name: string;
+  theme: string;
+  color: string;
+  startDate: Date;
+  totalDays: number;
+}
+
+export const getSeasonDetailedInfo = (date: Date = new Date()): SeasonInfo => {
   const year = date.getFullYear();
   const now = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -34,7 +42,6 @@ export const getSeasonDetailedInfo = (date: Date = new Date()) => {
   const christmas = new Date(year, 11, 25);
   const nextChristmas = new Date(year + 1, 11, 25);
   
-  // Advento: 4 domingos antes do natal
   const adventStart = new Date(christmas);
   adventStart.setDate(christmas.getDate() - (christmas.getDay() === 0 ? 28 : 21 + christmas.getDay()));
 
@@ -44,31 +51,25 @@ export const getSeasonDetailedInfo = (date: Date = new Date()) => {
   const pentecost = new Date(easter);
   pentecost.setDate(easter.getDate() + 49);
 
-  // Batismo do Senhor (fim do natal)
-  const baptismOfLord = new Date(year, 0, 13); // Simplificado para meados de jan
+  const baptismOfLord = new Date(year, 0, 13);
 
-  // Verificação de Natal (De 25/12 até Batismo do Senhor)
   if (now >= christmas || now <= baptismOfLord) {
-     return { id: 'christmas', name: 'Tempo do Natal', color: '#F59E0B', startDate: christmas, totalDays: 20 };
+     return { id: 'christmas', name: 'Tempo do Natal', theme: 'Encarnação e Alegria', color: '#F59E0B', startDate: christmas, totalDays: 20 };
   }
 
-  // Quaresma
   if (now >= ashWednesday && now < easter) {
-    return { id: 'lent', name: 'Quaresma', color: '#7C3AED', startDate: ashWednesday, totalDays: 40 };
+    return { id: 'lent', name: 'Quaresma', theme: 'Penitência e Conversão', color: '#7C3AED', startDate: ashWednesday, totalDays: 40 };
   }
 
-  // Páscoa
   if (now >= easter && now <= pentecost) {
-    return { id: 'easter', name: 'Tempo Pascal', color: '#F59E0B', startDate: easter, totalDays: 50 };
+    return { id: 'easter', name: 'Tempo Pascal', theme: 'Ressurreição e Vida', color: '#F59E0B', startDate: easter, totalDays: 50 };
   }
 
-  // Advento
   if (now >= adventStart && now < christmas) {
-    return { id: 'advent', name: 'Advento', color: '#7C3AED', startDate: adventStart, totalDays: 24 };
+    return { id: 'advent', name: 'Advento', theme: 'Espera e Vigilância', color: '#7C3AED', startDate: adventStart, totalDays: 24 };
   }
 
-  // Tempo Comum (Fallback)
-  return { id: 'ordinary', name: 'Tempo Comum', color: '#10B981', startDate: baptismOfLord, totalDays: 34 * 7 };
+  return { id: 'ordinary', name: 'Tempo Comum', theme: 'O Extraordinário no Cotidiano', color: '#10B981', startDate: baptismOfLord, totalDays: 34 * 7 };
 };
 
 export const calculateDayOfSeason = (startDate: Date): number => {
@@ -112,7 +113,6 @@ export const fetchRealDailyLiturgy = async (): Promise<LiturgyDay> => {
         gospel: { ref: data.evangelho?.referencia || "Evangelho", text: cleanText(data.evangelho?.texto || "") }
       }
     };
-
   } catch (error) {
     return {
       date: dateString,
@@ -127,14 +127,3 @@ export const fetchRealDailyLiturgy = async (): Promise<LiturgyDay> => {
     };
   }
 };
-
-export const getLiturgicalInfo = (date: Date = new Date()) => {
-    const info = getSeasonDetailedInfo(date);
-    return {
-        season: info.id,
-        seasonName: info.name,
-        color: info.color,
-        week: Math.ceil(calculateDayOfSeason(info.startDate) / 7),
-        isFeast: false
-    };
-}
