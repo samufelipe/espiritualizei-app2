@@ -146,7 +146,6 @@ const App: React.FC = () => {
   const handleMonthlyReviewComplete = async (reviewData: MonthlyReviewData) => {
       setIsGeneratingRoutine(true);
       try {
-          // Constrói os dados para a Gemini gerar uma nova rotina otimizada
           const onboardingData: OnboardingData = {
               name: user.name,
               email: user.email,
@@ -155,7 +154,7 @@ const App: React.FC = () => {
               routineType: reviewData.intensity === 'too_heavy' ? 'overwhelmed' : 'flexible',
               primaryStruggle: reviewData.newStruggle as any,
               bestMoment: 'morning',
-              spiritualGoal: reviewData.newGoal as any,
+              spiritualGoal: reviewData.newGoal,
               confessionFrequency: user.confessionFrequency as any,
               patronSaint: user.patronSaint as any
           };

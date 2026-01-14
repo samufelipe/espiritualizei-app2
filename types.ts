@@ -221,7 +221,7 @@ export interface MonthlyReviewData {
   likedPractices: string[];
   dislikedPractices: string[];
   newStruggle: string;
-  newGoal: string;
+  newGoal: 'peace' | 'truth' | 'discipline' | 'love' | 'healing';
   timeAvailabilityChange: 'same' | 'less' | 'more';
 }
 
