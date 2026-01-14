@@ -4,8 +4,112 @@ import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Not
 import { getSeasonDetailedInfo } from './liturgyService';
 
 /**
- * Persistência de Rotina Espiritual
+ * GERAÇÃO DE DESAFIOS INTERATIVOS SINCRONIZADOS (3 DIAS)
+ * Esta lógica garante que o desafio mude a cada 3 dias e seja temático ao tempo da Igreja.
  */
+const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
+  const season = getSeasonDetailedInfo(date);
+  
+  // Cálculo do ciclo de 3 dias (72 horas)
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const cycleId = Math.floor(date.getTime() / (MS_PER_DAY * 3));
+  
+  // Verifica proximidade da Quaresma 2026 (18/02/2026)
+  const isPreLent = date.getMonth() === 1 && date.getDate() < 18 && date.getFullYear() === 2026;
+  const isLent = (date.getMonth() === 1 && date.getDate() >= 18 && date.getFullYear() === 2026) || season.id === 'lent';
+
+  // Pool de tarefas temáticas
+  const taskPool = {
+    ORDINARY: {
+        RELATIONAL: [
+            { title: "Caridade no Olhar", desc: "Procure uma qualidade em alguém que você costuma criticar e elogie essa pessoa hoje.", action: "Mude o ambiente com um elogio sincero.", script: "Acima de tudo, cultivai o amor, que é o laço da perfeição. (Col 3, 14)" },
+            { title: "Escuta Fraterna", desc: "Dedique 10 minutos para ouvir alguém sem interromper ou dar conselhos não pedidos.", action: "Seja o ouvido de Cristo para um irmão.", script: "Todo homem deve ser pronto para ouvir, tardio para falar. (Tg 1, 19)" }
+        ],
+        SACRIFICE: [
+            { title: "Pontualidade Sagrada", desc: "Cumpra rigorosamente seu horário de trabalho ou compromisso como oferta a Deus.", action: "Deus habita na ordem. Seja pontual.", script: "O que fizerdes, fazei-o de bom coração, como para o Senhor. (Col 3, 23)" },
+            { title: "Doce Renúncia", desc: "Abstenha-se de reclamar do clima, do trânsito ou do cansaço durante todo o dia.", action: "Transforme reclamação em oração silenciosa.", script: "Fazei tudo sem murmurações nem críticas. (Fl 2, 14)" }
+        ]
+    },
+    LENT: {
+        PRAYER: [
+            { title: "Deserto Interior", desc: "Passe 15 minutos em silêncio absoluto, sem celular ou distrações, apenas ouvindo Deus.", action: "Abra espaço para a voz do Espírito Santo.", script: "Conduzi-la-ei ao deserto e falarei ao seu coração. (Os 2, 16)" },
+            { title: "Via Sacra Viva", desc: "Ao sentir qualquer dor ou cansaço hoje, una esse sofrimento à Paixão de Cristo.", action: "Sua cruz diária é o caminho da glória.", script: "Quem quiser vir após mim, negue-se a si mesmo e tome sua cruz. (Mt 16, 24)" }
+        ],
+        FASTING: [
+            { title: "Jejum de Telas", desc: "Desligue todas as notificações não essenciais e só use redes sociais para o necessário.", action: "Recupere o controle da sua atenção para o Céu.", script: "Vigiai e orai, para que não entreis em tentação. (Mt 26, 41)" },
+            { title: "Mesa Humilde", desc: "Faça uma refeição mais simples hoje e ofereça a diferença em esmola ou oração.", action: "Alimente a alma mortificando o corpo.", script: "Nem só de pão vive o homem. (Mt 4, 4)" }
+        ]
+    }
+  };
+
+  // Seleção baseada no tempo litúrgico
+  const activePool = (isLent || isPreLent) ? taskPool.LENT : taskPool.ORDINARY;
+  const poolKeys = Object.keys(activePool);
+  const typeKey = poolKeys[cycleId % poolKeys.length];
+  const list = (activePool as any)[typeKey];
+  
+  const dailyTopics: DailyTopic[] = list.map((t: any, idx: number) => ({
+    day: idx + 1,
+    title: t.title,
+    description: t.desc,
+    actionContent: t.action,
+    scripture: t.script,
+    isCompleted: false,
+    isLocked: false,
+    actionType: typeKey === 'RELATIONAL' ? 'RELATIONSHIP' : (typeKey === 'FASTING' || typeKey === 'SACRIFICE' ? 'SACRIFICE' : 'PRAYER')
+  }));
+
+  const themeName = isLent ? "Caminho do Calvário" : isPreLent ? "Vigília do Deserto" : "Fé no Cotidiano";
+
+  return {
+    id: `liturgical-cycle-${cycleId}`,
+    title: `Jornada: ${themeName}`,
+    description: `Um ciclo de 3 dias para fortalecer sua ${isLent ? 'conversão' : 'constância'} através de gestos concretos.`,
+    currentAmount: 0,
+    targetAmount: 5000,
+    unit: 'atos de amor',
+    daysLeft: 3 - (Math.floor((date.getTime() / MS_PER_DAY)) % 3),
+    seasonColor: isLent ? '#7C3AED' : '#10B981',
+    icon: isLent ? 'cross' : 'fire',
+    type: 'season',
+    startDate: new Date(cycleId * 3 * MS_PER_DAY),
+    endDate: new Date((cycleId + 1) * 3 * MS_PER_DAY),
+    status: 'active',
+    participants: 1450 + (cycleId % 100),
+    userContribution: 0,
+    currentDay: (Math.floor(date.getTime() / MS_PER_DAY) % 3) + 1,
+    totalDays: 3,
+    dailyTopics
+  };
+};
+
+/**
+ * BUSCA DE DESAFIO COMUNITÁRIO
+ * Tenta buscar do Supabase primeiro, senão gera o desafio litúrgico do ciclo atual.
+ */
+export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
+  try {
+    if (getConnectionStatus()) {
+        const { data, error } = await supabase!
+            .from('challenges')
+            .select('*')
+            .eq('status', 'active')
+            .maybeSingle();
+        
+        if (data && !error) {
+            return {
+                ...data,
+                startDate: new Date(data.start_date),
+                endDate: new Date(data.end_date)
+            };
+        }
+    }
+  } catch (e) {
+    console.warn("Gerando desafio litúrgico automático.");
+  }
+  return generateDeterministicChallenge(new Date());
+};
+
 export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {
   if (getConnectionStatus()) {
     try {
@@ -53,145 +157,6 @@ export const fetchUserRoutine = async (userId: string): Promise<RoutineItem[]> =
     }
   }
   return [];
-};
-
-/**
- * GERAÇÃO DE DESAFIOS INTERATIVOS E RELACIONAIS (FALLBACK DETERMINÍSTICO)
- */
-const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
-  const season = getSeasonDetailedInfo(date);
-  const dayOfMonth = date.getDate();
-
-  // Banco de tarefas corrigido com nomes de campos oficiais (description e actionContent)
-  const tasks = {
-    RELATIONAL: [
-      { 
-        title: "Intercessão Amiga", 
-        description: "Ligue para um amigo que não fala há tempo e pergunte como pode rezar por ele.", 
-        actionContent: "Faça uma ligação ou mande um áudio pessoal hoje.",
-        scripture: "Amigo fiel é proteção poderosa; quem o encontra, encontra um tesouro. (Eclo 6, 14)"
-      },
-      { 
-        title: "Perdão Oculto", 
-        description: "Reze um mistério do terço por alguém que te magoou profundamente.", 
-        actionContent: "Não conte a ninguém, apenas ofereça a oração com sinceridade.",
-        scripture: "Perdoai-nos as nossas ofensas, assim como nós perdoamos a quem nos tem ofendido."
-      },
-      { 
-        title: "Honra aos Pais", 
-        description: "Faça um elogio sincero ou um gesto de serviço para seus pais ou um idoso.", 
-        actionContent: "Demonstre gratidão prática por quem te antecedeu na vida.",
-        scripture: "Honra teu pai e tua mãe, para que teus dias se prolonguem na terra. (Ex 20, 12)"
-      }
-    ],
-    WORK_ROUTINE: [
-      { 
-        title: "Trabalho Santificado", 
-        description: "Realize sua tarefa mais difícil hoje com perfeição e sem reclamar.", 
-        actionContent: "Ofereça o cansaço deste dever pela conversão dos pecadores.",
-        scripture: "Tudo o que fizerdes, fazei-o de bom coração, como para o Senhor. (Col 3, 23)"
-      },
-      { 
-        title: "Ordem na Mesa", 
-        description: "Organize seu ambiente de trabalho ou casa com zelo e capricho.", 
-        actionContent: "Deus habita na ordem. Transforme seu espaço em um lugar de paz.",
-        scripture: "Deus não é Deus de desordem, mas de paz. (1 Cor 14, 33)"
-      },
-      { 
-        title: "Silêncio Heroico", 
-        description: "Passe 1 hora do seu dia sem checar redes sociais ou conversas inúteis.", 
-        actionContent: "Foque totalmente na sua missão presente e no silêncio interior.",
-        scripture: "É no silêncio que Deus fala ao coração."
-      }
-    ],
-    PRAYER_SACRIFICE: [
-      { 
-        title: "Visita ao Rei", 
-        description: "Entre em uma Igreja por 5 minutos ou faça o sinal da cruz ao passar na frente.", 
-        actionContent: "Reconheça a presença real de Jesus no sacrário com um gesto de fé.",
-        scripture: "Vinde a mim, vós todos que estais cansados, e eu vos aliviarei. (Mt 11, 28)"
-      },
-      { 
-        title: "Oferta do Gosto", 
-        description: "Abstenha-se de algo que você gosta muito (café, doce, música) por amor.", 
-        actionContent: "Fortaleça sua vontade contra os sentidos oferecendo este jejum.",
-        scripture: "Se alguém quer vir após mim, negue-se a si mesmo. (Mt 16, 24)"
-      },
-      { 
-        title: "Misericórdia Concreta", 
-        description: "Dê um alimento ou uma palavra de esperança real para alguém necessitado.", 
-        actionContent: "Toque na carne sofredora de Cristo através do seu irmão.",
-        scripture: "O que fizestes a um destes meus irmãos pequeninos, a mim o fizestes. (Mt 25, 40)"
-      }
-    ]
-  };
-
-  const getTask = (list: any[], seed: number) => list[seed % list.length];
-
-  const dailyTopics: DailyTopic[] = [
-    { 
-        day: 1, 
-        ...getTask(tasks.RELATIONAL, dayOfMonth),
-        isCompleted: false, isLocked: false, actionType: 'RELATIONSHIP'
-    },
-    { 
-        day: 2, 
-        ...getTask(tasks.WORK_ROUTINE, dayOfMonth + 1),
-        isCompleted: false, isLocked: false, actionType: 'GENERIC'
-    },
-    { 
-        day: 3, 
-        ...getTask(tasks.PRAYER_SACRIFICE, dayOfMonth + 2),
-        isCompleted: false, isLocked: false, actionType: 'SACRIFICE'
-    }
-  ];
-
-  return {
-    id: `generated-${season.id}-${dayOfMonth}`,
-    title: `Jornada: ${season.theme}`,
-    description: `Um caminho de 3 dias focado em ${season.theme.toLowerCase()} no seu cotidiano.`,
-    currentAmount: 2450 + (dayOfMonth * 10),
-    targetAmount: 10000,
-    unit: 'gestos',
-    daysLeft: 7 - (dayOfMonth % 7),
-    seasonColor: season.color,
-    icon: season.id === 'lent' ? 'cross' : season.id === 'easter' ? 'star' : 'fire',
-    type: 'season',
-    startDate: new Date(),
-    endDate: new Date(),
-    status: 'active',
-    participants: 1200 + (dayOfMonth * 5),
-    userContribution: 0,
-    currentDay: (dayOfMonth % 3) + 1,
-    totalDays: 3,
-    dailyTopics
-  };
-};
-
-/**
- * BUSCA DE DESAFIO COMUNITÁRIO (Garantia de Disponibilidade)
- */
-export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
-  try {
-    if (getConnectionStatus()) {
-        const { data, error } = await supabase!
-            .from('challenges')
-            .select('*')
-            .eq('status', 'active')
-            .maybeSingle();
-        
-        if (data && !error) {
-            return {
-                ...data,
-                startDate: new Date(data.start_date),
-                endDate: new Date(data.end_date)
-            };
-        }
-    }
-  } catch (e) {
-    console.warn("Gerando desafio local por falha de rede.");
-  }
-  return generateDeterministicChallenge(new Date());
 };
 
 export const savePartialLead = async (email: string, name: string, step: number, data: any) => {
