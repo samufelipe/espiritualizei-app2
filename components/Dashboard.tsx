@@ -132,7 +132,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   })();
 
   const handleShareApp = () => {
-    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha rotina de oração e vida espiritual. 💜\n\nConheça aqui: https://espiritualizei.vercel.app");
+    // Purple heart emoji used: 💜
+    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha rotina de oração e vida espiritual. 💜\n\nConheça aqui: https://www.espiritualizei.com/");
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
