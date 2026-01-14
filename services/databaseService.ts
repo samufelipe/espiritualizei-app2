@@ -409,10 +409,18 @@ export const createJournalEntry = async (userId: string, mood: string, content: 
   }
 };
 
-export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
+export const fetchCommunityPosts = async (page: number = 0, pageSize: number = 10): Promise<CommunityPost[]> => {
   if (getConnectionStatus()) {
     try {
-        const { data, error } = await supabase!.from('posts').select('*, comments(*)').order('timestamp', { ascending: false });
+        const from = page * pageSize;
+        const to = from + pageSize - 1;
+
+        const { data, error } = await supabase!
+          .from('posts')
+          .select('*, comments(*)')
+          .order('timestamp', { ascending: false })
+          .range(from, to);
+          
         if (error) throw error;
         return (data || []).map((p: any) => ({
             id: p.id,
