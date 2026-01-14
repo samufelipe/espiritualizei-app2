@@ -6,7 +6,6 @@ export enum Tab {
   COMMUNITY = 'COMMUNITY',
   MAPS = 'MAPS',
   PROFILE = 'PROFILE',
-  // Added CHAT tab to resolve reference error in Routine.tsx
   CHAT = 'CHAT'
 }
 
@@ -37,6 +36,7 @@ export interface UserProfile {
   hasSeenTutorial?: boolean;
   joinedDate: Date;
   lastRoutineUpdate?: Date;
+  spiritualCycleStart?: Date; // Data de início do ciclo atual de 30 dias
   lastConfessionAt?: Date; 
   confessionFrequency?: 'frequent' | 'rare' | 'long_time' | 'never';
   isPremium?: boolean;
@@ -79,14 +79,10 @@ export interface OnboardingData {
   bestMoment: 'morning' | 'commute' | 'breaks' | 'night' | 'random'; 
   spiritualGoal: 'peace' | 'truth' | 'discipline' | 'love' | 'healing';
   confessionFrequency: 'frequent' | 'rare' | 'long_time' | 'never';
-  // Fixed: Added 'acutis' to matches SAINT_TRANSLATION in App.tsx
   patronSaint?: 'acutis' | 'michael' | 'therese' | 'joseph' | 'mary';
   photoUrl?: string;
 }
 
-/**
- * Fixed: Added missing DailyTopic interface used in geminiService and LiturgicalEvents
- */
 export interface DailyTopic {
   day: number;
   title: string;
@@ -115,7 +111,6 @@ export interface CommunityChallenge {
   participants: number;
   isUserParticipating?: boolean;
   userContribution: number; 
-  // Fixed: Specified DailyTopic[] type instead of any[]
   dailyTopics?: DailyTopic[];
   currentDay?: number;
   totalDays?: number;
@@ -206,7 +201,6 @@ export interface LeaderboardEntry {
   avatarUrl?: string;
   score: number;
   rank: number;
-  // Fixed: Added badges array to satisfy fetchLeaderboard mock data
   badges?: string[];
 }
 
@@ -218,16 +212,14 @@ export interface LeaderboardData {
 export interface MonthlyReviewData {
   intensity: 'too_heavy' | 'balanced' | 'too_light';
   consistency: 'low' | 'medium' | 'high';
-  likedPractices: string[];
-  dislikedPractices: string[];
+  lifeContext: 'stressful' | 'stable' | 'transition';
+  likedModules: string[];
+  dislikedModules: string[];
   newStruggle: string;
   newGoal: 'peace' | 'truth' | 'discipline' | 'love' | 'healing';
   timeAvailabilityChange: 'same' | 'less' | 'more';
 }
 
-/**
- * Fixed: Added missing Parish interface for ParishFinder and googlePlacesService
- */
 export interface Parish {
   name: string;
   address: string;
@@ -241,9 +233,6 @@ export interface Parish {
   directionsUrl?: string;
 }
 
-/**
- * Fixed: Added missing JournalEntry interface for JournalModal and databaseService
- */
 export interface JournalEntry {
   id: string;
   userId: string;

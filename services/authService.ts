@@ -2,13 +2,9 @@
 import { UserProfile, OnboardingData, AuthSession } from '../types';
 import { createClient } from '@supabase/supabase-js';
 
-// As chaves são injetadas pelo Vite de forma garantida via define
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
 
-/**
- * Inicialização Estrita do Supabase.
- */
 const initSupabase = () => {
   if (SUPABASE_URL && SUPABASE_URL.startsWith('https://')) {
     try {
@@ -29,10 +25,7 @@ const initSupabase = () => {
 export const supabase = initSupabase();
 
 export const getConnectionStatus = () => {
-    if (!supabase) {
-        console.error("🚨 CONFIGURAÇÃO AUSENTE: Verifique as chaves SUPABASE_URL e SUPABASE_ANON_KEY na Vercel.");
-        return false;
-    }
+    if (!supabase) return false;
     return true;
 };
 
@@ -64,6 +57,7 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   stateOfLife: dbProfile.state_of_life,
   joinedDate: new Date(dbProfile.joined_date || Date.now()),
   lastRoutineUpdate: dbProfile.last_routine_update ? new Date(dbProfile.last_routine_update) : new Date(dbProfile.joined_date || Date.now()),
+  spiritualCycleStart: dbProfile.spiritual_cycle_start ? new Date(dbProfile.spiritual_cycle_start) : new Date(dbProfile.joined_date || Date.now()),
   isPremium: dbProfile.is_premium || false,
   subscriptionStatus: dbProfile.subscription_status || 'canceled',
   patronSaint: dbProfile.patron_saint,
@@ -72,21 +66,13 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
 });
 
 export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
-  if (!supabase) throw new Error("Banco de dados não configurado. Verifique as chaves de ambiente.");
-  
+  if (!supabase) throw new Error("Banco de dados não configurado.");
   const normalizedEmail = email.trim().toLowerCase();
-  
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ 
-      email: normalizedEmail, 
-      password: password.trim() 
-    });
-
+    const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password: password.trim() });
     if (error) throw error;
     if (!data.session) throw new Error("Falha ao iniciar sessão.");
-    
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
-    
     const session: AuthSession = {
       user: mapProfileFromDB(profile || { id: data.user!.id, name: 'Usuário' }, normalizedEmail),
       token: data.session.access_token,
@@ -95,26 +81,17 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
     localStorage.setItem(SESSION_KEY, safeStringify(session));
     return session;
   } catch (error: any) {
-    console.error("Login Error:", error);
     throw error;
   }
 };
 
 export const registerUser = async (data: OnboardingData): Promise<AuthSession> => {
-  if (!supabase) throw new Error("Serviço de registro indisponível por falta de configuração.");
-  
+  if (!supabase) throw new Error("Serviço indisponível.");
   const email = data.email.trim().toLowerCase();
-
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: email,
-    password: data.password || '',
-  });
-
+  const { data: authData, error: authError } = await supabase.auth.signUp({ email, password: data.password || '' });
   if (authError) throw authError;
-  if (!authData.user) throw new Error("Erro ao criar usuário.");
-
   const profilePayload = {
-    id: authData.user.id,
+    id: authData.user!.id,
     name: data.name.trim(),
     phone: data.phone,
     spiritual_maturity: 'Iniciante',
@@ -125,19 +102,16 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     confession_frequency: data.confessionFrequency,
     level: 1,
     current_xp: 0,
-    joined_date: new Date().toISOString()
+    joined_date: new Date().toISOString(),
+    spiritual_cycle_start: new Date().toISOString()
   };
-
   const { error: dbError } = await supabase.from('profiles').insert([profilePayload]);
-  if (dbError) console.error("Erro ao criar perfil:", dbError);
-
   const newUser = mapProfileFromDB(profilePayload, email);
   const session: AuthSession = { 
     user: newUser, 
     token: authData.session?.access_token || '', 
     expiresAt: Date.now() + 86400000 
   };
-  
   localStorage.setItem(SESSION_KEY, safeStringify(session));
   return session;
 };
@@ -155,6 +129,7 @@ export const getSession = (): AuthSession | null => {
     if (session.user) {
         session.user.joinedDate = new Date(session.user.joinedDate);
         if(session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
+        if(session.user.spiritualCycleStart) session.user.spiritualCycleStart = new Date(session.user.spiritualCycleStart);
     }
     return session;
   } catch (e) { return null; }
@@ -163,19 +138,17 @@ export const getSession = (): AuthSession | null => {
 export const updateUserProfile = async (u: UserProfile) => {
   const s = getSession();
   if (s) { s.user = u; localStorage.setItem(SESSION_KEY, safeStringify(s)); }
-
   if (supabase) {
-    const { error } = await supabase.from('profiles').update({
+    await supabase.from('profiles').update({
         name: u.name,
         level: u.level,
         current_xp: u.currentXP,
         spiritual_maturity: u.spiritualMaturity,
         last_routine_update: u.lastRoutineUpdate,
+        spiritual_cycle_start: u.spiritualCycleStart?.toISOString(),
         last_confession_at: u.lastConfessionAt?.toISOString(),
         confession_frequency: u.confessionFrequency
     }).eq('id', u.id);
-    
-    if (error) console.error("Erro ao atualizar perfil no DB:", error);
   }
 };
 

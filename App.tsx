@@ -42,7 +42,6 @@ const App: React.FC = () => {
   const [showUpdatePasswordModal, setShowUpdatePasswordModal] = useState(false);
   const [showMonthlyReview, setShowMonthlyReview] = useState(false); 
   const [showIntentionModal, setShowIntentionModal] = useState(false);
-  const [generatedProfile, setGeneratedProfile] = useState<{ title: string; reasoning: string } | null>(null);
   const [isGeneratingRoutine, setIsGeneratingRoutine] = useState(false);
   const [feedInitialContent, setFeedInitialContent] = useState<string>(''); 
   const [communityInitialTab, setCommunityInitialTab] = useState<'mural' | 'feed' | 'ranking'>('mural');
@@ -58,11 +57,13 @@ const App: React.FC = () => {
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
 
   // Verificador de Ciclo de 30 dias
+  // Dispara automaticamente quando a diferença entre agora e spiritualCycleStart for >= 30
   useEffect(() => {
     if (viewState === 'app' && user.id !== 'guest') {
-      const lastUpdate = new Date(user.lastRoutineUpdate || user.joinedDate);
+      const cycleStart = new Date(user.spiritualCycleStart || user.joinedDate);
       const now = new Date();
-      const diffDays = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffTime = Math.abs(now.getTime() - cycleStart.getTime());
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       
       if (diffDays >= 30) {
         setShowMonthlyReview(true);
@@ -76,9 +77,17 @@ const App: React.FC = () => {
        const session = getSession();
        if (session?.user) {
           window.history.replaceState({}, document.title, "/");
-          setUser((prev: UserProfile) => ({ ...prev, isPremium: true, subscriptionStatus: 'active' }));
+          // No primeiro acesso premium, o spiritualCycleStart é fixado no momento do pagamento
+          const updatedUser: UserProfile = { 
+              ...session.user, 
+              isPremium: true, 
+              subscriptionStatus: 'active',
+              spiritualCycleStart: new Date() 
+          };
+          setUser(updatedUser);
           setViewState('welcome_premium');
           upgradeUserToPremium(session.user.id).catch(console.error);
+          updateUserProfile(updatedUser); // Garante a data do 1º ciclo no DB
        }
     }
   }, []);
@@ -128,14 +137,14 @@ const App: React.FC = () => {
         spiritualGoal: data.spiritualGoal,
         patronSaint: data.patronSaint,
         confessionFrequency: data.confessionFrequency,
-        lastRoutineUpdate: new Date()
+        lastRoutineUpdate: new Date(),
+        spiritualCycleStart: new Date() // Inicia o 1º ciclo
       };
       await updateUserProfile(updatedUser);
       setUser(updatedUser);
       setRoutineItems(result.routine);
       await saveUserRoutine(session.user.id, result.routine);
       setIsGeneratingRoutine(false);
-      setGeneratedProfile({ title: result.profileDescription, reasoning: result.profileReasoning });
     } catch (error: any) {
       setIsGeneratingRoutine(false);
       setViewState('onboarding');
@@ -166,7 +175,8 @@ const App: React.FC = () => {
               spiritualMaturity: result.profileDescription,
               spiritualFocus: reviewData.newStruggle,
               spiritualGoal: reviewData.newGoal,
-              lastRoutineUpdate: new Date()
+              lastRoutineUpdate: new Date(),
+              spiritualCycleStart: new Date() // RESET DO CICLO PARA MAIS 30 DIAS
           };
 
           await updateUserProfile(updatedUser);
@@ -176,7 +186,7 @@ const App: React.FC = () => {
           setRoutineItems(result.routine);
           setShowMonthlyReview(false);
       } catch (e) {
-          console.error("Erro na revisão mensal:", e);
+          console.error("Erro na renovação mensal:", e);
       } finally {
           setIsGeneratingRoutine(false);
       }
