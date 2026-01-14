@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { Sparkles, ArrowRight, Brain, Coffee, CloudRain, Shield, BookOpen, User, Check, RefreshCw, Calendar, ThumbsUp, ThumbsDown, Activity, Clock, Heart, Zap, MapPin, Headphones, PenLine, ChevronRight, Users, GraduationCap, Anchor } from 'lucide-react';
+import { Brain, Coffee, CloudRain, Shield, BookOpen, User, Check, RefreshCw, ThumbsUp, ThumbsDown, Clock, Heart, Zap, MapPin, PenLine, ChevronRight, Users, GraduationCap, Trophy } from 'lucide-react';
 import { MonthlyReviewData } from '../types';
+import BrandLogo from './BrandLogo';
 
 interface MonthlyReviewModalProps {
   onClose: () => void;
@@ -23,15 +24,14 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
   const [newGoal, setNewGoal] = useState<'peace' | 'truth' | 'discipline' | 'love' | 'healing'>('peace');
   const [lifeContext, setLifeContext] = useState<'stressful' | 'stable' | 'transition'>('stable');
 
-  // Módulos reais do Aplicativo Espiritualizei
+  // Módulos REAIS do Aplicativo Espiritualizei
   const APP_MODULES = [
-    { id: 'liturgy', label: 'Liturgia e Evangelho', icon: BookOpen },
+    { id: 'liturgy', label: 'Liturgia Diária', icon: BookOpen },
     { id: 'routine', label: 'Gestão da Minha Rotina', icon: Check },
-    { id: 'community', label: 'Mural e Comunidade', icon: Users },
-    { id: 'library', label: 'Biblioteca de Estudos', icon: GraduationCap },
-    { id: 'maps', label: 'Mapa de Igrejas', icon: MapPin },
-    { id: 'chat', label: 'Diretor Espiritual (IA)', icon: Sparkles },
-    { id: 'player', label: 'Capela Sonora', icon: Headphones },
+    { id: 'community', label: 'Mural de Orações', icon: Users },
+    { id: 'challenge', label: 'Desafio Comunitário', icon: Trophy },
+    { id: 'library', label: 'Biblioteca da Fé', icon: GraduationCap },
+    { id: 'maps', label: 'Localizador de Igrejas', icon: MapPin },
     { id: 'journal', label: 'Diário da Alma', icon: PenLine }
   ];
 
@@ -66,19 +66,22 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
         newStruggle,
         newGoal
     };
-    // Simula tempo de oração/IA
-    setTimeout(() => onComplete(reviewData), 3000); 
+    
+    // Otimização: Chamada imediata sem setTimeout artificial de espera
+    onComplete(reviewData);
   };
 
   if (isGenerating) {
       return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-dark/95 backdrop-blur-md animate-fade-in">
             <div className="text-center p-8 max-w-sm">
-                <div className="w-20 h-20 bg-brand-violet/20 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse border border-brand-violet/30">
-                    <Sparkles size={40} className="text-brand-violet animate-spin-slow" />
+                <div className="w-24 h-24 flex items-center justify-center mx-auto mb-8">
+                    <BrandLogo size={64} variant="fill" className="text-brand-violet animate-pulse-slow drop-shadow-[0_0_15px_rgba(167,139,250,0.4)]" />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-3">Recalibrando seu Caminho</h2>
-                <p className="text-slate-400 leading-relaxed text-sm">Sua nova regra de vida está sendo escrita agora, unindo sua realidade atual à tradição da Igreja.</p>
+                <p className="text-slate-400 leading-relaxed text-sm">
+                  Unindo sua realidade à Tradição da Igreja para escrever sua nova Regra de Vida.
+                </p>
             </div>
         </div>
       );
@@ -90,29 +93,30 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
       
       <div className="relative w-full max-w-md bg-white dark:bg-brand-dark rounded-[2.5rem] shadow-2xl p-6 sm:p-8 animate-slide-up border border-white/10 flex flex-col max-h-[92vh] overflow-hidden">
         
-        <div className="flex gap-1.5 mb-8">
+        <div className="flex gap-1.5 mb-8 shrink-0">
             {[0, 1, 2, 3].map(i => (
                 <div key={i} className={`h-1.5 rounded-full flex-1 transition-all duration-500 ${i <= step ? 'bg-brand-violet' : 'bg-slate-100 dark:bg-white/10'}`} />
             ))}
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar pb-6">
+            {/* ETAPA 0: DIAGNÓSTICO DE VIDA */}
             {step === 0 && (
                 <div className="animate-fade-in">
                     <div className="text-center mb-8">
                         <div className="w-16 h-16 bg-gradient-to-br from-brand-violet to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-violet/20">
                             <RefreshCw size={32} className="text-white" />
                         </div>
-                        <h2 className="text-2xl font-bold text-brand-dark dark:text-white mb-2">Renovação de Votos</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Completamos 30 dias. Como está seu coração hoje?</p>
+                        <h2 className="text-2xl font-bold text-brand-dark dark:text-white mb-2">Renovação Mensal</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Como está o ritmo da sua vida hoje?</p>
                     </div>
 
                     <div className="space-y-3">
-                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Seu Momento Atual de Vida</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 px-1">Sua Rotina Externa</p>
                         {[
-                            { id: 'stressful', label: 'Ciclo Agitado', desc: 'Muito trabalho ou preocupações externas.', icon: Zap },
-                            { id: 'stable', label: 'Ciclo Equilibrado', desc: 'Consigo manter minha ordem diária.', icon: Check },
-                            { id: 'transition', label: 'Ciclo de Mudança', desc: 'Novos hábitos ou nova fase de vida.', icon: RefreshCw }
+                            { id: 'stressful', label: 'Fase de Combate', desc: 'Muitas pressões, pouco tempo sobrando.', icon: Zap },
+                            { id: 'stable', label: 'Fase de Ordem', desc: 'Consigo manter o equilíbrio e horários.', icon: Check },
+                            { id: 'transition', label: 'Fase de Mudança', desc: 'Novos hábitos ou fase de transição.', icon: RefreshCw }
                         ].map(ctx => (
                             <button 
                                 key={ctx.id}
@@ -132,32 +136,33 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
                 </div>
             )}
 
+            {/* ETAPA 1: ESFORÇO ESPIRITUAL */}
             {step === 1 && (
                 <div className="space-y-8 animate-fade-in">
                     <div>
-                        <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-1">Avaliação de Carga</h3>
-                        <p className="text-sm text-slate-500 mb-4">A rotina espiritual foi viável no último ciclo?</p>
+                        <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-1">Carga de Oração</h3>
+                        <p className="text-sm text-slate-500 mb-4">O que propusemos foi viável nos últimos 30 dias?</p>
                         <div className="grid grid-cols-3 gap-2">
-                            <button onClick={() => setIntensity('too_light')} className={`py-4 px-2 rounded-xl border text-[10px] font-bold transition-all uppercase tracking-wide ${intensity === 'too_light' ? 'bg-brand-violet text-white border-brand-violet shadow-lg' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>Leve demais</button>
+                            <button onClick={() => setIntensity('too_light')} className={`py-4 px-2 rounded-xl border text-[10px] font-bold transition-all uppercase tracking-wide ${intensity === 'too_light' ? 'bg-brand-violet text-white border-brand-violet shadow-lg' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>Leve</button>
                             <button onClick={() => setIntensity('balanced')} className={`py-4 px-2 rounded-xl border text-[10px] font-bold transition-all uppercase tracking-wide ${intensity === 'balanced' ? 'bg-brand-violet text-white border-brand-violet shadow-lg' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>Ideal</button>
-                            <button onClick={() => setIntensity('too_heavy')} className={`py-4 px-2 rounded-xl border text-[10px] font-bold transition-all uppercase tracking-wide ${intensity === 'too_heavy' ? 'bg-brand-violet text-white border-brand-violet shadow-lg' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>Exaustiva</button>
+                            <button onClick={() => setIntensity('too_heavy')} className={`py-4 px-2 rounded-xl border text-[10px] font-bold transition-all uppercase tracking-wide ${intensity === 'too_heavy' ? 'bg-brand-violet text-white border-brand-violet shadow-lg' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>Pesada</button>
                         </div>
                     </div>
 
                     <div>
-                        <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-1">Fidelidade aos Exercícios</h3>
-                        <p className="text-sm text-slate-500 mb-4">O quanto você conseguiu realizar de fato?</p>
+                        <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-1">Sua Fidelidade</h3>
+                        <p className="text-sm text-slate-500 mb-4">Como você avalia sua constância?</p>
                         <div className="space-y-2">
-                            <button onClick={() => setConsistency('low')} className={`w-full p-4 rounded-2xl border text-left text-sm transition-all flex justify-between items-center ${consistency === 'low' ? 'border-brand-violet bg-brand-violet/5 text-brand-violet' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>
-                                <span>Raramente consegui seguir</span>
+                            <button onClick={() => setConsistency('low')} className={`w-full p-4 rounded-2xl border text-left text-sm transition-all flex justify-between items-center ${consistency === 'low' ? 'border-brand-violet bg-brand-violet/5 text-brand-violet font-bold' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>
+                                <span>Faltei muitos dias</span>
                                 {consistency === 'low' && <Check size={16}/>}
                             </button>
-                            <button onClick={() => setConsistency('medium')} className={`w-full p-4 rounded-2xl border text-left text-sm transition-all flex justify-between items-center ${consistency === 'medium' ? 'border-brand-violet bg-brand-violet/5 text-brand-violet' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>
-                                <span>Fui fiel em cerca de metade</span>
+                            <button onClick={() => setConsistency('medium')} className={`w-full p-4 rounded-2xl border text-left text-sm transition-all flex justify-between items-center ${consistency === 'medium' ? 'border-brand-violet bg-brand-violet/5 text-brand-violet font-bold' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>
+                                <span>Fui fiel na maior parte</span>
                                 {consistency === 'medium' && <Check size={16}/>}
                             </button>
-                            <button onClick={() => setConsistency('high')} className={`w-full p-4 rounded-2xl border text-left text-sm transition-all flex justify-between items-center ${consistency === 'high' ? 'border-brand-violet bg-brand-violet/5 text-brand-violet' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>
-                                <span>Cumpri quase tudo</span>
+                            <button onClick={() => setConsistency('high')} className={`w-full p-4 rounded-2xl border text-left text-sm transition-all flex justify-between items-center ${consistency === 'high' ? 'border-brand-violet bg-brand-violet/5 text-brand-violet font-bold' : 'border-slate-200 dark:border-white/10 dark:text-slate-400'}`}>
+                                <span>Cumpri com perfeição</span>
                                 {consistency === 'high' && <Check size={16}/>}
                             </button>
                         </div>
@@ -165,11 +170,12 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
                 </div>
             )}
 
+            {/* ETAPA 2: O QUE FUNCIONOU */}
             {step === 2 && (
                 <div className="space-y-6 animate-fade-in">
                     <div>
                         <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-1">O que funcionou?</h3>
-                        <p className="text-sm text-slate-500 mb-4">Avalie os recursos que você utilizou no Espiritualizei:</p>
+                        <p className="text-sm text-slate-500 mb-4">Avalie os recursos do Espiritualizei:</p>
                         
                         <div className="space-y-3">
                             {APP_MODULES.map(m => {
@@ -192,10 +198,10 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
                     </div>
 
                     <div className="bg-blue-50 dark:bg-blue-900/10 p-5 rounded-[1.5rem] border border-blue-100 dark:border-blue-900/20">
-                        <h3 className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-1 flex items-center gap-2"><Clock size={16}/> Disponibilidade de Tempo</h3>
-                        <p className="text-[11px] text-blue-600 dark:text-blue-400 mb-4">Para os próximos 30 dias, você prevê:</p>
+                        <h3 className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-1 flex items-center gap-2"><Clock size={16}/> Tempo Disponível</h3>
+                        <p className="text-[11px] text-blue-600 dark:text-blue-400 mb-4">Como será seu próximo mês?</p>
                         <div className="grid grid-cols-3 gap-2">
-                            {[{id:'less', l:'Menos tempo'}, {id:'same', l:'Mesmo tempo'}, {id:'more', l:'Mais tempo'}].map(t => (
+                            {[{id:'less', l:'Menos'}, {id:'same', l:'Igual'}, {id:'more', l:'Mais'}].map(t => (
                                 <button key={t.id} onClick={() => setTimeChange(t.id as any)} className={`py-2 rounded-xl text-[10px] font-black uppercase ${timeChange === t.id ? 'bg-blue-600 text-white shadow-md' : 'bg-white dark:bg-white/5 text-blue-500 border border-blue-200 dark:border-blue-800'}`}>{t.l}</button>
                             ))}
                         </div>
@@ -203,10 +209,11 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
                 </div>
             )}
 
+            {/* ETAPA 3: FOCO DE CRESCIMENTO */}
             {step === 3 && (
                 <div className="animate-fade-in">
-                    <h3 className="text-xl font-bold text-brand-dark dark:text-white mb-1">Direcionamento de Crescimento</h3>
-                    <p className="text-sm text-slate-500 mb-6">Qual será o seu foco espiritual para este novo ciclo?</p>
+                    <h3 className="text-xl font-bold text-brand-dark dark:text-white mb-1">Próxima Batalha</h3>
+                    <p className="text-sm text-slate-500 mb-6">Em qual área o app deve te ajudar mais agora?</p>
                     
                     <div className="grid grid-cols-2 gap-3 mb-8">
                         {STRUGGLES.map(s => (
@@ -216,19 +223,19 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
                                 className={`p-5 rounded-2xl border flex flex-col items-center gap-2 transition-all group ${newStruggle === s.val ? 'bg-brand-violet text-white border-brand-violet shadow-lg shadow-brand-violet/20' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 hover:border-brand-violet/30'}`}
                             >
                                 <s.icon size={28} className={newStruggle === s.val ? 'text-white' : 'text-slate-400 group-hover:text-brand-violet'} />
-                                <span className="text-xs font-bold uppercase tracking-wide">{s.label}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wide">{s.label}</span>
                             </button>
                         ))}
                     </div>
 
                     <div className="space-y-4">
-                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">Onde o app mais deve contribuir?</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">O que você busca alcançar?</p>
                         <div className="grid grid-cols-1 gap-2">
                             {[
-                                { id: 'peace', l: 'Trazer mais Paz Interior e Silêncio', icon: Heart },
-                                { id: 'truth', l: 'Aprofundar meu Conhecimento Teológico', icon: BookOpen },
-                                { id: 'discipline', l: 'Fortalecer minha Disciplina de Oração', icon: Shield },
-                                { id: 'love', l: 'Incentivar minha Caridade e Serviço', icon: Users }
+                                { id: 'peace', l: 'Paz Interior e Silêncio', icon: Heart },
+                                { id: 'truth', l: 'Conhecimento da Doutrina', icon: BookOpen },
+                                { id: 'discipline', l: 'Firmeza e Disciplina', icon: Shield },
+                                { id: 'love', l: 'Caridade Comunitária', icon: Users }
                             ].map(goal => (
                                 <button 
                                     key={goal.id}
@@ -245,7 +252,7 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
             )}
         </div>
 
-        <div className="pt-6 mt-auto border-t border-slate-100 dark:border-white/5 flex flex-col gap-3">
+        <div className="pt-6 mt-auto border-t border-slate-100 dark:border-white/5 flex flex-col gap-3 shrink-0">
             {step < 3 ? (
                 <button 
                     onClick={() => setStep(prev => prev + 1)} 
@@ -258,7 +265,7 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
                     onClick={handleFinish} 
                     className="w-full bg-brand-violet text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-brand-violet/30 hover:bg-purple-600 flex items-center justify-center gap-3 active:scale-95 transition-all text-lg"
                 >
-                    <RefreshCw size={22} /> Gerar Minha Nova Rotina
+                    <RefreshCw size={22} /> Gerar Nova Regra de Vida
                 </button>
             )}
             {step === 0 && (
