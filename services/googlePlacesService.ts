@@ -4,31 +4,23 @@ import { Parish } from '../types';
 const isPopulated = (val: any) => {
   if (!val) return false;
   const s = String(val).trim();
-  return s !== "" && s !== "undefined" && s !== "null";
+  return s !== "" && s !== "undefined" && s !== "null" && !s.includes("YOUR_");
 };
 
-// BUSCA ROBUSTA VIA VITE ENV
-// Fixed: Changed import.meta.env to process.env as per vite.config.ts define mapping and to resolve TS errors
-const GOOGLE_MAPS_KEY = process.env.VITE_GOOGLE_MAPS_KEY || ""; 
+// Captura segura da chave injetada pelo Vite
+const getApiKey = () => {
+  const key = process.env.VITE_GOOGLE_MAPS_KEY || "";
+  return key;
+};
 
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 
 export const searchCatholicChurches = async (lat: number, lng: number): Promise<Parish[]> => {
+  const GOOGLE_MAPS_KEY = getApiKey();
+  
   if (!isPopulated(GOOGLE_MAPS_KEY)) {
-    console.warn("⚠️ Google Maps Offline: Chave ausente.");
-    await new Promise(resolve => setTimeout(resolve, 800)); 
-    return [
-       {
-          name: 'Paróquia Sagrado Coração (Simulado)',
-          address: 'Configure sua VITE_GOOGLE_MAPS_KEY para ver dados reais.',
-          location: { lat: lat + 0.002, lng: lng + 0.002 },
-          rating: 5.0,
-          userRatingsTotal: 1,
-          openNow: true,
-          photoUrl: 'https://images.unsplash.com/photo-1543357480-c60d40007a3f?auto=format&fit=crop&q=80&w=400',
-          url: 'https://maps.google.com'
-       }
-    ];
+    console.warn("⚠️ Google Maps: Chave de API não configurada ou inválida.");
+    return [];
   }
 
   try {
@@ -37,28 +29,35 @@ export const searchCatholicChurches = async (lat: number, lng: number): Promise<
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': GOOGLE_MAPS_KEY,
-        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.currentOpeningHours,places.photos,places.googleMapsUri'
+        // FieldMask atualizado para ser mais resiliente e completo
+        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.currentOpeningHours,places.photos,places.googleMapsUri,places.types'
       },
       body: JSON.stringify({
         includedTypes: ['catholic_church'],
-        maxResultCount: 12,
+        maxResultCount: 15,
         locationRestriction: {
           circle: {
             center: { latitude: lat, longitude: lng },
-            radius: 10000 
+            radius: 15000 // Aumentado para 15km para maior abrangência
           }
         },
-        languageCode: 'pt-BR'
+        languageCode: 'pt-BR',
+        rankPreference: 'DISTANCE'
       })
     });
 
     if (!response.ok) {
-      throw new Error("Erro na API do Google");
+      const errorData = await response.json();
+      console.error("🚨 Google Places API Error Status:", response.status, errorData);
+      throw new Error(`Erro na API: ${response.status}`);
     }
 
     const data = await response.json();
     
-    if (!data.places || data.places.length === 0) return [];
+    if (!data.places || data.places.length === 0) {
+        console.log("ℹ️ Nenhuma igreja encontrada nas proximidades.");
+        return [];
+    }
 
     return data.places.map((place: any) => {
       let photoUrl = undefined;
@@ -83,7 +82,7 @@ export const searchCatholicChurches = async (lat: number, lng: number): Promise<
       };
     });
   } catch (error) {
-    console.error("🚨 Google Places API Error:", error);
-    return [];
+    console.error("🚨 Falha crítica ao buscar igrejas:", error);
+    throw error;
   }
 };
