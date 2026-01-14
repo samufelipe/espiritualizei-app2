@@ -2,9 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CommunityChallenge } from '../types';
-import { Calendar, CheckCircle2, ArrowRight, Play, X, BookOpen, Trophy, Share2, Sparkles, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Clock, Loader2, Volume2 } from 'lucide-react';
+import { Calendar, CheckCircle2, ArrowRight, Play, X, BookOpen, Trophy, Share2, Sparkles, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Clock, Loader2, Volume2, Music, Pause } from 'lucide-react';
 import BrandLogo from './BrandLogo';
-import { generateActionSpeech } from '../services/geminiService';
 
 interface LiturgicalEventsProps {
   challenges: CommunityChallenge[];
@@ -20,12 +19,15 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   const [showSession, setShowSession] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [step, setStep] = useState(0); 
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isPlayingMusic, setIsPlayingMusic] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const dailyTopics = activeChallenge?.dailyTopics || [];
   const currentDayTopic = dailyTopics.find(t => t.day === activeChallenge?.currentDay) || dailyTopics[0];
+
+  // URL estável de Canto Gregoriano (Salve Regina - Domínio Público)
+  const MEDITATION_TRACK = 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Salve_Regina.ogg';
 
   useEffect(() => {
     if (onExpandChange) {
@@ -38,10 +40,24 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
         setStep(0);
         document.body.style.overflow = 'hidden';
         if (contentRef.current) contentRef.current.scrollTo({ top: 0 });
+        
+        // Inicializa o áudio
+        if (!audioRef.current) {
+            audioRef.current = new Audio(MEDITATION_TRACK);
+            audioRef.current.loop = true;
+            audioRef.current.volume = 0.4;
+        }
      } else {
         document.body.style.overflow = 'unset';
+        if (audioRef.current) {
+            audioRef.current.pause();
+            setIsPlayingMusic(false);
+        }
      }
-     return () => { document.body.style.overflow = 'unset'; };
+     return () => { 
+         document.body.style.overflow = 'unset';
+         if (audioRef.current) audioRef.current.pause();
+     };
   }, [showSession]);
 
   if (!activeChallenge || !currentDayTopic) return null;
@@ -54,59 +70,19 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
     }
   };
 
-  // Helper functions para áudio
-  const decodeBase64 = (base64: string) => {
-    const binaryString = atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+  const handleToggleMusic = () => {
+    if (!audioRef.current) return;
+
+    if (isPlayingMusic) {
+        audioRef.current.pause();
+    } else {
+        audioRef.current.play().catch(e => console.error("Erro ao tocar música:", e));
     }
-    return bytes;
-  };
-
-  const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> => {
-    const dataInt16 = new Int16Array(data.buffer);
-    const frameCount = dataInt16.length / numChannels;
-    const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-    for (let channel = 0; channel < numChannels; channel++) {
-      const channelData = buffer.getChannelData(channel);
-      for (let i = 0; i < frameCount; i++) {
-        channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
-      }
-    }
-    return buffer;
-  };
-
-  const handlePlayActionAudio = async () => {
-    if (isPlayingAudio) return;
-    setIsPlayingAudio(true);
-
-    try {
-        const audioBase64 = await generateActionSpeech(currentDayTopic.actionContent || "");
-        if (!audioContextRef.current) {
-            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        }
-        
-        const audioBuffer = await decodeAudioData(
-            decodeBase64(audioBase64),
-            audioContextRef.current,
-            24000,
-            1
-        );
-
-        const source = audioContextRef.current.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(audioContextRef.current.destination);
-        source.onended = () => setIsPlayingAudio(false);
-        source.start();
-    } catch (e) {
-        console.error("Erro ao reproduzir áudio:", e);
-        setIsPlayingAudio(false);
-    }
+    setIsPlayingMusic(!isPlayingMusic);
   };
 
   const handleComplete = () => {
+    if (audioRef.current) audioRef.current.pause();
     onJoin(activeChallenge.id, 1); 
     setShowSession(false);
     setShowCompletion(true);
@@ -182,20 +158,28 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
            return (
               <div className="flex flex-col space-y-8 animate-fade-in w-full max-w-2xl mx-auto py-4">
                  <button 
-                    onClick={handlePlayActionAudio}
-                    disabled={isPlayingAudio}
-                    className={`flex items-center gap-5 p-6 rounded-[2rem] border transition-all text-left w-full group/card ${isPlayingAudio ? 'bg-white/10 border-white/30 animate-pulse' : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20 active:scale-95'}`}
+                    onClick={handleToggleMusic}
+                    className={`flex items-center gap-5 p-6 rounded-[2rem] border transition-all text-left w-full group/card ${isPlayingMusic ? 'bg-white/15 border-white/40 shadow-glow' : 'bg-white/5 border-white/10 hover:bg-white/10 active:scale-95'}`}
                  >
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg transition-colors ${isPlayingAudio ? 'bg-brand-violet border-brand-violet text-white' : 'bg-white/10 border-white/20 text-white'}`}>
-                       {isPlayingAudio ? <Volume2 className="w-8 h-8 animate-bounce" /> : <Play className="w-8 h-8 fill-current" />}
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg transition-all ${isPlayingMusic ? 'bg-brand-violet border-brand-violet text-white scale-105' : 'bg-white/10 border-white/20 text-white'}`}>
+                       {isPlayingMusic ? <Pause className="w-8 h-8 fill-current" /> : <Music className="w-8 h-8" />}
                     </div>
                     <div>
-                       <h3 className="text-2xl font-bold text-white tracking-tight">{isPlayingAudio ? 'Ouvindo Reflexão...' : 'O passo concreto'}</h3>
-                       <p className="text-sm text-white/60">Clique para ouvir como santificar sua realidade hoje.</p>
+                       <h3 className="text-2xl font-bold text-white tracking-tight">{isPlayingMusic ? 'Em Meditação...' : 'Som para Oração'}</h3>
+                       <p className="text-sm text-white/60">
+                          {isPlayingMusic ? 'Respire fundo e leia o passo abaixo.' : 'Ative o Canto Gregoriano para refletir.'}
+                       </p>
                     </div>
+                    {isPlayingMusic && (
+                        <div className="ml-auto flex gap-1 items-end h-4 mr-2">
+                            <div className="w-1 bg-white/40 rounded-full animate-[bounce_1s_infinite]" />
+                            <div className="w-1 bg-white/60 rounded-full animate-[bounce_1.3s_infinite]" />
+                            <div className="w-1 bg-white/40 rounded-full animate-[bounce_0.8s_infinite]" />
+                        </div>
+                    )}
                  </button>
                  
-                 <div className="bg-white/10 border border-white/20 rounded-[2.5rem] p-10 shadow-inner relative overflow-hidden backdrop-blur-md min-h-[250px] flex flex-col justify-center text-center">
+                 <div className={`bg-white/10 border border-white/20 rounded-[2.5rem] p-10 shadow-inner relative overflow-hidden backdrop-blur-md min-h-[250px] flex flex-col justify-center text-center transition-all duration-1000 ${isPlayingMusic ? 'ring-2 ring-brand-violet/30 bg-white/15' : ''}`}>
                     <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
                     <p className="text-white text-xl md:text-3xl leading-relaxed font-black relative z-10 font-sans tracking-tight">
                        {currentDayTopic.actionContent}
@@ -319,7 +303,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                        </div>
                     ))}
                  </div>
-                 <button onClick={() => { setShowSession(false); setIsPlayingAudio(false); }} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all shrink-0">
+                 <button onClick={() => { setShowSession(false); setIsPlayingMusic(false); }} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all shrink-0">
                     <X size={24} />
                  </button>
               </div>
