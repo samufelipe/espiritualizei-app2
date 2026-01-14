@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CommunityChallenge } from '../types';
-import { Calendar, CheckCircle2, ArrowRight, Play, X, BookOpen, Trophy, Share2, Sparkles, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Clock } from 'lucide-react';
+import { Calendar, CheckCircle2, ArrowRight, Play, X, BookOpen, Trophy, Share2, Sparkles, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Clock, Loader2, Volume2 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import { generateActionSpeech } from '../services/geminiService';
 
 interface LiturgicalEventsProps {
   challenges: CommunityChallenge[];
@@ -19,7 +20,9 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   const [showSession, setShowSession] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [step, setStep] = useState(0); 
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const dailyTopics = activeChallenge?.dailyTopics || [];
   const currentDayTopic = dailyTopics.find(t => t.day === activeChallenge?.currentDay) || dailyTopics[0];
@@ -48,6 +51,58 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
     e.stopPropagation();
     if (!currentDayTopic.isCompleted) {
         setShowSession(true);
+    }
+  };
+
+  // Helper functions para áudio
+  const decodeBase64 = (base64: string) => {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  };
+
+  const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> => {
+    const dataInt16 = new Int16Array(data.buffer);
+    const frameCount = dataInt16.length / numChannels;
+    const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+    for (let channel = 0; channel < numChannels; channel++) {
+      const channelData = buffer.getChannelData(channel);
+      for (let i = 0; i < frameCount; i++) {
+        channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+      }
+    }
+    return buffer;
+  };
+
+  const handlePlayActionAudio = async () => {
+    if (isPlayingAudio) return;
+    setIsPlayingAudio(true);
+
+    try {
+        const audioBase64 = await generateActionSpeech(currentDayTopic.actionContent || "");
+        if (!audioContextRef.current) {
+            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        }
+        
+        const audioBuffer = await decodeAudioData(
+            decodeBase64(audioBase64),
+            audioContextRef.current,
+            24000,
+            1
+        );
+
+        const source = audioContextRef.current.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContextRef.current.destination);
+        source.onended = () => setIsPlayingAudio(false);
+        source.start();
+    } catch (e) {
+        console.error("Erro ao reproduzir áudio:", e);
+        setIsPlayingAudio(false);
     }
   };
 
@@ -126,15 +181,19 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
         case 1: 
            return (
               <div className="flex flex-col space-y-8 animate-fade-in w-full max-w-2xl mx-auto py-4">
-                 <div className="flex items-center gap-5 bg-white/5 p-6 rounded-[2rem] border border-white/5 backdrop-blur-sm">
-                    <div className="w-16 h-16 rounded-2xl bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20 shadow-lg">
-                       <Play className="w-8 h-8 fill-current" />
+                 <button 
+                    onClick={handlePlayActionAudio}
+                    disabled={isPlayingAudio}
+                    className={`flex items-center gap-5 p-6 rounded-[2rem] border transition-all text-left w-full group/card ${isPlayingAudio ? 'bg-white/10 border-white/30 animate-pulse' : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20 active:scale-95'}`}
+                 >
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg transition-colors ${isPlayingAudio ? 'bg-brand-violet border-brand-violet text-white' : 'bg-white/10 border-white/20 text-white'}`}>
+                       {isPlayingAudio ? <Volume2 className="w-8 h-8 animate-bounce" /> : <Play className="w-8 h-8 fill-current" />}
                     </div>
                     <div>
-                       <h3 className="text-2xl font-bold text-white tracking-tight">O passo concreto</h3>
-                       <p className="text-sm text-white/60">Como santificar sua realidade hoje.</p>
+                       <h3 className="text-2xl font-bold text-white tracking-tight">{isPlayingAudio ? 'Ouvindo Reflexão...' : 'O passo concreto'}</h3>
+                       <p className="text-sm text-white/60">Clique para ouvir como santificar sua realidade hoje.</p>
                     </div>
-                 </div>
+                 </button>
                  
                  <div className="bg-white/10 border border-white/20 rounded-[2.5rem] p-10 shadow-inner relative overflow-hidden backdrop-blur-md min-h-[250px] flex flex-col justify-center text-center">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
@@ -260,7 +319,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                        </div>
                     ))}
                  </div>
-                 <button onClick={() => setShowSession(false)} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all shrink-0">
+                 <button onClick={() => { setShowSession(false); setIsPlayingAudio(false); }} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all shrink-0">
                     <X size={24} />
                  </button>
               </div>
