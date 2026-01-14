@@ -131,13 +131,6 @@ const Dashboard: React.FC<DashboardProps> = ({
      return { gradient: 'bg-gradient-to-br from-[#7C3AED] to-[#4C1D95]', meaning: 'Conversão.', text: 'text-purple-100' };
   })();
 
-  const today = new Date().getDay();
-  const todaysTasks = routineItems.filter(i => i.dayOfWeek.includes(today));
-  const nextTask = todaysTasks.filter(i => !i.completed).sort((a, b) => {
-    const order = { morning: 1, afternoon: 2, night: 3, any: 4 };
-    return order[a.timeOfDay as keyof typeof order] - order[b.timeOfDay as keyof typeof order];
-  })[0];
-
   const renderSacramentAlert = () => {
     if (!user.lastConfessionAt && user.confessionFrequency !== 'never') return null;
     const diff = user.lastConfessionAt ? Math.floor((new Date().getTime() - new Date(user.lastConfessionAt).getTime()) / (1000 * 60 * 60 * 24)) : 99;
@@ -195,8 +188,8 @@ const Dashboard: React.FC<DashboardProps> = ({
     <div className="bg-white dark:bg-[#1A1F26] rounded-[2.5rem] p-6 sm:p-8 border border-slate-100 dark:border-white/5 shadow-card mb-8">
         <div className="flex justify-between items-center mb-6">
             <div>
-                <h3 className="text-lg font-bold text-brand-dark dark:text-white flex items-center gap-2"><Users size={20} className="text-brand-violet" /> Pulso da Comunidade</h3>
-                <p className="text-xs text-slate-500">O que os peregrinos estão partilhando agora</p>
+                <h3 className="text-lg font-bold text-brand-dark dark:text-white flex items-center gap-2"><Users size={20} className="text-brand-violet" /> Vida em Fraternidade</h3>
+                <p className="text-xs text-slate-500">Veja as graças e partilhas da nossa família de fé</p>
             </div>
             <button onClick={() => onNavigateToCommunity('feed')} className="text-xs font-bold text-brand-violet hover:underline flex items-center gap-1">Ver tudo <ArrowRight size={14} /></button>
         </div>
@@ -295,11 +288,6 @@ const Dashboard: React.FC<DashboardProps> = ({
          </div>
 
          <div className="md:col-span-4 flex flex-col gap-6">
-            <div className="bg-white dark:bg-[#1A1F26] rounded-[2rem] p-5 shadow-card border border-slate-100 dark:border-white/5 flex items-center justify-between gap-4">
-               <div className="flex items-center gap-4"><div className="w-12 h-12 rounded-2xl bg-brand-violet/10 flex items-center justify-center text-brand-violet"><Sparkles size={24}/></div><div><p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Próximo Passo</p><p className="text-sm font-bold text-brand-dark dark:text-white truncate max-w-[150px]">{nextTask ? nextTask.title : "Tudo feito!"}</p></div></div>
-               {nextTask && <button onClick={() => onToggleRoutine?.(nextTask.id)} className="w-10 h-10 bg-brand-violet/10 text-brand-violet rounded-full flex items-center justify-center"><Check size={20} /></button>}
-            </div>
-
             <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl min-h-[240px] flex flex-col justify-between group">
                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10" />
                <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity rotate-12"><BookOpen size={100} /></div>
