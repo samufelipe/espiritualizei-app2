@@ -4,134 +4,102 @@ import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Not
 import { getSeasonDetailedInfo } from './liturgyService';
 
 /**
- * Gera um desafio humanizado baseado no tempo litúrgico atual.
- * Agora expandido com 3 novos pilares: Família, Trabalho e Combate Espiritual.
+ * Gera um desafio comunitário humanizado e interativo.
+ * Baseado no Tempo Litúrgico e focado em ações reais: família, amigos e relacionamentos.
  */
-const getDynamicMockChallenge = (): CommunityChallenge => {
+const getDynamicHumanizedChallenge = (): CommunityChallenge => {
     const season = getSeasonDetailedInfo();
     const today = new Date().getDate();
     
-    // Temas por Tempo Litúrgico com sub-categorias: FAMÍLIA, TRABALHO, COMBATE
-    const themes = {
+    // Matriz de Desafios Humanizados
+    const matrix = {
         lent: {
-            title: "Caminho do Calvário",
-            color: "#7C3AED",
-            topics: [
-                { 
-                    title: "O Silêncio na Injustiça", 
-                    desc: "Hoje, quando sentir vontade de se defender de uma pequena crítica, ofereça o silêncio por amor a Cristo.", 
-                    action: "Não responda a uma provocação hoje. Apenas sorria e reze um 'Glória ao Pai' pela pessoa.", 
-                    verse: "Jesus, porém, guardava silêncio. (Mt 26, 63)",
-                    type: 'SACRIFICE'
-                },
-                { 
-                    title: "A Mesa sem Reclamação", 
-                    desc: "A caridade começa na mesa. Hoje, aceitaremos o que nos for servido sem uma única palavra de queixa.", 
-                    action: "Coma o que estiver disponível com gratidão, mesmo que não seja sua preferência. Ofereça esse desapego.", 
-                    verse: "Dai-nos hoje o nosso pão de cada dia.",
-                    type: 'SACRIFICE'
-                },
-                { 
-                    title: "Combate: Vencer a Acedia", 
-                    desc: "A preguiça espiritual nos afasta do dever. Hoje, faremos primeiro o que mais nos custa.", 
-                    action: "Escolha a tarefa mais difícil do seu dia e comece por ela sem procrastinar. Ofereça sua fadiga.", 
-                    verse: "Tudo o que fizerdes, fazei-o de bom coração. (Col 3, 23)",
-                    type: 'SACRIFICE'
-                }
-            ]
+          title: "Caminho do Deserto",
+          color: "#7C3AED",
+          actions: [
+            { 
+              title: "O Perdão Escondido", 
+              desc: "A penitência mais difícil é a caridade com quem nos feriu.", 
+              action: "Escolha uma tarefa doméstica que ninguém gosta de fazer e faça-a hoje por aquela pessoa da sua família com quem você tem mais dificuldade de conversar. Não conte a ninguém.", 
+              verse: "Perdoai-nos como nós perdoamos.",
+              type: 'RELATIONSHIP'
+            },
+            { 
+              title: "Jejum de Reclamação", 
+              desc: "O barulho da murmuração impede de ouvir a voz de Deus.", 
+              action: "Hoje, sua meta é passar o dia inteiro sem reclamar de nada: nem do clima, nem do trânsito, nem do cansaço. Quando a vontade de reclamar vier, reze um 'Glória ao Pai'.", 
+              verse: "Fazei tudo sem murmurações. (Fl 2, 14)",
+              type: 'SACRIFICE'
+            }
+          ]
         },
         easter: {
-            title: "Testemunhas da Luz",
-            color: "#F59E0B",
-            topics: [
-                { 
-                    title: "O Sorriso que Cura", 
-                    desc: "Muitas vezes guardamos a alegria da ressurreição só para nós. Hoje, seremos o consolo de alguém.", 
-                    action: "Envie uma mensagem de apoio ou ligue para aquele parente isolado. Seja a voz da esperança.", 
-                    verse: "A paz esteja convosco! (Jo 20, 19)",
-                    type: 'RELATIONSHIP'
-                }
-            ]
+          title: "Alegria da Ressurreição",
+          color: "#F59E0B",
+          actions: [
+            { 
+              title: "A Luz que Alcança", 
+              desc: "Cristo ressuscitou e quer visitar seus amigos através de você.", 
+              action: "Pense naquele amigo que não vê há meses. Ligue para ele (não mande mensagem!). Pergunte como ele está e, ao final, diga: 'Estou rezando por você hoje'.", 
+              verse: "A paz esteja convosco!",
+              type: 'RELATIONSHIP'
+            }
+          ]
         },
         ordinary: {
-            title: "Santidade no Cotidiano",
-            color: "#059669",
-            topics: [
-                // PILAR 1: VIDA FAMILIAR
-                { 
-                    title: "Família: O Altar do Lar", 
-                    desc: "Sua casa é sua primeira igreja. Hoje, daremos o presente da nossa atenção total a quem amamos.", 
-                    action: "Ao chegar em casa ou encontrar seu cônjuge/filhos, guarde o celular. Ouça-os por 15 minutos sem interrupções.", 
-                    verse: "Sede uns para com os outros benevolentes e compassivos. (Ef 4, 32)",
-                    type: 'RELATIONSHIP'
-                },
-                // PILAR 2: TRABALHO
-                { 
-                    title: "Trabalho: O Ofício de Nazaré", 
-                    desc: "Jesus santificou o trabalho manual. Hoje, trabalharemos com a máxima excelência, como se o próprio Cristo fosse o nosso cliente.", 
-                    action: "Realize suas tarefas sem murmuração e com pontualidade extrema. Transforme sua mesa em altar.", 
-                    verse: "Qualquer coisa que fizerdes, fazei-o para a glória de Deus. (1 Cor 10, 31)",
-                    type: 'GENERIC'
-                },
-                // PILAR 3: COMBATE ESPIRITUAL
-                { 
-                    title: "Combate: A Guarda da Língua", 
-                    desc: "As palavras podem edificar ou destruir. Hoje, faremos um jejum estrito de fofoca e crítica negativa.", 
-                    action: "Se surgir um assunto sobre a vida alheia, mude de tema ou destaque uma virtude daquela pessoa. Reze um 'Ave Maria' em reparação.", 
-                    verse: "Põe, Senhor, uma guarda à minha boca. (Sl 140, 3)",
-                    type: 'SACRIFICE'
-                },
-                { 
-                    title: "A Escuta Atenta", 
-                    desc: "Vivemos distraídos. Hoje, daremos o presente da nossa atenção total a quem nos falar.", 
-                    action: "Ao conversar com alguém hoje, olhe nos olhos e ouça com o coração. Sem pressa.", 
-                    verse: "Todo homem seja pronto para ouvir, tardio para falar. (Tg 1, 19)",
-                    type: 'RELATIONSHIP'
-                },
-                { 
-                    title: "A Ordem que Pacifica", 
-                    desc: "A desordem exterior gera cansaço na alma. Vamos organizar um pequeno canto da nossa vida.", 
-                    action: "Arrume aquela gaveta ou mesa que você ignora há dias. Faça-o com dedicação total.", 
-                    verse: "Tudo se faça com ordem e decência. (1 Cor 14, 40)",
-                    type: 'GENERIC'
-                }
-            ]
-        },
-        advent: {
-            title: "Esperança que Vigia",
-            color: "#7C3AED",
-            topics: [
-                { 
-                    title: "A Doce Espera", 
-                    desc: "A ansiedade nos rouba o presente. Hoje, treinaremos a paciência nas filas e esperas.", 
-                    action: "Se encontrar uma fila, não reclame. Use o tempo para interceder pelos que estão ao seu redor.", 
-                    verse: "Minha alma espera pelo Senhor. (Sl 130, 6)",
-                    type: 'SACRIFICE'
-                }
-            ]
+          title: "Santidade no Cotidiano",
+          color: "#059669",
+          actions: [
+            { 
+              title: "O Altar da Mesa", 
+              desc: "A Eucaristia nos ensina a comunhão. Leve isso para sua mesa.", 
+              action: "Na próxima refeição com sua família ou amigos, todos os celulares devem ser deixados em outro cômodo. Dedique atenção total aos olhos e às palavras de quem está com você.", 
+              verse: "Eles eram perseverantes na comunhão.",
+              type: 'RELATIONSHIP'
+            },
+            { 
+              title: "Oração no Trabalho", 
+              desc: "Seu trabalho é sua oferta a Deus. Santifique sua mesa.", 
+              action: "Antes de começar sua tarefa mais difícil hoje, faça o sinal da cruz discretamente e diga: 'Senhor, ofereço este cansaço pela conversão dos pecadores'. Trabalhe com perfeição por amor a Ele.", 
+              verse: "Trabalhai de coração para o Senhor.",
+              type: 'GENERIC'
+            },
+            { 
+              title: "A Escuta Amiga", 
+              desc: "Muitas vezes as pessoas só precisam de um ouvido que não julga.", 
+              action: "Hoje, quando alguém vier falar com você, resista à vontade de dar conselhos ou falar de si. Apenas ouça com carinho até o fim. Seja o colo de Cristo para esse irmão.", 
+              verse: "Sede prontos para ouvir.",
+              type: 'RELATIONSHIP'
+            },
+            { 
+              title: "Combate: A Guarda dos Olhos", 
+              desc: "Nossa alma entra pelos olhos. Proteja seu templo.", 
+              action: "Hoje, faremos um 'jejum digital' de curiosidade. Não abra redes sociais para ver a vida dos outros ou notícias fúteis. Use esse tempo livre para 5 minutos de silêncio real.", 
+              verse: "A lâmpada do corpo são os olhos.",
+              type: 'SACRIFICE'
+            }
+          ]
         }
     };
 
-    const currentTheme = themes[season.id as keyof typeof themes] || themes.ordinary;
-    // Seleciona o tópico baseado no dia, garantindo a rotação entre os pilares
-    const topicIndex = today % currentTheme.topics.length;
-    const selectedTopic = currentTheme.topics[topicIndex];
+    const currentSeason = matrix[season.id as keyof typeof matrix] || matrix.ordinary;
+    const selected = currentSeason.actions[today % currentSeason.actions.length];
 
     return {
-        id: `global-${season.id}-${today}`,
-        title: currentTheme.title,
-        description: "Pequenos atos de amor que transformam o mundo ao nosso redor.",
-        currentAmount: 1420 + (today * 10),
+        id: `challenge-${season.id}-${today}`,
+        title: currentSeason.title,
+        description: "Transformando a rotina em uma oferta viva de amor.",
+        currentAmount: 2450 + (today * 12),
         targetAmount: 5000,
         unit: 'atos',
         daysLeft: 30 - (today % 30),
-        seasonColor: currentTheme.color,
+        seasonColor: currentSeason.color,
         icon: 'cross',
         type: 'season',
         startDate: new Date(),
         endDate: new Date(Date.now() + 15 * 86400000),
         status: 'active',
-        participants: 842 + today,
+        participants: 1240 + today,
         isUserParticipating: false,
         userContribution: 0,
         currentDay: (today % 30) + 1,
@@ -139,13 +107,13 @@ const getDynamicMockChallenge = (): CommunityChallenge => {
         dailyTopics: [
             {
                 day: (today % 30) + 1,
-                title: selectedTopic.title,
-                description: selectedTopic.desc,
+                title: selected.title,
+                description: selected.desc,
                 isCompleted: false,
                 isLocked: false,
-                actionType: (selectedTopic as any).type || 'PRAYER',
-                actionContent: selectedTopic.action,
-                scripture: selectedTopic.verse
+                actionType: (selected as any).type || 'PRAYER',
+                actionContent: selected.action,
+                scripture: selected.verse
             }
         ]
     };
@@ -166,8 +134,7 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
             console.error("Erro ao buscar desafio global no DB:", e);
         }
     }
-    // Retorna o Desafio Dinâmico baseado na Liturgia e nos Pilares de Vida se o DB falhar ou estiver vazio
-    return getDynamicMockChallenge();
+    return getDynamicHumanizedChallenge();
 };
 
 export const savePartialLead = async (email: string, name: string, step: number, data: any) => {
