@@ -4,107 +4,117 @@ import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Not
 import { getSeasonDetailedInfo } from './liturgyService';
 
 /**
- * Gera um desafio comunitário profundamente humanizado e interativo.
- * Focado em ações concretas na família, trabalho e círculos de amizade.
+ * Matriz de Desafios Relacionais e Litúrgicos.
+ * Cada desafio é pensado para durar um ciclo de 3 dias.
+ */
+const CHALLENGE_MATRIX: Record<string, any[]> = {
+    lent: [
+        {
+            title: "O Perdão na Raiz",
+            desc: "A Quaresma nos convida a limpar o coração de toda amargura.",
+            action: "Pense na pessoa que mais te feriu ou que você tem mais dificuldade de conviver. Hoje, você não vai apenas rezar por ela, você vai enviar uma mensagem curta de paz ou fazer um favor concreto para ela sem esperar nada em troca.",
+            verse: "Perdoai e seris perdoados. (Lc 6, 37)",
+            type: 'RELATIONSHIP'
+        },
+        {
+            title: "Jejum de Palavras",
+            desc: "O deserto é o lugar do silêncio que escuta a Deus.",
+            action: "Hoje seu desafio é o silêncio heroico: não reclame de nada e não fale mal de ninguém (nem por 'critica construtiva'). Se alguém te irritar, responda com um sorriso e um 'Deus te abençoe' mental.",
+            verse: "Jesus, porém, guardava silêncio. (Mt 26, 63)",
+            type: 'SACRIFICE'
+        }
+    ],
+    easter: [
+        {
+            title: "A Luz que Visita",
+            desc: "Cristo ressuscitou e quer visitar seus irmãos através de você.",
+            action: "Escolha um amigo ou parente que está isolado ou triste. Não mande mensagem. Ligue ou vá até a casa da pessoa. Leve uma palavra de esperança e termine perguntando: 'Como posso rezar por você hoje?'",
+            verse: "A paz esteja convosco! (Jo 20, 19)",
+            type: 'RELATIONSHIP'
+        }
+    ],
+    ordinary: [
+        {
+            title: "O Altar da Mesa",
+            desc: "A santidade começa no comer junto, como os primeiros cristãos.",
+            action: "Na próxima refeição em família ou com amigos, declare o local uma 'Zona Livre de Telas'. Guarde todos os celulares. Olhe nos olhos de quem está com você e faça uma pergunta profunda: 'O que te fez feliz hoje?'.",
+            verse: "Eram perseverantes na comunhão e na fração do pão. (At 2, 42)",
+            type: 'RELATIONSHIP'
+        },
+        {
+            title: "O Ofício de Nazaré",
+            desc: "Jesus santificou o trabalho e o serviço doméstico.",
+            action: "Identifique a tarefa doméstica que todos em sua casa evitam (lavar a louça, levar o lixo, organizar a bagunça alheia). Faça-a silenciosamente e com perfeição, como se estivesse servindo ao próprio Cristo.",
+            verse: "Servi uns aos outros pelo amor. (Gl 5, 13)",
+            type: 'RELATIONSHIP'
+        },
+        {
+            title: "Intercessão de Impacto",
+            desc: "Nossa fé é comunitária, ninguém se salva sozinho.",
+            action: "Escolha uma pessoa que você viu hoje no Mural de Orações ou no seu trabalho que está sofrendo. Pare o que está fazendo, reze um mistério do Terço especificamente por ela e, se possível, diga a ela: 'Estou contigo em oração'.",
+            verse: "Orai uns pelos outros para serdes curados. (Tg 5, 16)",
+            type: 'PRAYER'
+        },
+        {
+            title: "A Escuta que Cura",
+            desc: "Ouvir é o primeiro ato de caridade.",
+            action: "Hoje, ao conversar com alguém, resista à vontade de falar de si ou dar conselhos. Apenas ouça com o coração. Dê à pessoa o presente da sua atenção total, sem pressa, como Jesus fazia.",
+            verse: "Todo homem seja pronto para ouvir. (Tg 1, 19)",
+            type: 'RELATIONSHIP'
+        }
+    ]
+};
+
+/**
+ * Gera um desafio comunitário baseado no ciclo de 3 dias e na liturgia atual.
  */
 const getDynamicHumanizedChallenge = (): CommunityChallenge => {
     const season = getSeasonDetailedInfo();
     const today = new Date();
-    const dayOfMonth = today.getDate();
-    const dayOfWeek = today.getDay(); // 0-6
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
     
-    // Matriz de Ações de Impacto Real (Humanizadas)
-    // Rotacionamos baseado no dia da semana para garantir variedade temática
-    const actionsPool = [
-      { // DOMINGO: O SENHOR E A FAMÍLIA
-        title: "A Mesa sem Distrações",
-        desc: "O domingo é o dia do Senhor e da comunhão familiar. Muitas vezes estamos juntos, mas distantes pelas telas.",
-        action: "Durante o almoço ou jantar de hoje, todos os celulares devem ser guardados em outra sala. Olhe nos olhos de quem está com você, ouça com atenção e agradeça a Deus pela presença de cada um.",
-        verse: "Eles eram perseverantes na comunhão e na fração do pão.",
-        type: 'RELATIONSHIP'
-      },
-      { // SEGUNDA: O TRABALHO COMO OFERTA
-        title: "O Ofício de Nazaré",
-        desc: "Jesus passou a maior parte da vida trabalhando silenciosamente. Seu trabalho é seu caminho de santidade.",
-        action: "Hoje, escolha a tarefa mais 'chata' ou difícil do seu dia e faça-a com perfeição absoluta, sem reclamar. Ao começar, diga: 'Senhor, ofereço este cansaço pelo bem da minha família'.",
-        verse: "Tudo o que fizerdes, fazei-o de bom coração, como para o Senhor.",
-        type: 'GENERIC'
-      },
-      { // TERÇA: AMIZADE E INTERCESSÃO
-        title: "A Ovelha Perdida",
-        desc: "A caridade também se faz com um telefonema. Alguém pode estar precisando apenas de um 'estou aqui'.",
-        action: "Pense em um amigo que você não fala há meses. Ligue para ele (não mande texto). Pergunte como ele realmente está. Antes de desligar, diga: 'Rezarei por uma intenção sua hoje'.",
-        verse: "Um amigo fiel é uma poderosa proteção; quem o encontra, encontra um tesouro.",
-        type: 'RELATIONSHIP'
-      },
-      { // QUARTA: O SERVIÇO ESCONDIDO
-        title: "O Criado de Todos",
-        desc: "A santidade se prova no serviço humilde, especialmente dentro de casa.",
-        action: "Identifique uma tarefa doméstica que outra pessoa costuma fazer (lavar a louça, levar o lixo, arrumar algo). Faça-a silenciosamente antes que a pessoa perceba. Não conte a ninguém.",
-        verse: "O maior entre vós seja como aquele que serve.",
-        type: 'RELATIONSHIP'
-      },
-      { // QUINTA: INTIMIDADE E ADORAÇÃO
-        title: "Dez Minutos de Escuta",
-        desc: "Rezamos muito falando, mas pouco ouvindo. Deus tem saudades do seu silêncio.",
-        action: "Hoje, reserve 10 minutos para ficar em silêncio absoluto diante de uma cruz ou imagem. Não peça nada. Apenas diga: 'Senhor, o que queres de mim hoje?'. Deixe Ele falar ao seu coração.",
-        verse: "Fala, Senhor, que o teu servo ouve.",
-        type: 'PRAYER'
-      },
-      { // SEXTA: COMBATE E RENÚNCIA
-        title: "Jejum de Palavras",
-        desc: "Muitas vezes ferimos os outros com críticas 'construtivas' que só destroem. A língua é um fogo.",
-        action: "Hoje seu desafio é o jejum estrito de reclamações e críticas. Se não tiver algo que edifique para dizer sobre alguém ou sobre uma situação, escolha o silêncio de ouro. Reze por quem te irrita.",
-        verse: "Põe, Senhor, uma guarda à minha boca.",
-        type: 'SACRIFICE'
-      },
-      { // SÁBADO: CARIDADE CONCRETA
-        title: "A Mão Estendida",
-        desc: "Maria correu para servir sua prima Isabel. Nós somos chamados a sair de nós mesmos.",
-        action: "Saia de casa hoje com a meta de fazer um favor inesperado a um desconhecido. Pode ser segurar uma porta, ajudar com sacolas ou simplesmente dar um sorriso sincero a quem parece triste.",
-        verse: "Tudo o que fizestes a um destes meus irmãos menores, a mim o fizestes.",
-        type: 'RELATIONSHIP'
-      }
-    ];
+    // Ciclo de 3 dias: Muda o desafio a cada 72 horas
+    const cycleIndex = Math.floor(dayOfYear / 3);
+    
+    const pool = CHALLENGE_MATRIX[season.id] || CHALLENGE_MATRIX.ordinary;
+    const selected = pool[cycleIndex % pool.length];
 
-    // Ajustamos o título do desafio baseado na temporada litúrgica
+    // Ajustamos o título da temporada para ser mais inspirador
     const seasonTitles: Record<string, string> = {
       lent: "Caminho de Conversão",
-      easter: "Vida Nova em Cristo",
+      easter: "Alegria da Vida Nova",
       advent: "Vigilância da Esperança",
-      christmas: "Alegria da Encarnação",
+      christmas: "Deus Conosco",
       ordinary: "Santidade no Cotidiano"
     };
 
-    const selected = actionsPool[dayOfWeek];
-
     return {
-        id: `global-challenge-${dayOfMonth}-${dayOfWeek}`,
-        title: seasonTitles[season.id] || "Jornada Espiritual",
-        description: "Pequenos atos que mudam o mundo e aproximam sua alma de Deus.",
-        currentAmount: 3150 + (dayOfMonth * 20),
-        targetAmount: 7000,
+        id: `cycle-${cycleIndex}-${season.id}`,
+        title: seasonTitles[season.id] || "Jornada da Alma",
+        description: "Um passo concreto para transformar sua rotina em uma oferta viva.",
+        currentAmount: 1500 + (cycleIndex * 15),
+        targetAmount: 5000,
         unit: 'atos de amor',
-        daysLeft: 30 - (dayOfMonth % 30),
+        daysLeft: 3 - (dayOfYear % 3), // Dias restantes no ciclo atual de 3 dias
         seasonColor: season.color,
         icon: 'heart',
         type: 'season',
         startDate: new Date(),
-        endDate: new Date(Date.now() + 15 * 86400000),
+        endDate: new Date(),
         status: 'active',
-        participants: 1540 + dayOfMonth,
+        participants: 850 + (cycleIndex % 100),
         isUserParticipating: false,
         userContribution: 0,
-        currentDay: dayOfMonth,
-        totalDays: 30,
+        currentDay: (dayOfYear % 3) + 1,
+        totalDays: 3,
         dailyTopics: [
             {
-                day: dayOfMonth,
+                day: (dayOfYear % 3) + 1,
                 title: selected.title,
                 description: selected.desc,
                 isCompleted: false,
                 isLocked: false,
-                actionType: selected.type as any,
+                actionType: selected.type,
                 actionContent: selected.action,
                 scripture: selected.verse
             }
@@ -124,10 +134,9 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
                 dailyTopics: data.daily_topics
             };
         } catch (e) {
-            console.error("Erro ao buscar desafio global no DB:", e);
+            console.error("Erro ao buscar desafio no DB:", e);
         }
     }
-    // Retorna o novo Desafio Humanizado se não houver um customizado no banco
     return getDynamicHumanizedChallenge();
 };
 
@@ -344,7 +353,6 @@ export const addRoutineItem = async (userId: string, item: RoutineItem) => {
         icon: item.icon,
         time_of_day: item.timeOfDay,
         day_of_week: item.dayOfWeek,
-        // Fixed: Use item.actionLink instead of item.action_link as per RoutineItem definition
         action_link: item.actionLink || 'NONE'
     }]);
   }

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CommunityChallenge } from '../types';
-import { Calendar, CheckCircle2, ArrowRight, Play, X, BookOpen, Trophy, Share2, Sparkles, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote } from 'lucide-react';
+import { Calendar, CheckCircle2, ArrowRight, Play, X, BookOpen, Trophy, Share2, Sparkles, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Clock } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 interface LiturgicalEventsProps {
@@ -22,8 +22,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   const contentRef = useRef<HTMLDivElement>(null);
 
   const dailyTopics = activeChallenge?.dailyTopics || [];
-  const currentDay = activeChallenge?.currentDay || 1;
-  const currentDayTopic = dailyTopics.find(t => t.day === currentDay);
+  const currentDayTopic = dailyTopics[0]; // No novo sistema, o dailyTopic[0] é o desafio do ciclo
 
   useEffect(() => {
     if (onExpandChange) {
@@ -63,13 +62,13 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
 
   const handleShare = () => {
     if (onTestify) {
-        const text = `Venci o desafio de hoje: "${currentDayTopic.title}".\n\nRealizei este pequeno ato de amor concreto no escondido do meu dia e ofereço por cada um de vocês aqui na comunidade. Rezemos uns pelos outros! 🙏✨`;
+        const text = `Venci o desafio litúrgico: "${currentDayTopic.title}".\n\nRealizei este ato concreto de amor e partilho com vocês para que possamos crescer juntos em santidade. 🙏✨`;
         onTestify(text);
         setShowCompletion(false);
     }
   };
 
-  const progressPercent = ((activeChallenge.currentDay || 1) / (activeChallenge.totalDays || 30)) * 100;
+  const progressPercent = ((activeChallenge.currentDay || 1) / (activeChallenge.totalDays || 3)) * 100;
 
   const getActionIcon = () => {
       switch (currentDayTopic.actionType) {
@@ -82,8 +81,8 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
 
   const getActionLabel = () => {
       switch (currentDayTopic.actionType) {
-          case 'RELATIONSHIP': return 'Vida em Comum';
-          case 'SACRIFICE': return 'Renúncia de Amor';
+          case 'RELATIONSHIP': return 'Caridade Real';
+          case 'SACRIFICE': return 'Oferta de Amor';
           case 'PRAYER': return 'Intimidade com Deus';
           default: return 'Ação Concreta';
       }
@@ -136,22 +135,22 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                        <Play className="w-8 h-8 fill-current" />
                     </div>
                     <div>
-                       <h3 className="text-2xl font-bold text-white tracking-tight">O que fazer agora?</h3>
-                       <p className="text-sm text-white/60">Um passo concreto para santificar o seu dia real.</p>
+                       <h3 className="text-2xl font-bold text-white tracking-tight">O passo concreto</h3>
+                       <p className="text-sm text-white/60">Como santificar sua realidade hoje.</p>
                     </div>
                  </div>
                  
                  <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 shadow-inner relative overflow-hidden backdrop-blur-md min-h-[250px] flex flex-col justify-center text-center">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
                     <p className="text-white text-xl md:text-3xl leading-relaxed font-medium relative z-10 font-sans">
-                       {currentDayTopic.actionContent || "Realize este ato com amor e intenção pelo bem da comunidade."}
+                       {currentDayTopic.actionContent}
                     </p>
                  </div>
                  
                  <div className="flex items-center justify-center gap-4 p-5 bg-black/20 rounded-2xl border border-white/5 text-center">
                     <ShieldCheck className="w-6 h-6 text-green-400 shrink-0" />
                     <p className="text-sm text-white/70 leading-snug font-medium">
-                       Esta ação foi pensada para impactar sua vida real: família, amigos e relacionamentos.
+                       Esta ação impacta sua vida real: família, amigos e deveres diários.
                     </p>
                  </div>
               </div>
@@ -169,7 +168,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                  <div className="space-y-6">
                     <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">Selar Compromisso</h3>
                     <p className="text-white/80 text-lg md:text-2xl leading-relaxed italic font-serif bg-black/20 p-8 rounded-[2rem] border border-white/5">
-                       "Senhor, que este pequeno ato de amor não seja para minha glória, mas para a Tua. Que eu aprenda a amar meus irmãos como Tu me amas."
+                       "Senhor, que este ato não seja para minha glória, mas para a Tua. Ensina-me a amar meus irmãos como Tu me amas."
                     </p>
                  </div>
 
@@ -183,7 +182,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                     <div className="h-10 w-px bg-white/10" />
                     <div className="text-right">
                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block mb-1">Membros Unidos</span>
-                       <p className="text-white font-bold text-xl">{activeChallenge.participants} rezando</p>
+                       <p className="text-white font-bold text-xl">{activeChallenge.participants} participando</p>
                     </div>
                  </div>
               </div>
@@ -259,10 +258,14 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                      {getActionIcon()}
                      <span className="text-xs font-bold uppercase tracking-widest">{getActionLabel()}</span>
                   </div>
+                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-4 py-1.5 flex items-center gap-2 text-white/50">
+                     <Clock size={14} />
+                     <span className="text-[10px] font-bold uppercase tracking-widest">Ciclo de {activeChallenge.totalDays} dias</span>
+                  </div>
                </div>
                
                <div className="space-y-3">
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em]">O Desafio de Hoje</p>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em]">O Desafio Atual</p>
                   <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">
                      {currentDayTopic.title}
                   </h2>
@@ -273,7 +276,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
 
                <div className="w-full max-w-md">
                   <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">
-                     <span>Progresso Global</span>
+                     <span>Progresso no Ciclo</span>
                      <span>{Math.round(progressPercent)}%</span>
                   </div>
                   <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden">
@@ -281,6 +284,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                         <div className="absolute right-0 top-0 bottom-0 w-1 bg-white/30" />
                      </div>
                   </div>
+                  <p className="text-[9px] text-slate-500 mt-2 font-bold uppercase tracking-wider italic">Próximo desafio em: {activeChallenge.daysLeft} dias</p>
                </div>
             </div>
 
@@ -293,10 +297,10 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                   }`}
                >
                   {currentDayTopic.isCompleted ? (
-                     <span className="flex items-center gap-2">Ato Realizado <CheckCircle2 size={24} /></span>
+                     <span className="flex items-center gap-2">Gesto Concluido <CheckCircle2 size={24} /></span>
                   ) : (
                      <>
-                        <span className="relative z-10 flex items-center gap-2">Abrir Desafio <Play size={24} fill="currentColor" /></span>
+                        <span className="relative z-10 flex items-center gap-2">Aceitar Missão <Play size={24} fill="currentColor" /></span>
                         <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-brand-violet/20 to-transparent transform skew-x-12 group-hover/btn:animate-shimmer" />
                      </>
                   )}
@@ -318,7 +322,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                   </div>
                   <h3 className="text-3xl font-black text-white mb-3">Deus seja louvado!</h3>
                   <p className="text-slate-400 text-sm mb-8 leading-relaxed">
-                     Sua fidelidade nas pequenas coisas edifica toda a nossa Igreja. Que tal inspirar seus irmãos partilhando esse testemunho?
+                     Sua fidelidade nas pequenas coisas do cotidiano edifica toda a nossa Igreja.
                   </p>
                   <div className="space-y-4">
                      <button onClick={handleShare} className="w-full py-4 rounded-2xl bg-gradient-to-r from-brand-violet to-purple-600 text-white font-bold hover:shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-brand-violet/20">
