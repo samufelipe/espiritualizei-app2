@@ -4,148 +4,192 @@ import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Not
 import { getSeasonDetailedInfo } from './liturgyService';
 
 /**
- * Matriz de Desafios Relacionais e Litúrgicos.
- * Cada desafio é pensado para durar um ciclo de 3 dias.
+ * MATRIZ DE SABEDORIA LITÚRGICA (Humanizada e Relacional)
+ * Cada categoria contém desafios práticos que conectam a fé à vida cotidiana.
  */
-const CHALLENGE_MATRIX: Record<string, any[]> = {
-    lent: [
-        {
-            title: "O Perdão na Raiz",
-            desc: "A Quaresma nos convida a limpar o coração de toda amargura.",
-            action: "Pense na pessoa que mais te feriu ou que você tem mais dificuldade de conviver. Hoje, você não vai apenas rezar por ela, você vai enviar uma mensagem curta de paz ou fazer um favor concreto para ela sem esperar nada em troca.",
-            verse: "Perdoai e seris perdoados. (Lc 6, 37)",
-            type: 'RELATIONSHIP'
-        },
-        {
-            title: "Jejum de Palavras",
-            desc: "O deserto é o lugar do silêncio que escuta a Deus.",
-            action: "Hoje seu desafio é o silêncio heroico: não reclame de nada e não fale mal de ninguém (nem por 'critica construtiva'). Se alguém te irritar, responda com um sorriso e um 'Deus te abençoe' mental.",
-            verse: "Jesus, porém, guardava silêncio. (Mt 26, 63)",
-            type: 'SACRIFICE'
-        }
-    ],
-    easter: [
-        {
-            title: "A Luz que Visita",
-            desc: "Cristo ressuscitou e quer visitar seus irmãos através de você.",
-            action: "Escolha um amigo ou parente que está isolado ou triste. Não mande mensagem. Ligue ou vá até a casa da pessoa. Leve uma palavra de esperança e termine perguntando: 'Como posso rezar por você hoje?'",
-            verse: "A paz esteja convosco! (Jo 20, 19)",
-            type: 'RELATIONSHIP'
-        }
-    ],
-    ordinary: [
-        {
-            title: "O Altar da Mesa",
-            desc: "A santidade começa no comer junto, como os primeiros cristãos.",
-            action: "Na próxima refeição em família ou com amigos, declare o local uma 'Zona Livre de Telas'. Guarde todos os celulares. Olhe nos olhos de quem está com você e faça uma pergunta profunda: 'O que te fez feliz hoje?'.",
-            verse: "Eram perseverantes na comunhão e na fração do pão. (At 2, 42)",
-            type: 'RELATIONSHIP'
-        },
-        {
-            title: "O Ofício de Nazaré",
-            desc: "Jesus santificou o trabalho e o serviço doméstico.",
-            action: "Identifique a tarefa doméstica que todos em sua casa evitam (lavar a louça, levar o lixo, organizar a bagunça alheia). Faça-a silenciosamente e com perfeição, como se estivesse servindo ao próprio Cristo.",
-            verse: "Servi uns aos outros pelo amor. (Gl 5, 13)",
-            type: 'RELATIONSHIP'
-        },
-        {
-            title: "Intercessão de Impacto",
-            desc: "Nossa fé é comunitária, ninguém se salva sozinho.",
-            action: "Escolha uma pessoa que você viu hoje no Mural de Orações ou no seu trabalho que está sofrendo. Pare o que está fazendo, reze um mistério do Terço especificamente por ela e, se possível, diga a ela: 'Estou contigo em oração'.",
-            verse: "Orai uns pelos outros para serdes curados. (Tg 5, 16)",
-            type: 'PRAYER'
-        },
-        {
-            title: "A Escuta que Cura",
-            desc: "Ouvir é o primeiro ato de caridade.",
-            action: "Hoje, ao conversar com alguém, resista à vontade de falar de si ou dar conselhos. Apenas ouça com o coração. Dê à pessoa o presente da sua atenção total, sem pressa, como Jesus fazia.",
-            verse: "Todo homem seja pronto para ouvir. (Tg 1, 19)",
-            type: 'RELATIONSHIP'
-        }
-    ]
+const CHALLENGE_POOL: Record<string, any[]> = {
+  lent: [
+    {
+      title: "O Perdão na Raiz",
+      desc: "Limpar o coração de toda amargura nesta Quaresma.",
+      action: "Pense na pessoa que você tem mais dificuldade de conviver. Hoje, envie uma mensagem curta de paz ou faça um favor concreto para ela sem que ela saiba que foi você.",
+      verse: "Perdoai e sereis perdoados. (Lc 6, 37)",
+      type: 'RELATIONSHIP'
+    },
+    {
+      title: "Jejum de Críticas",
+      desc: "O deserto é o lugar do silêncio que edifica.",
+      action: "Hoje, seu desafio é o 'Silêncio Heróico': não reclame de nada e não fale mal de ninguém. Se alguém te irritar, responda com um sorriso e uma oração mental.",
+      verse: "Jesus, porém, guardava silêncio. (Mt 26, 63)",
+      type: 'SACRIFICE'
+    },
+    {
+      title: "Oração de Intercessão Viva",
+      desc: "Carregar a cruz do irmão.",
+      action: "Ligue (não mande áudio) para um amigo que você sabe que está passando por uma luta. Ouça-o por 10 minutos e termine rezando uma Ave-Maria com ele por telefone.",
+      verse: "Orai uns pelos outros para serdes curados. (Tg 5, 16)",
+      type: 'PRAYER'
+    }
+  ],
+  easter: [
+    {
+      title: "Visita da Ressurreição",
+      desc: "Cristo ressuscitou e quer visitar seus irmãos através de você.",
+      action: "Identifique um parente idoso ou alguém que mora sozinho. Leve um pequeno doce ou uma flor e passe 15 minutos partilhando a alegria da fé.",
+      verse: "A paz esteja convosco! (Jo 20, 19)",
+      type: 'RELATIONSHIP'
+    },
+    {
+      title: "Elogio que Ilumina",
+      desc: "Espalhar a luz do Ressuscitado.",
+      action: "Faça um elogio sincero e profundo a um colega de trabalho ou funcionário que raramente recebe reconhecimento pelo que faz.",
+      verse: "Vós sois a luz do mundo. (Mt 5, 14)",
+      type: 'RELATIONSHIP'
+    }
+  ],
+  advent: [
+    {
+      title: "Vigilância no Trânsito/Fila",
+      desc: "Preparar o caminho do Senhor na paciência.",
+      action: "Em qualquer fila ou trânsito hoje, ceda sua vez. Não use o celular. Use esse tempo para rezar um mistério do terço por quem está ao seu redor.",
+      verse: "Preparai o caminho do Senhor. (Lc 3, 4)",
+      type: 'SACRIFICE'
+    },
+    {
+      title: "Carta de Gratidão",
+      desc: "Reconhecer a presença de Deus nas pessoas.",
+      action: "Escreva uma mensagem ou carta para alguém que foi importante na sua caminhada de fé este ano, agradecendo especificamente por um gesto dela.",
+      verse: "Dou graças a Deus sempre que me lembro de vós. (Fl 1, 3)",
+      type: 'RELATIONSHIP'
+    }
+  ],
+  christmas: [
+    {
+      title: "Bênção da Mesa",
+      desc: "Deus conosco na simplicidade do lar.",
+      action: "Na próxima refeição, tome a iniciativa de conduzir a oração. Agradeça por cada pessoa presente e peça a paz para as famílias vizinhas.",
+      verse: "O Verbo se fez carne e habitou entre nós. (Jo 1, 14)",
+      type: 'RELATIONSHIP'
+    }
+  ],
+  ordinary: [
+    {
+      title: "O Altar do Trabalho",
+      desc: "Santificar o cotidiano como São José.",
+      action: "Identifique a tarefa que você mais detesta fazer no trabalho ou em casa. Faça-a hoje com o máximo de perfeição e alegria, oferecendo-a pela conversão dos pecadores.",
+      verse: "Tudo o que fizerdes, fazei-o de coração. (Cl 3, 23)",
+      type: 'RELATIONSHIP'
+    },
+    {
+      title: "Reconciliação Pendente",
+      desc: "Não deixe o sol se pôr sobre sua ira.",
+      action: "Peça desculpas por algo pequeno (uma resposta ríspida, um esquecimento) a alguém da sua casa. Humilhe-se para que Deus te exalte.",
+      verse: "Sede bondosos e tende compaixão. (Ef 4, 32)",
+      type: 'RELATIONSHIP'
+    },
+    {
+      title: "Oração pelo 'Inimigo'",
+      desc: "Amar como Jesus amou.",
+      action: "Reze um Terço da Misericórdia (ou 1 dezena) especificamente pela pessoa que mais te persegue ou que você menos suporta. Peça a bênção de Deus para a vida dela.",
+      verse: "Amai vossos inimigos. (Mt 5, 44)",
+      type: 'PRAYER'
+    },
+    {
+      title: "A Escuta que Cura",
+      desc: "Dar o seu tempo, o bem mais precioso.",
+      action: "Ao conversar com alguém hoje, guarde o celular. Não interrompa. Apenas ouça com o coração, dando atenção total como se fosse o próprio Cristo falando.",
+      verse: "Todo homem seja pronto para ouvir. (Tg 1, 19)",
+      type: 'RELATIONSHIP'
+    }
+  ]
 };
 
 /**
- * Gera um desafio comunitário baseado no ciclo de 3 dias e na liturgia atual.
+ * Gera um desafio comunitário baseado no ciclo litúrgico atual.
+ * A lógica garante que todos os usuários vejam o mesmo desafio diariamente.
  */
-const getDynamicHumanizedChallenge = (): CommunityChallenge => {
-    const season = getSeasonDetailedInfo();
-    const today = new Date();
-    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-    
-    const cycleIndex = Math.floor(dayOfYear / 3);
-    const pool = CHALLENGE_MATRIX[season.id] || CHALLENGE_MATRIX.ordinary;
-    const selected = pool[cycleIndex % pool.length];
+const getDeterministicLiturgicalChallenge = (): CommunityChallenge => {
+  const season = getSeasonDetailedInfo();
+  const today = new Date();
+  
+  // Usamos o dia do ano para garantir que o desafio mude a cada 24h e seja igual para todos
+  const startOfYear = new Date(today.getFullYear(), 0, 0);
+  const diff = today.getTime() - startOfYear.getTime();
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay);
+  
+  const pool = CHALLENGE_POOL[season.id] || CHALLENGE_POOL.ordinary;
+  const selectedIndex = dayOfYear % pool.length;
+  const challengeTemplate = pool[selectedIndex];
 
-    const seasonTitles: Record<string, string> = {
-      lent: "Caminho de Conversão",
-      easter: "Alegria da Vida Nova",
-      advent: "Vigilância da Esperança",
-      christmas: "Deus Conosco",
-      ordinary: "Santidade no Cotidiano"
-    };
+  const seasonTitles: Record<string, string> = {
+    lent: "Caminho de Conversão",
+    easter: "Alegria da Vida Nova",
+    advent: "Vigilância da Esperança",
+    christmas: "Luz que Nasce",
+    ordinary: "Santidade no Dia a Dia"
+  };
 
-    const currentDayInCycle = (dayOfYear % 3) + 1;
-
-    return {
-        id: `cycle-${cycleIndex}-${season.id}`,
-        title: seasonTitles[season.id] || "Jornada da Alma",
-        description: "Um passo concreto para transformar sua rotina em uma oferta viva.",
-        currentAmount: 1500 + (cycleIndex * 15),
-        targetAmount: 5000,
-        unit: 'atos de amor',
-        daysLeft: 3 - (dayOfYear % 3),
-        seasonColor: season.color,
-        icon: 'heart',
-        type: 'season',
-        startDate: new Date(),
-        endDate: new Date(),
-        status: 'active',
-        participants: 850 + (cycleIndex % 100),
-        isUserParticipating: false,
-        userContribution: 0,
-        currentDay: currentDayInCycle,
-        totalDays: 3,
-        dailyTopics: [
-            {
-                day: currentDayInCycle,
-                title: selected.title,
-                description: selected.desc,
-                isCompleted: false,
-                isLocked: false,
-                actionType: selected.type,
-                actionContent: selected.action,
-                scripture: selected.verse
-            }
-        ]
-    };
+  return {
+    id: `liturgical-cycle-${dayOfYear}-${season.id}`,
+    title: seasonTitles[season.id] || "Jornada do Peregrino",
+    description: "Um passo concreto para tirar sua fé do papel e vivê-la nos relacionamentos.",
+    currentAmount: 2450 + (dayOfYear * 5),
+    targetAmount: 10000,
+    unit: 'gestos de amor',
+    daysLeft: 1, // Desafio diário
+    seasonColor: season.color,
+    icon: 'heart',
+    type: 'season',
+    startDate: new Date(),
+    endDate: new Date(),
+    status: 'active',
+    participants: 1200 + (dayOfYear % 200),
+    isUserParticipating: false,
+    userContribution: 0,
+    currentDay: 1,
+    totalDays: 1,
+    dailyTopics: [
+      {
+        day: 1,
+        title: challengeTemplate.title,
+        description: challengeTemplate.desc,
+        isCompleted: false,
+        isLocked: false,
+        actionType: challengeTemplate.type,
+        actionContent: challengeTemplate.action,
+        scripture: challengeTemplate.verse
+      }
+    ]
+  };
 };
 
 export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
-    try {
-        if (getConnectionStatus()) {
-            const { data, error } = await supabase!
-                .from('global_challenges')
-                .select('*')
-                .eq('status', 'active')
-                .maybeSingle();
-            
-            if (error) throw error;
-            
-            if (data) {
-                return {
-                    ...data,
-                    startDate: new Date(data.start_date),
-                    endDate: new Date(data.end_date),
-                    dailyTopics: data.daily_topics || []
-                };
-            }
-        }
-    } catch (e) {
-        console.error("Erro ao buscar desafio no DB:", e);
+  try {
+    if (getConnectionStatus()) {
+      const { data, error } = await supabase!
+        .from('global_challenges')
+        .select('*')
+        .eq('status', 'active')
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      if (data) {
+        return {
+          ...data,
+          startDate: new Date(data.start_date),
+          endDate: new Date(data.end_date),
+          dailyTopics: data.daily_topics || []
+        };
+      }
     }
-    // Sempre retorna o dinâmico como última instância para evitar que a UI fique vazia
-    return getDynamicHumanizedChallenge();
+  } catch (e) {
+    console.error("Erro ao buscar desafio customizado no DB:", e);
+  }
+  
+  // Se não houver desafio manual no Supabase, gera o litúrgico automático
+  return getDeterministicLiturgicalChallenge();
 };
 
 export const savePartialLead = async (email: string, name: string, step: number, data: any) => {
@@ -242,6 +286,7 @@ export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {
             icon: item.icon,
             time_of_day: item.timeOfDay,
             day_of_week: item.dayOfWeek,
+            // Fixed: Changed action_link to item.actionLink to match RoutineItem interface
             action_link: item.actionLink || 'NONE'
         }));
         const { error } = await supabase!.from('routines').upsert(payload);

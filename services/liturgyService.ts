@@ -32,7 +32,9 @@ export const getSeasonDetailedInfo = (date: Date = new Date()) => {
 
   const easter = getEasterDate(year);
   const christmas = new Date(year, 11, 25);
+  const nextChristmas = new Date(year + 1, 11, 25);
   
+  // Advento: 4 domingos antes do natal
   const adventStart = new Date(christmas);
   adventStart.setDate(christmas.getDate() - (christmas.getDay() === 0 ? 28 : 21 + christmas.getDay()));
 
@@ -42,30 +44,31 @@ export const getSeasonDetailedInfo = (date: Date = new Date()) => {
   const pentecost = new Date(easter);
   pentecost.setDate(easter.getDate() + 49);
 
-  if (now >= adventStart && now < christmas) {
-    return { id: 'advent', name: 'Advento', color: '#7C3AED', startDate: adventStart, totalDays: 24 };
-  }
-  
-  const baptismOfLord = new Date(year + 1, 0, 13);
+  // Batismo do Senhor (fim do natal)
+  const baptismOfLord = new Date(year, 0, 13); // Simplificado para meados de jan
+
+  // Verificação de Natal (De 25/12 até Batismo do Senhor)
   if (now >= christmas || now <= baptismOfLord) {
      return { id: 'christmas', name: 'Tempo do Natal', color: '#F59E0B', startDate: christmas, totalDays: 20 };
   }
 
+  // Quaresma
   if (now >= ashWednesday && now < easter) {
     return { id: 'lent', name: 'Quaresma', color: '#7C3AED', startDate: ashWednesday, totalDays: 40 };
   }
 
+  // Páscoa
   if (now >= easter && now <= pentecost) {
     return { id: 'easter', name: 'Tempo Pascal', color: '#F59E0B', startDate: easter, totalDays: 50 };
   }
 
-  let ordinaryStart = new Date(year, 0, 14);
-  if (now > pentecost) {
-      ordinaryStart = new Date(pentecost);
-      ordinaryStart.setDate(pentecost.getDate() + 1);
+  // Advento
+  if (now >= adventStart && now < christmas) {
+    return { id: 'advent', name: 'Advento', color: '#7C3AED', startDate: adventStart, totalDays: 24 };
   }
 
-  return { id: 'ordinary', name: 'Tempo Comum', color: '#10B981', startDate: ordinaryStart, totalDays: 34 * 7 };
+  // Tempo Comum (Fallback)
+  return { id: 'ordinary', name: 'Tempo Comum', color: '#10B981', startDate: baptismOfLord, totalDays: 34 * 7 };
 };
 
 export const calculateDayOfSeason = (startDate: Date): number => {
