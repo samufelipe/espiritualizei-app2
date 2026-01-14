@@ -14,6 +14,7 @@ interface LiturgicalEventsProps {
 
 const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin, onTestify, onExpandChange }) => {
   const safeChallenges = Array.isArray(challenges) ? challenges : [];
+  // Busca o desafio ativo
   const activeChallenge = safeChallenges.find(c => c.status === 'active');
   
   const [showSession, setShowSession] = useState(false);
@@ -21,8 +22,9 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   const [step, setStep] = useState(0); 
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Busca o tópico que corresponde ao dia atual do desafio (fallback para o primeiro se não achar)
   const dailyTopics = activeChallenge?.dailyTopics || [];
-  const currentDayTopic = dailyTopics[0]; // No novo sistema, o dailyTopic[0] é o desafio do ciclo
+  const currentDayTopic = dailyTopics.find(t => t.day === activeChallenge?.currentDay) || dailyTopics[0];
 
   useEffect(() => {
     if (onExpandChange) {
@@ -62,7 +64,6 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
 
   const handleShare = () => {
     if (onTestify) {
-        // Mensagem mais humanizada e convidativa
         const text = `Concluí o desafio comunitário: "${currentDayTopic.title}".\n\nFoi uma experiência de... [conte aqui brevemente como foi para você]\n\nQue nossa caminhada juntos nos leve à santidade! 🙏✨`;
         onTestify(text);
         setShowCompletion(false);

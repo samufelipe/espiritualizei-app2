@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { UserProfile, LiturgyDay, PrayerIntention, RoutineItem, CommunityPost } from '../types';
-import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap, Quote } from 'lucide-react';
+import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap, Quote, Loader2 } from 'lucide-react';
 import { generateDailyTheme, cleanAIOutput } from '../services/geminiService';
 import { fetchRealDailyLiturgy } from '../services/liturgyService';
 import { fetchCommunityPosts } from '../services/databaseService';
@@ -64,6 +64,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [showContactModal, setShowContactModal] = useState(false);
   const [recentPosts, setRecentPosts] = useState<CommunityPost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [isLiturgyLoading, setIsLiturgyLoading] = useState(true);
   
   const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>(() => {
     const saved = localStorage.getItem('dashboard_widgets_v8'); 
@@ -81,13 +82,21 @@ const Dashboard: React.FC<DashboardProps> = ({
 
     let isMounted = true;
     const loadData = async () => {
-        const realLiturgy = await fetchRealDailyLiturgy();
-        if (isMounted) {
-            setLiturgyData(realLiturgy);
-            setActiveLiturgyTab('gospel');
+        setIsLiturgyLoading(true);
+        try {
+            const realLiturgy = await fetchRealDailyLiturgy();
+            if (isMounted) {
+                setLiturgyData(realLiturgy);
+                setActiveLiturgyTab('gospel');
+                setIsLiturgyLoading(false);
+                
+                const theme = await generateDailyTheme(realLiturgy.readings.gospel.text);
+                if (isMounted && theme) setDailyTheme(cleanAIOutput(theme));
+            }
+        } catch (e) {
+            console.error("Erro ao carregar liturgia:", e);
+            if (isMounted) setIsLiturgyLoading(false);
         }
-        const theme = await generateDailyTheme(realLiturgy.readings.gospel.text);
-        if (isMounted && theme) setDailyTheme(cleanAIOutput(theme));
         
         // Fetch last 3 posts
         const posts = await fetchCommunityPosts(0, 3);
@@ -316,30 +325,74 @@ const Dashboard: React.FC<DashboardProps> = ({
          </div>
       </div>
 
-      {showLiturgyModal && liturgyData && (
+      {showLiturgyModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-brand-dark/90 backdrop-blur-md" onClick={() => setShowLiturgyModal(false)} />
           <div className="relative w-full max-w-lg h-[85vh] bg-[#FFFCF5] dark:bg-brand-dark rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col border border-white/10 animate-slide-up">
-            <div className="p-5 border-b flex justify-between items-center"><div><p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Liturgia Diária</p><h3 className="text-sm font-bold">{liturgyData.saint || "Leituras do Dia"}</h3></div><button onClick={() => setShowLiturgyModal(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center"><X size={20} /></button></div>
-            <div className="flex bg-slate-50 dark:bg-black/20 p-1">
-              {liturgyTabs.map((tab) => (
-                <button key={tab} onClick={() => setActiveLiturgyTab(tab as any)} className={`flex-1 py-2 text-[10px] font-bold rounded-lg transition-all ${activeLiturgyTab === tab ? 'bg-white dark:bg-white/10 text-brand-violet' : 'text-slate-400'}`}>
-                  {getTabLabel(tab)}
+            
+            <div className="p-5 border-b flex justify-between items-center shrink-0">
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Liturgia Diária</p>
+                    <h3 className="text-sm font-bold">
+                        {isLiturgyLoading ? "Carregando..." : (liturgyData?.saint || "Leituras do Dia")}
+                    </h3>
+                </div>
+                <button onClick={() => setShowLiturgyModal(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center">
+                    <X size={20} />
                 </button>
-              ))}
             </div>
-            <div className="flex-1 overflow-y-auto p-8"><div className="prose prose-lg dark:prose-invert mx-auto"><div className="text-center mb-8"><p className="italic text-slate-500 text-sm">
-                {activeLiturgyTab === 'first' && liturgyData.readings.first.ref}
-                {activeLiturgyTab === 'psalm' && liturgyData.readings.psalm.ref}
-                {activeLiturgyTab === 'second' && liturgyData.readings.second?.ref}
-                {activeLiturgyTab === 'gospel' && liturgyData.readings.gospel.ref}
-            </p></div><div className="font-sans text-lg leading-loose text-justify whitespace-pre-line">
-                {activeLiturgyTab === 'first' && cleanAIOutput(liturgyData.readings.first.text)}
-                {activeLiturgyTab === 'psalm' && cleanAIOutput(liturgyData.readings.psalm.text)}
-                {activeLiturgyTab === 'second' && liturgyData.readings.second && cleanAIOutput(liturgyData.readings.second.text)}
-                {activeLiturgyTab === 'gospel' && cleanAIOutput(liturgyData.readings.gospel.text)}
-            </div></div></div>
-            <div className="p-6 bg-white dark:bg-white/5 border-t"><button onClick={() => setShowLiturgyModal(false)} className="w-full bg-brand-violet text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2"><CheckCircle2 size={20} /> Concluir Leitura</button></div>
+
+            {isLiturgyLoading ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-4">
+                    <div className="relative">
+                        <div className="w-16 h-16 rounded-full border-4 border-brand-violet/20 border-t-brand-violet animate-spin" />
+                        <BrandLogo size={24} variant="fill" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-brand-violet opacity-50" />
+                    </div>
+                    <div className="text-center">
+                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mb-1">Preparando a mesa</p>
+                        <p className="text-slate-400 text-xs italic">"Nem só de pão vive o homem..."</p>
+                    </div>
+                </div>
+            ) : liturgyData ? (
+                <>
+                    <div className="flex bg-slate-50 dark:bg-black/20 p-1 shrink-0">
+                    {liturgyTabs.map((tab) => (
+                        <button key={tab} onClick={() => setActiveLiturgyTab(tab as any)} className={`flex-1 py-2 text-[10px] font-bold rounded-lg transition-all ${activeLiturgyTab === tab ? 'bg-white dark:bg-white/10 text-brand-violet' : 'text-slate-400'}`}>
+                        {getTabLabel(tab)}
+                        </button>
+                    ))}
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-8">
+                        <div className="prose prose-lg dark:prose-invert mx-auto">
+                            <div className="text-center mb-8">
+                                <p className="italic text-slate-500 text-sm">
+                                    {activeLiturgyTab === 'first' && liturgyData.readings.first.ref}
+                                    {activeLiturgyTab === 'psalm' && liturgyData.readings.psalm.ref}
+                                    {activeLiturgyTab === 'second' && liturgyData.readings.second?.ref}
+                                    {activeLiturgyTab === 'gospel' && liturgyData.readings.gospel.ref}
+                                </p>
+                            </div>
+                            <div className="font-sans text-lg leading-loose text-justify whitespace-pre-line text-slate-800 dark:text-slate-200">
+                                {activeLiturgyTab === 'first' && cleanAIOutput(liturgyData.readings.first.text)}
+                                {activeLiturgyTab === 'psalm' && cleanAIOutput(liturgyData.readings.psalm.text)}
+                                {activeLiturgyTab === 'second' && liturgyData.readings.second && cleanAIOutput(liturgyData.readings.second.text)}
+                                {activeLiturgyTab === 'gospel' && cleanAIOutput(liturgyData.readings.gospel.text)}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="p-6 bg-white dark:bg-white/5 border-t shrink-0">
+                        <button onClick={() => setShowLiturgyModal(false)} className="w-full bg-brand-violet text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2">
+                            <CheckCircle2 size={20} /> Concluir Leitura
+                        </button>
+                    </div>
+                </>
+            ) : (
+                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                    <p className="text-red-400 font-bold mb-2">Erro de conexão</p>
+                    <p className="text-slate-500 text-sm mb-6">Não conseguimos buscar a liturgia agora.</p>
+                    <button onClick={() => window.location.reload()} className="px-6 py-2 bg-slate-100 dark:bg-white/10 rounded-xl text-xs font-bold text-slate-400">Tentar Recarregar</button>
+                </div>
+            )}
           </div>
         </div>
       )}

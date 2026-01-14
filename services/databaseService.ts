@@ -73,13 +73,10 @@ const getDynamicHumanizedChallenge = (): CommunityChallenge => {
     const today = new Date();
     const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
     
-    // Ciclo de 3 dias: Muda o desafio a cada 72 horas
     const cycleIndex = Math.floor(dayOfYear / 3);
-    
     const pool = CHALLENGE_MATRIX[season.id] || CHALLENGE_MATRIX.ordinary;
     const selected = pool[cycleIndex % pool.length];
 
-    // Ajustamos o título da temporada para ser mais inspirador
     const seasonTitles: Record<string, string> = {
       lent: "Caminho de Conversão",
       easter: "Alegria da Vida Nova",
@@ -88,6 +85,8 @@ const getDynamicHumanizedChallenge = (): CommunityChallenge => {
       ordinary: "Santidade no Cotidiano"
     };
 
+    const currentDayInCycle = (dayOfYear % 3) + 1;
+
     return {
         id: `cycle-${cycleIndex}-${season.id}`,
         title: seasonTitles[season.id] || "Jornada da Alma",
@@ -95,7 +94,7 @@ const getDynamicHumanizedChallenge = (): CommunityChallenge => {
         currentAmount: 1500 + (cycleIndex * 15),
         targetAmount: 5000,
         unit: 'atos de amor',
-        daysLeft: 3 - (dayOfYear % 3), // Dias restantes no ciclo atual de 3 dias
+        daysLeft: 3 - (dayOfYear % 3),
         seasonColor: season.color,
         icon: 'heart',
         type: 'season',
@@ -105,11 +104,11 @@ const getDynamicHumanizedChallenge = (): CommunityChallenge => {
         participants: 850 + (cycleIndex % 100),
         isUserParticipating: false,
         userContribution: 0,
-        currentDay: (dayOfYear % 3) + 1,
+        currentDay: currentDayInCycle,
         totalDays: 3,
         dailyTopics: [
             {
-                day: (dayOfYear % 3) + 1,
+                day: currentDayInCycle,
                 title: selected.title,
                 description: selected.desc,
                 isCompleted: false,
@@ -123,20 +122,29 @@ const getDynamicHumanizedChallenge = (): CommunityChallenge => {
 };
 
 export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
-    if (getConnectionStatus()) {
-        try {
-            const { data, error } = await supabase!.from('global_challenges').select('*').eq('status', 'active').maybeSingle();
+    try {
+        if (getConnectionStatus()) {
+            const { data, error } = await supabase!
+                .from('global_challenges')
+                .select('*')
+                .eq('status', 'active')
+                .maybeSingle();
+            
             if (error) throw error;
-            if (data) return {
-                ...data,
-                startDate: new Date(data.start_date),
-                endDate: new Date(data.end_date),
-                dailyTopics: data.daily_topics
-            };
-        } catch (e) {
-            console.error("Erro ao buscar desafio no DB:", e);
+            
+            if (data) {
+                return {
+                    ...data,
+                    startDate: new Date(data.start_date),
+                    endDate: new Date(data.end_date),
+                    dailyTopics: data.daily_topics || []
+                };
+            }
         }
+    } catch (e) {
+        console.error("Erro ao buscar desafio no DB:", e);
     }
+    // Sempre retorna o dinâmico como última instância para evitar que a UI fique vazia
     return getDynamicHumanizedChallenge();
 };
 
