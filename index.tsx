@@ -13,13 +13,17 @@ declare global {
 
 // Função para carregar o SDK do Google Maps dinamicamente seguindo as melhores práticas
 const loadGoogleMaps = () => {
-  // IMPORTANTE: Usamos apenas a chave específica de mapas para evitar erro de InvalidKey
-  const rawKey = process.env.VITE_GOOGLE_MAPS_KEY || "";
-  const mapsKey = rawKey.trim();
+  // Verifica em múltiplas fontes para garantir que a chave seja encontrada na Vercel
+  const mapsKey = (
+    process.env.VITE_GOOGLE_MAPS_KEY || 
+    process.env.GOOGLE_MAPS_KEY || 
+    (import.meta as any).env?.VITE_GOOGLE_MAPS_KEY || 
+    ""
+  ).trim();
   
-  // Se a chave for "undefined" (string), vazia ou placeholder, não carrega o script para evitar o erro visual
+  // Se a chave for "undefined" (string), vazia ou muito curta, não carrega para evitar erro de InvalidKey
   if (!mapsKey || mapsKey === "undefined" || mapsKey.length < 10) {
-    console.warn("⚠️ Google Maps Key ausente ou inválida. Verifique a variável VITE_GOOGLE_MAPS_KEY na Vercel.");
+    console.warn("⚠️ Google Maps Key ausente ou inválida. Certifique-se de que VITE_GOOGLE_MAPS_KEY está configurada na Vercel e que você fez um novo Deploy.");
     return;
   }
 
@@ -28,7 +32,7 @@ const loadGoogleMaps = () => {
 
   // Callback exigido pelo padrão loading=async
   window.initGoogleMapsCallback = () => {
-    console.log("📍 Google Maps SDK inicializado.");
+    console.log("📍 Google Maps SDK inicializado com sucesso.");
   };
 
   const script = document.createElement('script');
@@ -37,7 +41,7 @@ const loadGoogleMaps = () => {
   script.defer = true;
   
   script.onerror = () => {
-    console.error("🚨 Erro ao carregar Google Maps. Chave pode estar bloqueada por restrições de HTTP Referrer.");
+    console.error("🚨 Erro crítico ao carregar Google Maps. Verifique restrições de HTTP Referrer no console do Google Cloud.");
   };
 
   document.head.appendChild(script);

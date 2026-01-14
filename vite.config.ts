@@ -3,7 +3,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
-  // Carrega variáveis do arquivo .env (se existirem)
+  // Carrega variáveis do arquivo .env e do ambiente do sistema (Vercel)
   const env = loadEnv(mode, (process as any).cwd(), '');
   
   // Captura chaves priorizando o Ambiente do Sistema (Vercel/Produção)
@@ -11,8 +11,14 @@ export default defineConfig(({ mode }) => {
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || "";
   const apiKey = process.env.API_KEY || env.API_KEY || "";
   
-  // Chave de mapas estritamente vinculada à variável correta para evitar InvalidKey
-  const mapsKey = process.env.VITE_GOOGLE_MAPS_KEY || process.env.GOOGLE_MAPS_KEY || env.VITE_GOOGLE_MAPS_KEY || env.GOOGLE_MAPS_KEY || "";
+  // Busca a chave de mapas de todas as variações possíveis para máxima compatibilidade
+  const mapsKey = (
+    process.env.VITE_GOOGLE_MAPS_KEY || 
+    process.env.GOOGLE_MAPS_KEY || 
+    env.VITE_GOOGLE_MAPS_KEY || 
+    env.GOOGLE_MAPS_KEY || 
+    ""
+  ).trim();
 
   return {
     plugins: [react()],
@@ -23,6 +29,7 @@ export default defineConfig(({ mode }) => {
       'process.env.API_KEY': JSON.stringify(apiKey),
       'process.env.VITE_API_KEY': JSON.stringify(apiKey),
       'process.env.VITE_GOOGLE_MAPS_KEY': JSON.stringify(mapsKey),
+      'process.env.GOOGLE_MAPS_KEY': JSON.stringify(mapsKey),
       'process.env.NODE_ENV': JSON.stringify(mode),
     },
     server: {
