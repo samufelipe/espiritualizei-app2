@@ -4,114 +4,107 @@ import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Not
 import { getSeasonDetailedInfo } from './liturgyService';
 
 /**
- * Gera um desafio comunitário humanizado e interativo.
- * Baseado no Tempo Litúrgico e focado em ações reais: família, amigos e relacionamentos.
+ * Gera um desafio comunitário profundamente humanizado e interativo.
+ * Focado em ações concretas na família, trabalho e círculos de amizade.
  */
 const getDynamicHumanizedChallenge = (): CommunityChallenge => {
     const season = getSeasonDetailedInfo();
-    const today = new Date().getDate();
+    const today = new Date();
+    const dayOfMonth = today.getDate();
+    const dayOfWeek = today.getDay(); // 0-6
     
-    // Matriz de Desafios Humanizados
-    const matrix = {
-        lent: {
-          title: "Caminho do Deserto",
-          color: "#7C3AED",
-          actions: [
-            { 
-              title: "O Perdão Escondido", 
-              desc: "A penitência mais difícil é a caridade com quem nos feriu.", 
-              action: "Escolha uma tarefa doméstica que ninguém gosta de fazer e faça-a hoje por aquela pessoa da sua família com quem você tem mais dificuldade de conversar. Não conte a ninguém.", 
-              verse: "Perdoai-nos como nós perdoamos.",
-              type: 'RELATIONSHIP'
-            },
-            { 
-              title: "Jejum de Reclamação", 
-              desc: "O barulho da murmuração impede de ouvir a voz de Deus.", 
-              action: "Hoje, sua meta é passar o dia inteiro sem reclamar de nada: nem do clima, nem do trânsito, nem do cansaço. Quando a vontade de reclamar vier, reze um 'Glória ao Pai'.", 
-              verse: "Fazei tudo sem murmurações. (Fl 2, 14)",
-              type: 'SACRIFICE'
-            }
-          ]
-        },
-        easter: {
-          title: "Alegria da Ressurreição",
-          color: "#F59E0B",
-          actions: [
-            { 
-              title: "A Luz que Alcança", 
-              desc: "Cristo ressuscitou e quer visitar seus amigos através de você.", 
-              action: "Pense naquele amigo que não vê há meses. Ligue para ele (não mande mensagem!). Pergunte como ele está e, ao final, diga: 'Estou rezando por você hoje'.", 
-              verse: "A paz esteja convosco!",
-              type: 'RELATIONSHIP'
-            }
-          ]
-        },
-        ordinary: {
-          title: "Santidade no Cotidiano",
-          color: "#059669",
-          actions: [
-            { 
-              title: "O Altar da Mesa", 
-              desc: "A Eucaristia nos ensina a comunhão. Leve isso para sua mesa.", 
-              action: "Na próxima refeição com sua família ou amigos, todos os celulares devem ser deixados em outro cômodo. Dedique atenção total aos olhos e às palavras de quem está com você.", 
-              verse: "Eles eram perseverantes na comunhão.",
-              type: 'RELATIONSHIP'
-            },
-            { 
-              title: "Oração no Trabalho", 
-              desc: "Seu trabalho é sua oferta a Deus. Santifique sua mesa.", 
-              action: "Antes de começar sua tarefa mais difícil hoje, faça o sinal da cruz discretamente e diga: 'Senhor, ofereço este cansaço pela conversão dos pecadores'. Trabalhe com perfeição por amor a Ele.", 
-              verse: "Trabalhai de coração para o Senhor.",
-              type: 'GENERIC'
-            },
-            { 
-              title: "A Escuta Amiga", 
-              desc: "Muitas vezes as pessoas só precisam de um ouvido que não julga.", 
-              action: "Hoje, quando alguém vier falar com você, resista à vontade de dar conselhos ou falar de si. Apenas ouça com carinho até o fim. Seja o colo de Cristo para esse irmão.", 
-              verse: "Sede prontos para ouvir.",
-              type: 'RELATIONSHIP'
-            },
-            { 
-              title: "Combate: A Guarda dos Olhos", 
-              desc: "Nossa alma entra pelos olhos. Proteja seu templo.", 
-              action: "Hoje, faremos um 'jejum digital' de curiosidade. Não abra redes sociais para ver a vida dos outros ou notícias fúteis. Use esse tempo livre para 5 minutos de silêncio real.", 
-              verse: "A lâmpada do corpo são os olhos.",
-              type: 'SACRIFICE'
-            }
-          ]
-        }
+    // Matriz de Ações de Impacto Real (Humanizadas)
+    // Rotacionamos baseado no dia da semana para garantir variedade temática
+    const actionsPool = [
+      { // DOMINGO: O SENHOR E A FAMÍLIA
+        title: "A Mesa sem Distrações",
+        desc: "O domingo é o dia do Senhor e da comunhão familiar. Muitas vezes estamos juntos, mas distantes pelas telas.",
+        action: "Durante o almoço ou jantar de hoje, todos os celulares devem ser guardados em outra sala. Olhe nos olhos de quem está com você, ouça com atenção e agradeça a Deus pela presença de cada um.",
+        verse: "Eles eram perseverantes na comunhão e na fração do pão.",
+        type: 'RELATIONSHIP'
+      },
+      { // SEGUNDA: O TRABALHO COMO OFERTA
+        title: "O Ofício de Nazaré",
+        desc: "Jesus passou a maior parte da vida trabalhando silenciosamente. Seu trabalho é seu caminho de santidade.",
+        action: "Hoje, escolha a tarefa mais 'chata' ou difícil do seu dia e faça-a com perfeição absoluta, sem reclamar. Ao começar, diga: 'Senhor, ofereço este cansaço pelo bem da minha família'.",
+        verse: "Tudo o que fizerdes, fazei-o de bom coração, como para o Senhor.",
+        type: 'GENERIC'
+      },
+      { // TERÇA: AMIZADE E INTERCESSÃO
+        title: "A Ovelha Perdida",
+        desc: "A caridade também se faz com um telefonema. Alguém pode estar precisando apenas de um 'estou aqui'.",
+        action: "Pense em um amigo que você não fala há meses. Ligue para ele (não mande texto). Pergunte como ele realmente está. Antes de desligar, diga: 'Rezarei por uma intenção sua hoje'.",
+        verse: "Um amigo fiel é uma poderosa proteção; quem o encontra, encontra um tesouro.",
+        type: 'RELATIONSHIP'
+      },
+      { // QUARTA: O SERVIÇO ESCONDIDO
+        title: "O Criado de Todos",
+        desc: "A santidade se prova no serviço humilde, especialmente dentro de casa.",
+        action: "Identifique uma tarefa doméstica que outra pessoa costuma fazer (lavar a louça, levar o lixo, arrumar algo). Faça-a silenciosamente antes que a pessoa perceba. Não conte a ninguém.",
+        verse: "O maior entre vós seja como aquele que serve.",
+        type: 'RELATIONSHIP'
+      },
+      { // QUINTA: INTIMIDADE E ADORAÇÃO
+        title: "Dez Minutos de Escuta",
+        desc: "Rezamos muito falando, mas pouco ouvindo. Deus tem saudades do seu silêncio.",
+        action: "Hoje, reserve 10 minutos para ficar em silêncio absoluto diante de uma cruz ou imagem. Não peça nada. Apenas diga: 'Senhor, o que queres de mim hoje?'. Deixe Ele falar ao seu coração.",
+        verse: "Fala, Senhor, que o teu servo ouve.",
+        type: 'PRAYER'
+      },
+      { // SEXTA: COMBATE E RENÚNCIA
+        title: "Jejum de Palavras",
+        desc: "Muitas vezes ferimos os outros com críticas 'construtivas' que só destroem. A língua é um fogo.",
+        action: "Hoje seu desafio é o jejum estrito de reclamações e críticas. Se não tiver algo que edifique para dizer sobre alguém ou sobre uma situação, escolha o silêncio de ouro. Reze por quem te irrita.",
+        verse: "Põe, Senhor, uma guarda à minha boca.",
+        type: 'SACRIFICE'
+      },
+      { // SÁBADO: CARIDADE CONCRETA
+        title: "A Mão Estendida",
+        desc: "Maria correu para servir sua prima Isabel. Nós somos chamados a sair de nós mesmos.",
+        action: "Saia de casa hoje com a meta de fazer um favor inesperado a um desconhecido. Pode ser segurar uma porta, ajudar com sacolas ou simplesmente dar um sorriso sincero a quem parece triste.",
+        verse: "Tudo o que fizestes a um destes meus irmãos menores, a mim o fizestes.",
+        type: 'RELATIONSHIP'
+      }
+    ];
+
+    // Ajustamos o título do desafio baseado na temporada litúrgica
+    const seasonTitles: Record<string, string> = {
+      lent: "Caminho de Conversão",
+      easter: "Vida Nova em Cristo",
+      advent: "Vigilância da Esperança",
+      christmas: "Alegria da Encarnação",
+      ordinary: "Santidade no Cotidiano"
     };
 
-    const currentSeason = matrix[season.id as keyof typeof matrix] || matrix.ordinary;
-    const selected = currentSeason.actions[today % currentSeason.actions.length];
+    const selected = actionsPool[dayOfWeek];
 
     return {
-        id: `challenge-${season.id}-${today}`,
-        title: currentSeason.title,
-        description: "Transformando a rotina em uma oferta viva de amor.",
-        currentAmount: 2450 + (today * 12),
-        targetAmount: 5000,
-        unit: 'atos',
-        daysLeft: 30 - (today % 30),
-        seasonColor: currentSeason.color,
-        icon: 'cross',
+        id: `global-challenge-${dayOfMonth}-${dayOfWeek}`,
+        title: seasonTitles[season.id] || "Jornada Espiritual",
+        description: "Pequenos atos que mudam o mundo e aproximam sua alma de Deus.",
+        currentAmount: 3150 + (dayOfMonth * 20),
+        targetAmount: 7000,
+        unit: 'atos de amor',
+        daysLeft: 30 - (dayOfMonth % 30),
+        seasonColor: season.color,
+        icon: 'heart',
         type: 'season',
         startDate: new Date(),
         endDate: new Date(Date.now() + 15 * 86400000),
         status: 'active',
-        participants: 1240 + today,
+        participants: 1540 + dayOfMonth,
         isUserParticipating: false,
         userContribution: 0,
-        currentDay: (today % 30) + 1,
+        currentDay: dayOfMonth,
         totalDays: 30,
         dailyTopics: [
             {
-                day: (today % 30) + 1,
+                day: dayOfMonth,
                 title: selected.title,
                 description: selected.desc,
                 isCompleted: false,
                 isLocked: false,
-                actionType: (selected as any).type || 'PRAYER',
+                actionType: selected.type as any,
                 actionContent: selected.action,
                 scripture: selected.verse
             }
@@ -134,6 +127,7 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
             console.error("Erro ao buscar desafio global no DB:", e);
         }
     }
+    // Retorna o novo Desafio Humanizado se não houver um customizado no banco
     return getDynamicHumanizedChallenge();
 };
 
@@ -350,6 +344,7 @@ export const addRoutineItem = async (userId: string, item: RoutineItem) => {
         icon: item.icon,
         time_of_day: item.timeOfDay,
         day_of_week: item.dayOfWeek,
+        // Fixed: Use item.actionLink instead of item.action_link as per RoutineItem definition
         action_link: item.actionLink || 'NONE'
     }]);
   }
