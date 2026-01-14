@@ -14,27 +14,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-});
-
-self.addEventListener('fetch', (event) => {
-  // Estratégia Stale-While-Revalidate para melhor performance
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        caches.open(CACHE_NAME).then((cache) => {
-          if (event.request.method === 'GET' && networkResponse.ok) {
-             try {
-               cache.put(event.request, networkResponse.clone());
-             } catch (e) {
-               // Ignorar erros de quota ou requests não cacheados
-             }
-          }
-        });
-        return networkResponse;
-      });
-      return cachedResponse || fetchPromise;
-    })
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -47,6 +27,36 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    })
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  // Ignorar requisições que não sejam HTTP/HTTPS (como chrome-extension://)
+  if (!event.request.url.startsWith('http')) return;
+
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        // Cachear apenas requisições bem-sucedidas do tipo GET
+        if (event.request.method === 'GET' && networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            try {
+              cache.put(event.request, responseClone);
+            } catch (e) {
+              // Silenciar erros de quota ou armazenamento
+            }
+          });
+        }
+        return networkResponse;
+      }).catch(() => {
+        // Fallback offline se a rede falhar e não houver cache
+        return cachedResponse;
+      });
+
+      return cachedResponse || fetchPromise;
     })
   );
 });

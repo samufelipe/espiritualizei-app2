@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CommunityChallenge } from '../types';
-import { Calendar, CheckCircle2, ArrowRight, Play, X, BookOpen, Trophy, Share2, Sparkles, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Clock, Loader2, Volume2, Music, Pause } from 'lucide-react';
+import { Calendar, CheckCircle2, ArrowRight, Play, X, BookOpen, Trophy, Share2, Sparkles, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Clock, Loader2, Volume2, Music, Pause, AlertCircle } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 interface LiturgicalEventsProps {
@@ -20,14 +20,15 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   const [showCompletion, setShowCompletion] = useState(false);
   const [step, setStep] = useState(0); 
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
+  const [audioError, setAudioError] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const dailyTopics = activeChallenge?.dailyTopics || [];
   const currentDayTopic = dailyTopics.find(t => t.day === activeChallenge?.currentDay) || dailyTopics[0];
 
-  // URL estável de Canto Gregoriano (Salve Regina - Domínio Público)
-  const MEDITATION_TRACK = 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Salve_Regina.ogg';
+  // URL estável de Canto Gregoriano em formato MP3 (Maior compatibilidade)
+  const MEDITATION_TRACK = 'https://www.chosic.com/wp-content/uploads/2021/07/Salve-Regina.mp3';
 
   useEffect(() => {
     if (onExpandChange) {
@@ -38,14 +39,19 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   useEffect(() => {
      if (showSession) {
         setStep(0);
+        setAudioError(false);
         document.body.style.overflow = 'hidden';
         if (contentRef.current) contentRef.current.scrollTo({ top: 0 });
         
-        // Inicializa o áudio
+        // Inicializa o áudio com MP3
         if (!audioRef.current) {
             audioRef.current = new Audio(MEDITATION_TRACK);
             audioRef.current.loop = true;
             audioRef.current.volume = 0.4;
+            audioRef.current.onerror = () => {
+                setAudioError(true);
+                setIsPlayingMusic(false);
+            };
         }
      } else {
         document.body.style.overflow = 'unset';
@@ -71,14 +77,23 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   };
 
   const handleToggleMusic = () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || audioError) return;
 
     if (isPlayingMusic) {
         audioRef.current.pause();
+        setIsPlayingMusic(false);
     } else {
-        audioRef.current.play().catch(e => console.error("Erro ao tocar música:", e));
+        audioRef.current.play()
+            .then(() => {
+                setIsPlayingMusic(true);
+                setAudioError(false);
+            })
+            .catch(e => {
+                console.error("Erro ao tocar música:", e);
+                setAudioError(true);
+                setIsPlayingMusic(false);
+            });
     }
-    setIsPlayingMusic(!isPlayingMusic);
   };
 
   const handleComplete = () => {
@@ -159,15 +174,18 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
               <div className="flex flex-col space-y-8 animate-fade-in w-full max-w-2xl mx-auto py-4">
                  <button 
                     onClick={handleToggleMusic}
-                    className={`flex items-center gap-5 p-6 rounded-[2rem] border transition-all text-left w-full group/card ${isPlayingMusic ? 'bg-white/15 border-white/40 shadow-glow' : 'bg-white/5 border-white/10 hover:bg-white/10 active:scale-95'}`}
+                    disabled={audioError}
+                    className={`flex items-center gap-5 p-6 rounded-[2rem] border transition-all text-left w-full group/card ${isPlayingMusic ? 'bg-white/15 border-white/40 shadow-glow' : 'bg-white/5 border-white/10 hover:bg-white/10 active:scale-95'} ${audioError ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
                  >
                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg transition-all ${isPlayingMusic ? 'bg-brand-violet border-brand-violet text-white scale-105' : 'bg-white/10 border-white/20 text-white'}`}>
-                       {isPlayingMusic ? <Pause className="w-8 h-8 fill-current" /> : <Music className="w-8 h-8" />}
+                       {audioError ? <AlertCircle className="w-8 h-8 text-red-400" /> : isPlayingMusic ? <Pause className="w-8 h-8 fill-current" /> : <Music className="w-8 h-8" />}
                     </div>
                     <div>
-                       <h3 className="text-2xl font-bold text-white tracking-tight">{isPlayingMusic ? 'Em Meditação...' : 'Som para Oração'}</h3>
+                       <h3 className="text-2xl font-bold text-white tracking-tight">
+                          {audioError ? 'Som Indisponível' : isPlayingMusic ? 'Em Meditação...' : 'Som para Oração'}
+                       </h3>
                        <p className="text-sm text-white/60">
-                          {isPlayingMusic ? 'Respire fundo e leia o passo abaixo.' : 'Ative o Canto Gregoriano para refletir.'}
+                          {audioError ? 'Verifique sua conexão para ouvir.' : isPlayingMusic ? 'Respire fundo e leia o passo abaixo.' : 'Ative o Canto Gregoriano para refletir.'}
                        </p>
                     </div>
                     {isPlayingMusic && (
