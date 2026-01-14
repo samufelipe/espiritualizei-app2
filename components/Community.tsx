@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PrayerIntention, CommunityChallenge, UserProfile } from '../types';
 import { Heart, Image, Trophy, Plus, Flame } from 'lucide-react';
 import LiturgicalEvents from './LiturgicalEvents';
@@ -14,6 +14,7 @@ interface CommunityProps {
   onOpenCreateModal: () => void;
   onTestify: (content: string) => void;
   feedInitialContent?: string;
+  initialTab?: 'mural' | 'feed' | 'ranking';
   user: UserProfile;
 }
 
@@ -25,9 +26,16 @@ const Community: React.FC<CommunityProps> = ({
   onOpenCreateModal, 
   onTestify, 
   feedInitialContent,
+  initialTab,
   user
 }) => {
   const [activeTab, setActiveTab] = useState<'mural' | 'feed' | 'ranking'>('mural');
+
+  useEffect(() => {
+     if (initialTab) {
+        setActiveTab(initialTab);
+     }
+  }, [initialTab]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black/20 pb-32 animate-fade-in">

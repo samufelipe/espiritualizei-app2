@@ -53,6 +53,7 @@ const App: React.FC = () => {
   const [generatedProfile, setGeneratedProfile] = useState<{ title: string; reasoning: string } | null>(null);
   const [isGeneratingRoutine, setIsGeneratingRoutine] = useState(false);
   const [feedInitialContent, setFeedInitialContent] = useState<string>(''); 
+  const [communityInitialTab, setCommunityInitialTab] = useState<'mural' | 'feed' | 'ranking'>('mural');
   const [showLiturgyModal, setShowLiturgyModal] = useState(false);
   const initializationRef = useRef(false);
 
@@ -179,7 +180,7 @@ const App: React.FC = () => {
             myIntentions={intentions.filter(i => i.author === user.name)} 
             routineItems={routineItems} 
             onToggleRoutine={handleToggleRoutine} 
-            onNavigateToCommunity={() => setCurrentTab(Tab.COMMUNITY)} 
+            onNavigateToCommunity={(tab) => { if(tab) setCommunityInitialTab(tab); setCurrentTab(Tab.COMMUNITY); }} 
             onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} 
             onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} 
             onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} 
@@ -188,6 +189,7 @@ const App: React.FC = () => {
             showLiturgyModal={showLiturgyModal} 
             setShowLiturgyModal={setShowLiturgyModal} 
             onLogout={handleLogout} 
+            onOpenIntentionModal={() => setShowIntentionModal(true)}
           />
         </Suspense>
       );
@@ -217,6 +219,7 @@ const App: React.FC = () => {
             onOpenCreateModal={() => setShowIntentionModal(true)} 
             onTestify={(c: string) => { setFeedInitialContent(c); setCurrentTab(Tab.COMMUNITY); }} 
             feedInitialContent={feedInitialContent} 
+            initialTab={communityInitialTab}
             user={user} 
           />
         </Suspense>
