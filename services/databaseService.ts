@@ -61,28 +61,71 @@ export const fetchUserRoutine = async (userId: string): Promise<RoutineItem[]> =
 const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
   const season = getSeasonDetailedInfo(date);
   const dayOfMonth = date.getDate();
-  const dayOfWeek = date.getDay(); // 0-6
 
-  // Banco de tarefas por categoria
+  // Banco de tarefas corrigido com nomes de campos oficiais (description e actionContent)
   const tasks = {
     RELATIONAL: [
-      { title: "Intercessão Amiga", desc: "Ligue para um amigo que não fala há tempo e pergunte como pode rezar por ele.", action: "Faça uma ligação ou mande um áudio pessoal hoje." },
-      { title: "Perdão Oculto", desc: "Reze um mistério do terço por alguém que te magoou profundamente.", action: "Não conte a ninguém, apenas ofereça a oração." },
-      { title: "Honra aos Pais", desc: "Faça um elogio sincero ou um gesto de serviço para seus pais ou alguém mais velho.", action: "Demonstre gratidão por quem te antecedeu." }
+      { 
+        title: "Intercessão Amiga", 
+        description: "Ligue para um amigo que não fala há tempo e pergunte como pode rezar por ele.", 
+        actionContent: "Faça uma ligação ou mande um áudio pessoal hoje.",
+        scripture: "Amigo fiel é proteção poderosa; quem o encontra, encontra um tesouro. (Eclo 6, 14)"
+      },
+      { 
+        title: "Perdão Oculto", 
+        description: "Reze um mistério do terço por alguém que te magoou profundamente.", 
+        actionContent: "Não conte a ninguém, apenas ofereça a oração com sinceridade.",
+        scripture: "Perdoai-nos as nossas ofensas, assim como nós perdoamos a quem nos tem ofendido."
+      },
+      { 
+        title: "Honra aos Pais", 
+        description: "Faça um elogio sincero ou um gesto de serviço para seus pais ou um idoso.", 
+        actionContent: "Demonstre gratidão prática por quem te antecedeu na vida.",
+        scripture: "Honra teu pai e tua mãe, para que teus dias se prolonguem na terra. (Ex 20, 12)"
+      }
     ],
     WORK_ROUTINE: [
-      { title: "Trabalho Santificado", desc: "Realize sua tarefa mais difícil hoje com perfeição e sem reclamar.", action: "Ofereça o cansaço pela conversão dos pecadores." },
-      { title: "Ordem na Mesa", desc: "Organize seu ambiente de trabalho ou casa como se estivesse preparando um altar.", action: "Deus habita na ordem e no capricho." },
-      { title: "Silêncio Heroico", desc: "Passe 1 hora do seu expediente ou rotina sem checar redes sociais ou conversas inúteis.", action: "Foque totalmente na sua missão presente." }
+      { 
+        title: "Trabalho Santificado", 
+        description: "Realize sua tarefa mais difícil hoje com perfeição e sem reclamar.", 
+        actionContent: "Ofereça o cansaço deste dever pela conversão dos pecadores.",
+        scripture: "Tudo o que fizerdes, fazei-o de bom coração, como para o Senhor. (Col 3, 23)"
+      },
+      { 
+        title: "Ordem na Mesa", 
+        description: "Organize seu ambiente de trabalho ou casa com zelo e capricho.", 
+        actionContent: "Deus habita na ordem. Transforme seu espaço em um lugar de paz.",
+        scripture: "Deus não é Deus de desordem, mas de paz. (1 Cor 14, 33)"
+      },
+      { 
+        title: "Silêncio Heroico", 
+        description: "Passe 1 hora do seu dia sem checar redes sociais ou conversas inúteis.", 
+        actionContent: "Foque totalmente na sua missão presente e no silêncio interior.",
+        scripture: "É no silêncio que Deus fala ao coração."
+      }
     ],
     PRAYER_SACRIFICE: [
-      { title: "Visita ao Rei", desc: "Passe em frente a uma Igreja e faça o sinal da cruz, ou entre por 5 minutos.", action: "Reconheça a presença real de Jesus no sacrário." },
-      { title: "Oferta do Gosto", desc: "Abstenha-se de algo que você gosta muito (café, doce, música) por amor a Deus.", action: "Fortaleça sua vontade contra os sentidos." },
-      { title: "Misericórdia Concreta", desc: "Dê um alimento ou uma palavra de esperança real para alguém em necessidade.", action: "Toque na carne sofredora de Cristo." }
+      { 
+        title: "Visita ao Rei", 
+        description: "Entre em uma Igreja por 5 minutos ou faça o sinal da cruz ao passar na frente.", 
+        actionContent: "Reconheça a presença real de Jesus no sacrário com um gesto de fé.",
+        scripture: "Vinde a mim, vós todos que estais cansados, e eu vos aliviarei. (Mt 11, 28)"
+      },
+      { 
+        title: "Oferta do Gosto", 
+        description: "Abstenha-se de algo que você gosta muito (café, doce, música) por amor.", 
+        actionContent: "Fortaleça sua vontade contra os sentidos oferecendo este jejum.",
+        scripture: "Se alguém quer vir após mim, negue-se a si mesmo. (Mt 16, 24)"
+      },
+      { 
+        title: "Misericórdia Concreta", 
+        description: "Dê um alimento ou uma palavra de esperança real para alguém necessitado.", 
+        actionContent: "Toque na carne sofredora de Cristo através do seu irmão.",
+        scripture: "O que fizestes a um destes meus irmãos pequeninos, a mim o fizestes. (Mt 25, 40)"
+      }
     ]
   };
 
-  // Seleciona tarefas baseadas no dia do mês para variar
   const getTask = (list: any[], seed: number) => list[seed % list.length];
 
   const dailyTopics: DailyTopic[] = [
@@ -103,14 +146,10 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
     }
   ];
 
-  // Ajusta o desafio baseado na temporada
-  let title = `Jornada: ${season.theme}`;
-  let description = `Um caminho de 3 dias focado em ${season.theme.toLowerCase()} no seu cotidiano.`;
-
   return {
     id: `generated-${season.id}-${dayOfMonth}`,
-    title,
-    description,
+    title: `Jornada: ${season.theme}`,
+    description: `Um caminho de 3 dias focado em ${season.theme.toLowerCase()} no seu cotidiano.`,
     currentAmount: 2450 + (dayOfMonth * 10),
     targetAmount: 10000,
     unit: 'gestos',
@@ -130,7 +169,7 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
 };
 
 /**
- * BUSCA DE DESAFIO COMUNITÁRIO (Com Garantia de Exibição)
+ * BUSCA DE DESAFIO COMUNITÁRIO (Garantia de Disponibilidade)
  */
 export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
   try {
@@ -142,7 +181,6 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
             .maybeSingle();
         
         if (data && !error) {
-            // Se o dado do Supabase existir, tentamos enriquecer ou usar o que veio
             return {
                 ...data,
                 startDate: new Date(data.start_date),
@@ -151,14 +189,11 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
         }
     }
   } catch (e) {
-    console.warn("DB offline ou erro na busca. Gerando desafio determinístico...");
+    console.warn("Gerando desafio local por falha de rede.");
   }
-
-  // RETORNO GARANTIDO: Nunca retorna null
   return generateDeterministicChallenge(new Date());
 };
 
-// ... restante das funções do databaseService ...
 export const savePartialLead = async (email: string, name: string, step: number, data: any) => {
   if (getConnectionStatus()) {
     try {
