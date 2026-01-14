@@ -21,9 +21,13 @@ const loadGoogleMaps = () => {
     ""
   ).trim();
   
-  // Se a chave for "undefined" (string), vazia ou muito curta, não carrega para evitar erro de InvalidKey
+  // Se a chave for "undefined" (string), vazia ou muito curta, avisamos mas não travamos o app
   if (!mapsKey || mapsKey === "undefined" || mapsKey.length < 10) {
-    console.warn("⚠️ Google Maps Key ausente ou inválida. Certifique-se de que VITE_GOOGLE_MAPS_KEY está configurada na Vercel e que você fez um novo Deploy.");
+    console.group("📍 Espiritualizei - Maps Status");
+    console.warn("Chave do Google Maps não configurada ou inválida.");
+    console.info("Para habilitar mapas internos, configure VITE_GOOGLE_MAPS_KEY no seu ambiente.");
+    console.info("O App usará o modo de busca externa (Fallback) automaticamente.");
+    console.groupEnd();
     return;
   }
 
@@ -41,7 +45,7 @@ const loadGoogleMaps = () => {
   script.defer = true;
   
   script.onerror = () => {
-    console.error("🚨 Erro crítico ao carregar Google Maps. Verifique restrições de HTTP Referrer no console do Google Cloud.");
+    console.error("🚨 Erro crítico ao carregar Google Maps. Verifique se a chave tem as permissões 'Maps JavaScript API' e 'Places API' ativas no Google Cloud Console.");
   };
 
   document.head.appendChild(script);
