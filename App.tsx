@@ -95,7 +95,9 @@ const App: React.FC = () => {
         
         fetchUserRoutine(session.user.id).then((db: RoutineItem[]) => db && db.length > 0 && setRoutineItems(db));
         fetchCommunityIntentions(session.user.id).then((intentionsData: PrayerIntention[]) => setIntentions(intentionsData));
-        fetchGlobalChallenge().then((global: CommunityChallenge | null) => global && setChallenges([global]));
+        fetchGlobalChallenge().then((global: CommunityChallenge | null) => {
+            if (global) setChallenges([global]);
+        });
         
       } else {
          const path = window.location.pathname;

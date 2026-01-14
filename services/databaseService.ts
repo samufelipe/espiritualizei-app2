@@ -1,6 +1,174 @@
 
 import { supabase, getConnectionStatus, getSession, safeStringify } from './authService';
-import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData, CommunityChallenge } from '../types';
+import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData, CommunityChallenge, DailyTopic } from '../types';
+import { getSeasonDetailedInfo } from './liturgyService';
+
+/**
+ * Gera um desafio humanizado baseado no tempo litúrgico atual.
+ * Agora expandido com 3 novos pilares: Família, Trabalho e Combate Espiritual.
+ */
+const getDynamicMockChallenge = (): CommunityChallenge => {
+    const season = getSeasonDetailedInfo();
+    const today = new Date().getDate();
+    
+    // Temas por Tempo Litúrgico com sub-categorias: FAMÍLIA, TRABALHO, COMBATE
+    const themes = {
+        lent: {
+            title: "Caminho do Calvário",
+            color: "#7C3AED",
+            topics: [
+                { 
+                    title: "O Silêncio na Injustiça", 
+                    desc: "Hoje, quando sentir vontade de se defender de uma pequena crítica, ofereça o silêncio por amor a Cristo.", 
+                    action: "Não responda a uma provocação hoje. Apenas sorria e reze um 'Glória ao Pai' pela pessoa.", 
+                    verse: "Jesus, porém, guardava silêncio. (Mt 26, 63)",
+                    type: 'SACRIFICE'
+                },
+                { 
+                    title: "A Mesa sem Reclamação", 
+                    desc: "A caridade começa na mesa. Hoje, aceitaremos o que nos for servido sem uma única palavra de queixa.", 
+                    action: "Coma o que estiver disponível com gratidão, mesmo que não seja sua preferência. Ofereça esse desapego.", 
+                    verse: "Dai-nos hoje o nosso pão de cada dia.",
+                    type: 'SACRIFICE'
+                },
+                { 
+                    title: "Combate: Vencer a Acedia", 
+                    desc: "A preguiça espiritual nos afasta do dever. Hoje, faremos primeiro o que mais nos custa.", 
+                    action: "Escolha a tarefa mais difícil do seu dia e comece por ela sem procrastinar. Ofereça sua fadiga.", 
+                    verse: "Tudo o que fizerdes, fazei-o de bom coração. (Col 3, 23)",
+                    type: 'SACRIFICE'
+                }
+            ]
+        },
+        easter: {
+            title: "Testemunhas da Luz",
+            color: "#F59E0B",
+            topics: [
+                { 
+                    title: "O Sorriso que Cura", 
+                    desc: "Muitas vezes guardamos a alegria da ressurreição só para nós. Hoje, seremos o consolo de alguém.", 
+                    action: "Envie uma mensagem de apoio ou ligue para aquele parente isolado. Seja a voz da esperança.", 
+                    verse: "A paz esteja convosco! (Jo 20, 19)",
+                    type: 'RELATIONSHIP'
+                }
+            ]
+        },
+        ordinary: {
+            title: "Santidade no Cotidiano",
+            color: "#059669",
+            topics: [
+                // PILAR 1: VIDA FAMILIAR
+                { 
+                    title: "Família: O Altar do Lar", 
+                    desc: "Sua casa é sua primeira igreja. Hoje, daremos o presente da nossa atenção total a quem amamos.", 
+                    action: "Ao chegar em casa ou encontrar seu cônjuge/filhos, guarde o celular. Ouça-os por 15 minutos sem interrupções.", 
+                    verse: "Sede uns para com os outros benevolentes e compassivos. (Ef 4, 32)",
+                    type: 'RELATIONSHIP'
+                },
+                // PILAR 2: TRABALHO
+                { 
+                    title: "Trabalho: O Ofício de Nazaré", 
+                    desc: "Jesus santificou o trabalho manual. Hoje, trabalharemos com a máxima excelência, como se o próprio Cristo fosse o nosso cliente.", 
+                    action: "Realize suas tarefas sem murmuração e com pontualidade extrema. Transforme sua mesa em altar.", 
+                    verse: "Qualquer coisa que fizerdes, fazei-o para a glória de Deus. (1 Cor 10, 31)",
+                    type: 'GENERIC'
+                },
+                // PILAR 3: COMBATE ESPIRITUAL
+                { 
+                    title: "Combate: A Guarda da Língua", 
+                    desc: "As palavras podem edificar ou destruir. Hoje, faremos um jejum estrito de fofoca e crítica negativa.", 
+                    action: "Se surgir um assunto sobre a vida alheia, mude de tema ou destaque uma virtude daquela pessoa. Reze um 'Ave Maria' em reparação.", 
+                    verse: "Põe, Senhor, uma guarda à minha boca. (Sl 140, 3)",
+                    type: 'SACRIFICE'
+                },
+                { 
+                    title: "A Escuta Atenta", 
+                    desc: "Vivemos distraídos. Hoje, daremos o presente da nossa atenção total a quem nos falar.", 
+                    action: "Ao conversar com alguém hoje, olhe nos olhos e ouça com o coração. Sem pressa.", 
+                    verse: "Todo homem seja pronto para ouvir, tardio para falar. (Tg 1, 19)",
+                    type: 'RELATIONSHIP'
+                },
+                { 
+                    title: "A Ordem que Pacifica", 
+                    desc: "A desordem exterior gera cansaço na alma. Vamos organizar um pequeno canto da nossa vida.", 
+                    action: "Arrume aquela gaveta ou mesa que você ignora há dias. Faça-o com dedicação total.", 
+                    verse: "Tudo se faça com ordem e decência. (1 Cor 14, 40)",
+                    type: 'GENERIC'
+                }
+            ]
+        },
+        advent: {
+            title: "Esperança que Vigia",
+            color: "#7C3AED",
+            topics: [
+                { 
+                    title: "A Doce Espera", 
+                    desc: "A ansiedade nos rouba o presente. Hoje, treinaremos a paciência nas filas e esperas.", 
+                    action: "Se encontrar uma fila, não reclame. Use o tempo para interceder pelos que estão ao seu redor.", 
+                    verse: "Minha alma espera pelo Senhor. (Sl 130, 6)",
+                    type: 'SACRIFICE'
+                }
+            ]
+        }
+    };
+
+    const currentTheme = themes[season.id as keyof typeof themes] || themes.ordinary;
+    // Seleciona o tópico baseado no dia, garantindo a rotação entre os pilares
+    const topicIndex = today % currentTheme.topics.length;
+    const selectedTopic = currentTheme.topics[topicIndex];
+
+    return {
+        id: `global-${season.id}-${today}`,
+        title: currentTheme.title,
+        description: "Pequenos atos de amor que transformam o mundo ao nosso redor.",
+        currentAmount: 1420 + (today * 10),
+        targetAmount: 5000,
+        unit: 'atos',
+        daysLeft: 30 - (today % 30),
+        seasonColor: currentTheme.color,
+        icon: 'cross',
+        type: 'season',
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 15 * 86400000),
+        status: 'active',
+        participants: 842 + today,
+        isUserParticipating: false,
+        userContribution: 0,
+        currentDay: (today % 30) + 1,
+        totalDays: 30,
+        dailyTopics: [
+            {
+                day: (today % 30) + 1,
+                title: selectedTopic.title,
+                description: selectedTopic.desc,
+                isCompleted: false,
+                isLocked: false,
+                actionType: (selectedTopic as any).type || 'PRAYER',
+                actionContent: selectedTopic.action,
+                scripture: selectedTopic.verse
+            }
+        ]
+    };
+};
+
+export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
+    if (getConnectionStatus()) {
+        try {
+            const { data, error } = await supabase!.from('global_challenges').select('*').eq('status', 'active').maybeSingle();
+            if (error) throw error;
+            if (data) return {
+                ...data,
+                startDate: new Date(data.start_date),
+                endDate: new Date(data.end_date),
+                dailyTopics: data.daily_topics
+            };
+        } catch (e) {
+            console.error("Erro ao buscar desafio global no DB:", e);
+        }
+    }
+    // Retorna o Desafio Dinâmico baseado na Liturgia e nos Pilares de Vida se o DB falhar ou estiver vazio
+    return getDynamicMockChallenge();
+};
 
 export const savePartialLead = async (email: string, name: string, step: number, data: any) => {
   if (getConnectionStatus()) {
@@ -16,24 +184,6 @@ export const savePartialLead = async (email: string, name: string, step: number,
       console.warn("Falha ao salvar lead parcial", e);
     }
   }
-};
-
-export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
-    if (getConnectionStatus()) {
-        try {
-            const { data, error } = await supabase!.from('global_challenges').select('*').eq('status', 'active').maybeSingle();
-            if (error) throw error;
-            if (data) return {
-                ...data,
-                startDate: new Date(data.start_date),
-                endDate: new Date(data.end_date),
-                dailyTopics: data.daily_topics
-            };
-        } catch (e) {
-            console.error("Erro ao buscar desafio global:", e);
-        }
-    }
-    return null;
 };
 
 export const updateLastConfessionDate = async (userId: string, date: Date) => {
