@@ -1,8 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { UserProfile, LiturgyDay, PrayerIntention, RoutineItem, CommunityPost } from '../types';
-// Fixed: Added GraduationCap to the imports from lucide-react
-import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap } from 'lucide-react';
+import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap, Quote } from 'lucide-react';
 import { generateDailyTheme, cleanAIOutput } from '../services/geminiService';
 import { fetchRealDailyLiturgy } from '../services/liturgyService';
 import { fetchCommunityPosts } from '../services/databaseService';
@@ -292,17 +291,18 @@ const Dashboard: React.FC<DashboardProps> = ({
                {nextTask && <button onClick={() => onToggleRoutine?.(nextTask.id)} className="w-10 h-10 bg-brand-violet/10 text-brand-violet rounded-full flex items-center justify-center"><Check size={20} /></button>}
             </div>
 
-            <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl min-h-[220px] flex flex-col justify-between group">
+            <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl min-h-[240px] flex flex-col justify-between group">
                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10" />
+               <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity rotate-12"><BookOpen size={100} /></div>
                <div>
                   <div className="flex items-center gap-2 mb-3">
-                     <GraduationCap size={20} className="text-purple-200" />
-                     <span className="text-[10px] font-bold uppercase tracking-widest text-purple-200">Aprenda e Partilhe</span>
+                     <Quote size={16} className="text-purple-200 fill-current" />
+                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-200">"Ninguém ama o que não conhece"</span>
                   </div>
-                  <h3 className="font-bold text-lg mb-2">Nutra sua inteligência</h3>
-                  <p className="text-purple-100 text-xs leading-relaxed opacity-90">O conhecimento da fé deve ser transbordado. Estude os tesouros da Igreja e compartilhe com um amigo.</p>
+                  <h3 className="font-black text-2xl mb-2 tracking-tight">Conhecer para Amar</h3>
+                  <p className="text-purple-100 text-xs leading-relaxed font-medium opacity-90">O amor a Deus passa pela compreensão. Mergulhe nos tesouros da Igreja e descubra a beleza escondida em cada mistério da nossa fé.</p>
                </div>
-               <button onClick={onNavigateToKnowledge} className="w-full bg-white text-brand-violet font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 mt-4 shadow-lg group-hover:scale-105 transition-transform"><BookOpen size={14} /> Abrir Biblioteca</button>
+               <button onClick={onNavigateToKnowledge} className="w-full bg-white text-brand-violet font-black py-4 rounded-2xl text-xs flex items-center justify-center gap-2 mt-6 shadow-xl group-hover:scale-[1.03] transition-all active:scale-95"><BookOpen size={14} fill="currentColor" /> Abrir Biblioteca</button>
             </div>
             
             <div className="bg-white dark:bg-[#1A1F26] rounded-[2rem] p-6 border border-slate-100 dark:border-white/5 flex flex-col gap-4">
@@ -345,7 +345,6 @@ const Dashboard: React.FC<DashboardProps> = ({
       )}
 
       {showNotifications && <NotificationCenter onClose={() => setShowNotifications(false)} />}
-      {/* Fixed: Corrected state setter to setShowContactModal */}
       {showContactModal && <ContactModal onClose={() => setShowContactModal(false)} />}
     </div>
   );
