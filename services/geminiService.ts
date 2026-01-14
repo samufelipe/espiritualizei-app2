@@ -2,7 +2,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, OnboardingData, RoutineItem, MonthlyReviewData } from '../types';
 
-// Fixed: Initialization must use process.env.API_KEY directly per guidelines
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const cleanAIOutput = (text: string): string => {
@@ -27,7 +26,6 @@ export const sendMessageToAssistant = async (message: string, user?: UserProfile
       Você é um assistente católico humilde, sábio e acolhedor.
       RESPONDA SEMPRE EM PORTUGUÊS DO BRASIL.
       Seu tom é de um irmão que caminha junto, nunca autoritário ou frio.
-      Não use negritos, hashtags ou aspas desnecessárias.
       Contexto: ${userContext}
     `;
 
@@ -39,7 +37,6 @@ export const sendMessageToAssistant = async (message: string, user?: UserProfile
 
     return cleanAIOutput(response.text || "Deus te abençoe, meu irmão.");
   } catch (error) {
-    console.error("Gemini Assistant Error:", error);
     return "Um momento de oração silenciosa. Em breve voltaremos a conversar.";
   }
 };
@@ -66,17 +63,17 @@ export const sendMessageToSpiritualDirector = async (message: string): Promise<s
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            reflection: { type: Type.STRING, description: 'Breve reflexão espiritual baseada no relato' },
-            verse: { type: Type.STRING, description: 'Versículo bíblico que ilumina este momento' }
+            reflection: { type: Type.STRING },
+            verse: { type: Type.STRING }
           },
           required: ['reflection', 'verse']
         },
-        systemInstruction: "Você é um diretor espiritual experiente. Responda apenas em JSON estruturado."
+        systemInstruction: "Você é um diretor espiritual experiente. Responda apenas em JSON."
       },
     });
     return response.text || "{}";
   } catch (error) {
-    return JSON.stringify({ reflection: "Deus olha para o seu coração com amor infinito.", verse: "Salmo 23, 1" });
+    return JSON.stringify({ reflection: "Deus olha para o seu coração.", verse: "Salmo 23, 1" });
   }
 };
 
@@ -84,32 +81,44 @@ export const generateDailyReflection = async (todaySaint: string): Promise<strin
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Gere uma frase católica curta e profunda inspirada na vida de ${todaySaint}. Máximo 20 palavras.`,
+      contents: `Gere uma frase católica curta inspirada em ${todaySaint}. Máximo 20 palavras.`,
     });
-    return cleanAIOutput(response.text || "O Senhor é o meu pastor e nada me faltará.");
+    return cleanAIOutput(response.text || "O Senhor é o meu pastor.");
   } catch (error) {
-    return "A paz de Cristo esteja sempre convosco.";
+    return "A paz de Cristo esteja convosco.";
   }
 };
 
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string, profileReasoning: string }> => {
-  const fallback = {
-    profileDescription: "Peregrino da Fé",
-    profileReasoning: "Um caminho de constância e paz para sua jornada diária.",
-    routine: [
-      { id: 'f1', title: 'Oração da Manhã', description: 'Consagrar o dia ao Senhor', xpReward: 20, completed: false, icon: 'sun' as const, timeOfDay: 'morning' as const, dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' as const },
-      { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a Palavra Viva', xpReward: 30, completed: false, icon: 'book' as const, timeOfDay: 'morning' as const, dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' as const },
-      { id: 'f3', title: 'Exame de Consciência', description: 'Revisar o dia com gratidão', xpReward: 20, completed: false, icon: 'moon' as const, timeOfDay: 'night' as const, dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' as const }
-    ]
-  };
+  const systemPrompt = `
+    Você é um Diretor Espiritual Católico. Crie uma "Regra de Vida Semanal" personalizada.
+    A rotina DEVE mudar conforme o dia da semana seguindo a tradição da Igreja:
+    - Domingo (0): Santa Missa. Preparar o coração no sábado/domingo manhã. (OPEN_MAP)
+    - Segunda (1): Almas/Fé Intelectual. Estudar conteúdo. (READ_KNOWLEDGE)
+    - Terça (2): Santos Anjos/Combate. Diálogo espiritual. (OPEN_CHAT)
+    - Quarta (3): São José/Família. Interceder por alguém. (OPEN_COMMUNITY)
+    - Quinta (4): Eucaristia/Adoração. Buscar capela. (OPEN_MAP)
+    - Sexta (5): Paixão/Penitência. Meditar o Evangelho. (READ_LITURGY)
+    - Sábado (6): Maria. Oração comunitária ou Terço. (OPEN_COMMUNITY)
 
-  const prompt = `Crie uma regra de vida espiritual para ${data.name}. Estado: ${data.stateOfLife}. Luta: ${data.primaryStruggle}. Padroeiro: ${data.patronSaint}. Retorne APENAS JSON.`;
+    LÓGICA DE PREPARAÇÃO:
+    Cada dia deve ter 1 "Ação Principal" no horário mais fácil do usuário (${data.bestMoment}) e "Tarefas de Preparo" (manhã/noite) que deem suporte a essa ação.
+    
+    Ações (actionLink): READ_LITURGY, OPEN_MAP, OPEN_COMMUNITY, OPEN_CHAT, READ_KNOWLEDGE, NONE.
+  `;
+
+  const userContext = `
+    Nome: ${data.name}. Luta: ${data.primaryStruggle}. Objetivo: ${data.spiritualGoal}. 
+    Disponibilidade: ${data.routineType}. Melhor momento: ${data.bestMoment}.
+    ${reviewData ? `Feedback: Intensidade ${reviewData.intensity}, Constância ${reviewData.consistency}.` : ''}
+  `;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
-      contents: prompt,
+      contents: userContext,
       config: { 
+        systemInstruction: systemPrompt,
         responseMimeType: 'application/json',
         responseSchema: {
           type: Type.OBJECT,
@@ -123,13 +132,14 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
                 properties: {
                   title: { type: Type.STRING },
                   description: { type: Type.STRING },
+                  detailedContent: { type: Type.STRING },
                   xpReward: { type: Type.NUMBER },
-                  icon: { type: Type.STRING, description: 'rosary, book, cross, sun, heart, church' },
+                  icon: { type: Type.STRING, description: 'rosary, book, cross, sun, heart, shield, church, moon' },
                   timeOfDay: { type: Type.STRING, description: 'morning, afternoon, night' },
                   dayOfWeek: { type: Type.ARRAY, items: { type: Type.INTEGER } },
-                  actionLink: { type: Type.STRING, description: 'READ_LITURGY, OPEN_MAP, NONE' }
+                  actionLink: { type: Type.STRING }
                 },
-                required: ["title", "description", "xpReward", "icon", "timeOfDay", "dayOfWeek"]
+                required: ["title", "description", "xpReward", "icon", "timeOfDay", "dayOfWeek", "actionLink"]
               }
             }
           },
@@ -140,12 +150,20 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
 
     const json = JSON.parse(response.text || '{}');
     return { 
-      routine: (json.routine || fallback.routine).map((i: any) => ({ ...i, id: crypto.randomUUID(), completed: false })), 
-      profileDescription: cleanAIOutput(json.profileDescription || fallback.profileDescription),
-      profileReasoning: cleanAIOutput(json.profileReasoning || fallback.profileReasoning)
+      routine: json.routine.map((i: any) => ({ ...i, id: crypto.randomUUID(), completed: false })), 
+      profileDescription: cleanAIOutput(json.profileDescription),
+      profileReasoning: cleanAIOutput(json.profileReasoning)
     };
   } catch (e) {
-    console.error("AI Routine Generation Error:", e);
-    return fallback;
+    console.error("AI Routine Error:", e);
+    return {
+      profileDescription: "Peregrino",
+      profileReasoning: "Caminho de fé.",
+      routine: [
+        { id: 'f1', title: 'Oração da Manhã', description: 'Oferta do dia', xpReward: 20, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
+        { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a Palavra', xpReward: 30, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
+        { id: 'f3', title: 'Exame de Consciência', description: 'Revisão da noite', xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' }
+      ]
+    };
   }
 };
