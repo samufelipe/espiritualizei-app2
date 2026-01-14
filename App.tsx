@@ -170,6 +170,12 @@ const App: React.FC = () => {
     setChallenges((prev: CommunityChallenge[]) => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, currentAmount: c.currentAmount + amount } : c));
   };
 
+  const handleTestifyFromChallenge = (content: string) => {
+    setFeedInitialContent(content);
+    setCommunityInitialTab('feed'); // Força a aba do Feed para aparecer o campo de texto
+    setCurrentTab(Tab.COMMUNITY);
+  };
+
   const renderContent = () => {
     const activeChallenge = challenges.find(c => c.status === 'active');
     switch (currentTab) {
@@ -217,7 +223,7 @@ const App: React.FC = () => {
             onPray={handlePray} 
             onJoinChallenge={handleJoinChallenge} 
             onOpenCreateModal={() => setShowIntentionModal(true)} 
-            onTestify={(c: string) => { setFeedInitialContent(c); setCurrentTab(Tab.COMMUNITY); }} 
+            onTestify={handleTestifyFromChallenge} 
             feedInitialContent={feedInitialContent} 
             initialTab={communityInitialTab}
             user={user} 

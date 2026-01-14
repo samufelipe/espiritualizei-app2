@@ -62,7 +62,8 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
 
   const handleShare = () => {
     if (onTestify) {
-        const text = `Venci o desafio litúrgico: "${currentDayTopic.title}".\n\nRealizei este ato concreto de amor e partilho com vocês para que possamos crescer juntos em santidade. 🙏✨`;
+        // Mensagem mais humanizada e convidativa
+        const text = `Concluí o desafio comunitário: "${currentDayTopic.title}".\n\nFoi uma experiência de... [conte aqui brevemente como foi para você]\n\nQue nossa caminhada juntos nos leve à santidade! 🙏✨`;
         onTestify(text);
         setShowCompletion(false);
     }
@@ -326,7 +327,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                   </p>
                   <div className="space-y-4">
                      <button onClick={handleShare} className="w-full py-4 rounded-2xl bg-gradient-to-r from-brand-violet to-purple-600 text-white font-bold hover:shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-brand-violet/20">
-                        <MessageCircle size={20} /> Partilhar no Mural
+                        <MessageCircle size={20} /> Compartilhar com a Comunidade
                      </button>
                      <button onClick={() => setShowCompletion(false)} className="w-full py-3 text-slate-500 text-sm font-bold hover:text-white transition-colors">
                         Apenas Concluir
