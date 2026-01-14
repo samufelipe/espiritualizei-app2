@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PrayerIntention, CommunityChallenge, UserProfile } from '../types';
-import { Heart, Image, Trophy, Plus, Flame } from 'lucide-react';
+import { Heart, Image, Trophy, Plus, Flame, Share2 } from 'lucide-react';
 import LiturgicalEvents from './LiturgicalEvents';
 import CommunityFeed from './CommunityFeed';
 import LeaderboardWidget from './LeaderboardWidget';
@@ -37,6 +37,11 @@ const Community: React.FC<CommunityProps> = ({
         setActiveTab(initialTab);
      }
   }, [initialTab, feedInitialContent]); // Depender também do conteúdo inicial ajuda no reset
+
+  const handleShareApp = () => {
+    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha rotina de oração e vida espiritual. 💜\n\nConheça aqui: https://www.espiritualizei.com/");
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black/20 pb-32 animate-fade-in">
@@ -164,7 +169,12 @@ const Community: React.FC<CommunityProps> = ({
                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
                      <h3 className="font-bold text-lg mb-2 relative z-10">Convide amigos</h3>
                      <p className="text-purple-100 text-xs mb-4 relative z-10 leading-relaxed">A fé cresce quando é partilhada. Traga alguém para caminhar com você.</p>
-                     <button className="w-full bg-white text-brand-violet font-bold py-3 rounded-xl text-xs shadow-lg hover:scale-105 transition-all">Compartilhar App</button>
+                     <button 
+                        onClick={handleShareApp}
+                        className="w-full bg-white text-brand-violet font-bold py-3 rounded-xl text-xs shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-2"
+                     >
+                        <Share2 size={14} /> Compartilhar App
+                     </button>
                   </div>
                </div>
             </div>
