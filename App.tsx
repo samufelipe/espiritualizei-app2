@@ -11,7 +11,7 @@ import DailyInspiration from './components/DailyInspiration';
 import UpdatePasswordModal from './components/UpdatePasswordModal'; 
 import MonthlyReviewModal from './components/MonthlyReviewModal'; 
 import InstallPWA from './components/InstallPWA';
-import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge } from './types';
+import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { registerUser, getSession, logoutUser, updateUserProfile } from './services/authService'; 
 import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, createJournalEntry, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge } from './services/databaseService';
@@ -25,16 +25,7 @@ const ParishFinder = lazy(() => import('./components/ParishFinder'));
 const Profile = lazy(() => import('./components/Profile'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const KnowledgeBase = lazy(() => import('./components/KnowledgeBase'));
-// Added lazy loading for SpiritualChat to handle the Tab.CHAT navigation
 const SpiritualChat = lazy(() => import('./components/SpiritualChat'));
-
-const SAINT_TRANSLATION: Record<string, string> = {
-  acutis: 'Beato Carlo Acutis', michael: 'São Miguel Arcanjo', therese: 'Santa Teresinha', joseph: 'São José', mary: 'Virgem Maria'
-};
-
-const STRUGGLE_TRANSLATION: Record<string, string> = {
-  anxiety: 'Ansiedade', laziness: 'Procrastinação', dryness: 'Aridez', lust: 'Vícios', ignorance: 'Dúvida', pride: 'Soberba', anger: 'Ira'
-};
 
 const TabLoader = () => (
   <div className="h-full w-full flex flex-col items-center justify-center animate-fade-in text-slate-400 py-20 bg-brand-dark">
@@ -65,6 +56,19 @@ const App: React.FC = () => {
   const [routineItems, setRoutineItems] = useState<RoutineItem[]>([]);
   const [intentions, setIntentions] = useState<PrayerIntention[]>([]);
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
+
+  // Verificador de Ciclo de 30 dias
+  useEffect(() => {
+    if (viewState === 'app' && user.id !== 'guest') {
+      const lastUpdate = new Date(user.lastRoutineUpdate || user.joinedDate);
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays >= 30) {
+        setShowMonthlyReview(true);
+      }
+    }
+  }, [viewState, user]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -139,6 +143,46 @@ const App: React.FC = () => {
     }
   };
 
+  const handleMonthlyReviewComplete = async (reviewData: MonthlyReviewData) => {
+      setIsGeneratingRoutine(true);
+      try {
+          // Constrói os dados para a Gemini gerar uma nova rotina otimizada
+          const onboardingData: OnboardingData = {
+              name: user.name,
+              email: user.email,
+              phone: user.phone || '',
+              stateOfLife: (user.stateOfLife || 'single') as any,
+              routineType: reviewData.intensity === 'too_heavy' ? 'overwhelmed' : 'flexible',
+              primaryStruggle: reviewData.newStruggle as any,
+              bestMoment: 'morning',
+              spiritualGoal: reviewData.newGoal as any,
+              confessionFrequency: user.confessionFrequency as any,
+              patronSaint: user.patronSaint as any
+          };
+
+          const result = await generateSpiritualRoutine(onboardingData, reviewData);
+          
+          const updatedUser: UserProfile = {
+              ...user,
+              spiritualMaturity: result.profileDescription,
+              spiritualFocus: reviewData.newStruggle,
+              spiritualGoal: reviewData.newGoal,
+              lastRoutineUpdate: new Date()
+          };
+
+          await updateUserProfile(updatedUser);
+          await saveUserRoutine(user.id, result.routine);
+          
+          setUser(updatedUser);
+          setRoutineItems(result.routine);
+          setShowMonthlyReview(false);
+      } catch (e) {
+          console.error("Erro na revisão mensal:", e);
+      } finally {
+          setIsGeneratingRoutine(false);
+      }
+  };
+
   const handleLogout = async () => {
      await logoutUser();
      setViewState('landing');
@@ -152,7 +196,7 @@ const App: React.FC = () => {
     const newStatus = !item.completed;
     const newUser = { ...user, currentXP: newStatus ? user.currentXP + item.xpReward : Math.max(0, user.currentXP - item.xpReward) };
     setUser(newUser);
-    updateUserProfile(newUser);
+    await updateUserProfile(newUser);
     setRoutineItems((prev: RoutineItem[]) => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i));
     await toggleRoutineItemStatus(id, newStatus);
   };
@@ -173,7 +217,7 @@ const App: React.FC = () => {
 
   const handleTestifyFromChallenge = (content: string) => {
     setFeedInitialContent(content);
-    setCommunityInitialTab('feed'); // Força a aba do Feed para aparecer o campo de texto
+    setCommunityInitialTab('feed'); 
     setCurrentTab(Tab.COMMUNITY);
   };
 
@@ -231,14 +275,13 @@ const App: React.FC = () => {
           />
         </Suspense>
       );
-      // Added case for CHAT tab navigation
       case Tab.CHAT: return <Suspense fallback={<TabLoader />}><SpiritualChat user={user} /></Suspense>;
       case Tab.MAPS: return <Suspense fallback={<TabLoader />}><ParishFinder /></Suspense>;
       case Tab.PROFILE: return (
         <Suspense fallback={<TabLoader />}>
           <Profile 
             user={user} 
-            onUpdateUser={(u: UserProfile) => { setUser(u); updateUserProfile(u); }} 
+            onUpdateUser={(u: UserProfile) => { setUser(u); }} 
             onLogout={handleLogout} 
           />
         </Suspense>
@@ -257,35 +300,15 @@ const App: React.FC = () => {
           {viewState === 'onboarding' && <Onboarding onComplete={handleOnboardingComplete} onBack={() => setViewState('landing')} />}
           {viewState === 'generating' && (
              <div className="min-h-screen bg-[#1A2530] flex flex-col items-center justify-center p-8 text-center animate-fade-in font-sans">
-                {isGeneratingRoutine ? (
-                   <div className="space-y-8 animate-pulse-slow">
-                      <div className="w-20 h-20 bg-brand-violet/10 rounded-full flex items-center justify-center mx-auto">
-                        <BrandLogo variant="fill" size={60} className="text-brand-violet" />
-                      </div>
-                      <div className="space-y-4">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Preparando seu caminho com carinho...</h2>
-                        <p className="text-slate-400 max-w-xs mx-auto leading-relaxed">Analisando sua realidade para sugerir pequenos passos de fé que façam sentido para você.</p>
-                      </div>
+                <div className="space-y-8 animate-pulse-slow">
+                   <div className="w-20 h-20 bg-brand-violet/10 rounded-full flex items-center justify-center mx-auto">
+                     <BrandLogo variant="fill" size={60} className="text-brand-violet" />
                    </div>
-                ) : generatedProfile && (
-                   <div className="max-w-md w-full space-y-8 animate-slide-up bg-[#242C35] p-8 sm:p-10 rounded-[2.5rem] border border-white/5 shadow-2xl">
-                        <div className="w-16 h-16 bg-brand-violet text-white rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-brand-violet/20">
-                           <Footprints size={32} />
-                        </div>
-                        <div className="space-y-3">
-                           <p className="text-[10px] font-bold text-brand-violet uppercase tracking-[0.2em]">Seu Perfil de Caminhada</p>
-                           <h1 className="text-3xl font-black text-white leading-tight">{generatedProfile.title}</h1>
-                           <div className="h-px w-12 bg-brand-violet/30 mx-auto my-4" />
-                           <p className="text-slate-300 text-sm leading-relaxed italic">"{generatedProfile.reasoning}"</p>
-                        </div>
-                        <div className="space-y-4 pt-4">
-                           <button onClick={() => { setViewState('app'); setShowTutorial(true); }} className="w-full bg-white text-brand-dark font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-100 transition-all active:scale-95 shadow-xl">
-                              Receber Minha Pequena Regra <ArrowRight size={18} />
-                           </button>
-                           <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Baseado no seu combate contra a {STRUGGLE_TRANSLATION[user.spiritualFocus || ''] || 'procrastinação'}</p>
-                        </div>
+                   <div className="space-y-4">
+                     <h2 className="text-2xl font-bold text-white tracking-tight">Recalibrando seu caminho...</h2>
+                     <p className="text-slate-400 max-w-xs mx-auto leading-relaxed">Nossa inteligência está ajustando suas orações para seu novo momento de vida.</p>
                    </div>
-                )}
+                </div>
              </div>
           )}
           {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} userName={user.name} onLogout={handleLogout} />}
@@ -300,11 +323,16 @@ const App: React.FC = () => {
              </div>
           )}
           {viewState === 'app' && (
-            <><div className="w-full max-w-[1600px] mx-auto min-h-full"><div className="h-full relative z-10 md:p-8 lg:p-10">{renderContent()}</div></div>
+            <>
+              <div className="w-full max-w-[1600px] mx-auto min-h-full">
+                <div className="h-full relative z-10 md:p-8 lg:p-10">
+                  {renderContent()}
+                </div>
+              </div>
               {showTutorial && <Tutorial user={user} onComplete={() => setShowTutorial(false)} />}
               {showDailyInspiration && !showTutorial && <DailyInspiration userName={user.name} onClose={() => setShowDailyInspiration(false)} />}
               {showUpdatePasswordModal && <UpdatePasswordModal onClose={() => setShowUpdatePasswordModal(false)} />}
-              {showMonthlyReview && <MonthlyReviewModal onClose={() => setShowMonthlyReview(false)} onComplete={() => {}} currentStruggle={user.spiritualFocus} />}
+              {showMonthlyReview && <MonthlyReviewModal onClose={() => setShowMonthlyReview(false)} onComplete={handleMonthlyReviewComplete} currentStruggle={user.spiritualFocus} />}
               {showIntentionModal && <CreateIntentionModal onClose={() => setShowIntentionModal(false)} onSubmit={handleCreateIntention} />}
               <Navigation currentTab={currentTab} onTabChange={setCurrentTab} />
             </>
