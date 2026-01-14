@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-// Added RefreshCw to the imports from lucide-react
 import { MapPin, Navigation, Star, ExternalLink, Map as MapIcon, ChevronRight, Compass, Clock, Info, MessageCircle, Car, Accessibility, Search, Church, Heart, ArrowRight, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Parish } from '../types';
 import { searchCatholicChurches } from '../services/googlePlacesService';
@@ -47,10 +46,11 @@ const ParishFinder: React.FC = () => {
         const { latitude, longitude } = position.coords;
         setUserLoc({ lat: latitude, lng: longitude });
         try {
+          // Chamada para o novo serviço baseado no SDK
           const results = await searchCatholicChurches(latitude, longitude);
           
           if (results.length === 0) {
-             setError("Nenhuma igreja encontrada neste raio de 15km. Tente se mover ou buscar no Maps.");
+             setError("Nenhuma igreja encontrada nas proximidades. Você pode tentar buscar diretamente no Google Maps.");
              setParishes([]);
           } else {
              const sorted = results.map(p => {
@@ -66,7 +66,7 @@ const ParishFinder: React.FC = () => {
           setSearched(true);
         } catch (e: any) {
           console.error("Error in ParishFinder:", e);
-          setError("Ocorreu um erro na busca. Verifique se a chave API do Google Maps está ativa e correta.");
+          setError("Não conseguimos conectar aos serviços de mapas. Verifique sua conexão ou a chave API.");
         } finally {
           setLoading(false);
         }
@@ -85,11 +85,8 @@ const ParishFinder: React.FC = () => {
   const handleTextSearch = (e: React.FormEvent) => {
      e.preventDefault();
      if(!searchQuery.trim()) return;
-     setLoading(true);
-     setTimeout(() => {
-        setLoading(false);
-        setError("A busca por texto está em manutenção. Por favor, utilize o botão de GPS para localizar igrejas ao seu redor.");
-     }, 800);
+     // Fallback: Abre o Google Maps com a busca por texto
+     window.open(`https://www.google.com/maps/search/igreja+catolica+${encodeURIComponent(searchQuery)}`, '_blank');
   };
 
   const LoadingSkeleton = () => (
@@ -147,6 +144,7 @@ const ParishFinder: React.FC = () => {
                  {loading ? <Loader2 size={18} className="animate-spin" /> : <Navigation size={18} />}
               </button>
            </form>
+           <p className="text-[10px] text-slate-400 mt-2 text-center">A busca via GPS é mais precisa para encontrar capelas próximas.</p>
         </div>
       </div>
 
@@ -187,7 +185,7 @@ const ParishFinder: React.FC = () => {
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 border border-white/20">
                        <Heart size={10} fill="currentColor" /> Essência do App
                     </div>
-                    <h2 className="text-2xl sm:text-4xl font-black mb-3 leading-tight tracking-tight drop-shadow-md">Onde dois ou três estiverem reunidos...</h2>
+                    <h2 className="text-2xl sm:text-4xl font-black mb-3 leading-tight tracking-tight">Onde dois ou três estiverem reunidos...</h2>
                     <p className="text-purple-100 text-sm sm:text-base leading-relaxed mb-8 max-w-md font-medium">
                        Encontre a comunidade mais próxima para celebrar a Santa Missa ou buscar o Sacramento da Reconciliação.
                     </p>

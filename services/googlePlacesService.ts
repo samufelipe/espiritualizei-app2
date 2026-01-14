@@ -1,88 +1,69 @@
 
 import { Parish } from '../types';
 
-const isPopulated = (val: any) => {
-  if (!val) return false;
-  const s = String(val).trim();
-  return s !== "" && s !== "undefined" && s !== "null" && !s.includes("YOUR_");
-};
+// Declaração global para evitar erros de compilação TS
+declare global {
+  interface Window {
+    google: any;
+  }
+}
 
-// Captura segura da chave injetada pelo Vite
-const getApiKey = () => {
-  const key = process.env.VITE_GOOGLE_MAPS_KEY || "";
-  return key;
-};
-
-const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
-
+/**
+ * Serviço de Busca de Igrejas Católicas utilizando o SDK oficial do Google Maps.
+ * Isso evita problemas de CORS que ocorrem em chamadas REST diretas do navegador.
+ */
 export const searchCatholicChurches = async (lat: number, lng: number): Promise<Parish[]> => {
-  const GOOGLE_MAPS_KEY = getApiKey();
-  
-  if (!isPopulated(GOOGLE_MAPS_KEY)) {
-    console.warn("⚠️ Google Maps: Chave de API não configurada ou inválida.");
-    return [];
-  }
+  return new Promise((resolve, reject) => {
+    // Acesso seguro ao objeto global google
+    const google = (window as any).google;
 
-  try {
-    const response = await fetch(BASE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': GOOGLE_MAPS_KEY,
-        // FieldMask atualizado para ser mais resiliente e completo
-        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.currentOpeningHours,places.photos,places.googleMapsUri,places.types'
-      },
-      body: JSON.stringify({
-        includedTypes: ['catholic_church'],
-        maxResultCount: 15,
-        locationRestriction: {
-          circle: {
-            center: { latitude: lat, longitude: lng },
-            radius: 15000 // Aumentado para 15km para maior abrangência
-          }
-        },
-        languageCode: 'pt-BR',
-        rankPreference: 'DISTANCE'
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("🚨 Google Places API Error Status:", response.status, errorData);
-      throw new Error(`Erro na API: ${response.status}`);
+    // Verifica se o SDK do Google foi carregado corretamente
+    if (!google || !google.maps || !google.maps.places) {
+      console.error("🚨 SDK do Google Maps não carregado ou chave inválida.");
+      return reject(new Error("Serviço de Mapas temporariamente indisponível. Verifique sua chave API."));
     }
 
-    const data = await response.json();
-    
-    if (!data.places || data.places.length === 0) {
-        console.log("ℹ️ Nenhuma igreja encontrada nas proximidades.");
-        return [];
-    }
+    try {
+      // Criamos um elemento invisível para o serviço, conforme exigência do SDK
+      const dummyElement = document.createElement('div');
+      const service = new google.maps.places.PlacesService(dummyElement);
 
-    return data.places.map((place: any) => {
-      let photoUrl = undefined;
-      if (place.photos && place.photos.length > 0) {
-        const photoName = place.photos[0].name; 
-        photoUrl = `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=400&maxWidthPx=400&key=${GOOGLE_MAPS_KEY}`;
-      }
-
-      return {
-        name: place.displayName?.text || 'Igreja Católica',
-        address: place.formattedAddress || 'Endereço não disponível',
-        location: {
-          lat: place.location.latitude,
-          lng: place.location.longitude
-        },
-        rating: place.rating,
-        userRatingsTotal: place.userRatingCount,
-        openNow: place.currentOpeningHours?.openNow,
-        url: place.googleMapsUri,
-        photoUrl: photoUrl,
-        directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${place.location.latitude},${place.location.longitude}`
+      const request: any = {
+        location: new google.maps.LatLng(lat, lng),
+        radius: 15000, // 15km para maior abrangência
+        type: ['church'],
+        keyword: 'Igreja Católica' // Filtro mais preciso por termo
       };
-    });
-  } catch (error) {
-    console.error("🚨 Falha crítica ao buscar igrejas:", error);
-    throw error;
-  }
+
+      service.nearbySearch(request, (results: any[] | null, status: any) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          const mappedResults: Parish[] = results.map((place: any) => ({
+            name: place.name || 'Igreja Católica',
+            address: place.vicinity || 'Endereço não disponível',
+            location: {
+              lat: place.geometry?.location?.lat() || lat,
+              lng: place.geometry?.location?.lng() || lng
+            },
+            rating: place.rating,
+            userRatingsTotal: place.user_ratings_total,
+            openNow: place.opening_hours?.isOpen?.(),
+            url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name || '')}&query_place_id=${place.place_id}`,
+            photoUrl: place.photos && place.photos.length > 0 ? place.photos[0].getUrl({ maxWidth: 400, maxHeight: 400 }) : undefined,
+            directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${place.geometry?.location?.lat()},${place.geometry?.location?.lng()}`
+          }));
+
+          resolve(mappedResults);
+        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+          console.log("ℹ️ Nenhuma igreja católica encontrada nesta área.");
+          resolve([]);
+        } else {
+          console.error("🚨 Erro na busca do Google Places. Status:", status);
+          reject(new Error(`Erro na API do Google: ${status}`));
+        }
+      });
+    } catch (error) {
+      console.error("🚨 Falha crítica no serviço de busca:", error);
+      reject(error);
+    }
+  });
 };
