@@ -131,6 +131,11 @@ const Dashboard: React.FC<DashboardProps> = ({
      return { gradient: 'bg-gradient-to-br from-[#7C3AED] to-[#4C1D95]', meaning: 'Conversão.', text: 'text-purple-100' };
   })();
 
+  const handleShareApp = () => {
+    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha rotina de oração e vida espiritual. 💜\n\nConheça aqui: https://espiritualizei.vercel.app");
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
   const renderSacramentAlert = () => {
     if (!user.lastConfessionAt && user.confessionFrequency !== 'never') return null;
     const diff = user.lastConfessionAt ? Math.floor((new Date().getTime() - new Date(user.lastConfessionAt).getTime()) / (1000 * 60 * 60 * 24)) : 99;
@@ -305,10 +310,10 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="bg-white dark:bg-[#1A1F26] rounded-[2rem] p-6 border border-slate-100 dark:border-white/5 flex flex-col gap-4">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center"><Users size={18} /></div>
-                    <span className="text-xs font-bold text-brand-dark dark:text-white">Amigos no Caminho</span>
+                    <span className="text-xs font-bold text-brand-dark dark:text-white">Convide um amigo</span>
                 </div>
                 <p className="text-[11px] text-slate-500">A fé cresce quando é partilhada. Traga alguém para caminhar com você no Espiritualizei.</p>
-                <button className="w-full py-3 rounded-xl border border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2"><Share2 size={12} /> Compartilhar App</button>
+                <button onClick={handleShareApp} className="w-full py-3 rounded-xl border border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2"><Share2 size={12} /> Compartilhar App</button>
             </div>
          </div>
       </div>
