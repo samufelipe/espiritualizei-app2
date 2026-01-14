@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CommunityChallenge } from '../types';
-import { Calendar, CheckCircle2, ArrowRight, Play, X, BookOpen, Trophy, Share2, Sparkles, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Clock, Loader2, Volume2, Music, Pause, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Play, X, Trophy, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Sparkles, Lightbulb, ListChecks } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 interface LiturgicalEventsProps {
@@ -19,16 +19,10 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   const [showSession, setShowSession] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [step, setStep] = useState(0); 
-  const [isPlayingMusic, setIsPlayingMusic] = useState(false);
-  const [audioError, setAudioError] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const dailyTopics = activeChallenge?.dailyTopics || [];
   const currentDayTopic = dailyTopics.find(t => t.day === activeChallenge?.currentDay) || dailyTopics[0];
-
-  // URL estável de Canto Gregoriano em formato MP3 (Maior compatibilidade)
-  const MEDITATION_TRACK = 'https://www.chosic.com/wp-content/uploads/2021/07/Salve-Regina.mp3';
 
   useEffect(() => {
     if (onExpandChange) {
@@ -39,31 +33,12 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   useEffect(() => {
      if (showSession) {
         setStep(0);
-        setAudioError(false);
         document.body.style.overflow = 'hidden';
         if (contentRef.current) contentRef.current.scrollTo({ top: 0 });
-        
-        // Inicializa o áudio com MP3
-        if (!audioRef.current) {
-            audioRef.current = new Audio(MEDITATION_TRACK);
-            audioRef.current.loop = true;
-            audioRef.current.volume = 0.4;
-            audioRef.current.onerror = () => {
-                setAudioError(true);
-                setIsPlayingMusic(false);
-            };
-        }
      } else {
         document.body.style.overflow = 'unset';
-        if (audioRef.current) {
-            audioRef.current.pause();
-            setIsPlayingMusic(false);
-        }
      }
-     return () => { 
-         document.body.style.overflow = 'unset';
-         if (audioRef.current) audioRef.current.pause();
-     };
+     return () => { document.body.style.overflow = 'unset'; };
   }, [showSession]);
 
   if (!activeChallenge || !currentDayTopic) return null;
@@ -76,28 +51,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
     }
   };
 
-  const handleToggleMusic = () => {
-    if (!audioRef.current || audioError) return;
-
-    if (isPlayingMusic) {
-        audioRef.current.pause();
-        setIsPlayingMusic(false);
-    } else {
-        audioRef.current.play()
-            .then(() => {
-                setIsPlayingMusic(true);
-                setAudioError(false);
-            })
-            .catch(e => {
-                console.error("Erro ao tocar música:", e);
-                setAudioError(true);
-                setIsPlayingMusic(false);
-            });
-    }
-  };
-
   const handleComplete = () => {
-    if (audioRef.current) audioRef.current.pause();
     onJoin(activeChallenge.id, 1); 
     setShowSession(false);
     setShowCompletion(true);
@@ -134,7 +88,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   const getStepAtmosphere = () => {
       switch(step) {
           case 0: return "from-[#1e1b4b] via-[#312e81] to-[#1e1b4b]"; 
-          case 1: return "from-[#1a2e05] via-[#365314] to-[#1a2e05]";
+          case 1: return "from-[#14532d] via-[#166534] to-[#14532d]"; // Verde musgo espiritual
           case 2: return "from-[#2e1065] via-[#4c1d95] to-[#2e1065]";
           default: return "bg-[#15191E]";
       }
@@ -172,43 +126,40 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
         case 1: 
            return (
               <div className="flex flex-col space-y-8 animate-fade-in w-full max-w-2xl mx-auto py-4">
-                 <button 
-                    onClick={handleToggleMusic}
-                    disabled={audioError}
-                    className={`flex items-center gap-5 p-6 rounded-[2rem] border transition-all text-left w-full group/card ${isPlayingMusic ? 'bg-white/15 border-white/40 shadow-glow' : 'bg-white/5 border-white/10 hover:bg-white/10 active:scale-95'} ${audioError ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
-                 >
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg transition-all ${isPlayingMusic ? 'bg-brand-violet border-brand-violet text-white scale-105' : 'bg-white/10 border-white/20 text-white'}`}>
-                       {audioError ? <AlertCircle className="w-8 h-8 text-red-400" /> : isPlayingMusic ? <Pause className="w-8 h-8 fill-current" /> : <Music className="w-8 h-8" />}
+                 <div className="flex items-center gap-4 p-5 bg-white/10 rounded-[2rem] border border-white/20 shadow-lg backdrop-blur-md">
+                    <div className="w-12 h-12 rounded-xl bg-brand-violet flex items-center justify-center text-white shrink-0 shadow-lg">
+                       <ListChecks size={24} />
                     </div>
                     <div>
-                       <h3 className="text-2xl font-bold text-white tracking-tight">
-                          {audioError ? 'Som Indisponível' : isPlayingMusic ? 'Em Meditação...' : 'Som para Oração'}
-                       </h3>
-                       <p className="text-sm text-white/60">
-                          {audioError ? 'Verifique sua conexão para ouvir.' : isPlayingMusic ? 'Respire fundo e leia o passo abaixo.' : 'Ative o Canto Gregoriano para refletir.'}
-                       </p>
+                       <h3 className="text-xl font-bold text-white tracking-tight">O que preciso fazer?</h3>
+                       <p className="text-xs text-white/60">Sua missão prática para santificar o hoje.</p>
                     </div>
-                    {isPlayingMusic && (
-                        <div className="ml-auto flex gap-1 items-end h-4 mr-2">
-                            <div className="w-1 bg-white/40 rounded-full animate-[bounce_1s_infinite]" />
-                            <div className="w-1 bg-white/60 rounded-full animate-[bounce_1.3s_infinite]" />
-                            <div className="w-1 bg-white/40 rounded-full animate-[bounce_0.8s_infinite]" />
-                        </div>
-                    )}
-                 </button>
+                 </div>
                  
-                 <div className={`bg-white/10 border border-white/20 rounded-[2.5rem] p-10 shadow-inner relative overflow-hidden backdrop-blur-md min-h-[250px] flex flex-col justify-center text-center transition-all duration-1000 ${isPlayingMusic ? 'ring-2 ring-brand-violet/30 bg-white/15' : ''}`}>
+                 <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 shadow-inner relative overflow-hidden backdrop-blur-md min-h-[220px] flex flex-col justify-center text-center">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
                     <p className="text-white text-xl md:text-3xl leading-relaxed font-black relative z-10 font-sans tracking-tight">
                        {currentDayTopic.actionContent}
                     </p>
                  </div>
-                 
-                 <div className="flex items-center justify-center gap-4 p-5 bg-black/20 rounded-2xl border border-white/5 text-center">
-                    <ShieldCheck className="w-6 h-6 text-green-400 shrink-0" />
-                    <p className="text-sm text-white/70 leading-snug font-medium">
-                       Esta ação impacta sua vida real: família, amigos e deveres diários.
-                    </p>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-black/20 p-6 rounded-3xl border border-white/5 flex flex-col gap-3">
+                       <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-widest">
+                          <Lightbulb size={16} /> Dica de Ouro
+                       </div>
+                       <p className="text-sm text-white/80 leading-relaxed">
+                          Coloque um lembrete no celular ou um post-it na sua mesa para não esquecer de realizar este gesto até o final do dia.
+                       </p>
+                    </div>
+                    <div className="bg-black/20 p-6 rounded-3xl border border-white/5 flex flex-col gap-3">
+                       <div className="flex items-center gap-2 text-green-400 font-bold text-xs uppercase tracking-widest">
+                          <ShieldCheck size={16} /> Intenção Correta
+                       </div>
+                       <p className="text-sm text-white/80 leading-relaxed">
+                          Não faça apenas por cumprir uma tarefa. Ofereça cada segundo deste esforço por uma intenção pessoal ou pela sua paróquia.
+                       </p>
+                    </div>
                  </div>
               </div>
            );
@@ -321,7 +272,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                        </div>
                     ))}
                  </div>
-                 <button onClick={() => { setShowSession(false); setIsPlayingMusic(false); }} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all shrink-0">
+                 <button onClick={() => { setShowSession(false); }} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all shrink-0">
                     <X size={24} />
                  </button>
               </div>
