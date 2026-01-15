@@ -4,6 +4,7 @@ import { Trophy, MessageCircle, Send, Flame, Zap, Crown, User, Heart, Loader2, A
 import { UserProfile } from '../types';
 import LeaderboardWidget from './LeaderboardWidget';
 import BrandLogo from './BrandLogo';
+import { fetchChatMessages, createChatMessage, updateChatMessageReaction } from '../services/databaseService';
 
 interface SocialHubProps {
   user: UserProfile;
@@ -41,7 +42,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
 
   useEffect(() => {
     if (activeSubTab === 'chat') {
-        loadMessages();
+        loadRealMessages();
     }
     
     const interval = setInterval(() => {
@@ -54,34 +55,16 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
     scrollToBottom();
   }, [messages, activeSubTab]);
 
-  const loadMessages = async () => {
-    if (messages.length > 0) return;
+  const loadRealMessages = async () => {
     setLoadingChat(true);
-    setTimeout(() => {
-        setMessages([
-            { 
-              id: '1', userId: 'bot1', userName: 'Maria Santos', userLevel: 12, text: 'Bom dia, irmãos! Que a paz de Cristo esteja com vocês hoje. 🙏', timestamp: new Date(Date.now() - 3600000), type: 'chat',
-              reactions: { heart: 5, candle: 2, pray: 8 },
-              userReactions: { heart: false, candle: false, pray: false }
-            },
-            { 
-              id: 'sys1', userId: 'sys', userName: 'Espiritualizei', userLevel: 0, text: 'Pedro Silva acabou de subir para o Nível 5! 🎊', timestamp: new Date(Date.now() - 2400000), type: 'achievement',
-              reactions: { heart: 0, candle: 0, pray: 0 },
-              userReactions: { heart: false, candle: false, pray: false }
-            },
-            { 
-              id: '2', userId: 'bot2', userName: 'João Pedro', userLevel: 8, text: 'Alguém mais está fazendo o desafio do silêncio? Tem sido incrível!', timestamp: new Date(Date.now() - 1800000), type: 'chat',
-              reactions: { heart: 3, candle: 1, pray: 4 },
-              userReactions: { heart: false, candle: false, pray: false }
-            },
-            { 
-              id: '3', userId: 'bot3', userName: 'Ana Clara', userLevel: 15, text: 'Rezem por mim, hoje tenho uma prova difícil na faculdade. Deus abençoe!', timestamp: new Date(Date.now() - 600000), type: 'chat',
-              reactions: { heart: 2, candle: 5, pray: 12 },
-              userReactions: { heart: false, candle: false, pray: false }
-            },
-        ]);
+    try {
+        const dbMessages = await fetchChatMessages();
+        setMessages(dbMessages);
+    } catch (e) {
+        console.error(e);
+    } finally {
         setLoadingChat(false);
-    }, 800);
+    }
   };
 
   const scrollToBottom = () => {
@@ -108,26 +91,32 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
         userReactions: { heart: false, candle: false, pray: false }
     };
 
-    setTimeout(() => {
-        setMessages(prev => [...prev, newMsg]);
-        setInputText('');
+    // UI Otimista
+    setMessages(prev => [...prev, newMsg]);
+    setInputText('');
+
+    try {
+        await createChatMessage(newMsg);
+    } catch (e) {
+        console.error("Falha ao salvar no banco:", e);
+    } finally {
         setIsSending(false);
-    }, 300);
+    }
   };
 
-  const handleReaction = (messageId: string, reactionType: 'heart' | 'candle' | 'pray') => {
+  const handleReaction = async (messageId: string, reactionType: 'heart' | 'candle' | 'pray') => {
+    let updatedReactions;
+
     setMessages(prev => prev.map(msg => {
       if (msg.id !== messageId) return msg;
 
       const currentReactions = { ...msg.reactions };
       const currentUserReactions = { ...msg.userReactions };
 
-      // Se o usuário clica na mesma reação que já está ativa, ele remove ela
       if (currentUserReactions[reactionType]) {
         currentReactions[reactionType]--;
         currentUserReactions[reactionType] = false;
       } else {
-        // Regra de REAÇÃO ÚNICA: desativar qualquer outra reação ativa antes de ativar a nova
         Object.keys(currentUserReactions).forEach((key) => {
           const k = key as keyof typeof currentUserReactions;
           if (currentUserReactions[k]) {
@@ -136,17 +125,21 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
           }
         });
 
-        // Ativar a nova reação
         currentReactions[reactionType]++;
         currentUserReactions[reactionType] = true;
       }
 
+      updatedReactions = currentReactions;
       return {
         ...msg,
         reactions: currentReactions,
         userReactions: currentUserReactions
       };
     }));
+
+    if (updatedReactions) {
+       await updateChatMessageReaction(messageId, updatedReactions);
+    }
   };
 
   return (
@@ -230,7 +223,6 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
            {activeSubTab === 'chat' && (
               <div className="flex-1 flex flex-col h-full bg-slate-50/30 dark:bg-brand-dark relative animate-slide-up">
                  
-                 {/* Mensagens do Chat - Padding Inferior para não sobrepor o input */}
                  <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 pb-40 no-scrollbar">
                     {loadingChat ? (
                        <div className="flex flex-col justify-center items-center h-full gap-4">
@@ -259,7 +251,6 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
 
                        return (
                           <div key={msg.id} className={`flex gap-2 sm:gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end group`}>
-                             {/* Avatar */}
                              <div className={`shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl overflow-hidden shadow-sm border-2 ${isMe ? 'border-brand-violet' : 'border-white dark:border-white/10'}`}>
                                 {msg.userAvatar ? (
                                    <img src={msg.userAvatar} className="w-full h-full object-cover" />
@@ -270,7 +261,6 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                                 )}
                              </div>
 
-                             {/* Bolha de Mensagem */}
                              <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] ${isMe ? 'items-end' : 'items-start'}`}>
                                 {!isMe && (
                                    <div className="flex items-center gap-2 mb-1 px-1">
@@ -289,7 +279,6 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                                    </span>
                                 </div>
 
-                                {/* Reações Únicas Otimizadas */}
                                 <div className={`flex flex-wrap gap-2 mt-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
                                    <button 
                                       onClick={() => handleReaction(msg.id, 'heart')}
@@ -331,7 +320,6 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                     })}
                  </div>
 
-                 {/* Input Flutuante - Acima da Nav bar no Mobile */}
                  <div className="absolute bottom-4 left-0 right-0 px-4 z-40">
                     <form onSubmit={handleSendMessage} className="max-w-2xl mx-auto bg-white/95 dark:bg-[#1A1F26]/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl p-1.5 shadow-2xl flex gap-2 items-center ring-4 ring-black/5">
                        <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">

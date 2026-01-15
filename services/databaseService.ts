@@ -4,6 +4,69 @@ import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Not
 import { getSeasonDetailedInfo } from './liturgyService';
 
 /**
+ * MENSAGENS DO CHAT DA COMUNIDADE (SOCIAL HUB)
+ */
+export const fetchChatMessages = async (): Promise<any[]> => {
+  if (getConnectionStatus()) {
+    try {
+      const { data, error } = await supabase!
+        .from('chat_messages')
+        .select('*')
+        .order('timestamp', { ascending: true })
+        .limit(100);
+      
+      if (error) throw error;
+      return (data || []).map(m => ({
+        ...m,
+        timestamp: new Date(m.timestamp),
+        // Garante que reações e userReactions venham formatados
+        reactions: m.reactions || { heart: 0, candle: 0, pray: 0 },
+        userReactions: { heart: false, candle: false, pray: false } // Será preenchido no componente com base no log do usuário
+      }));
+    } catch (e) {
+      console.error("Erro ao buscar mensagens do chat:", e);
+    }
+  }
+  return [];
+};
+
+export const createChatMessage = async (message: any) => {
+  if (getConnectionStatus()) {
+    try {
+      const { error } = await supabase!
+        .from('chat_messages')
+        .insert([{
+          id: message.id,
+          user_id: message.userId,
+          user_name: message.userName,
+          user_avatar: message.userAvatar,
+          user_level: message.userLevel,
+          text: message.text,
+          timestamp: message.timestamp.toISOString(),
+          type: message.type,
+          reactions: message.reactions
+        }]);
+      if (error) throw error;
+    } catch (e) {
+      console.error("Erro ao salvar mensagem no chat:", e);
+    }
+  }
+};
+
+export const updateChatMessageReaction = async (messageId: string, reactions: any) => {
+  if (getConnectionStatus()) {
+    try {
+      await supabase!
+        .from('chat_messages')
+        .update({ reactions })
+        .eq('id', messageId);
+    } catch (e) {
+      console.error("Erro ao atualizar reação no chat:", e);
+    }
+  }
+};
+
+/**
  * GERAÇÃO DE DESAFIOS INTERATIVOS SINCRONIZADOS (3 DIAS)
  */
 const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
@@ -426,7 +489,6 @@ export const markNotificationAsRead = async (id: string) => {
 
 /**
  * BUSCA DE RANKING REAL NO SUPABASE
- * Agora puxa diretamente dos perfis dos usuários ordenados por XP e Nível.
  */
 export const fetchLeaderboard = async (): Promise<LeaderboardData> => {
   if (!getConnectionStatus()) {
@@ -434,7 +496,6 @@ export const fetchLeaderboard = async (): Promise<LeaderboardData> => {
   }
 
   try {
-    // 1. Peregrinos Constantes (Ordenados por XP total)
     const { data: pilgrimsData, error: pError } = await supabase!
       .from('profiles')
       .select('id, name, photo_url, current_xp, level')
@@ -443,7 +504,6 @@ export const fetchLeaderboard = async (): Promise<LeaderboardData> => {
 
     if (pError) throw pError;
 
-    // 2. Intercessores (No momento usamos XP, mas em produção poderia ser uma contagem de intercessões)
     const { data: intercessorsData, error: iError } = await supabase!
       .from('profiles')
       .select('id, name, photo_url, current_xp, level')
