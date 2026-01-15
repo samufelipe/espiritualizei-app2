@@ -18,6 +18,16 @@ interface QuickMessage {
   text: string;
   timestamp: Date;
   type: 'chat' | 'achievement';
+  reactions: {
+    heart: number;
+    candle: number;
+    pray: number;
+  };
+  userReactions: {
+    heart: boolean;
+    candle: boolean;
+    pray: boolean;
+  };
 }
 
 const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
@@ -50,10 +60,26 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
     setLoadingChat(true);
     setTimeout(() => {
         setMessages([
-            { id: '1', userId: 'bot1', userName: 'Maria Santos', userLevel: 12, text: 'Bom dia, irmãos! Que a paz de Cristo esteja com vocês hoje. 🙏', timestamp: new Date(Date.now() - 3600000), type: 'chat' },
-            { id: 'sys1', userId: 'sys', userName: 'Espiritualizei', userLevel: 0, text: 'Pedro Silva acabou de subir para o Nível 5! 🎊', timestamp: new Date(Date.now() - 2400000), type: 'achievement' },
-            { id: '2', userId: 'bot2', userName: 'João Pedro', userLevel: 8, text: 'Alguém mais está fazendo o desafio do silêncio? Tem sido incrível!', timestamp: new Date(Date.now() - 1800000), type: 'chat' },
-            { id: '3', userId: 'bot3', userName: 'Ana Clara', userLevel: 15, text: 'Rezem por mim, hoje tenho uma prova difícil na faculdade. Deus abençoe!', timestamp: new Date(Date.now() - 600000), type: 'chat' },
+            { 
+              id: '1', userId: 'bot1', userName: 'Maria Santos', userLevel: 12, text: 'Bom dia, irmãos! Que a paz de Cristo esteja com vocês hoje. 🙏', timestamp: new Date(Date.now() - 3600000), type: 'chat',
+              reactions: { heart: 5, candle: 2, pray: 8 },
+              userReactions: { heart: false, candle: false, pray: false }
+            },
+            { 
+              id: 'sys1', userId: 'sys', userName: 'Espiritualizei', userLevel: 0, text: 'Pedro Silva acabou de subir para o Nível 5! 🎊', timestamp: new Date(Date.now() - 2400000), type: 'achievement',
+              reactions: { heart: 0, candle: 0, pray: 0 },
+              userReactions: { heart: false, candle: false, pray: false }
+            },
+            { 
+              id: '2', userId: 'bot2', userName: 'João Pedro', userLevel: 8, text: 'Alguém mais está fazendo o desafio do silêncio? Tem sido incrível!', timestamp: new Date(Date.now() - 1800000), type: 'chat',
+              reactions: { heart: 3, candle: 1, pray: 4 },
+              userReactions: { heart: false, candle: false, pray: false }
+            },
+            { 
+              id: '3', userId: 'bot3', userName: 'Ana Clara', userLevel: 15, text: 'Rezem por mim, hoje tenho uma prova difícil na faculdade. Deus abençoe!', timestamp: new Date(Date.now() - 600000), type: 'chat',
+              reactions: { heart: 2, candle: 5, pray: 12 },
+              userReactions: { heart: false, candle: false, pray: false }
+            },
         ]);
         setLoadingChat(false);
     }, 800);
@@ -78,7 +104,9 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
         userLevel: user.level,
         text: inputText,
         timestamp: new Date(),
-        type: 'chat'
+        type: 'chat',
+        reactions: { heart: 0, candle: 0, pray: 0 },
+        userReactions: { heart: false, candle: false, pray: false }
     };
 
     setTimeout(() => {
@@ -88,10 +116,29 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
     }, 300);
   };
 
+  const handleReaction = (messageId: string, reactionType: 'heart' | 'candle' | 'pray') => {
+    setMessages(prev => prev.map(msg => {
+      if (msg.id !== messageId) return msg;
+
+      const hasReacted = msg.userReactions[reactionType];
+      return {
+        ...msg,
+        reactions: {
+          ...msg.reactions,
+          [reactionType]: hasReacted ? msg.reactions[reactionType] - 1 : msg.reactions[reactionType] + 1
+        },
+        userReactions: {
+          ...msg.userReactions,
+          [reactionType]: !hasReacted
+        }
+      };
+    }));
+  };
+
   return (
     <div className="h-screen flex flex-col bg-[#F8FAFC] dark:bg-brand-dark animate-fade-in font-sans overflow-hidden">
       
-      {/* Header Superior - Mais elegante e funcional */}
+      {/* Cabeçalho da Aba Social */}
       <div className="shrink-0 pt-6 px-6 pb-4 bg-white dark:bg-[#1A1F26] border-b border-slate-100 dark:border-white/5 z-30">
         <div className="max-w-4xl mx-auto">
            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -100,15 +147,15 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                     <Users size={22} />
                  </div>
                  <div>
-                    <h1 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">Comunidade</h1>
+                    <h1 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">Chat da Comunidade</h1>
                     <div className="flex items-center gap-1.5">
                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{onlineCount} peregrinos online</span>
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{onlineCount} FIÉIS ONLINE AGORA</span>
                     </div>
                  </div>
               </div>
 
-              {/* Segmented Control - Estilo iOS/Moderno */}
+              {/* Segmented Control */}
               <div className="flex p-1.5 bg-slate-100 dark:bg-black/30 rounded-[1.25rem] w-full sm:w-64">
                  <button 
                     onClick={() => setActiveSubTab('ranking')}
@@ -220,7 +267,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                                       )}
                                    </div>
                                 )}
-                                <div className={`p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed relative ${
+                                <div className={`p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed relative group/msg ${
                                    isMe 
                                       ? 'bg-brand-violet text-white rounded-br-none' 
                                       : 'bg-white dark:bg-[#1A1F26] text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-white/5 rounded-bl-none shadow-md shadow-slate-200/50 dark:shadow-none'
@@ -229,6 +276,43 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                                    <span className={`block text-[8px] mt-2 opacity-50 text-right ${isMe ? 'text-white' : 'text-slate-400'}`}>
                                       {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                    </span>
+                                </div>
+
+                                {/* Reações */}
+                                <div className={`flex flex-wrap gap-1.5 mt-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                   <button 
+                                      onClick={() => handleReaction(msg.id, 'heart')}
+                                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-black transition-all active:scale-125 border ${
+                                         msg.userReactions.heart 
+                                         ? 'bg-red-50 border-red-200 text-red-500 shadow-sm' 
+                                         : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400 hover:border-red-200 hover:text-red-400'
+                                      }`}
+                                   >
+                                      <Heart size={10} fill={msg.userReactions.heart ? "currentColor" : "none"} />
+                                      {msg.reactions.heart > 0 && <span>{msg.reactions.heart}</span>}
+                                   </button>
+                                   <button 
+                                      onClick={() => handleReaction(msg.id, 'candle')}
+                                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-black transition-all active:scale-125 border ${
+                                         msg.userReactions.candle 
+                                         ? 'bg-amber-50 border-amber-200 text-amber-500 shadow-sm' 
+                                         : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400 hover:border-amber-200 hover:text-amber-400'
+                                      }`}
+                                   >
+                                      <Flame size={10} fill={msg.userReactions.candle ? "currentColor" : "none"} />
+                                      {msg.reactions.candle > 0 && <span>{msg.reactions.candle}</span>}
+                                   </button>
+                                   <button 
+                                      onClick={() => handleReaction(msg.id, 'pray')}
+                                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-black transition-all active:scale-125 border ${
+                                         msg.userReactions.pray 
+                                         ? 'bg-blue-50 border-blue-200 text-blue-500 shadow-sm' 
+                                         : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400 hover:border-blue-200 hover:text-blue-400'
+                                      }`}
+                                   >
+                                      <span>🙏</span>
+                                      {msg.reactions.pray > 0 && <span>{msg.reactions.pray}</span>}
+                                   </button>
                                 </div>
                              </div>
                           </div>
