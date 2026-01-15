@@ -141,7 +141,11 @@ const App: React.FC = () => {
       setUser(updatedUser);
       setRoutineItems(result.routine);
       await saveUserRoutine(session.user.id, result.routine);
+      
+      // FINALIZA O CARREGAMENTO E AVANÇA PARA O CHECKOUT
       setIsGeneratingRoutine(false);
+      setViewState('checkout'); 
+      
     } catch (error: any) {
       setIsGeneratingRoutine(false);
       setViewState('onboarding');
