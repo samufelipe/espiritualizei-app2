@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, MessageCircle, Send, Flame, Zap, Crown, User, Sparkles, Loader2, ArrowRight } from 'lucide-react';
+import { Trophy, MessageCircle, Send, Flame, Zap, Crown, User, Sparkles, Loader2, ArrowRight, Users, Heart, Star, ShieldCheck } from 'lucide-react';
 import { UserProfile } from '../types';
 import LeaderboardWidget from './LeaderboardWidget';
-import { supabase } from '../services/authService';
+import BrandLogo from './BrandLogo';
 
 interface SocialHubProps {
   user: UserProfile;
@@ -13,8 +13,11 @@ interface QuickMessage {
   id: string;
   userId: string;
   userName: string;
+  userAvatar?: string;
+  userLevel: number;
   text: string;
   timestamp: Date;
+  type: 'chat' | 'achievement';
 }
 
 const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
@@ -23,26 +26,34 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
+  const [onlineCount, setOnlineCount] = useState(128);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (activeSubTab === 'chat') {
         loadMessages();
     }
+    
+    // Simular variação de pessoas online
+    const interval = setInterval(() => {
+      setOnlineCount(prev => prev + (Math.random() > 0.5 ? 1 : -1));
+    }, 10000);
+    return () => clearInterval(interval);
   }, [activeSubTab]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, activeSubTab]);
 
   const loadMessages = async () => {
+    if (messages.length > 0) return;
     setLoadingChat(true);
-    // Simulação de busca no DB (Para produção, conectar à tabela 'social_chat')
     setTimeout(() => {
         setMessages([
-            { id: '1', userId: 'bot1', userName: 'Maria Santos', text: 'Bom dia, irmãos! Que a paz de Cristo esteja com vocês hoje. 🙏', timestamp: new Date(Date.now() - 3600000) },
-            { id: '2', userId: 'bot2', userName: 'João Pedro', text: 'Alguém mais está fazendo o desafio do silêncio? Tem sido incrível!', timestamp: new Date(Date.now() - 1800000) },
-            { id: '3', userId: 'bot3', userName: 'Ana Clara', text: 'Rezem por mim, hoje tenho uma prova difícil na faculdade. Deus abençoe!', timestamp: new Date(Date.now() - 600000) },
+            { id: '1', userId: 'bot1', userName: 'Maria Santos', userLevel: 12, text: 'Bom dia, irmãos! Que a paz de Cristo esteja com vocês hoje. 🙏', timestamp: new Date(Date.now() - 3600000), type: 'chat' },
+            { id: 'sys1', userId: 'sys', userName: 'Espiritualizei', userLevel: 0, text: 'Pedro Silva acabou de subir para o Nível 5! 🎊', timestamp: new Date(Date.now() - 2400000), type: 'achievement' },
+            { id: '2', userId: 'bot2', userName: 'João Pedro', userLevel: 8, text: 'Alguém mais está fazendo o desafio do silêncio? Tem sido incrível!', timestamp: new Date(Date.now() - 1800000), type: 'chat' },
+            { id: '3', userId: 'bot3', userName: 'Ana Clara', userLevel: 15, text: 'Rezem por mim, hoje tenho uma prova difícil na faculdade. Deus abençoe!', timestamp: new Date(Date.now() - 600000), type: 'chat' },
         ]);
         setLoadingChat(false);
     }, 800);
@@ -63,11 +74,13 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
         id: Date.now().toString(),
         userId: user.id,
         userName: user.name,
+        userAvatar: user.photoUrl,
+        userLevel: user.level,
         text: inputText,
-        timestamp: new Date()
+        timestamp: new Date(),
+        type: 'chat'
     };
 
-    // Mock send
     setTimeout(() => {
         setMessages(prev => [...prev, newMsg]);
         setInputText('');
@@ -76,88 +89,171 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-slate-50 dark:bg-brand-dark animate-fade-in font-sans">
+    <div className="h-screen flex flex-col bg-[#F8FAFC] dark:bg-brand-dark animate-fade-in font-sans overflow-hidden">
       
-      {/* Header Fixo */}
-      <div className="shrink-0 p-6 bg-white dark:bg-[#1A1F26] border-b border-slate-100 dark:border-white/5">
-        <div className="max-w-2xl mx-auto flex flex-col gap-4">
-           <div className="flex justify-between items-center">
-              <div>
-                 <h1 className="text-xl font-extrabold text-brand-dark dark:text-white flex items-center gap-2">
-                    <Sparkles className="text-brand-violet" size={20} /> Caminho da Fé
-                 </h1>
-                 <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-0.5">Comunidade Global</p>
+      {/* Header Superior - Mais elegante e funcional */}
+      <div className="shrink-0 pt-6 px-6 pb-4 bg-white dark:bg-[#1A1F26] border-b border-slate-100 dark:border-white/5 z-30">
+        <div className="max-w-4xl mx-auto">
+           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-2xl bg-brand-violet/10 flex items-center justify-center text-brand-violet shadow-sm">
+                    <Users size={22} />
+                 </div>
+                 <div>
+                    <h1 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">Comunidade</h1>
+                    <div className="flex items-center gap-1.5">
+                       <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{onlineCount} peregrinos online</span>
+                    </div>
+                 </div>
               </div>
-              <div className="flex bg-slate-100 dark:bg-black/20 p-1 rounded-xl">
+
+              {/* Segmented Control - Estilo iOS/Moderno */}
+              <div className="flex p-1.5 bg-slate-100 dark:bg-black/30 rounded-[1.25rem] w-full sm:w-64">
                  <button 
                     onClick={() => setActiveSubTab('ranking')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeSubTab === 'ranking' ? 'bg-white dark:bg-white/10 text-brand-violet shadow-sm' : 'text-slate-400'}`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all ${activeSubTab === 'ranking' ? 'bg-white dark:bg-[#2D333B] text-brand-violet shadow-md' : 'text-slate-500 dark:text-slate-400'}`}
                  >
-                    Ranking
+                    <Trophy size={14} fill={activeSubTab === 'ranking' ? "currentColor" : "none"} /> Ranking
                  </button>
                  <button 
                     onClick={() => setActiveSubTab('chat')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeSubTab === 'chat' ? 'bg-white dark:bg-white/10 text-brand-violet shadow-sm' : 'text-slate-400'}`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all ${activeSubTab === 'chat' ? 'bg-white dark:bg-[#2D333B] text-brand-violet shadow-md' : 'text-slate-500 dark:text-slate-400'}`}
                  >
-                    Chat Global
+                    <MessageCircle size={14} fill={activeSubTab === 'chat' ? "currentColor" : "none"} /> Chat Global
                  </button>
               </div>
            </div>
         </div>
       </div>
 
-      {/* Conteúdo Variável */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="max-w-2xl mx-auto w-full h-full flex flex-col relative">
+      {/* Área de Conteúdo principal */}
+      <div className="flex-1 overflow-hidden relative">
+        <div className="max-w-4xl mx-auto w-full h-full flex flex-col">
            
            {activeSubTab === 'ranking' && (
-              <div className="flex-1 overflow-y-auto p-6 pb-32 no-scrollbar">
-                 <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2.5rem] p-8 text-white mb-8 relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Trophy size={120} /></div>
-                    <h2 className="text-2xl font-black mb-2">Exército de Luz</h2>
-                    <p className="text-purple-100 text-sm leading-relaxed max-w-xs">Veja como a fidelidade dos seus irmãos edifica a Igreja inteira.</p>
+              <div className="flex-1 overflow-y-auto px-6 py-8 pb-32 no-scrollbar animate-slide-up">
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div className="md:col-span-2">
+                       <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-brand-violet/20 h-full flex flex-col justify-center">
+                          <div className="absolute top-[-20%] right-[-10%] opacity-10"><Trophy size={200} /></div>
+                          <div className="relative z-10">
+                             <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 border border-white/10">
+                                <Star size={10} fill="currentColor" /> Edificação da Igreja
+                             </div>
+                             <h2 className="text-3xl font-black mb-3 tracking-tight">Exército de Luz</h2>
+                             <p className="text-purple-100 text-sm leading-relaxed max-w-sm font-medium">
+                                No Espiritualizei, seu progresso é fruto da sua caridade. Veja como a fidelidade de cada um fortalece toda a nossa família de fé.
+                             </p>
+                          </div>
+                       </div>
+                    </div>
+                    
+                    <div className="bg-white dark:bg-[#1A1F26] rounded-[2.5rem] p-6 border border-slate-100 dark:border-white/5 shadow-card flex flex-col items-center text-center justify-center">
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Sua Performance</p>
+                       <div className="relative mb-3">
+                          <div className="w-16 h-16 rounded-full border-4 border-brand-violet/20 border-t-brand-violet flex items-center justify-center">
+                             <span className="text-xl font-black text-brand-dark dark:text-white">{user.level}</span>
+                          </div>
+                          <div className="absolute -top-1 -right-1 bg-brand-violet text-white p-1 rounded-full shadow-lg"><Zap size={10} fill="currentColor" /></div>
+                       </div>
+                       <p className="text-sm font-bold text-brand-dark dark:text-white">{user.currentXP} XP</p>
+                       <p className="text-[10px] text-slate-500 font-medium">Faltam {user.nextLevelXP - user.currentXP} para o Nível {user.level + 1}</p>
+                    </div>
                  </div>
+
                  <LeaderboardWidget user={user} />
               </div>
            )}
 
            {activeSubTab === 'chat' && (
-              <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#1A1F26] rounded-t-[2.5rem] mt-4 shadow-2xl border-t border-slate-100 dark:border-white/5 relative overflow-hidden">
+              <div className="flex-1 flex flex-col h-full bg-slate-50/50 dark:bg-brand-dark relative animate-slide-up">
                  
-                 {/* Mensagens */}
-                 <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 pb-24 no-scrollbar">
+                 {/* Mensagens do Chat */}
+                 <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-8 pb-32 no-scrollbar">
                     {loadingChat ? (
-                       <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin text-brand-violet" /></div>
-                    ) : messages.map((msg, idx) => (
-                       <div key={msg.id} className={`flex flex-col ${msg.userId === user.id ? 'items-end' : 'items-start'} animate-slide-up`} style={{ animationDelay: `${idx * 50}ms` }}>
-                          <div className="flex items-center gap-2 mb-1">
-                             <span className="text-[9px] font-black text-slate-400 uppercase">{msg.userName}</span>
-                             <span className="text-[8px] text-slate-300">
-                                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                             </span>
-                          </div>
-                          <div className={`max-w-[85%] p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed ${msg.userId === user.id ? 'bg-brand-violet text-white rounded-tr-none' : 'bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-white/5 rounded-tl-none'}`}>
-                             {msg.text}
-                          </div>
+                       <div className="flex flex-col justify-center items-center h-full gap-4">
+                          <Loader2 className="animate-spin text-brand-violet" size={32} />
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sintonizando frequências...</p>
                        </div>
-                    ))}
+                    ) : messages.length === 0 ? (
+                       <div className="flex flex-col items-center justify-center h-full text-center p-10 opacity-50">
+                          <MessageCircle size={60} className="text-slate-300 mb-4" />
+                          <p className="font-bold text-slate-500">A praça está em silêncio...</p>
+                          <p className="text-sm text-slate-400">Seja o primeiro a enviar uma palavra de luz!</p>
+                       </div>
+                    ) : messages.map((msg, idx) => {
+                       const isMe = msg.userId === user.id;
+                       const isSystem = msg.type === 'achievement';
+
+                       if (isSystem) {
+                          return (
+                             <div key={msg.id} className="flex justify-center my-4 animate-fade-in">
+                                <div className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 px-4 py-1.5 rounded-full flex items-center gap-2">
+                                   <Sparkles size={12} className="text-brand-violet" />
+                                   <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{msg.text}</span>
+                                </div>
+                             </div>
+                          );
+                       }
+
+                       return (
+                          <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end group`}>
+                             {/* Avatar */}
+                             <div className={`shrink-0 w-9 h-9 rounded-xl overflow-hidden shadow-sm border-2 ${isMe ? 'border-brand-violet' : 'border-white dark:border-white/10'}`}>
+                                {msg.userAvatar ? (
+                                   <img src={msg.userAvatar} className="w-full h-full object-cover" />
+                                ) : (
+                                   <div className="w-full h-full bg-slate-200 dark:bg-white/10 flex items-center justify-center font-bold text-xs text-slate-500">
+                                      {msg.userName.charAt(0)}
+                                   </div>
+                                )}
+                             </div>
+
+                             {/* Bolha de Mensagem */}
+                             <div className={`flex flex-col max-w-[80%] ${isMe ? 'items-end' : 'items-start'}`}>
+                                {!isMe && (
+                                   <div className="flex items-center gap-2 mb-1 px-1">
+                                      <span className="text-[10px] font-black text-brand-dark dark:text-white/80">{msg.userName}</span>
+                                      {msg.userLevel > 0 && (
+                                         <span className="bg-slate-100 dark:bg-white/10 text-slate-500 text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter">LVL {msg.userLevel}</span>
+                                      )}
+                                   </div>
+                                )}
+                                <div className={`p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed relative ${
+                                   isMe 
+                                      ? 'bg-brand-violet text-white rounded-br-none' 
+                                      : 'bg-white dark:bg-[#1A1F26] text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-white/5 rounded-bl-none shadow-md shadow-slate-200/50 dark:shadow-none'
+                                }`}>
+                                   {msg.text}
+                                   <span className={`block text-[8px] mt-2 opacity-50 text-right ${isMe ? 'text-white' : 'text-slate-400'}`}>
+                                      {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                   </span>
+                                </div>
+                             </div>
+                          </div>
+                       );
+                    })}
                  </div>
 
-                 {/* Input de Chat */}
-                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#1A1F26]/95 backdrop-blur-md border-t border-slate-100 dark:border-white/5 z-20">
-                    <form onSubmit={handleSendMessage} className="flex gap-2 items-center bg-slate-100 dark:bg-black/30 rounded-2xl p-1.5 shadow-inner">
+                 {/* Barra de Input Flutuante */}
+                 <div className="absolute bottom-6 left-0 right-0 px-6 z-40">
+                    <form onSubmit={handleSendMessage} className="max-w-2xl mx-auto bg-white/80 dark:bg-[#1A1F26]/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl p-2 shadow-float flex gap-2 items-center">
+                       <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">
+                          <Heart size={20} />
+                       </div>
                        <input 
                           type="text" 
                           value={inputText}
                           onChange={(e) => setInputText(e.target.value)}
                           placeholder="Envie uma palavra de luz..."
-                          className="flex-1 bg-transparent px-4 py-2.5 outline-none text-sm font-medium text-brand-dark dark:text-white"
+                          className="flex-1 bg-transparent px-2 outline-none text-sm font-medium text-brand-dark dark:text-white placeholder:text-slate-400"
                        />
                        <button 
                           disabled={!inputText.trim() || isSending}
-                          className="w-10 h-10 rounded-xl bg-brand-violet text-white flex items-center justify-center shadow-lg shadow-brand-violet/20 active:scale-95 transition-all disabled:opacity-50"
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-all active:scale-90 disabled:opacity-50 ${inputText.trim() ? 'bg-brand-violet text-white shadow-brand-violet/30' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}`}
                        >
-                          {isSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                          {isSending ? <Loader2 size={20} className="animate-spin" /> : <ArrowRight size={22} />}
                        </button>
                     </form>
                  </div>
