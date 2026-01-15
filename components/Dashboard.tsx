@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { UserProfile, LiturgyDay, PrayerIntention, RoutineItem, CommunityPost } from '../types';
-import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap, Quote, Loader2 } from 'lucide-react';
+import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap, Quote, Loader2, Crown } from 'lucide-react';
 import { generateDailyTheme, cleanAIOutput } from '../services/geminiService';
 import { fetchRealDailyLiturgy } from '../services/liturgyService';
 import { fetchCommunityPosts } from '../services/databaseService';
@@ -222,6 +222,25 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="p-4 md:p-8 pb-32 space-y-6 animate-fade-in font-sans min-h-screen relative">
+      
+      {/* Banner Premium para não assinantes */}
+      {!user.isPremium && (
+        <div 
+          onClick={onNavigateToProfile}
+          className="bg-gradient-to-r from-brand-violet to-purple-600 p-4 rounded-3xl shadow-lg flex items-center justify-between group cursor-pointer animate-slide-up relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 p-2 opacity-10 rotate-12 group-hover:scale-110 transition-transform"><Crown size={60} fill="white" /></div>
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white"><Crown size={22} fill="white" /></div>
+            <div>
+              <h4 className="text-sm font-black text-white">Libere o acesso completo</h4>
+              <p className="text-[10px] font-bold text-white/80 uppercase tracking-widest">Clique aqui e conheça o plano premium</p>
+            </div>
+          </div>
+          <ArrowRight size={20} className="text-white group-hover:translate-x-1 transition-transform" />
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={onNavigateToProfile}> 
           <div className="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-white/20 shadow-sm overflow-hidden transition-all group-hover:border-brand-violet p-0.5">

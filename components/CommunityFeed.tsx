@@ -36,7 +36,7 @@ const CommunityFeed: React.FC<CommunityFeedProps> = ({ user, initialContent }) =
     
     const interval = setInterval(() => {
        if (!loading && posts.length > 0 && Math.random() > 0.8) {
-          setNewPostsAvailable(prev => prev + 1);
+          setNewPostsAvailable(prev => prev + (Math.random() > 0.5 ? 1 : -1));
        }
     }, 30000);
 
@@ -107,9 +107,28 @@ const CommunityFeed: React.FC<CommunityFeedProps> = ({ user, initialContent }) =
     setIsPosting(false);
   };
 
-  const handleLike = async (id: string) => {
-    setPosts(prev => prev.map(p => p.id === id ? { ...p, likesCount: p.isLikedByUser ? p.likesCount - 1 : p.likesCount + 1, isLikedByUser: !p.isLikedByUser } : p));
-    await togglePostLike(id);
+  // Lógica de Like Otimizada e Persistente
+  const handleLike = async (postId: string) => {
+    // Atualização Otimista da UI
+    setPosts(prevPosts => prevPosts.map(post => {
+      if (post.id === postId) {
+        const currentlyLiked = post.isLikedByUser;
+        return {
+          ...post,
+          isLikedByUser: !currentlyLiked,
+          likesCount: currentlyLiked ? Math.max(0, post.likesCount - 1) : post.likesCount + 1
+        };
+      }
+      return post;
+    }));
+
+    try {
+      // Persistência real no Supabase
+      await togglePostLike(postId);
+    } catch (e) {
+      console.error("Erro ao processar like:", e);
+      // Rollback opcional em caso de erro crítico (não implementado para não quebrar o fluxo UX)
+    }
   };
 
   const handleAddComment = async (text: string) => {
@@ -140,7 +159,7 @@ const CommunityFeed: React.FC<CommunityFeedProps> = ({ user, initialContent }) =
                 onClick={handleRefresh}
                 className="pointer-events-auto bg-brand-violet text-white px-6 py-3 rounded-full shadow-2xl animate-bounce-in flex items-center gap-2 text-sm font-black ring-4 ring-brand-dark/20 border border-white/10 transition-transform active:scale-95"
              >
-                <ArrowUp size={16} strokeWidth={3} /> {newPostsAvailable} novas luzes no caminho
+                <ArrowUp size={16} strokeWidth={3} /> {newPostsAvailable} novas interações
              </button>
           </div>
        )}
@@ -232,29 +251,35 @@ const CommunityFeed: React.FC<CommunityFeedProps> = ({ user, initialContent }) =
                       </div>
                    )}
 
-                   <div className="flex items-center gap-6 pt-4 border-t border-slate-50 dark:border-white/5">
+                   <div className="flex items-center gap-4 pt-4 border-t border-slate-50 dark:border-white/5">
+                      {/* Botão de Like com Contador e Ícone de Coração */}
                       <button 
                         onClick={() => handleLike(post.id)}
-                        className={`flex items-center gap-2 text-xs font-bold transition-all px-4 py-2 rounded-xl transition-all ${
-                          post.isLikedByUser ? 'text-red-500 bg-red-500/5 shadow-inner' : 'text-slate-400 hover:text-red-500 hover:bg-slate-50 dark:hover:bg-white/5'
+                        className={`flex items-center gap-2 text-xs font-black transition-all px-4 py-2.5 rounded-2xl active:scale-125 ${
+                          post.isLikedByUser 
+                            ? 'text-rose-500 bg-rose-500/10 shadow-inner ring-1 ring-rose-500/20' 
+                            : 'text-slate-400 hover:text-rose-500 hover:bg-rose-500/5'
                         }`}
                       >
                          <Heart 
-                           size={20} 
+                           size={22} 
                            fill={post.isLikedByUser ? "currentColor" : "none"} 
-                           className={post.isLikedByUser ? 'scale-110' : ''} 
+                           strokeWidth={post.isLikedByUser ? 0 : 2.5}
+                           className={`transition-all duration-300 ${post.isLikedByUser ? 'scale-110 drop-shadow-sm' : ''}`} 
                          />
                          <span>{post.likesCount}</span>
                       </button>
+
                       <button 
                          onClick={() => setActivePostId(post.id)}
-                         className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-brand-violet hover:bg-slate-50 dark:hover:bg-white/5 px-4 py-2 rounded-xl transition-all"
+                         className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-brand-violet hover:bg-brand-violet/5 px-4 py-2.5 rounded-2xl transition-all"
                       >
-                         <MessageCircle size={20} />
+                         <MessageCircle size={22} strokeWidth={2.5} />
                          <span>{post.commentsCount}</span>
                       </button>
-                      <button className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-brand-violet hover:bg-slate-50 dark:hover:bg-white/5 px-4 py-2 rounded-xl transition-all ml-auto">
-                         <Share2 size={20} />
+
+                      <button className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-500 hover:bg-blue-500/5 px-4 py-2.5 rounded-2xl transition-all ml-auto">
+                         <Share2 size={20} strokeWidth={2.5} />
                       </button>
                    </div>
                 </div>

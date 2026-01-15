@@ -11,6 +11,7 @@ import DailyInspiration from './components/DailyInspiration';
 import UpdatePasswordModal from './components/UpdatePasswordModal'; 
 import MonthlyReviewModal from './components/MonthlyReviewModal'; 
 import InstallPWA from './components/InstallPWA';
+import Paywall from './components/Paywall';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { registerUser, getSession, logoutUser, updateUserProfile } from './services/authService'; 
@@ -219,7 +220,6 @@ const App: React.FC = () => {
     if (!intention) return;
 
     const isLiking = !intention.isPrayedByUser;
-    // RECOMPENSA DE XP REAL: +10 XP por interceder (conforme info do widget)
     const xpReward = 10;
     const newUser = { ...user, currentXP: isLiking ? user.currentXP + xpReward : Math.max(0, user.currentXP - xpReward) };
     
@@ -242,6 +242,17 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     const activeChallenge = challenges.find(c => c.status === 'active');
+    
+    // Lógica de Proteção Paywall
+    const needsPremium = (currentTab === Tab.KNOWLEDGE || currentTab === Tab.SOCIAL);
+    if (needsPremium && !user.isPremium) {
+       return (
+          <div className="flex items-center justify-center p-6 pt-12 md:pt-0 h-full">
+            <Paywall onCheckout={() => setViewState('checkout')} />
+          </div>
+       );
+    }
+
     switch (currentTab) {
       case Tab.DASHBOARD: return (
         <Suspense fallback={<TabLoader />}>
