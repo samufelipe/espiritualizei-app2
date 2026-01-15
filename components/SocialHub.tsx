@@ -36,7 +36,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
-  const [onlineCount, setOnlineCount] = useState(128);
+  const [onlineCount, setOnlineCount] = useState(133);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,7 +115,6 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
     }, 300);
   };
 
-  // LÓGICA DE REAÇÃO ÚNICA: O usuário só pode ter uma reação ativa por mensagem
   const handleReaction = (messageId: string, reactionType: 'heart' | 'candle' | 'pray') => {
     setMessages(prev => prev.map(msg => {
       if (msg.id !== messageId) return msg;
@@ -123,12 +122,12 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
       const currentReactions = { ...msg.reactions };
       const currentUserReactions = { ...msg.userReactions };
 
-      // Se já estava selecionado, apenas desmarca
+      // Se o usuário clica na mesma reação que já está ativa, ele remove ela
       if (currentUserReactions[reactionType]) {
         currentReactions[reactionType]--;
         currentUserReactions[reactionType] = false;
       } else {
-        // Remove a reação anterior se existir (Regra de Reação Única)
+        // Regra de REAÇÃO ÚNICA: desativar qualquer outra reação ativa antes de ativar a nova
         Object.keys(currentUserReactions).forEach((key) => {
           const k = key as keyof typeof currentUserReactions;
           if (currentUserReactions[k]) {
@@ -137,7 +136,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
           }
         });
 
-        // Adiciona a nova
+        // Ativar a nova reação
         currentReactions[reactionType]++;
         currentUserReactions[reactionType] = true;
       }
@@ -158,20 +157,20 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
         <div className="max-w-4xl mx-auto flex flex-col gap-4">
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-2xl bg-brand-violet/10 flex items-center justify-center text-brand-violet shrink-0">
+                 <div className="w-10 h-10 rounded-2xl bg-brand-violet/10 flex items-center justify-center text-brand-violet shrink-0 shadow-sm">
                     <Users size={22} />
                  </div>
                  <div className="min-w-0">
                     <h1 className="text-lg sm:text-xl font-black text-brand-dark dark:text-white tracking-tight truncate">Chat da Comunidade</h1>
                     <div className="flex items-center gap-1.5">
                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{onlineCount} FIÉIS ONLINE AGORA</span>
+                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">{onlineCount} FIÉIS ONLINE AGORA</span>
                     </div>
                  </div>
               </div>
            </div>
 
-           {/* Segmented Control - Mais largo no mobile para precisão de toque */}
+           {/* Segmented Control */}
            <div className="flex p-1 bg-slate-100 dark:bg-black/30 rounded-2xl w-full max-w-sm mx-auto sm:mx-0">
               <button 
                  onClick={() => setActiveSubTab('ranking')}
@@ -231,11 +230,12 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
            {activeSubTab === 'chat' && (
               <div className="flex-1 flex flex-col h-full bg-slate-50/30 dark:bg-brand-dark relative animate-slide-up">
                  
+                 {/* Mensagens do Chat - Padding Inferior para não sobrepor o input */}
                  <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 pb-40 no-scrollbar">
                     {loadingChat ? (
                        <div className="flex flex-col justify-center items-center h-full gap-4">
                           <Loader2 className="animate-spin text-brand-violet" size={32} />
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Invocando o Espírito Santo...</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sintonizando fraternidade...</p>
                        </div>
                     ) : messages.length === 0 ? (
                        <div className="flex flex-col items-center justify-center h-full text-center p-10 opacity-50">
@@ -249,7 +249,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                        if (isSystem) {
                           return (
                              <div key={msg.id} className="flex justify-center my-4 animate-fade-in px-4">
-                                <div className="bg-white/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 px-4 py-1.5 rounded-full flex items-center gap-2">
+                                <div className="bg-white/80 dark:bg-white/5 border border-slate-100 dark:border-white/5 px-4 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
                                    <Heart size={10} className="text-brand-violet" fill="currentColor" />
                                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 text-center">{msg.text}</span>
                                 </div>
@@ -259,10 +259,18 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
 
                        return (
                           <div key={msg.id} className={`flex gap-2 sm:gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end group`}>
+                             {/* Avatar */}
                              <div className={`shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl overflow-hidden shadow-sm border-2 ${isMe ? 'border-brand-violet' : 'border-white dark:border-white/10'}`}>
-                                {msg.userAvatar ? <img src={msg.userAvatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-200 dark:bg-white/10 flex items-center justify-center font-bold text-xs text-slate-500">{msg.userName.charAt(0)}</div>}
+                                {msg.userAvatar ? (
+                                   <img src={msg.userAvatar} className="w-full h-full object-cover" />
+                                ) : (
+                                   <div className="w-full h-full bg-slate-200 dark:bg-white/10 flex items-center justify-center font-bold text-xs text-slate-500">
+                                      {msg.userName.charAt(0)}
+                                   </div>
+                                )}
                              </div>
 
+                             {/* Bolha de Mensagem */}
                              <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] ${isMe ? 'items-end' : 'items-start'}`}>
                                 {!isMe && (
                                    <div className="flex items-center gap-2 mb-1 px-1">
@@ -271,7 +279,9 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                                    </div>
                                 )}
                                 <div className={`p-3 sm:p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed relative ${
-                                   isMe ? 'bg-brand-violet text-white rounded-br-none' : 'bg-white dark:bg-[#1A1F26] text-slate-700 dark:text-slate-200 border border-slate-50 dark:border-white/5 rounded-bl-none'
+                                   isMe 
+                                      ? 'bg-brand-violet text-white rounded-br-none' 
+                                      : 'bg-white dark:bg-[#1A1F26] text-slate-700 dark:text-slate-200 border border-slate-50 dark:border-white/5 rounded-bl-none shadow-md shadow-slate-200/40'
                                 }`}>
                                    {msg.text}
                                    <span className={`block text-[8px] mt-1.5 opacity-40 text-right ${isMe ? 'text-white' : 'text-slate-400'}`}>
@@ -279,26 +289,41 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                                    </span>
                                 </div>
 
-                                {/* Reações Otimizadas p/ Mobile */}
+                                {/* Reações Únicas Otimizadas */}
                                 <div className={`flex flex-wrap gap-2 mt-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                   {[
-                                     { type: 'heart', icon: Heart, label: 'Amei', color: 'red' },
-                                     { type: 'candle', icon: Flame, label: 'Vela', color: 'amber' },
-                                     { type: 'pray', icon: '🙏', label: 'Oração', color: 'blue' }
-                                   ].map((react) => (
-                                     <button 
-                                       key={react.type}
-                                       onClick={() => handleReaction(msg.id, react.type as any)}
-                                       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-black transition-all active:scale-125 border ${
-                                          msg.userReactions[react.type as keyof typeof msg.userReactions]
-                                          ? `bg-${react.color}-50 border-${react.color}-200 text-${react.color}-500 shadow-sm` 
-                                          : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400'
-                                       }`}
-                                     >
-                                       {typeof react.icon === 'string' ? <span>{react.icon}</span> : <react.icon size={12} fill={msg.userReactions[react.type as keyof typeof msg.userReactions] ? "currentColor" : "none"} />}
-                                       {msg.reactions[react.type as keyof typeof msg.reactions] > 0 && <span>{msg.reactions[react.type as keyof typeof msg.reactions]}</span>}
-                                     </button>
-                                   ))}
+                                   <button 
+                                      onClick={() => handleReaction(msg.id, 'heart')}
+                                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-black transition-all active:scale-125 border shadow-sm ${
+                                         msg.userReactions.heart 
+                                         ? 'bg-red-50 border-red-200 text-red-500' 
+                                         : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400'
+                                      }`}
+                                   >
+                                      <Heart size={12} fill={msg.userReactions.heart ? "currentColor" : "none"} />
+                                      {msg.reactions.heart > 0 && <span>{msg.reactions.heart}</span>}
+                                   </button>
+                                   <button 
+                                      onClick={() => handleReaction(msg.id, 'candle')}
+                                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-black transition-all active:scale-125 border shadow-sm ${
+                                         msg.userReactions.candle 
+                                         ? 'bg-amber-50 border-amber-200 text-amber-500' 
+                                         : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400'
+                                      }`}
+                                   >
+                                      <Flame size={12} fill={msg.userReactions.candle ? "currentColor" : "none"} />
+                                      {msg.reactions.candle > 0 && <span>{msg.reactions.candle}</span>}
+                                   </button>
+                                   <button 
+                                      onClick={() => handleReaction(msg.id, 'pray')}
+                                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-black transition-all active:scale-125 border shadow-sm ${
+                                         msg.userReactions.pray 
+                                         ? 'bg-blue-50 border-blue-200 text-blue-500' 
+                                         : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400'
+                                      }`}
+                                   >
+                                      <span className="text-xs">🙏</span>
+                                      {msg.reactions.pray > 0 && <span>{msg.reactions.pray}</span>}
+                                   </button>
                                 </div>
                              </div>
                           </div>
@@ -306,7 +331,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                     })}
                  </div>
 
-                 {/* Input Flutuante Otimizado Mobile - Acima da Nav bar */}
+                 {/* Input Flutuante - Acima da Nav bar no Mobile */}
                  <div className="absolute bottom-4 left-0 right-0 px-4 z-40">
                     <form onSubmit={handleSendMessage} className="max-w-2xl mx-auto bg-white/95 dark:bg-[#1A1F26]/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl p-1.5 shadow-2xl flex gap-2 items-center ring-4 ring-black/5">
                        <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">
