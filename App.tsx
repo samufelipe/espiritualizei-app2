@@ -25,7 +25,6 @@ const SocialHub = lazy(() => import('./components/SocialHub'));
 const Profile = lazy(() => import('./components/Profile'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const KnowledgeBase = lazy(() => import('./components/KnowledgeBase'));
-const SpiritualChat = lazy(() => import('./components/SpiritualChat'));
 
 const TabLoader = () => (
   <div className="h-full w-full flex flex-col items-center justify-center animate-fade-in text-slate-400 py-20 bg-brand-dark">
@@ -142,7 +141,6 @@ const App: React.FC = () => {
       setRoutineItems(result.routine);
       await saveUserRoutine(session.user.id, result.routine);
       
-      // FINALIZA O CARREGAMENTO E AVANÇA PARA O CHECKOUT
       setIsGeneratingRoutine(false);
       setViewState('checkout'); 
       
@@ -245,7 +243,7 @@ const App: React.FC = () => {
             onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} 
             onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} 
             onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} 
-            onNavigateToMaps={() => setCurrentTab(Tab.SOCIAL)} 
+            onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} 
             onSaveJournal={(mood, content, refl, vers) => createJournalEntry(user.id, mood, content, refl, vers)} 
             showLiturgyModal={showLiturgyModal} 
             setShowLiturgyModal={setShowLiturgyModal} 
@@ -263,7 +261,7 @@ const App: React.FC = () => {
             onAdd={(t: string, d: string) => addRoutineItem(user.id, { id: crypto.randomUUID(), title: t, description: d, xpReward: 10, completed: false, icon: 'heart', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] })} 
             onDelete={(id: string) => deleteRoutineItem(id)} 
             onNavigate={(t: Tab) => setCurrentTab(t)} 
-            onOpenMaps={() => setCurrentTab(Tab.SOCIAL)} 
+            onOpenSocial={() => setCurrentTab(Tab.SOCIAL)} 
             onOpenLiturgy={() => { setCurrentTab(Tab.DASHBOARD); setTimeout(() => setShowLiturgyModal(true), 100); }} 
             onOpenPlayer={() => { }} 
           />
@@ -285,7 +283,6 @@ const App: React.FC = () => {
           />
         </Suspense>
       );
-      case Tab.CHAT: return <Suspense fallback={<TabLoader />}><SpiritualChat user={user} /></Suspense>;
       case Tab.SOCIAL: return <Suspense fallback={<TabLoader />}><SocialHub user={user} /></Suspense>;
       case Tab.PROFILE: return (
         <Suspense fallback={<TabLoader />}>

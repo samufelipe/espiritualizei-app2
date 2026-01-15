@@ -353,6 +353,9 @@ export const createJournalEntry = async (userId: string, mood: string, content: 
 };
 
 export const fetchCommunityPosts = async (page: number = 0, pageSize: number = 10): Promise<CommunityPost[]> => {
+  const session = getSession();
+  const userId = session?.user?.id;
+
   if (getConnectionStatus()) {
     try {
         const from = page * pageSize;
@@ -360,7 +363,11 @@ export const fetchCommunityPosts = async (page: number = 0, pageSize: number = 1
 
         const { data, error } = await supabase!
           .from('posts')
-          .select('*, comments(*)')
+          .select(`
+            *,
+            comments(*),
+            post_likes!left(user_id)
+          `)
           .order('timestamp', { ascending: false })
           .range(from, to);
           
@@ -374,7 +381,7 @@ export const fetchCommunityPosts = async (page: number = 0, pageSize: number = 1
             imageUrl: p.image_url,
             likesCount: p.likes_count,
             commentsCount: p.comments_count,
-            isLikedByUser: false,
+            isLikedByUser: userId ? p.post_likes?.some((l: any) => l.user_id === userId) : false,
             timestamp: new Date(p.timestamp),
             type: p.type || 'testimony',
             comments: (p.comments || []).map((c: any) => ({ 

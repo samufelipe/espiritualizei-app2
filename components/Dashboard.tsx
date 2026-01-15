@@ -18,7 +18,7 @@ interface DashboardProps {
   onNavigateToRoutine: () => void; 
   onNavigateToKnowledge: () => void;
   onNavigateToProfile: () => void;
-  onNavigateToMaps: () => void;
+  onNavigateToSocial: () => void;
   onSaveJournal: (mood: string, content: string, reflection?: string, verse?: string) => void;
   showLiturgyModal: boolean;
   setShowLiturgyModal: (show: boolean) => void;
@@ -26,7 +26,7 @@ interface DashboardProps {
   onOpenIntentionModal: () => void;
 }
 
-type WidgetId = 'liturgyHero' | 'prayerIncentives' | 'communityPreview' | 'quickActions' | 'progressSummary' | 'sacramentAlert';
+type WidgetId = 'liturgyHero' | 'prayerIncentives' | 'communityPreview' | 'quickActions' | 'progressSummary';
 
 interface WidgetConfig {
   id: WidgetId;
@@ -34,7 +34,6 @@ interface WidgetConfig {
 }
 
 const DEFAULT_WIDGET_ORDER: WidgetConfig[] = [
-  { id: 'sacramentAlert', isVisible: true },
   { id: 'liturgyHero', isVisible: true },
   { id: 'prayerIncentives', isVisible: true },
   { id: 'communityPreview', isVisible: true },
@@ -51,7 +50,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   onNavigateToRoutine, 
   onNavigateToKnowledge, 
   onNavigateToProfile,
-  onNavigateToMaps,
+  onNavigateToSocial,
   showLiturgyModal,
   setShowLiturgyModal,
   onLogout,
@@ -67,7 +66,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [isLiturgyLoading, setIsLiturgyLoading] = useState(true);
   
   const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>(() => {
-    const saved = localStorage.getItem('dashboard_widgets_v8'); 
+    const saved = localStorage.getItem('dashboard_widgets_v9'); 
     return saved ? JSON.parse(saved) : DEFAULT_WIDGET_ORDER;
   });
   
@@ -98,7 +97,6 @@ const Dashboard: React.FC<DashboardProps> = ({
             if (isMounted) setIsLiturgyLoading(false);
         }
         
-        // Fetch last 3 posts
         const posts = await fetchCommunityPosts(0, 3);
         if (isMounted) {
             setRecentPosts(posts);
@@ -132,32 +130,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   })();
 
   const handleShareApp = () => {
-    // Purple heart emoji used: 💜
     const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha rotina de oração e vida espiritual. 💜\n\nConheça aqui: https://www.espiritualizei.com/");
     window.open(`https://wa.me/?text=${text}`, '_blank');
-  };
-
-  const renderSacramentAlert = () => {
-    if (!user.lastConfessionAt && user.confessionFrequency !== 'never') return null;
-    const diff = user.lastConfessionAt ? Math.floor((new Date().getTime() - new Date(user.lastConfessionAt).getTime()) / (1000 * 60 * 60 * 24)) : 99;
-    
-    if (diff < 30 && user.confessionFrequency !== 'never') return null;
-
-    return (
-        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 animate-slide-up mb-6 group cursor-pointer hover:bg-white/10 transition-all" onClick={onNavigateToMaps}>
-            <div className="w-12 h-12 rounded-2xl bg-brand-violet/10 flex items-center justify-center text-brand-violet shrink-0 shadow-lg group-hover:scale-110 transition-transform">
-                <Shield size={24} />
-            </div>
-            <div className="flex-1">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Vida Sacramental</p>
-                <h4 className="text-sm font-bold text-white leading-tight">Que tal o abraço da Misericórdia?</h4>
-                <p className="text-[11px] text-slate-500 mt-1">Busque um horário de confissão próximo a você.</p>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-brand-violet group-hover:text-white transition-all">
-                <ArrowRight size={16} />
-            </div>
-        </div>
-    );
   };
 
   const renderPrayerIncentives = () => (
@@ -211,7 +185,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
         ) : (
             <div className="space-y-4">
-                {recentPosts.map((post, idx) => (
+                {recentPosts.map((post) => (
                     <div key={post.id} onClick={() => onNavigateToCommunity('feed')} className="flex gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-[1.5rem] cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-transparent hover:border-slate-200 dark:hover:border-white/10 group">
                         <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-white/10 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden shadow-sm">
                             {post.userAvatar ? <img src={post.userAvatar} className="w-full h-full object-cover" /> : post.userName.charAt(0)}
@@ -224,11 +198,6 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 <span className="text-[10px] text-slate-400 flex items-center gap-1"><MessageSquare size={10} /> {post.commentsCount}</span>
                             </div>
                         </div>
-                        {post.imageUrl && (
-                            <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 shadow-sm border border-white/10">
-                                <img src={post.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                            </div>
-                        )}
                     </div>
                 ))}
             </div>
@@ -268,7 +237,6 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
          <div className="md:col-span-8 flex flex-col gap-6">
-            {widgetConfig.find(w => w.id === 'sacramentAlert')?.isVisible && renderSacramentAlert()}
             {widgetConfig.find(w => w.id === 'liturgyHero')?.isVisible && (
                 <div className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${style.gradient} p-6 md:p-8 text-white flex flex-col justify-between group transition-all duration-500 min-h-[260px]`}>
                     <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
@@ -303,7 +271,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-200">"Ninguém ama o que não conhece"</span>
                   </div>
                   <h3 className="font-black text-2xl mb-2 tracking-tight">Conhecer para Amar</h3>
-                  <p className="text-purple-100 text-xs leading-relaxed font-medium opacity-90">O amor a Deus passa pela compreensão. Mergulhe nos tesouros da Igreja e descubra a beleza escondida em cada mistério da nossa fé.</p>
+                  <p className="text-purple-100 text-xs leading-relaxed font-medium opacity-90">O amor a Deus passa pela compreensão. Mergulhe nos tesouros da Igreja e descubra a beleza escondida em cada mistério.</p>
                </div>
                <button onClick={onNavigateToKnowledge} className="w-full bg-white text-brand-violet font-black py-4 rounded-2xl text-xs flex items-center justify-center gap-2 mt-6 shadow-xl group-hover:scale-[1.03] transition-all active:scale-95"><BookOpen size={14} fill="currentColor" /> Abrir Biblioteca</button>
             </div>
@@ -313,7 +281,6 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center"><Users size={18} /></div>
                     <span className="text-xs font-bold text-brand-dark dark:text-white">Convide um amigo</span>
                 </div>
-                <p className="text-[11px] text-slate-500">A fé cresce quando é partilhada. Traga alguém para caminhar com você no Espiritualizei.</p>
                 <button onClick={handleShareApp} className="w-full py-3 rounded-xl border border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2"><Share2 size={12} /> Compartilhar App</button>
             </div>
          </div>
@@ -327,13 +294,9 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="p-5 border-b flex justify-between items-center shrink-0">
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Liturgia Diária</p>
-                    <h3 className="text-sm font-bold">
-                        {isLiturgyLoading ? "Carregando..." : (liturgyData?.saint || "Leituras do Dia")}
-                    </h3>
+                    <h3 className="text-sm font-bold">{isLiturgyLoading ? "Carregando..." : (liturgyData?.saint || "Leituras do Dia")}</h3>
                 </div>
-                <button onClick={() => setShowLiturgyModal(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center">
-                    <X size={20} />
-                </button>
+                <button onClick={() => setShowLiturgyModal(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center"><X size={20} /></button>
             </div>
 
             {isLiturgyLoading ? (
@@ -341,10 +304,6 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div className="relative">
                         <div className="w-16 h-16 rounded-full border-4 border-brand-violet/20 border-t-brand-violet animate-spin" />
                         <BrandLogo size={24} variant="fill" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-brand-violet opacity-50" />
-                    </div>
-                    <div className="text-center">
-                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mb-1">Preparando a mesa</p>
-                        <p className="text-slate-400 text-xs italic">"Nem só de pão vive o homem..."</p>
                     </div>
                 </div>
             ) : liturgyData ? (
@@ -383,7 +342,6 @@ const Dashboard: React.FC<DashboardProps> = ({
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
                     <p className="text-red-400 font-bold mb-2">Erro de conexão</p>
-                    <p className="text-slate-500 text-sm mb-6">Não conseguimos buscar a liturgia agora.</p>
                     <button onClick={() => window.location.reload()} className="px-6 py-2 bg-slate-100 dark:bg-white/10 rounded-xl text-xs font-bold text-slate-400">Tentar Recarregar</button>
                 </div>
             )}

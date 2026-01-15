@@ -53,30 +53,6 @@ export const generateDailyTheme = async (gospelText: string): Promise<string> =>
   }
 };
 
-export const sendMessageToSpiritualDirector = async (message: string): Promise<string> => {
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: message,
-      config: { 
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            reflection: { type: Type.STRING },
-            verse: { type: Type.STRING }
-          },
-          required: ['reflection', 'verse']
-        },
-        systemInstruction: "Você é um diretor espiritual experiente. Responda apenas em JSON."
-      },
-    });
-    return response.text || "{}";
-  } catch (error) {
-    return JSON.stringify({ reflection: "Deus olha para o seu coração.", verse: "Salmo 23, 1" });
-  }
-};
-
 export const generateDailyReflection = async (todaySaint: string): Promise<string> => {
   try {
     const response = await ai.models.generateContent({
@@ -89,22 +65,38 @@ export const generateDailyReflection = async (todaySaint: string): Promise<strin
   }
 };
 
+// Fix: Added missing sendMessageToSpiritualDirector function used by JournalModal
+export const sendMessageToSpiritualDirector = async (message: string): Promise<string> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: message,
+    });
+    // Do not use cleanAIOutput here as JournalModal expects raw response text to handle potential JSON parsing
+    return response.text || "";
+  } catch (error) {
+    console.error("Gemini Error:", error);
+    return "";
+  }
+};
+
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string, profileReasoning: string }> => {
   const systemPrompt = `
     Você é um Diretor Espiritual Católico. Crie uma "Regra de Vida Semanal" personalizada.
     A rotina DEVE mudar conforme o dia da semana seguindo a tradição da Igreja:
-    - Domingo (0): Santa Missa. Preparar o coração no sábado/domingo manhã. (OPEN_MAP)
+    - Domingo (0): Santa Missa. Preparar o coração no sábado/domingo manhã. (OPEN_SOCIAL)
     - Segunda (1): Almas/Fé Intelectual. Estudar conteúdo. (READ_KNOWLEDGE)
-    - Terça (2): Santos Anjos/Combate. Diálogo espiritual. (OPEN_CHAT)
+    - Terça (2): Santos Anjos/Combate. Meditar o Evangelho. (READ_LITURGY)
     - Quarta (3): São José/Família. Interceder por alguém. (OPEN_COMMUNITY)
-    - Quinta (4): Eucaristia/Adoração. Buscar capela. (OPEN_MAP)
+    - Quinta (4): Eucaristia/Adoração. Focar no Ranking e Social. (OPEN_SOCIAL)
     - Sexta (5): Paixão/Penitência. Meditar o Evangelho. (READ_LITURGY)
     - Sábado (6): Maria. Oração comunitária ou Terço. (OPEN_COMMUNITY)
 
     LÓGICA DE PREPARAÇÃO:
     Cada dia deve ter 1 "Ação Principal" no horário mais fácil do usuário (${data.bestMoment}) e "Tarefas de Preparo" (manhã/noite) que deem suporte a essa ação.
     
-    Ações (actionLink): READ_LITURGY, OPEN_MAP, OPEN_COMMUNITY, OPEN_CHAT, READ_KNOWLEDGE, NONE.
+    Ações (actionLink): READ_LITURGY, OPEN_COMMUNITY, OPEN_SOCIAL, READ_KNOWLEDGE, NONE.
+    NÃO USE OPEN_MAP OU OPEN_CHAT, ELAS FORAM DESATIVADAS.
   `;
 
   const userContext = `

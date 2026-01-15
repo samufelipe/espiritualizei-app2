@@ -189,7 +189,6 @@ const CommunityFeed: React.FC<CommunityFeedProps> = ({ user, initialContent }) =
             <button 
               key={opt.id}
               onClick={() => setFilter(opt.id as any)} 
-              /* Fixed: Completed the truncated class name and logic */
               className={`px-6 py-2.5 rounded-2xl text-xs font-bold transition-all ${filter === opt.id ? 'bg-brand-dark dark:bg-white text-white dark:text-brand-dark' : 'bg-white dark:bg-white/5 text-slate-500 border border-slate-100 dark:border-white/5'}`}
             >
               {opt.label}
@@ -236,19 +235,25 @@ const CommunityFeed: React.FC<CommunityFeedProps> = ({ user, initialContent }) =
                    <div className="flex items-center gap-6 pt-4 border-t border-slate-50 dark:border-white/5">
                       <button 
                         onClick={() => handleLike(post.id)}
-                        className={`flex items-center gap-2 text-xs font-bold transition-all ${post.isLikedByUser ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
+                        className={`flex items-center gap-2 text-xs font-bold transition-all px-4 py-2 rounded-xl transition-all ${
+                          post.isLikedByUser ? 'text-red-500 bg-red-500/5 shadow-inner' : 'text-slate-400 hover:text-red-500 hover:bg-slate-50 dark:hover:bg-white/5'
+                        }`}
                       >
-                         <Heart size={20} fill={post.isLikedByUser ? "currentColor" : "none"} className={post.isLikedByUser ? 'animate-bounce-in' : ''} />
-                         {post.likesCount}
+                         <Heart 
+                           size={20} 
+                           fill={post.isLikedByUser ? "currentColor" : "none"} 
+                           className={post.isLikedByUser ? 'scale-110' : ''} 
+                         />
+                         <span>{post.likesCount}</span>
                       </button>
                       <button 
                          onClick={() => setActivePostId(post.id)}
-                         className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-brand-violet transition-all"
+                         className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-brand-violet hover:bg-slate-50 dark:hover:bg-white/5 px-4 py-2 rounded-xl transition-all"
                       >
                          <MessageCircle size={20} />
-                         {post.commentsCount}
+                         <span>{post.commentsCount}</span>
                       </button>
-                      <button className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-brand-violet transition-all ml-auto">
+                      <button className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-brand-violet hover:bg-slate-50 dark:hover:bg-white/5 px-4 py-2 rounded-xl transition-all ml-auto">
                          <Share2 size={20} />
                       </button>
                    </div>
@@ -278,5 +283,4 @@ const CommunityFeed: React.FC<CommunityFeedProps> = ({ user, initialContent }) =
   );
 };
 
-// Fixed: Added missing default export
 export default CommunityFeed;

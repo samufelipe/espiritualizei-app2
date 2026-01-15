@@ -5,15 +5,13 @@ export enum Tab {
   KNOWLEDGE = 'KNOWLEDGE',
   COMMUNITY = 'COMMUNITY',
   SOCIAL = 'SOCIAL',
-  PROFILE = 'PROFILE',
-  CHAT = 'CHAT'
+  PROFILE = 'PROFILE'
 }
 
 export interface UserSettings {
   notifications: {
     prayers: boolean;
     community: boolean;
-    director: boolean;
   };
   theme?: 'light' | 'dark';
 }
@@ -53,7 +51,7 @@ export interface AuthSession {
   expiresAt: number;
 }
 
-export type RoutineActionType = 'READ_LITURGY' | 'OPEN_MAP' | 'OPEN_COMMUNITY' | 'OPEN_CHAT' | 'OPEN_PLAYER' | 'READ_KNOWLEDGE' | 'NONE';
+export type RoutineActionType = 'READ_LITURGY' | 'OPEN_COMMUNITY' | 'OPEN_SOCIAL' | 'OPEN_PLAYER' | 'READ_KNOWLEDGE' | 'NONE';
 
 export interface RoutineItem {
   id: string;
@@ -219,19 +217,6 @@ export interface MonthlyReviewData {
   timeAvailabilityChange: 'same' | 'less' | 'more';
 }
 
-export interface Parish {
-  name: string;
-  address: string;
-  location?: { lat: number; lng: number };
-  rating?: number;
-  userRatingsTotal?: number;
-  openNow?: boolean;
-  photoUrl?: string;
-  url: string;
-  distance?: string;
-  directionsUrl?: string;
-}
-
 export interface JournalEntry {
   id: string;
   userId: string;
@@ -240,4 +225,21 @@ export interface JournalEntry {
   aiReflection?: string;
   bibleVerse?: string;
   createdAt: Date;
+}
+
+// Fix: Added missing Parish interface for ParishFinder and googlePlacesService
+export interface Parish {
+  name: string;
+  address: string;
+  location?: {
+    lat: number;
+    lng: number;
+  };
+  distance?: string;
+  rating?: number;
+  userRatingsTotal?: number;
+  openNow?: boolean;
+  url?: string;
+  photoUrl?: string;
+  directionsUrl?: string;
 }

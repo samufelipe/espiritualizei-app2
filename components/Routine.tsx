@@ -10,7 +10,7 @@ interface RoutineProps {
   onAdd: (title: string, description: string) => void;
   onDelete: (id: string) => void;
   onNavigate?: (tab: Tab) => void;
-  onOpenMaps?: () => void;
+  onOpenSocial?: () => void;
   onOpenPlayer?: () => void;
   onOpenLiturgy?: () => void;
 }
@@ -19,20 +19,16 @@ const DAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 const FULL_DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
 const DAY_THEMES = [
-    { title: "Dia do Senhor", subtitle: "Missa & Ressurreição", color: "text-amber-500", bg: "bg-amber-500/10", icon: ChurchIcon },
+    { title: "Dia do Senhor", subtitle: "Missa & Ressurreição", color: "text-amber-500", bg: "bg-amber-500/10", icon: Cross },
     { title: "Almas & Doutrina", subtitle: "Fé Intelectual", color: "text-blue-500", bg: "bg-blue-500/10", icon: Book },
     { title: "Santos Anjos", subtitle: "Combate Espiritual", color: "text-slate-500", bg: "bg-slate-500/10", icon: Shield },
-    { title: "São José", subtitle: "Família & Trabalho", color: "text-green-600", bg: "bg-green-600/10", icon: HammerIcon },
+    { title: "São José", subtitle: "Família & Trabalho", color: "text-green-600", bg: "bg-green-600/10", icon: Zap },
     { title: "Eucaristia", subtitle: "Adoração ao Santíssimo", color: "text-brand-violet", bg: "bg-brand-violet/10", icon: Sun },
     { title: "Paixão do Senhor", subtitle: "Penitência & Cruz", color: "text-red-500", bg: "bg-red-500/10", icon: Cross },
-    { title: "Virgem Maria", subtitle: "Devocional & Mãe", color: "text-blue-400", bg: "bg-blue-400/10", icon: FlowerIcon },
+    { title: "Virgem Maria", subtitle: "Devocional & Mãe", color: "text-blue-400", bg: "bg-blue-400/10", icon: Heart },
 ];
 
-function ChurchIcon(props: any) { return <MapPin {...props} /> }
-function HammerIcon(props: any) { return <Zap {...props} /> }
-function FlowerIcon(props: any) { return <Heart {...props} /> }
-
-const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onAdd, onDelete, onNavigate, onOpenMaps, onOpenPlayer, onOpenLiturgy }) => {
+const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onAdd, onDelete, onNavigate, onOpenSocial, onOpenPlayer, onOpenLiturgy }) => {
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -56,8 +52,7 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onA
         case 'READ_LITURGY': if (onOpenLiturgy) onOpenLiturgy(); break;
         case 'READ_KNOWLEDGE': onNavigate(Tab.KNOWLEDGE); break;
         case 'OPEN_COMMUNITY': onNavigate(Tab.COMMUNITY); break;
-        case 'OPEN_CHAT': onNavigate(Tab.CHAT); break;
-        case 'OPEN_MAP': if (onOpenMaps) onOpenMaps(); break;
+        case 'OPEN_SOCIAL': if (onOpenSocial) onOpenSocial(); break;
         case 'OPEN_PLAYER': if (onOpenPlayer) onOpenPlayer(); break;
      }
   };
@@ -71,7 +66,6 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onA
       case 'moon': return <Moon {...props} />;
       case 'heart': return <Heart {...props} />;
       case 'shield': return <Shield {...props} />;
-      case 'church': return <MapPin {...props} />;
       case 'music': return <Music {...props} />;
       default: return <Check {...props} />;
     }
@@ -82,8 +76,7 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onA
         case 'READ_LITURGY': return 'Ler Evangelho';
         case 'READ_KNOWLEDGE': return 'Biblioteca';
         case 'OPEN_COMMUNITY': return 'Comunidade';
-        case 'OPEN_MAP': return 'Ver Mapa';
-        case 'OPEN_CHAT': return 'Falar com Diretor';
+        case 'OPEN_SOCIAL': return 'Ver Ranking';
         default: return null;
      }
   };
