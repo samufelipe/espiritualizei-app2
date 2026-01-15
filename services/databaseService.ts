@@ -5,20 +5,14 @@ import { getSeasonDetailedInfo } from './liturgyService';
 
 /**
  * GERAÇÃO DE DESAFIOS INTERATIVOS SINCRONIZADOS (3 DIAS)
- * Esta lógica garante que o desafio mude a cada 3 dias e seja temático ao tempo da Igreja.
  */
 const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
   const season = getSeasonDetailedInfo(date);
-  
-  // Cálculo do ciclo de 3 dias (72 horas)
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
   const cycleId = Math.floor(date.getTime() / (MS_PER_DAY * 3));
-  
-  // Verifica proximidade da Quaresma 2026 (18/02/2026)
   const isPreLent = date.getMonth() === 1 && date.getDate() < 18 && date.getFullYear() === 2026;
   const isLent = (date.getMonth() === 1 && date.getDate() >= 18 && date.getFullYear() === 2026) || season.id === 'lent';
 
-  // Pool de tarefas temáticas
   const taskPool = {
     ORDINARY: {
         RELATIONAL: [
@@ -42,7 +36,6 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
     }
   };
 
-  // Seleção baseada no tempo litúrgico
   const activePool = (isLent || isPreLent) ? taskPool.LENT : taskPool.ORDINARY;
   const poolKeys = Object.keys(activePool);
   const typeKey = poolKeys[cycleId % poolKeys.length];
@@ -83,10 +76,6 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
   };
 };
 
-/**
- * BUSCA DE DESAFIO COMUNITÁRIO
- * Tenta buscar do Supabase primeiro, senão gera o desafio litúrgico do ciclo atual.
- */
 export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
   try {
     if (getConnectionStatus()) {
@@ -435,17 +424,52 @@ export const markNotificationAsRead = async (id: string) => {
   }
 };
 
+/**
+ * BUSCA DE RANKING REAL NO SUPABASE
+ * Agora puxa diretamente dos perfis dos usuários ordenados por XP e Nível.
+ */
 export const fetchLeaderboard = async (): Promise<LeaderboardData> => {
-  return {
-    intercessors: [
-      { id: '1', userId: 'u1', userName: 'Maria Silva', score: 1250, rank: 1, badges: ['top3', 'streak'] },
-      { id: '2', userId: 'u2', userName: 'Pedro Alvares', score: 980, rank: 2, badges: ['top3'] },
-      { id: '3', userId: 'u3', userName: 'Ana Souza', score: 850, rank: 3, badges: ['top3'] }
-    ],
-    pilgrims: [
-      { id: 'p1', userId: 'up1', userName: 'José Santos', score: 15, rank: 1, badges: ['streak'] }
-    ]
-  };
+  if (!getConnectionStatus()) {
+      return { intercessors: [], pilgrims: [] };
+  }
+
+  try {
+    // 1. Peregrinos Constantes (Ordenados por XP total)
+    const { data: pilgrimsData, error: pError } = await supabase!
+      .from('profiles')
+      .select('id, name, photo_url, current_xp, level')
+      .order('current_xp', { ascending: false })
+      .limit(30);
+
+    if (pError) throw pError;
+
+    // 2. Intercessores (No momento usamos XP, mas em produção poderia ser uma contagem de intercessões)
+    const { data: intercessorsData, error: iError } = await supabase!
+      .from('profiles')
+      .select('id, name, photo_url, current_xp, level')
+      .order('level', { ascending: false })
+      .limit(30);
+
+    if (iError) throw iError;
+
+    const mapEntry = (p: any, index: number) => ({
+      id: p.id,
+      userId: p.id,
+      userName: p.name || 'Peregrino',
+      avatarUrl: p.photo_url,
+      score: p.current_xp || 0,
+      rank: index + 1,
+      badges: (p.level || 1) > 10 ? ['streak'] : []
+    });
+
+    return {
+      pilgrims: (pilgrimsData || []).map(mapEntry),
+      intercessors: (intercessorsData || []).map(mapEntry)
+    };
+  } catch (e) {
+    console.error("Erro ao carregar ranking real:", e);
+    return { intercessors: [], pilgrims: [] };
+  }
 };
 
 export const uploadImage = async (file: File, bucket: 'avatars' | 'posts'): Promise<string | undefined> => {

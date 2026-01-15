@@ -215,7 +215,18 @@ const App: React.FC = () => {
   };
 
   const handlePray = async (id: string) => {
-    setIntentions((prev: PrayerIntention[]) => prev.map(i => i.id === id ? { ...i, prayingCount: i.isPrayedByUser ? i.prayingCount - 1 : i.prayingCount + 1, isPrayedByUser: !i.isPrayedByUser } : i));
+    const intention = intentions.find(i => i.id === id);
+    if (!intention) return;
+
+    const isLiking = !intention.isPrayedByUser;
+    // RECOMPENSA DE XP REAL: +10 XP por interceder (conforme info do widget)
+    const xpReward = 10;
+    const newUser = { ...user, currentXP: isLiking ? user.currentXP + xpReward : Math.max(0, user.currentXP - xpReward) };
+    
+    setUser(newUser);
+    await updateUserProfile(newUser);
+    
+    setIntentions((prev: PrayerIntention[]) => prev.map(i => i.id === id ? { ...i, prayingCount: isLiking ? i.prayingCount + 1 : i.prayingCount - 1, isPrayedByUser: isLiking } : i));
     await togglePrayerInteraction(id);
   };
 
