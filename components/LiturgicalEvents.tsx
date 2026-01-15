@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CommunityChallenge } from '../types';
-import { CheckCircle2, Play, X, Trophy, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Sparkles, Lightbulb, ListChecks } from 'lucide-react';
+import { CheckCircle2, Play, X, Trophy, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Lightbulb, ListChecks } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 interface LiturgicalEventsProps {
@@ -72,7 +72,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
           case 'RELATIONSHIP': return <Users size={18} />;
           case 'SACRIFICE': return <Flame size={18} />;
           case 'PRAYER': return <Heart size={18} />;
-          default: return <Sparkles size={18} />;
+          default: return <Heart size={18} fill="currentColor" />;
       }
   };
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Share2, Sun, Sparkles } from 'lucide-react';
+import { X, Share2, Sun } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { generateDailyReflection } from '../services/geminiService';
 
@@ -52,7 +52,7 @@ const DailyInspiration: React.FC<DailyInspirationProps> = ({ onClose, userName }
 
             <div className="mb-8 w-full overflow-y-auto no-scrollbar max-h-[40vh] flex items-center justify-center">
                {loading ? (
-                 <Sparkles className="text-white animate-spin mx-auto" />
+                 <BrandLogo size={32} variant="fill" className="text-white animate-spin mx-auto opacity-50" />
                ) : (
                  <blockquote className="text-2xl sm:text-3xl font-serif text-white leading-relaxed font-medium italic drop-shadow-md">
                    "{quote}"

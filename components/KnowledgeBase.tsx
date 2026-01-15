@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useRef } from 'react';
-import { BookOpen, PlayCircle, CheckCircle2, ChevronLeft, ChevronRight, Clock, GraduationCap, Search, Bookmark, Share2, Sparkles, Youtube, Music, ExternalLink, X, Heart, Sun, CloudRain, Shield, Anchor, Users, Flame, Cross, Eye, Mic2, Headphones, Wifi, Globe, PenTool, Activity, Footprints } from 'lucide-react';
+import { BookOpen, PlayCircle, CheckCircle2, ChevronLeft, ChevronRight, Clock, GraduationCap, Search, Bookmark, Share2, Youtube, Music, ExternalLink, X, Heart, Sun, CloudRain, Shield, Anchor, Users, Flame, Cross, Eye, Mic2, Headphones, Wifi, Globe, PenTool, Activity, Footprints } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 // --- TIPOS LOCAIS ---
@@ -154,7 +154,7 @@ São João Paulo II nos ensina a ser "santos de calça jeans", santos que amam a
         content: `
 Muitas vezes, nós fugimos do confessionário como quem foge de um tribunal severo. Carregamos o peso de nossos erros, a vergonha de nossas quedas repetidas e o medo de sermos julgados. Mas a verdade profunda sobre este sacramento é radicalmente oposta ao nosso medo. A Confissão não é o lugar da condenação; é o hospital das almas feridas.
 
-Imagine que você está caminhando por uma estrada longa com uma mochila cheia de pedras. A cada quilômetro, o peso aumenta, suas costas doem, e a alegria da viagem desaparece. O pecado é exatamente isso: um peso morto que insistimos em carregar, achando que somos fortes o suficiente, ou pior, achando que não merecemos nos livrar dele.
+Imagine que você está caminhando por uma estrada longa com uma mochila cheia de pedras. A cada quilômetro, o peso aumenta, suas costas doem, e a alegria da viagem desaparece. O pecado é exatamente isso: um peso morto que insistimos em carregar, achando que somos fortes o suficiente, ou pior, achando que não merececemos nos livrar dele.
 
 Quando entramos no confessionário e nos ajoelhamos, não estamos diante apenas de um homem, o sacerdote. Estamos nos colocando nos braços do Pai da parábola do Filho Pródigo. Deus não está ali com uma régua para medir nossos erros, mas com braços abertos, ansioso para nos devolver a dignidade de filhos que perdemos pelo caminho.
 
@@ -170,7 +170,7 @@ Não tenha medo de recomeçar. A santidade não consiste em nunca cair, mas em n
         description: 'Desconstruindo a ideia de perfeição para encontrar o amor.',
         category: 'doctrine',
         duration: '10 min',
-        icon: Sparkles,
+        icon: Heart,
         videoSuggestion: { title: "Santidade para todos", url: "https://www.youtube.com/results?search_query=chamado+a+santidade+padre+leo", channelName: "Pe. Léo" },
         musicSuggestion: { title: "Rumo à Santidade", url: "https://www.youtube.com/results?search_query=rumo+a+santidade+musica", artist: "Com. Shalom" },
         content: `
@@ -180,7 +180,7 @@ Mas esse é o grande equívoco que nos paralisa. A santidade não é sinônimo d
 
 A definição mais bela de santidade é, talvez, a mais simples: ser santo é ser amigo íntimo de Deus. Santa Teresa de Ávila dizia que a oração é apenas "tratar de amizade, estando muitas vezes a sós com Quem sabemos que nos ama". Portanto, a santidade é uma relação, não uma performance.
 
-Você se torna santo lavando a louça com amor, suportando com paciência aquele colega de trabalho difícil, ouvindo seu filho quando você está cansado, rezando mesmo quando não sente vontade nenhuma. A santidade acontece no anonimato do cotidiano, nas pequenas batalhas vencidas por amor a Deus.
+Você se torna santo lavando a louça com amor, suportando com paciência aquele colega de trabalho difícil, ouvindo seu filho quando você está cansado, rezando mesmo quando não sente vontade nenhuma. A santidade acontece no anonimato do cotidiano, na pequenas batalhas vencidas por amor a Deus.
 
 O mundo nos vende a ideia de que precisamos ser ricos, famosos ou poderosos para sermos importantes. O Evangelho nos diz que precisamos amar para sermos eternos. Deus não quer que você seja uma cópia de São Francisco ou de Santa Teresinha; Ele quer que você seja você mesmo, na sua melhor versão, purificada pelo amor d'Ele.
 
@@ -381,7 +381,7 @@ const KnowledgeBase: React.FC = () => {
             </div>
             <div className="p-6 sm:p-10 z-10 flex-1 flex flex-col justify-center relative">
                <div className="inline-flex items-center gap-2 bg-white/10 text-white text-[9px] font-bold px-3 py-1 rounded-full mb-4 w-fit border border-white/10 backdrop-blur-sm">
-                  <Sparkles size={10} fill="currentColor" /> DESTAQUE TEMPORAL
+                  <Heart size={10} fill="currentColor" /> DESTAQUE TEMPORAL
                </div>
                <h2 className="text-2xl sm:text-4xl font-black text-white mb-3 leading-tight tracking-tight drop-shadow-md max-w-lg">
                   {FeaturedItem.title}

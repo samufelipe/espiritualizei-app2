@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, MessageCircle, Send, Flame, Zap, Crown, User, Sparkles, Loader2, ArrowRight, Users, Heart, Star, ShieldCheck } from 'lucide-react';
+import { Trophy, MessageCircle, Send, Flame, Zap, Crown, User, Heart, Loader2, ArrowRight, Users, Star, ShieldCheck } from 'lucide-react';
 import { UserProfile } from '../types';
 import LeaderboardWidget from './LeaderboardWidget';
 import BrandLogo from './BrandLogo';
@@ -190,7 +190,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                           return (
                              <div key={msg.id} className="flex justify-center my-4 animate-fade-in">
                                 <div className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 px-4 py-1.5 rounded-full flex items-center gap-2">
-                                   <Sparkles size={12} className="text-brand-violet" />
+                                   <Heart size={12} className="text-brand-violet" fill="currentColor" />
                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{msg.text}</span>
                                 </div>
                              </div>
