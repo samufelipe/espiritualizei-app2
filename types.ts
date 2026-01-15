@@ -4,7 +4,7 @@ export enum Tab {
   ROUTINE = 'ROUTINE',
   KNOWLEDGE = 'KNOWLEDGE',
   COMMUNITY = 'COMMUNITY',
-  MAPS = 'MAPS',
+  SOCIAL = 'SOCIAL',
   PROFILE = 'PROFILE',
   CHAT = 'CHAT'
 }
@@ -36,7 +36,7 @@ export interface UserProfile {
   hasSeenTutorial?: boolean;
   joinedDate: Date;
   lastRoutineUpdate?: Date;
-  spiritualCycleStart?: Date; // Data de início do ciclo atual de 30 dias
+  spiritualCycleStart?: Date; 
   lastConfessionAt?: Date; 
   confessionFrequency?: 'frequent' | 'rare' | 'long_time' | 'never';
   isPremium?: boolean;
@@ -155,7 +155,6 @@ export interface CommunityPost {
   isLikedByUser: boolean;
   timestamp: Date;
   type: 'testimony' | 'challenge_update' | 'inspiration' | 'question'; 
-  contextTag?: string; 
   comments?: Comment[];
 }
 

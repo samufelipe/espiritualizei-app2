@@ -21,7 +21,7 @@ const Dashboard = lazy(() => import('./components/Dashboard'));
 const Routine = lazy(() => import('./components/Routine'));
 const Community = lazy(() => import('./components/Community'));
 const Onboarding = lazy(() => import('./components/Onboarding'));
-const ParishFinder = lazy(() => import('./components/ParishFinder'));
+const SocialHub = lazy(() => import('./components/SocialHub'));
 const Profile = lazy(() => import('./components/Profile'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const KnowledgeBase = lazy(() => import('./components/KnowledgeBase'));
@@ -56,8 +56,6 @@ const App: React.FC = () => {
   const [intentions, setIntentions] = useState<PrayerIntention[]>([]);
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
 
-  // Verificador de Ciclo de 30 dias
-  // Dispara automaticamente quando a diferença entre agora e spiritualCycleStart for >= 30
   useEffect(() => {
     if (viewState === 'app' && user.id !== 'guest') {
       const cycleStart = new Date(user.spiritualCycleStart || user.joinedDate);
@@ -77,7 +75,6 @@ const App: React.FC = () => {
        const session = getSession();
        if (session?.user) {
           window.history.replaceState({}, document.title, "/");
-          // No primeiro acesso premium, o spiritualCycleStart é fixado no momento do pagamento
           const updatedUser: UserProfile = { 
               ...session.user, 
               isPremium: true, 
@@ -87,7 +84,7 @@ const App: React.FC = () => {
           setUser(updatedUser);
           setViewState('welcome_premium');
           upgradeUserToPremium(session.user.id).catch(console.error);
-          updateUserProfile(updatedUser); // Garante a data do 1º ciclo no DB
+          updateUserProfile(updatedUser);
        }
     }
   }, []);
@@ -138,7 +135,7 @@ const App: React.FC = () => {
         patronSaint: data.patronSaint,
         confessionFrequency: data.confessionFrequency,
         lastRoutineUpdate: new Date(),
-        spiritualCycleStart: new Date() // Inicia o 1º ciclo
+        spiritualCycleStart: new Date()
       };
       await updateUserProfile(updatedUser);
       setUser(updatedUser);
@@ -176,7 +173,7 @@ const App: React.FC = () => {
               spiritualFocus: reviewData.newStruggle,
               spiritualGoal: reviewData.newGoal,
               lastRoutineUpdate: new Date(),
-              spiritualCycleStart: new Date() // RESET DO CICLO PARA MAIS 30 DIAS
+              spiritualCycleStart: new Date()
           };
 
           await updateUserProfile(updatedUser);
@@ -244,7 +241,7 @@ const App: React.FC = () => {
             onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} 
             onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} 
             onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} 
-            onNavigateToMaps={() => setCurrentTab(Tab.MAPS)} 
+            onNavigateToMaps={() => setCurrentTab(Tab.SOCIAL)} 
             onSaveJournal={(mood, content, refl, vers) => createJournalEntry(user.id, mood, content, refl, vers)} 
             showLiturgyModal={showLiturgyModal} 
             setShowLiturgyModal={setShowLiturgyModal} 
@@ -262,7 +259,7 @@ const App: React.FC = () => {
             onAdd={(t: string, d: string) => addRoutineItem(user.id, { id: crypto.randomUUID(), title: t, description: d, xpReward: 10, completed: false, icon: 'heart', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] })} 
             onDelete={(id: string) => deleteRoutineItem(id)} 
             onNavigate={(t: Tab) => setCurrentTab(t)} 
-            onOpenMaps={() => setCurrentTab(Tab.MAPS)} 
+            onOpenMaps={() => setCurrentTab(Tab.SOCIAL)} 
             onOpenLiturgy={() => { setCurrentTab(Tab.DASHBOARD); setTimeout(() => setShowLiturgyModal(true), 100); }} 
             onOpenPlayer={() => { }} 
           />
@@ -285,7 +282,7 @@ const App: React.FC = () => {
         </Suspense>
       );
       case Tab.CHAT: return <Suspense fallback={<TabLoader />}><SpiritualChat user={user} /></Suspense>;
-      case Tab.MAPS: return <Suspense fallback={<TabLoader />}><ParishFinder /></Suspense>;
+      case Tab.SOCIAL: return <Suspense fallback={<TabLoader />}><SocialHub user={user} /></Suspense>;
       case Tab.PROFILE: return (
         <Suspense fallback={<TabLoader />}>
           <Profile 

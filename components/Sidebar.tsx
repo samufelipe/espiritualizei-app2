@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, CheckCircle2, Book, User, Heart, LogOut, MapPin, FlaskConical } from 'lucide-react';
+import { Home, CheckCircle2, Book, User, Heart, LogOut, Trophy } from 'lucide-react';
 import { Tab, UserProfile } from '../types';
 import BrandLogo from './BrandLogo';
 
@@ -16,8 +16,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, user, onLogo
     { tab: Tab.DASHBOARD, icon: Home, label: 'Início' },
     { tab: Tab.ROUTINE, icon: CheckCircle2, label: 'Minha Rotina' },
     { tab: Tab.COMMUNITY, icon: Heart, label: 'Comunidade' },
+    { tab: Tab.SOCIAL, icon: Trophy, label: 'Ranking & Social' },
     { tab: Tab.KNOWLEDGE, icon: Book, label: 'Biblioteca' },
-    { tab: Tab.MAPS, icon: MapPin, label: 'Igrejas' },
     { tab: Tab.PROFILE, icon: User, label: 'Perfil' },
   ];
 
@@ -50,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, user, onLogo
                 size={22} 
                 strokeWidth={isActive ? 2.5 : 2}
                 className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} 
-                fill={isActive && (item.tab === Tab.COMMUNITY || item.tab === Tab.MAPS) ? "currentColor" : "none"}
+                fill={isActive && (item.tab === Tab.COMMUNITY || item.tab === Tab.SOCIAL) ? "currentColor" : "none"}
               />
               <span className="text-sm">{item.label}</span>
               {isActive && <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full" />}
