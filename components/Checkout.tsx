@@ -30,17 +30,28 @@ const Checkout: React.FC<CheckoutProps> = ({ onSuccess, userName, onLogout }) =>
   const handleSubscribe = () => {
     setIsLoading(true);
     
-    // Construímos a URL com o ID do usuário como referência (ref)
-    // Isso é CRÍTICO para que seu webhook identifique quem pagou
-    const checkoutUrl = new URL(CAKTO_CHECKOUT_URL);
-    checkoutUrl.searchParams.set('ref', userId);
-    
-    const session = getSession();
-    if (session?.user?.name) checkoutUrl.searchParams.set('name', session.user.name);
-    if (session?.user?.email) checkoutUrl.searchParams.set('email', session.user.email);
+    try {
+      const session = getSession();
+      const checkoutUrl = new URL(CAKTO_CHECKOUT_URL);
+      
+      // Identificador único do usuário para o Webhook (Obrigatório)
+      checkoutUrl.searchParams.set('external_id', userId || session?.user?.id || "");
+      
+      // Pré-preenchimento para facilitar a compra do usuário
+      if (session?.user?.name) checkoutUrl.searchParams.set('name', session.user.name);
+      if (session?.user?.email) checkoutUrl.searchParams.set('email', session.user.email);
+      if (session?.user?.phone) checkoutUrl.searchParams.set('phone', session.user.phone);
 
-    // Redirecionamento oficial para o Checkout da Cakto
-    window.location.href = checkoutUrl.toString();
+      // Parâmetro de rastreio interno
+      checkoutUrl.searchParams.set('utm_source', 'app_espiritualizei');
+
+      // Redirecionamento oficial para o Checkout da Cakto
+      window.location.href = checkoutUrl.toString();
+    } catch (error) {
+      console.error("Erro ao gerar link de checkout:", error);
+      setIsLoading(false);
+      alert("Ocorreu um erro ao preparar seu pagamento. Tente novamente.");
+    }
   };
 
   return (

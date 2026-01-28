@@ -166,9 +166,29 @@ export const createCommunityPost = async (userId: string, userName: string, avat
   return newPost;
 };
 
-export const upgradeUserToPremium = async (userId: string) => {
+export const upgradeUserToPremium = async (userId: string, provider: 'cakto' | 'revenuecat' | 'stripe' = 'cakto') => {
   if (getConnectionStatus()) {
-    await supabase.from('profiles').update({ is_premium: true, subscription_status: 'active' }).eq('id', userId);
+    const { error } = await supabase.from('profiles').update({ 
+      is_premium: true, 
+      subscription_status: 'active',
+      payment_provider: provider,
+      premium_since: new Date().toISOString()
+    }).eq('id', userId);
+    
+    if (error) console.error("Erro ao atualizar para premium:", error);
+  }
+};
+
+/**
+ * REVENUECAT INTEGRATION
+ * Esta função será chamada após a validação do recibo no iOS/Android
+ */
+export const syncRevenueCatStatus = async (userId: string, isEntitled: boolean) => {
+  if (getConnectionStatus()) {
+    await supabase.from('profiles').update({ 
+      is_premium: isEntitled,
+      subscription_status: isEntitled ? 'active' : 'expired'
+    }).eq('id', userId);
   }
 };
 
