@@ -97,9 +97,9 @@ const Dashboard: React.FC<DashboardProps> = ({
             if (isMounted) setIsLiturgyLoading(false);
         }
         
-        const posts = await fetchCommunityPosts(0, 3);
+        const posts = await fetchCommunityPosts();
         if (isMounted) {
-            setRecentPosts(posts);
+            setRecentPosts(posts.slice(0, 3));
             setLoadingPosts(false);
         }
     };

@@ -45,25 +45,15 @@ const CommunityFeed: React.FC<CommunityFeedProps> = ({ user, initialContent }) =
 
   const loadInitialPosts = async () => {
     setLoading(true);
-    const data = await fetchCommunityPosts(0, PAGE_SIZE);
+    const data = await fetchCommunityPosts();
     setPosts(data);
-    setHasMore(data.length === PAGE_SIZE);
+    setHasMore(false); // fetchCommunityPosts atual não suporta paginação
     setLoading(false);
   };
 
   const loadMorePosts = async () => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-    const nextPage = page + 1;
-    const data = await fetchCommunityPosts(nextPage, PAGE_SIZE);
-    if (data.length > 0) {
-       setPosts(prev => [...prev, ...data]);
-       setPage(nextPage);
-       setHasMore(data.length === PAGE_SIZE);
-    } else {
-       setHasMore(false);
-    }
-    setLoadingMore(false);
+    // Desativado temporariamente pois o serviço não suporta paginação
+    setHasMore(false);
   };
 
   const handleRefresh = () => {

@@ -1,5 +1,8 @@
 
-import { supabase, getConnectionStatus, getSession, safeStringify } from './authService';
+import { supabase as supabaseClient, getConnectionStatus, getSession, safeStringify } from './authService';
+
+// Garantir que o supabase não seja nulo para o TypeScript
+const supabase = supabaseClient!;
 import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData, CommunityChallenge } from '../types';
 
 const DB_ROUTINE_KEY = 'espiritualizei_routine_db';
@@ -290,4 +293,39 @@ export const uploadImage = async (file: File, bucket: 'avatars' | 'posts'): Prom
     return publicUrl;
   }
   return undefined;
+};
+
+// Funções de Chat para o SocialHub
+export const fetchChatMessages = async (): Promise<any[]> => {
+  if (getConnectionStatus()) {
+    const { data } = await supabase.from('chat_messages').select('*').order('timestamp', { ascending: true }).limit(50);
+    return (data || []).map(m => ({
+      ...m,
+      timestamp: new Date(m.timestamp),
+      reactions: m.reactions || { heart: 0, candle: 0, pray: 0 },
+      userReactions: m.user_reactions || { heart: false, candle: false, pray: false }
+    }));
+  }
+  return [];
+};
+
+export const createChatMessage = async (message: any) => {
+  if (getConnectionStatus()) {
+    await supabase.from('chat_messages').insert([{
+      id: message.id,
+      user_id: message.userId,
+      user_name: message.userName,
+      user_avatar: message.userAvatar,
+      user_level: message.userLevel,
+      text: message.text,
+      type: message.type,
+      timestamp: message.timestamp.toISOString()
+    }]);
+  }
+};
+
+export const updateChatMessageReaction = async (messageId: string, reactions: any) => {
+  if (getConnectionStatus()) {
+    await supabase.from('chat_messages').update({ reactions }).eq('id', messageId);
+  }
 };
