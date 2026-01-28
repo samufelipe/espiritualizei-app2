@@ -47,7 +47,8 @@ export default async function handler(req: any, res: any) {
       const { data, error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          subscription_status: 'premium',
+          is_premium: true,
+          subscription_status: 'active',
           payment_provider: 'cakto',
           premium_since: new Date().toISOString()
         })
