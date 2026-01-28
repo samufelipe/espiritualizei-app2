@@ -93,8 +93,32 @@ const App: React.FC = () => {
     const initSession = async () => {
       const session = getSession();
       if (session) {
+        // 1. Define o usuário local imediatamente para não travar a tela
         setUser(session.user);
         setViewState('app');
+
+        // 2. VERIFICAÇÃO EM TEMPO REAL: Busca o status mais recente do banco
+        // Isso resolve o problema de o usuário ser Premium no banco mas o LocalStorage estar desatualizado
+        try {
+          const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+          if (profile && !error) {
+            const isNowPremium = profile.is_premium || profile.subscription_status === 'active' || profile.subscription_status === 'premium';
+            
+            // Se o status no banco for diferente do local, atualiza tudo
+            if (isNowPremium !== session.user.isPremium) {
+              const updatedUser = { 
+                ...session.user, 
+                isPremium: isNowPremium,
+                subscriptionStatus: profile.subscription_status 
+              };
+              setUser(updatedUser);
+              updateUserProfile(updatedUser);
+              console.log("Status de assinatura sincronizado com o banco de dados.");
+            }
+          }
+        } catch (e) {
+          console.warn("Falha ao sincronizar status em tempo real:", e);
+        }
         
         const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
         if (lastSeen !== new Date().toDateString()) {
