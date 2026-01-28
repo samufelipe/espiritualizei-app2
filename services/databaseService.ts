@@ -204,8 +204,11 @@ export const deleteRoutineItem = async (id: string) => {
   }
 };
 
-export const createJournalEntry = async (userId: string, mood: string, content: string, reflection?: string, verse?: string) => {
-  if (getConnectionStatus()) {
+export const createJournalEntry = async (mood: string, content: string, reflection?: string, verse?: string) => {
+  const session = getSession();
+  const userId = session?.user?.id;
+  
+  if (userId && getConnectionStatus()) {
     const entry = {
       id: crypto.randomUUID(),
       mood,
@@ -215,7 +218,8 @@ export const createJournalEntry = async (userId: string, mood: string, content: 
       user_id: userId,
       created_at: new Date().toISOString()
     };
-    await supabase.from('journal').insert([entry]);
+    // Corrigido para journal_entries conforme auditoria anterior
+    await supabase.from('journal_entries').insert([entry]);
   }
 };
 

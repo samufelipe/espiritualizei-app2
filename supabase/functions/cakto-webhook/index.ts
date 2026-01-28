@@ -41,7 +41,7 @@ serve(async (req) => {
     console.log(`Processando pagamento: Status [${status}] para Usuário [${userId}]`);
 
     // Lista de status que significam "Dinheiro no bolso / Acesso liberado"
-    const isApproved = ['paid', 'succeeded', 'completed', 'approved', 'payment.succeeded', 'active'].includes(status);
+    const isApproved = ['paid', 'succeeded', 'completed', 'approved', 'payment.succeeded', 'active', 'venda_paga', 'venda_aprovada'].includes(status);
 
     if (isApproved && userId) {
       // 3. Atualizar o Perfil do Usuário para Premium
@@ -50,20 +50,14 @@ serve(async (req) => {
         .update({ 
           is_premium: true, 
           subscription_status: 'active',
+          payment_provider: 'cakto',
+          premium_since: new Date().toISOString(),
           last_active_at: new Date().toISOString()
         })
         .eq('id', userId)
         .select()
 
       if (updateError) throw updateError;
-
-      // 4. Registrar log de sucesso na tabela de auditoria
-      await supabaseClient.from('payment_logs').insert({
-        user_id: userId,
-        provider: 'cakto',
-        payload: body,
-        status: 'success'
-      })
 
       console.log(`✅ ACESSO LIBERADO: Usuário ${userId} agora é Premium.`);
 
