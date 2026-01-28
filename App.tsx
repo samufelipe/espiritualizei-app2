@@ -14,7 +14,7 @@ import InstallPWA from './components/InstallPWA';
 import Paywall from './components/Paywall';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
-import { registerUser, getSession, logoutUser, updateUserProfile } from './services/authService'; 
+import { registerUser, getSession, logoutUser, updateUserProfile, supabase } from './services/authService'; 
 import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, createJournalEntry, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge } from './services/databaseService';
 import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
 
@@ -100,20 +100,22 @@ const App: React.FC = () => {
         // 2. VERIFICAÇÃO EM TEMPO REAL: Busca o status mais recente do banco
         // Isso resolve o problema de o usuário ser Premium no banco mas o LocalStorage estar desatualizado
         try {
-          const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-          if (profile && !error) {
-            const isNowPremium = profile.is_premium || profile.subscription_status === 'active' || profile.subscription_status === 'premium';
-            
-            // Se o status no banco for diferente do local, atualiza tudo
-            if (isNowPremium !== session.user.isPremium) {
-              const updatedUser = { 
-                ...session.user, 
-                isPremium: isNowPremium,
-                subscriptionStatus: profile.subscription_status 
-              };
-              setUser(updatedUser);
-              updateUserProfile(updatedUser);
-              console.log("Status de assinatura sincronizado com o banco de dados.");
+          if (supabase) {
+            const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+            if (profile && !error) {
+              const isNowPremium = profile.is_premium || profile.subscription_status === 'active' || profile.subscription_status === 'premium';
+              
+              // Se o status no banco for diferente do local, atualiza tudo
+              if (isNowPremium !== session.user.isPremium) {
+                const updatedUser = { 
+                  ...session.user, 
+                  isPremium: isNowPremium,
+                  subscriptionStatus: profile.subscription_status 
+                };
+                setUser(updatedUser);
+                updateUserProfile(updatedUser);
+                console.log("Status de assinatura sincronizado com o banco de dados.");
+              }
             }
           }
         } catch (e) {
