@@ -54,30 +54,34 @@ const App: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
+    const urlUserId = params.get('userId');
     const isSuccess = status === 'success' || status === 'paid' || status === 'approved';
     
     if (isSuccess) {
        const session = getSession();
-       if (session?.user) {
-          // 1. Limpa a URL
+       // Se temos o userId na URL ou na sessão, podemos processar
+       const targetUserId = urlUserId || session?.user?.id;
+       
+       if (targetUserId) {
+          // 1. Limpa a URL para evitar re-processamento ao dar refresh
           window.history.replaceState({}, document.title, "/");
           
-          // 2. Define visualmente como Premium (enquanto o webhook não chega no DB)
-          const updatedUser: UserProfile = { 
-            ...session.user, 
-            isPremium: true, 
-            subscriptionStatus: 'active' 
-          };
-          setUser(updatedUser);
+          // 2. Se o usuário logado for o mesmo do pagamento, atualiza localmente
+          if (session?.user && session.user.id === targetUserId) {
+            const updatedUser: UserProfile = { 
+              ...session.user, 
+              isPremium: true, 
+              subscriptionStatus: 'active' 
+            };
+            setUser(updatedUser);
+            updateUserProfile(updatedUser);
+          }
           
-          // 3. Mostra tela de celebração
+          // 3. Mostra tela de celebração (independente de estar logado ou não, pois o pagamento foi dele)
           setViewState('welcome_premium');
-          
-          // 4. Salva no local
-          updateUserProfile(updatedUser);
 
-          // 5. Tenta avisar o banco (fallback caso o webhook falhe mas o redirecionamento ocorra)
-          upgradeUserToPremium(session.user.id);
+          // 4. Tenta avisar o banco (fallback caso o webhook demore)
+          upgradeUserToPremium(targetUserId);
        }
     }
   }, []);

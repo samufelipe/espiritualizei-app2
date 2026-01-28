@@ -45,6 +45,11 @@ const Checkout: React.FC<CheckoutProps> = ({ onSuccess, userName, onLogout }) =>
       // Parâmetro de rastreio interno
       checkoutUrl.searchParams.set('utm_source', 'app_espiritualizei');
 
+      // URLs de retorno para a Cakto
+      const successUrl = `${window.location.origin}/?status=success&userId=${userId}`;
+      checkoutUrl.searchParams.set('redirect_url', successUrl);
+      checkoutUrl.searchParams.set('back_url', successUrl);
+
       // Redirecionamento oficial para o Checkout da Cakto
       window.location.href = checkoutUrl.toString();
     } catch (error) {
