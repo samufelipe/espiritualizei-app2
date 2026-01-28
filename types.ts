@@ -4,16 +4,14 @@ export enum Tab {
   ROUTINE = 'ROUTINE',
   KNOWLEDGE = 'KNOWLEDGE',
   COMMUNITY = 'COMMUNITY',
-  MAPS = 'MAPS',
-  PROFILE = 'PROFILE',
-  CHAT = 'CHAT'
+  SOCIAL = 'SOCIAL',
+  PROFILE = 'PROFILE'
 }
 
 export interface UserSettings {
   notifications: {
     prayers: boolean;
     community: boolean;
-    director: boolean;
   };
   theme?: 'light' | 'dark';
 }
@@ -36,6 +34,7 @@ export interface UserProfile {
   hasSeenTutorial?: boolean;
   joinedDate: Date;
   lastRoutineUpdate?: Date;
+  spiritualCycleStart?: Date; 
   lastConfessionAt?: Date; 
   confessionFrequency?: 'frequent' | 'rare' | 'long_time' | 'never';
   isPremium?: boolean;
@@ -52,7 +51,7 @@ export interface AuthSession {
   expiresAt: number;
 }
 
-export type RoutineActionType = 'READ_LITURGY' | 'OPEN_MAP' | 'OPEN_COMMUNITY' | 'OPEN_CHAT' | 'OPEN_PLAYER' | 'READ_KNOWLEDGE' | 'NONE';
+export type RoutineActionType = 'READ_LITURGY' | 'OPEN_COMMUNITY' | 'OPEN_SOCIAL' | 'OPEN_PLAYER' | 'READ_KNOWLEDGE' | 'NONE';
 
 export interface RoutineItem {
   id: string;
@@ -78,14 +77,10 @@ export interface OnboardingData {
   bestMoment: 'morning' | 'commute' | 'breaks' | 'night' | 'random'; 
   spiritualGoal: 'peace' | 'truth' | 'discipline' | 'love' | 'healing';
   confessionFrequency: 'frequent' | 'rare' | 'long_time' | 'never';
-  // Fixed: Added 'acutis' to matches SAINT_TRANSLATION in App.tsx
   patronSaint?: 'acutis' | 'michael' | 'therese' | 'joseph' | 'mary';
   photoUrl?: string;
 }
 
-/**
- * Fixed: Added missing DailyTopic interface used in geminiService and LiturgicalEvents
- */
 export interface DailyTopic {
   day: number;
   title: string;
@@ -114,7 +109,6 @@ export interface CommunityChallenge {
   participants: number;
   isUserParticipating?: boolean;
   userContribution: number; 
-  // Fixed: Specified DailyTopic[] type instead of any[]
   dailyTopics?: DailyTopic[];
   currentDay?: number;
   totalDays?: number;
@@ -159,7 +153,6 @@ export interface CommunityPost {
   isLikedByUser: boolean;
   timestamp: Date;
   type: 'testimony' | 'challenge_update' | 'inspiration' | 'question'; 
-  contextTag?: string; 
   comments?: Comment[];
 }
 
@@ -205,7 +198,6 @@ export interface LeaderboardEntry {
   avatarUrl?: string;
   score: number;
   rank: number;
-  // Fixed: Added badges array to satisfy fetchLeaderboard mock data
   badges?: string[];
 }
 
@@ -217,32 +209,14 @@ export interface LeaderboardData {
 export interface MonthlyReviewData {
   intensity: 'too_heavy' | 'balanced' | 'too_light';
   consistency: 'low' | 'medium' | 'high';
-  likedPractices: string[];
-  dislikedPractices: string[];
+  lifeContext: 'stressful' | 'stable' | 'transition';
+  likedModules: string[];
+  dislikedModules: string[];
   newStruggle: string;
-  newGoal: string;
+  newGoal: 'peace' | 'truth' | 'discipline' | 'love' | 'healing';
   timeAvailabilityChange: 'same' | 'less' | 'more';
 }
 
-/**
- * Fixed: Added missing Parish interface for ParishFinder and googlePlacesService
- */
-export interface Parish {
-  name: string;
-  address: string;
-  location?: { lat: number; lng: number };
-  rating?: number;
-  userRatingsTotal?: number;
-  openNow?: boolean;
-  photoUrl?: string;
-  url: string;
-  distance?: string;
-  directionsUrl?: string;
-}
-
-/**
- * Fixed: Added missing JournalEntry interface for JournalModal and databaseService
- */
 export interface JournalEntry {
   id: string;
   userId: string;
@@ -251,4 +225,21 @@ export interface JournalEntry {
   aiReflection?: string;
   bibleVerse?: string;
   createdAt: Date;
+}
+
+// Fix: Added missing Parish interface for ParishFinder and googlePlacesService
+export interface Parish {
+  name: string;
+  address: string;
+  location?: {
+    lat: number;
+    lng: number;
+  };
+  distance?: string;
+  rating?: number;
+  userRatingsTotal?: number;
+  openNow?: boolean;
+  url?: string;
+  photoUrl?: string;
+  directionsUrl?: string;
 }

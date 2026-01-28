@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PrayerIntention, CommunityChallenge, UserProfile } from '../types';
-import { Heart, Image, Trophy, Plus, Flame } from 'lucide-react';
+import { Heart, Image, Trophy, Plus, Flame, Share2 } from 'lucide-react';
 import LiturgicalEvents from './LiturgicalEvents';
 import CommunityFeed from './CommunityFeed';
 import LeaderboardWidget from './LeaderboardWidget';
@@ -14,6 +14,7 @@ interface CommunityProps {
   onOpenCreateModal: () => void;
   onTestify: (content: string) => void;
   feedInitialContent?: string;
+  initialTab?: 'mural' | 'feed' | 'ranking';
   user: UserProfile;
 }
 
@@ -25,9 +26,22 @@ const Community: React.FC<CommunityProps> = ({
   onOpenCreateModal, 
   onTestify, 
   feedInitialContent,
+  initialTab,
   user
 }) => {
   const [activeTab, setActiveTab] = useState<'mural' | 'feed' | 'ranking'>('mural');
+
+  // Este efeito é crucial para que o redirecionamento via App.tsx funcione
+  useEffect(() => {
+     if (initialTab) {
+        setActiveTab(initialTab);
+     }
+  }, [initialTab, feedInitialContent]); // Depender também do conteúdo inicial ajuda no reset
+
+  const handleShareApp = () => {
+    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha rotina de oração e vida espiritual. 💜\n\nConheça aqui: https://www.espiritualizei.com/");
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black/20 pb-32 animate-fade-in">
@@ -41,7 +55,7 @@ const Community: React.FC<CommunityProps> = ({
          />
       </div>
 
-      {/* Tabs */}
+      {/* Tabs Navigation */}
       <div className="px-4 sm:px-6 sticky top-0 z-30 bg-slate-50/95 dark:bg-[#0F1115]/95 backdrop-blur-xl py-2">
           <div className="flex p-1.5 bg-slate-200/50 dark:bg-white/5 rounded-2xl mx-auto max-w-lg relative overflow-x-auto shadow-sm border border-slate-200/50 dark:border-white/5">
               <button 
@@ -73,8 +87,6 @@ const Community: React.FC<CommunityProps> = ({
                
                {activeTab === 'mural' && (
                   <div className="space-y-6 animate-slide-up">
-                     
-                     {/* Create Trigger */}
                      <button 
                         onClick={onOpenCreateModal}
                         className="w-full bg-white dark:bg-[#1A1F26] p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 flex items-center gap-4 hover:border-brand-violet/30 transition-all group text-left"
@@ -88,7 +100,6 @@ const Community: React.FC<CommunityProps> = ({
                         </div>
                      </button>
 
-                     {/* Intentions List */}
                      <div className="space-y-4">
                         {intentions.map((intention) => (
                            <div key={intention.id} className="bg-white dark:bg-[#1A1F26] p-6 rounded-[2rem] shadow-card border border-slate-100 dark:border-white/5 relative overflow-hidden group hover:shadow-lg transition-all">
@@ -120,16 +131,9 @@ const Community: React.FC<CommunityProps> = ({
                               <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-medium">
                                  "{intention.content}"
                               </p>
-                              
-                              {/* Interaction Footer */}
                               <div className="mt-4 pt-4 border-t border-slate-50 dark:border-white/5 flex items-center justify-between">
                                  <div className="flex -space-x-2">
-                                    {[1,2,3].map(i => (
-                                       <div key={i} className="w-6 h-6 rounded-full bg-slate-200 dark:bg-white/10 border-2 border-white dark:border-[#1A1F26]" />
-                                    ))}
-                                    {intention.prayingCount > 3 && (
-                                       <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-white/5 border-2 border-white dark:border-[#1A1F26] flex items-center justify-center text-[8px] font-bold text-slate-500">+{intention.prayingCount - 3}</div>
-                                    )}
+                                    {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full bg-slate-200 dark:bg-white/10 border-2 border-white dark:border-[#1A1F26]" />)}
                                  </div>
                                  <button 
                                     onClick={() => onPray(intention.id)}
@@ -158,24 +162,22 @@ const Community: React.FC<CommunityProps> = ({
 
             </div>
 
-            {/* Sidebar Column (Desktop Only) */}
             <div className="hidden lg:block lg:col-span-4 space-y-6">
                <div className="sticky top-24">
                   <LeaderboardWidget user={user} />
-                  
                   <div className="mt-6 bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl">
                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
                      <h3 className="font-bold text-lg mb-2 relative z-10">Convide amigos</h3>
-                     <p className="text-purple-100 text-xs mb-4 relative z-10 leading-relaxed">
-                        A fé cresce quando é partilhada. Traga alguém para caminhar com você.
-                     </p>
-                     <button className="w-full bg-white text-brand-violet font-bold py-3 rounded-xl text-xs shadow-lg hover:scale-105 transition-all">
-                        Compartilhar App
+                     <p className="text-purple-100 text-xs mb-4 relative z-10 leading-relaxed">A fé cresce quando é partilhada. Traga alguém para caminhar com você.</p>
+                     <button 
+                        onClick={handleShareApp}
+                        className="w-full bg-white text-brand-violet font-bold py-3 rounded-xl text-xs shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-2"
+                     >
+                        <Share2 size={14} /> Compartilhar App
                      </button>
                   </div>
                </div>
             </div>
-
          </div>
       </div>
     </div>

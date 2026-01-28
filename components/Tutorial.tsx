@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Book, Sparkles, ArrowRight, MapPin, User } from 'lucide-react';
+import { CheckCircle2, Book, Heart, ArrowRight, MapPin, User } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { UserProfile } from '../types';
 
@@ -58,7 +58,7 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
     {
       title: "Comunidade Viva",
       description: "Não caminhe sozinho. Peça orações no Mural, veja quem está rezando por você e acompanhe o Ranking de caridade.",
-      icon: Sparkles,
+      icon: Heart,
       positionClass: "bottom-24 right-1/2 translate-x-1/2", // Aponta para aba 4
       arrowClass: "bottom-[-12px] right-[35%] border-t-brand-dark dark:border-t-white",
       highlightNav: 3
@@ -129,7 +129,7 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
 
               <button 
                 onClick={handleNext}
-                className="bg-brand-dark dark:bg-white text-white dark:text-brand-dark px-6 py-3 rounded-xl font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                className="bg-brand-dark dark:bg-white text-white dark:text-brand-dark px-6 py-3 rounded-xl font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 {step === steps.length - 1 ? 'Começar' : 'Próximo'} <ArrowRight size={16} />
               </button>

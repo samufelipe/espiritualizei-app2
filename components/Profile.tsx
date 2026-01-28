@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserProfile } from '../types';
-// Added missing Shield icon to fix reference error on line 142
 import { Camera, Edit2, Mail, Phone, Save, User, X, Flame, LogOut, Award, Zap, Star, Heart, BookOpen, MapPin, Trophy, CreditCard, Calendar, Bell, HelpCircle, Settings, FileText, Lock, RefreshCw, Timer, ChevronRight, Info, CheckCircle2, Footprints, Loader2, MessageCircle, Shield } from 'lucide-react';
 import { uploadImage, updateLastConfessionDate } from '../services/databaseService';
+import { updateUserProfile } from '../services/authService';
 import { ContactModal, TermsModal } from './LegalModals';
 
 interface ProfileProps {
@@ -16,16 +16,18 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false); 
-  const [formData, setFormData] = useState(user);
+  const [formData, setFormData] = useState<UserProfile>(user);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
-  const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
-  const [notifications, setNotifications] = useState({ prayers: true, community: true, director: false });
 
-  // --- CÁLCULO DA CONFISSÃO (INOVAÇÃO C) ---
+  // Sincroniza o formulário se o usuário mudar externamente
+  useEffect(() => {
+    setFormData(user);
+  }, [user]);
+
   const getConfessionStatus = () => {
-    if (!user.lastConfessionAt) return { days: null, level: 'none' };
+    if (!user.lastConfessionAt) return { days: null, level: 'none', label: 'Não registrado', color: 'text-slate-400' };
     const last = new Date(user.lastConfessionAt);
     const now = new Date();
     const diff = Math.floor((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
@@ -53,17 +55,22 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
     const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const progress = Math.min(100, Math.max(0, ((30 - daysLeft) / 30) * 100));
 
-    return { daysLeft: Math.max(0, daysLeft), nextDate: nextUpdateDate.toLocaleDateString('pt-BR'), progress, isDue: daysLeft <= 0 };
+    return { daysLeft: Math.max(0, daysLeft), nextDate: nextUpdateDate.toLocaleDateString('pt-BR'), progress };
   };
 
   const cycle = getCycleInfo();
 
   const handleSave = async () => {
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    onUpdateUser(formData);
-    setIsSaving(false);
-    setIsEditing(false);
+    try {
+        await updateUserProfile(formData);
+        onUpdateUser(formData);
+        setIsEditing(false);
+    } catch (e) {
+        alert("Erro ao salvar alterações. Tente novamente.");
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,20 +83,27 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                const newUserState = { ...user, photoUrl: uploadedUrl };
                setFormData(newUserState);
                onUpdateUser(newUserState);
+               await updateUserProfile(newUserState);
             }
         } catch (error) { console.error("Upload failed", error); }
         finally { setIsUploadingPhoto(false); }
      }
   };
 
-  const renderField = (label: string, value: string | undefined, onChange: (val: string) => void, Icon: React.ElementType, placeholder: string) => {
+  const renderField = (label: string, value: string | undefined, onChange: (val: string) => void, Icon: React.ElementType, placeholder: string, type: string = "text") => {
     if (isEditing) {
       return (
         <div className="animate-fade-in">
           <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1 tracking-wider">{label}</label>
           <div className="relative group">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-violet transition-colors"><Icon size={18} /></div>
-            <input value={value || ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-medium placeholder:text-slate-400 outline-none focus:bg-white/10 focus:border-brand-violet transition-all text-sm" />
+            <input 
+              type={type}
+              value={value || ''} 
+              onChange={(e) => onChange(e.target.value)} 
+              placeholder={placeholder} 
+              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-medium placeholder:text-slate-400 outline-none focus:bg-white/10 focus:border-brand-violet transition-all text-sm" 
+            />
           </div>
         </div>
       );
@@ -137,7 +151,33 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
           </div>
         </div>
 
-        {/* INOVAÇÃO C: SACRAMENTO TRACKER */}
+        {/* CICLO ESPIRITUAL TRACKER */}
+        <div className="animate-slide-up">
+           <div className="flex items-center gap-2 mb-3 px-1">
+              <RefreshCw size={16} className="text-brand-violet" />
+              <span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Seu Ciclo de 30 Dias</span>
+           </div>
+           <div className="bg-[#1A1F26] p-6 rounded-3xl border border-white/10 shadow-card">
+              <div className="flex justify-between items-start mb-4">
+                 <div>
+                    <h3 className="text-white font-bold text-base">Foco Atual</h3>
+                    <p className="text-slate-400 text-xs mt-1">Combatendo: <span className="text-white font-medium">{user.spiritualFocus || 'Indefinido'}</span></p>
+                 </div>
+                 <div className="text-right">
+                    <span className="text-2xl font-black text-brand-violet">{cycle.daysLeft}</span>
+                    <span className="block text-[9px] text-slate-500 font-bold uppercase">Dias p/ Avaliação</span>
+                 </div>
+              </div>
+              <div className="relative h-3 w-full bg-black/20 rounded-full overflow-hidden mb-3">
+                 <div className="h-full rounded-full bg-gradient-to-r from-brand-violet to-purple-500" style={{ width: `${cycle.progress}%` }} />
+              </div>
+              <p className="text-[10px] text-slate-500 leading-relaxed">
+                 A cada 30 dias, o Espiritualizei recalibra sua rotina baseado no seu progresso real. Faltam {cycle.daysLeft} dias para sua próxima direção espiritual.
+              </p>
+           </div>
+        </div>
+
+        {/* SACRAMENTO TRACKER */}
         <div className="animate-slide-up">
            <div className="flex items-center gap-2 mb-3 px-1">
               <Shield size={16} className="text-brand-violet" />
@@ -158,30 +198,15 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                  <button onClick={handleUpdateConfession} className="flex-1 bg-brand-violet text-white py-3 rounded-xl text-xs font-bold shadow-lg hover:bg-purple-600 transition-all flex items-center justify-center gap-2">
                     <CheckCircle2 size={16} /> Me confessei hoje
                  </button>
-                 <button className="bg-white/5 text-slate-300 p-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all">
-                    <Calendar size={18} />
-                 </button>
               </div>
-              <p className="text-[10px] text-slate-500 mt-4 italic">"A alma que se confessa frequentemente voa para a santidade." — São João Bosco</p>
-           </div>
-        </div>
-
-        {/* CICLO ESPIRITUAL */}
-        <div className="animate-slide-up">
-           <div className="flex items-center gap-2 mb-3 px-1"><RefreshCw size={16} className="text-brand-violet" /><span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Ciclo da Rotina</span></div>
-           <div className="bg-[#1A1F26] p-6 rounded-3xl border border-white/10 shadow-card">
-              <div className="flex justify-between items-start mb-4">
-                 <div><h3 className="text-white font-bold text-base">Foco do Ciclo</h3><p className="text-slate-400 text-xs mt-1">Vencendo: <span className="text-white font-medium">{user.spiritualFocus || 'Indefinido'}</span></p></div>
-                 <div className="text-right"><span className="text-2xl font-black text-brand-violet">{cycle.daysLeft}</span><span className="block text-[9px] text-slate-500 font-bold uppercase">Dias Restantes</span></div>
-              </div>
-              <div className="relative h-3 w-full bg-black/20 rounded-full overflow-hidden mb-3"><div className="h-full rounded-full bg-gradient-to-r from-brand-violet to-purple-500" style={{ width: `${cycle.progress}%` }} /></div>
            </div>
         </div>
 
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-2 px-1"><User size={16} className="text-brand-violet" /><span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Dados Pessoais</span></div>
           {renderField('Nome Completo', formData.name, (val) => setFormData({ ...formData, name: val }), User, 'Seu nome')}
-          {renderField('E-mail', formData.email, (val) => setFormData({ ...formData, email: val }), Mail, 'seu@email.com')}
+          {renderField('E-mail', formData.email, (val) => setFormData({ ...formData, email: val }), Mail, 'seu@email.com', 'email')}
+          {renderField('Telefone', formData.phone, (val) => setFormData({ ...formData, phone: val }), Phone, '(00) 00000-0000', 'tel')}
         </div>
 
         <div className="pt-4 space-y-4">
@@ -209,7 +234,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
             <div className="relative bg-brand-dark p-6 rounded-3xl shadow-2xl max-w-xs w-full text-center border border-white/10">
                <div className="w-16 h-16 bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"><LogOut size={28} /></div>
                <h3 className="text-lg font-bold text-white mb-2">Sair do app?</h3>
-               <div className="flex gap-3 mt-6"><button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-white/10">Cancelar</button><button onClick={onLogout} className="flex-1 py-3 rounded-xl font-bold bg-red-500 text-white shadow-lg">Sair</button></div>
+               <div className="flex gap-3 mt-6">
+                 <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-white/10">Cancelar</button>
+                 <button onClick={onLogout} className="flex-1 py-3 rounded-xl font-bold bg-red-500 text-white shadow-lg">Sair</button>
+               </div>
             </div>
          </div>
       )}

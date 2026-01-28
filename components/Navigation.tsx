@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, CheckCircle2, Book, MapPin, Heart, User } from 'lucide-react';
+import { Home, CheckCircle2, Book, Trophy, Heart, User } from 'lucide-react';
 import { Tab } from '../types';
 
 interface NavigationProps {
@@ -12,16 +12,15 @@ const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange }) => {
   const navItems = [
     { tab: Tab.DASHBOARD, icon: Home, label: 'Início' },
     { tab: Tab.ROUTINE, icon: CheckCircle2, label: 'Rotina' },
-    { tab: Tab.KNOWLEDGE, icon: Book, label: 'Aprender' },
-    { tab: Tab.COMMUNITY, icon: Heart, label: 'Comunidade' },
-    { tab: Tab.MAPS, icon: MapPin, label: 'Igrejas' },
+    { tab: Tab.COMMUNITY, icon: Heart, label: 'Mural' },
+    { tab: Tab.SOCIAL, icon: Trophy, label: 'Ranking' },
+    { tab: Tab.KNOWLEDGE, icon: Book, label: 'Biblioteca' },
     { tab: Tab.PROFILE, icon: User, label: 'Perfil' },
   ];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none md:hidden">
-      {/* Gradient fade at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-black dark:via-black/90 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-brand-dark dark:via-brand-dark/90 pointer-events-none" />
 
       <nav 
         role="navigation"
@@ -47,7 +46,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange }) => {
                    <item.icon
                      size={20} 
                      strokeWidth={isActive ? 2.5 : 2}
-                     fill={isActive && (item.tab === Tab.COMMUNITY || item.tab === Tab.MAPS || item.tab === Tab.PROFILE) ? "currentColor" : "none"} 
+                     fill={isActive && (item.tab === Tab.COMMUNITY || item.tab === Tab.SOCIAL || item.tab === Tab.PROFILE) ? "currentColor" : "none"} 
                      className="transition-transform duration-300"
                    />
                    {isActive && (
