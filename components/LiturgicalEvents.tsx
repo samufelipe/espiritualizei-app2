@@ -293,10 +293,10 @@ Convido toda a comunidade a perseverar nesta jornada! 🙏✨`;
             <div className="flex-1 flex flex-col gap-6 max-w-2xl">
                <div className="flex flex-wrap items-center gap-3">
                   <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full pl-1.5 pr-4 py-1.5 flex items-center gap-3 shadow-sm">
-                     <div className="bg-brand-violet text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-lg">#{activeChallenge.currentDay}</div>
+                     <div className="text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-lg" style={{ backgroundColor: activeChallenge.seasonColor || '#7C3AED' }}>#{activeChallenge.currentDay}</div>
                      <span className="text-xs font-bold text-white uppercase tracking-widest">Jornada Litúrgica</span>
                   </div>
-                  <div className="bg-amber-400/10 backdrop-blur-md border border-amber-400/20 rounded-full px-4 py-1.5 flex items-center gap-2 text-amber-200">
+                  <div className="backdrop-blur-md border rounded-full px-4 py-1.5 flex items-center gap-2" style={{ backgroundColor: `${activeChallenge.seasonColor}15`, borderColor: `${activeChallenge.seasonColor}30`, color: activeChallenge.seasonColor }}>
                      {getActionIcon()}
                      <span className="text-xs font-bold uppercase tracking-widest">{getActionLabel()}</span>
                   </div>
@@ -318,7 +318,7 @@ Convido toda a comunidade a perseverar nesta jornada! 🙏✨`;
                      <span>{Math.round(progressPercent)}%</span>
                   </div>
                   <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden">
-                     <div className="h-full bg-brand-violet shadow-[0_0_15px_rgba(167,139,250,0.6)] relative transition-all duration-1000" style={{ width: `${progressPercent}%` }}>
+                     <div className="h-full relative transition-all duration-1000" style={{ width: `${progressPercent}%`, backgroundColor: activeChallenge.seasonColor || '#7C3AED', boxShadow: `0 0 15px ${activeChallenge.seasonColor}60` }}>
                         <div className="absolute right-0 top-0 bottom-0 w-1 bg-white/30" />
                      </div>
                   </div>
@@ -374,7 +374,7 @@ Convido toda a comunidade a perseverar nesta jornada! 🙏✨`;
                        Próximo Passo <ChevronRight size={24} />
                     </button>
                  ) : (
-                    <button onClick={handleComplete} className="flex-1 bg-gradient-to-r from-brand-violet to-purple-600 text-white font-black h-16 rounded-2xl shadow-[0_0_30px_rgba(167,139,250,0.5)] flex items-center justify-center gap-3 active:scale-95 text-xl tracking-tight">
+                    <button onClick={handleComplete} className="flex-1 text-white font-black h-16 rounded-2xl shadow-2xl flex items-center justify-center gap-3 active:scale-95 text-xl tracking-tight" style={{ background: `linear-gradient(to right, ${activeChallenge.seasonColor || '#7C3AED'}, #4C1D95)`, boxShadow: `0 0 30px ${activeChallenge.seasonColor}50` }}>
                        Confirmar Entrega <CheckCircle2 size={28} />
                     </button>
                  )}
@@ -395,7 +395,7 @@ Convido toda a comunidade a perseverar nesta jornada! 🙏✨`;
                   <h3 className="text-3xl font-black text-white mb-3">Deus seja louvado!</h3>
                   <p className="text-slate-400 text-sm mb-8 leading-relaxed">Sua fidelidade nas pequenas coisas do cotidiano edifica toda a nossa Igreja.</p>
                   <div className="space-y-4">
-                     <button onClick={handleShare} className="w-full py-4 rounded-2xl bg-brand-violet text-white font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-brand-violet/20">
+                     <button onClick={handleShare} className="w-full py-4 rounded-2xl text-white font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg" style={{ backgroundColor: activeChallenge.seasonColor || '#7C3AED' }}>
                         <MessageCircle size={20} /> Compartilhar com a Comunidade
                      </button>
                      <button onClick={handleInstagramShare} className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-pink-500/20">

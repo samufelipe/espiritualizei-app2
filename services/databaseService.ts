@@ -125,10 +125,26 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
             { title: "Mesa Humilde", desc: "Faça uma refeição mais simples hoje e ofereça a diferença em esmola ou oração.", action: "Alimente a alma mortificando o corpo.", script: "Nem só de pão vive o homem. (Mt 4, 4)" },
             { title: "Silêncio de Ouro", desc: "Evite falar palavras desnecessárias hoje. Fale apenas o que for bom para edificar.", action: "O silêncio é a linguagem do amor.", script: "No muito falar não falta pecado. (Pr 10, 19)" }
         ]
+    },
+    EASTER: {
+        WITNESS: [
+            { title: "Luz do Mundo", desc: "Compartilhe uma palavra de esperança ou um versículo bíblico com alguém que está passando por dificuldades.", action: "Seja um sinal da Ressurreição para o próximo.", script: "Vós sois a luz do mundo. (Mt 5, 14)" },
+            { title: "Alegria Pascal", desc: "Faça um esforço consciente para sorrir e ser gentil com todos, mesmo nos momentos de estresse.", action: "A alegria do Senhor é a nossa força.", script: "Alegrai-vos sempre no Senhor. (Fl 4, 4)" },
+            { title: "Visita de Caridade", desc: "Ligue ou visite um parente idoso ou doente para levar uma palavra de conforto.", action: "Cristo ressuscitado visita através de você.", script: "Estive doente e me visitastes. (Mt 25, 36)" }
+        ]
+    },
+    ADVENT: {
+        VIGILANCE: [
+            { title: "Coração em Espera", desc: "Prepare um pequeno altar ou espaço de oração em casa para meditar sobre a vinda de Jesus.", action: "Prepare o caminho para o Senhor.", script: "Vigiai, pois não sabeis o dia nem a hora. (Mt 25, 13)" },
+            { title: "Paciência Cristã", desc: "Pratique a paciência em filas, no trânsito ou em conversas difíceis hoje.", action: "A espera do Senhor nos ensina a paciência.", script: "Sede pacientes até a vinda do Senhor. (Tg 5, 7)" }
+        ]
     }
   };
 
-  const activePool = (isLent || isPreLent) ? taskPool.LENT : taskPool.ORDINARY;
+  const activePool = (season.id === 'lent' || isPreLent) ? taskPool.LENT : 
+                   (season.id === 'easter' ? taskPool.EASTER : 
+                   (season.id === 'advent' ? taskPool.ADVENT : taskPool.ORDINARY));
+  
   const poolKeys = Object.keys(activePool);
   const typeKey = poolKeys[cycleId % poolKeys.length];
   const list = (activePool as any)[typeKey];
@@ -141,21 +157,25 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
     scripture: t.script,
     isCompleted: false,
     isLocked: false,
-    actionType: typeKey === 'RELATIONAL' ? 'RELATIONSHIP' : (typeKey === 'FASTING' || typeKey === 'SACRIFICE' ? 'SACRIFICE' : 'PRAYER')
+    actionType: typeKey === 'RELATIONAL' || typeKey === 'WITNESS' ? 'RELATIONSHIP' : 
+               (typeKey === 'FASTING' || typeKey === 'SACRIFICE' ? 'SACRIFICE' : 'PRAYER')
   }));
 
-  const themeName = isLent ? "Caminho do Calvário" : isPreLent ? "Vigília do Deserto" : "Fé no Cotidiano";
+  const themeName = season.id === 'lent' ? "Caminho do Calvário" : 
+                   season.id === 'easter' ? "Luz da Ressurreição" :
+                   season.id === 'advent' ? "Vigília da Esperança" :
+                   isPreLent ? "Vigília do Deserto" : "Fé no Cotidiano";
 
   return {
     id: `liturgical-cycle-${cycleId}`,
     title: `Jornada: ${themeName}`,
-    description: `Um ciclo de 3 dias para fortalecer sua ${isLent ? 'conversão' : 'constância'} através de gestos concretos.`,
+    description: `Um ciclo de 3 dias para fortalecer sua ${season.theme.toLowerCase()} através de gestos concretos.`,
     currentAmount: 0,
     targetAmount: 5000,
     unit: 'atos de amor',
     daysLeft: 3 - (Math.floor((date.getTime() / MS_PER_DAY)) % 3),
-    seasonColor: isLent ? '#7C3AED' : '#10B981',
-    icon: isLent ? 'cross' : 'fire',
+    seasonColor: season.color,
+    icon: season.id === 'lent' ? 'cross' : (season.id === 'easter' ? 'fire' : (season.id === 'advent' ? 'star' : 'fire')),
     type: 'season',
     startDate: new Date(cycleId * 3 * MS_PER_DAY),
     endDate: new Date((cycleId + 1) * 3 * MS_PER_DAY),
