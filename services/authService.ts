@@ -108,11 +108,11 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
   };
   const { error: dbError } = await supabase.from('profiles').insert([profilePayload]);
   const newUser = mapProfileFromDB(profilePayload, email);
-  const session: AuthSession = { 
-    user: newUser, 
-    token: authData.session?.access_token || '', 
-    expiresAt: Date.now() + 86400000 
-  };
+	  const session: AuthSession = { 
+	    user: newUser, 
+	    token: authData.session?.access_token || '', 
+	    expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 dias de expiração
+	  };
   localStorage.setItem(SESSION_KEY, safeStringify(session));
   return session;
 };

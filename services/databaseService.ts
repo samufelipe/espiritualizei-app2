@@ -616,3 +616,37 @@ export const uploadImage = async (file: File, bucket: 'avatars' | 'posts'): Prom
   }
   return undefined;
 };
+
+/**
+ * FILA DE E-MAILS PARA ENGAJAMENTO
+ */
+export const queueEngagementEmail = async (userId: string, type: 'challenge' | 'liturgy' | 'ranking' | 'inactivity', payload: any) => {
+  if (getConnectionStatus()) {
+    try {
+      await supabase!.from('email_queue').insert([{
+        user_id: userId,
+        email_type: type,
+        payload: payload,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      }]);
+    } catch (e) {
+      console.error("Erro ao enfileirar e-mail:", e);
+    }
+  }
+};
+
+/**
+ * DETECÇÃO DE INATIVIDADE (Para ser chamado no App.tsx)
+ */
+export const checkAndLogActivity = async (userId: string) => {
+  if (getConnectionStatus()) {
+    try {
+      await supabase!.from('profiles').update({ 
+        last_activity_at: new Date().toISOString() 
+      }).eq('id', userId);
+    } catch (e) {
+      console.error("Erro ao registrar atividade:", e);
+    }
+  }
+};

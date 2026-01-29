@@ -19,7 +19,7 @@ import { registerUser, getSession, logoutUser, updateUserProfile, supabase, mapP
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
-import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost } from './services/databaseService';
+import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost, checkAndLogActivity } from './services/databaseService';
 import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -143,11 +143,14 @@ const App: React.FC = () => {
              }
           });
 
-          fetchUserRoutine(session.user.id).then((db) => {
-             if (db && db.length > 0) setRoutineItems(db);
-          });
-          
-          const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
+	          fetchUserRoutine(session.user.id).then((db) => {
+	             if (db && db.length > 0) setRoutineItems(db);
+	          });
+
+	          // Registrar atividade para e-mails de inatividade
+	          checkAndLogActivity(session.user.id);
+	          
+	          const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
           if (lastSeen !== new Date().toDateString()) {
               setShowDailyInspiration(true);
               localStorage.setItem('espiritualizei_daily_inspiration_date', new Date().toDateString());
