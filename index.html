@@ -36,9 +36,13 @@
         /* Variáveis automáticas que o navegador/sistema preenche */
         --sat: env(safe-area-inset-top);
         --sab: env(safe-area-inset-bottom);
+        --sal: env(safe-area-inset-left);
+        --sar: env(safe-area-inset-right);
       }
-      .pt-safe { padding-top: var(--sat); }
-      .pb-safe { padding-bottom: var(--sab); }
+      .pt-safe { padding-top: max(1rem, var(--sat)); }
+      .pb-safe { padding-bottom: max(1rem, var(--sab)); }
+      .pl-safe { padding-left: var(--sal); }
+      .pr-safe { padding-right: var(--sar); }
       
       html, body { 
         background-color: #1A2530; 
