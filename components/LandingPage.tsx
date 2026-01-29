@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Moon, Brain, Coffee, CloudRain, Quote, Sun, Heart, Users, Flame, BookOpen, Star, Clock, MessageCircle, Instagram, Youtube, Twitter, Sparkles, Calendar, Lock, ShieldCheck, Zap, Trophy, Check, Home, RefreshCw } from 'lucide-react';
+import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Moon, Brain, Coffee, CloudRain, Quote, Sun, Heart, Users, Flame, BookOpen, Star, Clock, MessageCircle, Instagram, Youtube, Twitter, Sparkles, Calendar, Lock, ShieldCheck, Zap, Trophy, Check, Home, RefreshCw, Smartphone, Cross, Anchor, Target } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { TermsModal, PrivacyModal, AboutModal, ContactModal } from './LegalModals';
 
@@ -51,8 +51,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
           
           <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
             <button onClick={() => scrollToSection('metodo')} className="hover:text-brand-violet transition-colors">O Método</button>
-            <button onClick={() => scrollToSection('comunidade')} className="hover:text-brand-violet transition-colors">Comunidade</button>
-            <button onClick={() => scrollToSection('biblioteca')} className="hover:text-brand-violet transition-colors">Formação</button>
+            <button onClick={() => scrollToSection('funcionalidades')} className="hover:text-brand-violet transition-colors">O App</button>
+            <button onClick={() => scrollToSection('assinatura')} className="hover:text-brand-violet transition-colors">Assinatura</button>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
@@ -85,7 +85,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-violet to-purple-400">toda segunda-feira.</span>
           </h1>
           <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
-            A vida espiritual não precisa ser um fardo. O **Espiritualizei** ajuda você a organizar sua jornada diária com humildade e constância, adaptando-se à sua realidade para que a oração seja seu verdadeiro porto seguro.
+            A vida espiritual não precisa ser um fardo pesado. O Espiritualizei ajuda você a organizar sua jornada diária com humildade e constância, adaptando-se à sua realidade para que a oração seja seu verdadeiro porto seguro.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
              <button onClick={onStart} className="w-full sm:w-auto px-10 py-5 bg-brand-violet text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-brand-violet/30 hover:scale-105 transition-all flex items-center justify-center gap-3">
@@ -142,123 +142,224 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
          <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-20">
                <h2 className="text-4xl sm:text-6xl font-black text-brand-dark dark:text-white mb-6 tracking-tighter">Um caminho pensado para você</h2>
-               <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed">Não queremos ser mais um peso na sua lista de tarefas, mas a mão que te ajuda a caminhar quando você se sente cansado.</p>
+               <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed">Não queremos ser mais um peso na sua lista de tarefas, mas a mão que te ajuda a caminhar quando você se sente cansado ou perdido.</p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-brand-violet/40 transition-all">
                   <div className="w-16 h-16 bg-brand-violet/10 rounded-2xl flex items-center justify-center text-brand-violet mb-8 group-hover:scale-110 transition-transform"><RefreshCw size={32} /></div>
                   <h3 className="text-2xl font-bold mb-4">Jornada Diária Real</h3>
-                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">O **Espiritualizei** entende sua rotina e sugere práticas que cabem no seu tempo. Com humildade, caminhamos um passo de cada vez, ajustando o plano conforme sua vida muda.</p>
+                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">O Espiritualizei entende sua rotina e sugere práticas que cabem no seu tempo. Com humildade, caminhamos um passo de cada vez, ajustando o plano conforme sua vida muda.</p>
                </div>
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-blue-500/40 transition-all">
                   <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 mb-8 group-hover:scale-110 transition-transform"><BookOpen size={32} /></div>
                   <h3 className="text-2xl font-bold mb-4">Formação Sem Pressa</h3>
-                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Acesse a Biblioteca da Fé com textos curtos e profundos. Aprenda sobre os santos e a doutrina enquanto aguarda um café ou no trajeto.</p>
+                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Acesse a Biblioteca da Fé com textos curtos e profundos. Aprenda sobre os santos e a doutrina enquanto aguarda um café ou no trajeto do trabalho.</p>
                </div>
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-orange-500/40 transition-all">
                   <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center text-orange-600 mb-8 group-hover:scale-110 transition-transform"><Zap size={32} /></div>
                   <h3 className="text-2xl font-bold mb-4">Foco na Constância</h3>
-                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Menos é mais. Nosso foco é te ajudar a rezar 15 minutos todos os dias com qualidade, em vez de 2 horas apenas uma vez por mês.</p>
+                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Menos é mais. Nosso foco é te ajudar a rezar 15 minutos todos os dias com qualidade, em vez de tentar grandes metas que acabam sendo abandonadas.</p>
                </div>
             </div>
          </div>
       </section>
 
-      {/* --- COMUNIDADE --- */}
-      <section id="comunidade" className="py-32 bg-brand-dark text-white relative overflow-hidden">
-         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-violet/10 rounded-full blur-[120px]" />
-         <div className="max-w-6xl mx-auto px-6 relative z-10">
+      {/* --- FUNCIONALIDADES DETALHADAS --- */}
+      <section id="funcionalidades" className="py-32 bg-white dark:bg-brand-dark">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="space-y-32">
+            
+            {/* Feature 1: Jornada Personalizada */}
             <div className="grid md:grid-cols-2 gap-16 items-center">
-               <div>
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-violet/20 border border-brand-violet/30 rounded-full text-brand-violet text-[10px] font-black uppercase tracking-widest mb-6">
-                     <Users size={12} fill="currentColor" /> Você não está sozinho
+              <div className="order-2 md:order-1">
+                <div className="w-[300px] h-[550px] bg-brand-dark rounded-[3rem] border-[8px] border-slate-800 shadow-2xl overflow-hidden mx-auto relative">
+                  <div className="absolute inset-0 bg-gradient-to-b from-brand-violet/20 to-transparent pointer-events-none" />
+                  <div className="p-6 pt-12">
+                    <div className="flex items-center gap-3 mb-8">
+                      <div className="w-10 h-10 bg-brand-violet rounded-xl flex items-center justify-center text-white"><Calendar size={20} /></div>
+                      <h4 className="text-white font-bold">Minha Jornada</h4>
+                    </div>
+                    <div className="space-y-4">
+                      {[
+                        { t: 'Oração da Manhã', d: '5 min • Primícias', c: true },
+                        { t: 'Terço da Misericórdia', d: '10 min • Tarde', c: false },
+                        { t: 'Exame de Consciência', d: '5 min • Noite', c: false }
+                      ].map((item, i) => (
+                        <div key={i} className={`p-4 rounded-2xl border ${item.c ? 'bg-brand-violet/20 border-brand-violet/30' : 'bg-white/5 border-white/10'}`}>
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-white text-sm font-bold">{item.t}</p>
+                              <p className="text-slate-400 text-[10px]">{item.d}</p>
+                            </div>
+                            {item.c && <CheckCircle2 size={16} className="text-brand-violet" />}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <h2 className="text-4xl sm:text-6xl font-black mb-8 tracking-tighter leading-tight">Uma rede de oração que nunca dorme.</h2>
-                  <p className="text-slate-400 text-lg mb-10 leading-relaxed font-medium">No Espiritualizei, você pode postar suas intenções e saber que centenas de pessoas estão rezando por você naquele exato momento. A fé se fortalece na união.</p>
-                  <div className="space-y-6">
-                     <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 bg-brand-violet/20 rounded-xl flex items-center justify-center text-brand-violet shrink-0"><MessageCircle size={20} /></div>
-                        <div>
-                           <h4 className="font-bold text-xl mb-1">Comunidade de Orações</h4>
-                           <p className="text-slate-400">Peça orações e reze pelos outros com apenas um toque.</p>
-                        </div>
-                     </div>
-                     <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 bg-brand-violet/20 rounded-xl flex items-center justify-center text-brand-violet shrink-0"><Flame size={20} /></div>
-                        <div>
-                           <h4 className="font-bold text-xl mb-1">Desafios de Virtude</h4>
-                           <p className="text-slate-400">Participe de desafios semanais para crescer em santidade com a comunidade.</p>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-               <div className="relative">
-                  <div className="bg-white/5 border border-white/10 p-8 rounded-[3rem] backdrop-blur-md">
-                     <div className="space-y-6">
-                        <div className="bg-white/5 p-6 rounded-3xl border border-white/5 animate-pulse">
-                           <div className="flex items-center gap-3 mb-3">
-                              <div className="w-8 h-8 bg-slate-700 rounded-full"></div>
-                              <div className="h-3 w-24 bg-slate-700 rounded"></div>
-                           </div>
-                           <div className="h-4 w-full bg-slate-800 rounded mb-2"></div>
-                           <div className="h-4 w-2/3 bg-slate-800 rounded"></div>
-                        </div>
-                        <div className="bg-brand-violet/10 p-6 rounded-3xl border border-brand-violet/20">
-                           <div className="flex items-center gap-3 mb-3">
-                              <div className="w-8 h-8 bg-brand-violet rounded-full flex items-center justify-center text-[10px] font-bold">SF</div>
-                              <div className="text-xs font-bold">Samuel Felipe</div>
-                           </div>
-                           <p className="text-sm font-medium italic">"Peço orações pela saúde da minha avó que fará uma cirurgia amanhã."</p>
-                           <div className="mt-4 flex items-center gap-2 text-brand-violet text-[10px] font-black uppercase">
-                              <Flame size={14} fill="currentColor" /> 124 pessoas rezando agora
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
+                </div>
+              </div>
+              <div className="order-1 md:order-2 space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-violet/10 rounded-full text-brand-violet text-[10px] font-black uppercase tracking-widest">
+                  Exclusivo e Pessoal
+                </div>
+                <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-tight">Um plano de vida que respeita seu tempo.</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">
+                  Através de um questionário inicial, entendemos seu estado de vida, suas lutas e sua disponibilidade. O Espiritualizei cria uma jornada diária que não te sobrecarrega, mas te mantém no caminho da santidade com passos firmes e possíveis.
+                </p>
+                <ul className="space-y-4">
+                  <li className="flex items-center gap-3 text-slate-600 dark:text-slate-300 font-medium">
+                    <CheckCircle2 size={20} className="text-brand-violet" /> Sugestões baseadas na sua rotina real
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-600 dark:text-slate-300 font-medium">
+                    <CheckCircle2 size={20} className="text-brand-violet" /> Notificações suaves para te lembrar de parar e rezar
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-600 dark:text-slate-300 font-medium">
+                    <CheckCircle2 size={20} className="text-brand-violet" /> Ajuste flexível conforme seu progresso
+                  </li>
+                </ul>
+              </div>
             </div>
-         </div>
+
+            {/* Feature 2: Comunidade */}
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose-100 dark:bg-rose-900/20 rounded-full text-rose-600 text-[10px] font-black uppercase tracking-widest">
+                  União e Intercessão
+                </div>
+                <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-tight">Você nunca mais rezará sozinho.</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">
+                  A vida espiritual no mundo pode ser solitária. No Espiritualizei, você faz parte de uma comunidade viva. Peça orações em momentos de dificuldade e sinta o conforto de saber que outros irmãos estão intercedendo por você naquele exato momento.
+                </p>
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10">
+                    <h4 className="font-bold text-brand-violet mb-2">Mural de Orações</h4>
+                    <p className="text-xs text-slate-500">Poste suas intenções e receba o apoio da comunidade.</p>
+                  </div>
+                  <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10">
+                    <h4 className="font-bold text-brand-violet mb-2">Desafios Coletivos</h4>
+                    <p className="text-xs text-slate-500">Participe de novenas e jornadas com milhares de pessoas.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="w-[300px] h-[550px] bg-brand-dark rounded-[3rem] border-[8px] border-slate-800 shadow-2xl overflow-hidden mx-auto relative">
+                  <div className="p-6 pt-12">
+                    <div className="flex items-center gap-3 mb-8">
+                      <div className="w-10 h-10 bg-rose-500 rounded-xl flex items-center justify-center text-white"><Heart size={20} /></div>
+                      <h4 className="text-white font-bold">Comunidade</h4>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 bg-slate-700 rounded-full"></div>
+                          <p className="text-[10px] text-slate-400 font-bold">Maria Silva</p>
+                        </div>
+                        <p className="text-white text-xs italic">"Peço orações pela restauração da minha família."</p>
+                        <div className="mt-3 flex items-center gap-1 text-rose-500 text-[10px] font-black">
+                          <Flame size={12} fill="currentColor" /> 84 pessoas rezando
+                        </div>
+                      </div>
+                      <div className="bg-brand-violet/20 p-4 rounded-2xl border border-brand-violet/30">
+                        <p className="text-white text-xs font-bold mb-1">Desafio Quaresmal</p>
+                        <div className="w-full bg-white/10 h-1.5 rounded-full mt-2">
+                          <div className="w-3/4 h-full bg-brand-violet rounded-full"></div>
+                        </div>
+                        <p className="text-[9px] text-slate-400 mt-2">1.240 participantes ativos</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 3: Biblioteca e Formação */}
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <div className="order-2 md:order-1">
+                <div className="w-[300px] h-[550px] bg-brand-dark rounded-[3rem] border-[8px] border-slate-800 shadow-2xl overflow-hidden mx-auto relative">
+                  <div className="p-6 pt-12">
+                    <div className="flex items-center gap-3 mb-8">
+                      <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white"><BookOpen size={20} /></div>
+                      <h4 className="text-white font-bold">Biblioteca</h4>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {['Santos', 'Doutrina', 'Liturgia', 'Orações'].map((cat, i) => (
+                        <div key={i} className="aspect-square bg-white/5 rounded-2xl border border-white/10 flex flex-col items-center justify-center p-4 text-center">
+                          <div className="w-8 h-8 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center mb-2"><Star size={16} /></div>
+                          <p className="text-white text-[10px] font-bold">{cat}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 p-4 bg-white/5 rounded-2xl border border-white/10">
+                      <p className="text-white text-xs font-bold mb-1">Evangelho de Hoje</p>
+                      <p className="text-slate-400 text-[10px] line-clamp-3">"Naquele tempo, Jesus disse aos seus discípulos..."</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="order-1 md:order-2 space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 dark:bg-blue-900/20 rounded-full text-blue-600 text-[10px] font-black uppercase tracking-widest">
+                  Sabedoria Milenar
+                </div>
+                <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-tight">Conhecer para amar mais profundamente.</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">
+                  A fé não é apenas sentimento, é também inteligência. Nossa biblioteca oferece conteúdos curtos, mas densos, para que você possa se formar enquanto vive sua rotina. Da vida dos santos às explicações da Santa Missa, tudo está ao alcance de um toque.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
+                    <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center shrink-0"><Target size={20} /></div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Conteúdos curtos para ler em 5 minutos</p>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
+                    <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center shrink-0"><Smartphone size={20} /></div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Acesso offline para seus momentos de deserto</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </section>
 
-      {/* --- BIBLIOTECA --- */}
-      <section id="biblioteca" className="py-32 bg-white dark:bg-brand-dark">
+      {/* --- ASSINATURA --- */}
+      <section id="assinatura" className="py-32 bg-slate-50 dark:bg-black/20">
          <div className="max-w-6xl mx-auto px-6">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-20">
-               <div className="max-w-2xl">
-                  <h2 className="text-4xl sm:text-6xl font-black tracking-tighter leading-tight mb-6">Conhecimento que transforma a alma.</h2>
-                  <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">Nossa biblioteca é atualizada semanalmente com conteúdos que te ajudam a entender a beleza da nossa fé.</p>
-               </div>
-               <button onClick={onStart} className="px-8 py-4 bg-slate-100 dark:bg-white/5 rounded-2xl font-bold hover:bg-brand-violet hover:text-white transition-all flex items-center gap-2">Explorar Biblioteca <ArrowRight size={20} /></button>
+            <div className="text-center mb-20">
+               <h2 className="text-4xl sm:text-6xl font-black tracking-tighter mb-6">Sua jornada começa aqui</h2>
+               <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium text-lg">O Espiritualizei é um projeto mantido por leigos para ajudar você a manter a chama da fé acesa todos os dias.</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-               {[
-                  { title: 'Vidas de Santos', icon: <Star />, color: 'bg-amber-100 text-amber-600' },
-                  { title: 'Doutrina Católica', icon: <Shield />, color: 'bg-blue-100 text-blue-600' },
-                  { title: 'Liturgia Diária', icon: <Calendar />, color: 'bg-purple-100 text-purple-600' },
-                  { title: 'Orações e Terços', icon: <Heart />, color: 'bg-rose-100 text-rose-600' }
-               ].map((item, i) => (
-                  <div key={i} className="p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 flex flex-col items-center text-center hover:shadow-xl transition-all cursor-pointer group">
-                     <div className={`w-16 h-16 ${item.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>{item.icon}</div>
-                     <h4 className="font-bold text-lg">{item.title}</h4>
+            <div className="max-w-2xl mx-auto">
+               <div className="bg-brand-dark p-10 rounded-[3rem] border-2 border-brand-violet relative flex flex-col shadow-2xl shadow-brand-violet/20">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-violet text-white px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Acesso Completo</div>
+                  <div className="mb-8 text-center">
+                     <h3 className="text-3xl font-bold mb-2 text-white">Plano Peregrino</h3>
+                     <p className="text-slate-400 text-sm">Tudo o que você precisa para uma vida de oração constante.</p>
                   </div>
-               ))}
-            </div>
-         </div>
-      </section>
-
-      {/* --- CTA FINAL --- */}
-      <section className="py-32 bg-slate-50 dark:bg-black/20">
-         <div className="max-w-4xl mx-auto px-6 text-center">
-            <div className="bg-brand-dark p-12 sm:p-20 rounded-[4rem] border border-white/10 shadow-2xl relative overflow-hidden">
-               <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-brand-violet/20 via-transparent to-transparent opacity-50" />
-               <div className="relative z-10">
-                  <h2 className="text-4xl sm:text-6xl font-black text-white mb-8 tracking-tighter">Pronto para começar?</h2>
-                  <p className="text-slate-400 text-xl mb-12 font-medium max-w-xl mx-auto">Junte-se a centenas de leigos que estão transformando suas vidas através da constância espiritual.</p>
-                  <button onClick={onStart} className="w-full sm:w-auto px-12 py-6 bg-brand-violet text-white rounded-[2rem] font-black text-2xl shadow-2xl shadow-brand-violet/30 hover:scale-105 transition-all flex items-center justify-center gap-3 mx-auto">
-                     COMEÇAR MINHA JORNADA <ArrowRight size={28} />
-                  </button>
-                  <p className="mt-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Acesso imediato • 100% Católico</p>
+                  <div className="flex items-baseline justify-center gap-1 mb-8">
+                     <span className="text-5xl font-black text-white">R$ 37,90</span>
+                     <span className="text-slate-400 text-sm">/mês</span>
+                  </div>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Jornada Diária com IA</li>
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Comunidade de Orações</li>
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Biblioteca da Fé Completa</li>
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Liturgia Diária</li>
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Desafios de Virtude</li>
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Suporte Exclusivo</li>
+                  </ul>
+                  <button onClick={onStart} className="w-full py-5 bg-brand-violet text-white rounded-2xl font-black text-lg shadow-lg shadow-brand-violet/30 hover:bg-purple-600 hover:scale-[1.02] active:scale-[0.98] transition-all">COMEÇAR MINHA JORNADA</button>
+                  <div className="mt-6 flex flex-col items-center gap-2">
+                    <p className="text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest">Assinatura mensal recorrente</p>
+                    <div className="flex items-center gap-2 text-brand-violet/80 text-[11px] font-bold">
+                      <ShieldCheck size={14} />
+                      <span>Cancele a qualquer momento, sem taxas</span>
+                    </div>
+                  </div>
                </div>
+               <p className="text-center mt-8 text-slate-500 text-sm font-medium">
+                 Assim como na Netflix, você tem acesso total enquanto sua assinatura estiver ativa e pode interromper o plano quando desejar, com apenas um clique.
+               </p>
             </div>
          </div>
       </section>
@@ -269,9 +370,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             <h2 className="text-4xl font-black text-center mb-16 tracking-tighter">Dúvidas Frequentes</h2>
             <div className="space-y-4">
                {[
-                  { q: "O aplicativo é realmente católico?", a: "Sim! Todo o conteúdo é baseado na doutrina da Igreja Católica Apostólica Romana, com foco na vida de oração e virtudes." },
-                  { q: "Como funciona a Jornada Diária?", a: "Você responde um questionário sobre sua rotina e nossa IA sugere os melhores horários e práticas para você rezar, adaptando-se ao seu dia a dia com humildade." },
-                  { q: "O acesso é gratuito?", a: "O Espiritualizei é um projeto mantido por leigos e oferece uma experiência completa via assinatura, garantindo a manutenção do app e a criação de novos conteúdos sem anúncios." }
+                  { q: "O aplicativo é realmente católico?", a: "Sim. Todo o conteúdo é baseado na doutrina da Igreja Católica Apostólica Romana, com foco na vida de oração, virtudes e sacramentos." },
+                  { q: "Como funciona a Jornada Diária?", a: "Você responde um questionário sobre sua rotina e nossa inteligência sugere os melhores horários e práticas para você rezar, adaptando-se ao seu dia a dia com humildade." },
+                  { q: "Como funciona o cancelamento?", a: "O Espiritualizei utiliza um modelo de assinatura mensal. Você pode cancelar a renovação a qualquer momento diretamente nas configurações do seu perfil, sem burocracia." },
+                  { q: "O app substitui a direção espiritual?", a: "De forma alguma. O Espiritualizei é uma ferramenta de auxílio para a constância diária. Recomendamos sempre que você busque um sacerdote para direção espiritual pessoal." }
                ].map((item, i) => (
                   <div key={i} className="border border-slate-100 dark:border-white/5 rounded-3xl overflow-hidden">
                      <button onClick={() => toggleFaq(i)} className="w-full p-6 text-left flex justify-between items-center hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
