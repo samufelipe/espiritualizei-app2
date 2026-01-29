@@ -134,9 +134,9 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onA
        <div className="bg-white dark:bg-white/5 pb-6 pt-4 rounded-b-[2.5rem] shadow-sm mb-8">
           <div className="px-6 mb-6">
              <h1 className="text-2xl font-bold text-brand-dark dark:text-white mb-4">Minha Jornada</h1>
-             <div className={`p-5 rounded-[2rem] ${currentTheme.bg} border border-white/5 flex items-center gap-5 transition-all`}>
-                <div className={`w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center ${currentTheme.color} shadow-inner`}>
-                   <currentTheme.icon size={28} />
+             <div className={`p-5 rounded-[2rem] border border-white/5 flex items-center gap-5 transition-all`}>
+                <div className={`w-14 h-14 flex items-center justify-center ${currentTheme.color}`}>
+                   <currentTheme.icon size={36} />
                 </div>
                 <div className="flex-1">
                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${currentTheme.color}`}>{FULL_DAYS[selectedDay]}</p>

@@ -140,7 +140,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
     }
     return (
       <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4 group">
-        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-slate-500 shrink-0 group-hover:text-brand-violet transition-colors"><Icon size={20} /></div>
+        <div className="w-10 h-10 flex items-center justify-center text-slate-500 shrink-0 group-hover:text-brand-violet transition-colors"><Icon size={28} /></div>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide mb-0.5">{label}</p>
           <p className="font-bold text-white text-base truncate">{value || <span className="text-slate-600 font-normal italic">Não informado</span>}</p>
@@ -311,9 +311,9 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                   className="bg-[#1A1F26] p-5 rounded-3xl border border-white/10 shadow-card flex items-center justify-between cursor-pointer hover:border-brand-violet/30 transition-all active:scale-[0.98]"
                 >
 	              <div className="flex items-center gap-4">
-	                 <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center ${confession.color}`}>
-	                    <Shield size={20} />
-	                 </div>
+		                 <div className={`w-10 h-10 flex items-center justify-center ${confession.color}`}>
+		                    <Shield size={28} />
+		                 </div>
 	                 <div>
 	                    <h3 className="text-white font-bold text-sm">Última Confissão</h3>
 	                    <p className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">{confession.label}</p>

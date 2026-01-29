@@ -179,8 +179,8 @@ const KnowledgeBase: React.FC = () => {
 	                      className="bg-white dark:bg-[#1A1F26] rounded-[2rem] p-6 shadow-card border border-slate-100 dark:border-white/5 hover:shadow-xl hover:border-brand-violet/20 transition-all cursor-pointer group active:scale-[0.98]"
 	                    >
                       <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-brand-violet/10 flex items-center justify-center text-brand-violet group-hover:scale-110 transition-transform">
-                          <item.icon size={24} />
+                        <div className="w-12 h-12 flex items-center justify-center text-brand-violet group-hover:scale-110 transition-transform">
+                          <item.icon size={32} />
                         </div>
                         <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           <Clock size={12} /> {item.duration}

@@ -110,8 +110,8 @@ const Community: React.FC<CommunityProps> = ({
   className="bg-gradient-to-br from-brand-violet/10 to-purple-500/5 border border-brand-violet/20 p-5 rounded-3xl relative overflow-hidden cursor-pointer hover:border-brand-violet/40 transition-all active:scale-[0.99]"
 >
                               <div className="flex justify-between items-start mb-3">
-                                 <div className="w-10 h-10 rounded-2xl bg-brand-violet text-white flex items-center justify-center shadow-lg shadow-brand-violet/20">
-                                    <Trophy size={20} />
+                                 <div className="w-10 h-10 flex items-center justify-center text-brand-violet">
+                                    <Trophy size={28} />
                                  </div>
                                  <div className="bg-brand-violet/20 text-brand-violet text-[10px] font-bold px-2 py-1 rounded-lg uppercase">
                                     {challenge.participants} Participando

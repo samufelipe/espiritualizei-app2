@@ -318,8 +318,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 onClick={item.action}
                 className="bg-white dark:bg-[#1A1F26] p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all flex flex-col items-center text-center gap-3 group"
             >
-                <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                    <item.icon size={24} />
+                <div className={`w-12 h-12 flex items-center justify-center ${item.color} group-hover:scale-110 transition-transform`}>
+                    <item.icon size={32} />
                 </div>
                 <span className="text-xs font-bold text-brand-dark dark:text-white">{item.label}</span>
             </button>

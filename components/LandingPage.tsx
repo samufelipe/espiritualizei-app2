@@ -50,9 +50,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
           </div>
           
           <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            <button onClick={() => scrollToSection('metodo')} className="hover:text-brand-violet transition-colors">O Método</button>
-            <button onClick={() => scrollToSection('funcionalidades')} className="hover:text-brand-violet transition-colors">O App</button>
-            <button onClick={() => scrollToSection('assinatura')} className="hover:text-brand-violet transition-colors">Assinatura</button>
+            <button onClick={(e) => { e.preventDefault(); scrollToSection('metodo'); }} className="hover:text-brand-violet transition-colors">O Método</button>
+            <button onClick={(e) => { e.preventDefault(); scrollToSection('funcionalidades'); }} className="hover:text-brand-violet transition-colors">O App</button>
+            <button onClick={(e) => { e.preventDefault(); scrollToSection('assinatura'); }} className="hover:text-brand-violet transition-colors">Assinatura</button>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
@@ -146,17 +146,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             </div>
             <div className="grid md:grid-cols-3 gap-8">
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-brand-violet/40 transition-all">
-                  <div className="w-16 h-16 bg-brand-violet/10 rounded-2xl flex items-center justify-center text-brand-violet mb-8 group-hover:scale-110 transition-transform"><RefreshCw size={32} /></div>
+                  <div className="w-16 h-16 flex items-center justify-center text-brand-violet mb-8 group-hover:scale-110 transition-transform"><RefreshCw size={40} /></div>
                   <h3 className="text-2xl font-bold mb-4">Jornada Diária Real</h3>
                   <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">O Espiritualizei entende sua rotina e sugere práticas que cabem no seu tempo. Com humildade, caminhamos um passo de cada vez, ajustando o plano conforme sua vida muda.</p>
                </div>
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-blue-500/40 transition-all">
-                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 mb-8 group-hover:scale-110 transition-transform"><BookOpen size={32} /></div>
+                  <div className="w-16 h-16 flex items-center justify-center text-blue-600 mb-8 group-hover:scale-110 transition-transform"><BookOpen size={40} /></div>
                   <h3 className="text-2xl font-bold mb-4">Formação Sem Pressa</h3>
                   <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Acesse a Biblioteca da Fé com textos curtos e profundos. Aprenda sobre os santos e a doutrina enquanto aguarda um café ou no trajeto do trabalho.</p>
                </div>
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-orange-500/40 transition-all">
-                  <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center text-orange-600 mb-8 group-hover:scale-110 transition-transform"><Zap size={32} /></div>
+                  <div className="w-16 h-16 flex items-center justify-center text-orange-600 mb-8 group-hover:scale-110 transition-transform"><Zap size={40} /></div>
                   <h3 className="text-2xl font-bold mb-4">Foco na Constância</h3>
                   <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Menos é mais. Nosso foco é te ajudar a rezar 15 minutos todos os dias com qualidade, em vez de tentar grandes metas que acabam sendo abandonadas.</p>
                </div>
@@ -176,7 +176,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                   <div className="absolute inset-0 bg-gradient-to-b from-brand-violet/20 to-transparent pointer-events-none" />
                   <div className="p-6 pt-12">
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="w-10 h-10 bg-brand-violet rounded-xl flex items-center justify-center text-white"><Calendar size={20} /></div>
+                      <div className="w-10 h-10 flex items-center justify-center text-brand-violet"><Calendar size={24} /></div>
                       <h4 className="text-white font-bold">Minha Jornada</h4>
                     </div>
                     <div className="space-y-4">
@@ -246,7 +246,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                 <div className="w-[300px] h-[550px] bg-brand-dark rounded-[3rem] border-[8px] border-slate-800 shadow-2xl overflow-hidden mx-auto relative">
                   <div className="p-6 pt-12">
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="w-10 h-10 bg-rose-500 rounded-xl flex items-center justify-center text-white"><Heart size={20} /></div>
+                      <div className="w-10 h-10 flex items-center justify-center text-rose-500"><Heart size={24} /></div>
                       <h4 className="text-white font-bold">Comunidade</h4>
                     </div>
                     <div className="space-y-4">
@@ -279,13 +279,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                 <div className="w-[300px] h-[550px] bg-brand-dark rounded-[3rem] border-[8px] border-slate-800 shadow-2xl overflow-hidden mx-auto relative">
                   <div className="p-6 pt-12">
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white"><BookOpen size={20} /></div>
+                      <div className="w-10 h-10 flex items-center justify-center text-blue-400"><BookOpen size={24} /></div>
                       <h4 className="text-white font-bold">Biblioteca</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       {['Santos', 'Doutrina', 'Liturgia', 'Orações'].map((cat, i) => (
                         <div key={i} className="aspect-square bg-white/5 rounded-2xl border border-white/10 flex flex-col items-center justify-center p-4 text-center">
-                          <div className="w-8 h-8 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center mb-2"><Star size={16} /></div>
+                          <div className="w-8 h-8 text-blue-400 flex items-center justify-center mb-2"><Star size={20} /></div>
                           <p className="text-white text-[10px] font-bold">{cat}</p>
                         </div>
                       ))}
@@ -307,11 +307,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                 </p>
                 <div className="space-y-4">
                   <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
-                    <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center shrink-0"><Target size={20} /></div>
+                    <div className="w-10 h-10 text-blue-500 flex items-center justify-center shrink-0"><Target size={24} /></div>
                     <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Conteúdos curtos para ler em 5 minutos</p>
                   </div>
                   <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
-                    <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center shrink-0"><Smartphone size={20} /></div>
+                    <div className="w-10 h-10 text-blue-500 flex items-center justify-center shrink-0"><Smartphone size={24} /></div>
                     <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Acesso offline para seus momentos de deserto</p>
                   </div>
                 </div>
