@@ -85,21 +85,24 @@ export const sendMessageToSpiritualDirector = async (message: string): Promise<s
 
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string, profileReasoning: string }> => {
   const systemPrompt = `
-    Você é um Diretor Espiritual Católico. Crie uma "Jornada Diária" personalizada.
-    A rotina DEVE mudar conforme o dia da semana seguindo a tradição da Igreja:
-    - Domingo (0): Santa Missa. Preparar o coração no sábado/domingo manhã. (OPEN_SOCIAL)
-    - Segunda (1): Almas/Fé Intelectual. Estudar conteúdo. (READ_KNOWLEDGE)
-    - Terça (2): Santos Anjos/Combate. Meditar o Evangelho. (READ_LITURGY)
-    - Quarta (3): São José/Família. Interceder por alguém. (OPEN_COMMUNITY)
-    - Quinta (4): Eucaristia/Adoração. Focar no Ranking e Social. (OPEN_SOCIAL)
-    - Sexta (5): Paixão/Penitência. Meditar o Evangelho. (READ_LITURGY)
-    - Sábado (6): Maria. Oração comunitária ou Terço. (OPEN_COMMUNITY)
+    Você é um Diretor Espiritual Católico. Crie uma "Jornada Diária" personalizada e ÚNICA para cada dia da semana.
+    IMPORTANTE: Cada dia da semana DEVE ter itens específicos que NÃO se repetem nos outros dias, respeitando a tradição da Igreja:
+    
+    - Domingo (0): FOCO ABSOLUTO NA SANTA MISSA. Itens: Preparação para a Missa (manhã), Participar da Santa Missa (Ação Principal), Descanso do Senhor (tarde/noite). (Ação: OPEN_SOCIAL para ver a comunidade unida).
+    - Segunda (1): Almas do Purgatório e Doutrina. Itens: Oração pelas almas, Estudo de um tema da fé. (Ação: READ_KNOWLEDGE).
+    - Terça (2): Santos Anjos e Combate Espiritual. Itens: Oração ao Anjo da Guarda, Pequena mortificação dos sentidos. (Ação: READ_LITURGY).
+    - Quarta (3): São José e Santidade no Trabalho/Família. Itens: Oração a São José, Gesto de caridade em casa. (Ação: OPEN_COMMUNITY).
+    - Quinta (4): Santíssima Eucaristia e Sacerdócio. Itens: Visita ao Santíssimo (ou espiritual), Oração pelos sacerdotes. (Ação: OPEN_SOCIAL).
+    - Sexta (5): Paixão de Nosso Senhor e Penitência. Itens: Via Sacra curta, Jejum ou abstinência de algo. (Ação: READ_LITURGY).
+    - Sábado (6): Nossa Senhora. Itens: Santo Terço, Ofício de Nossa Senhora ou Consagração. (Ação: OPEN_COMMUNITY).
 
-    LÓGICA DE PREPARAÇÃO:
-    Cada dia deve ter 1 "Ação Principal" no horário mais fácil do usuário (${data.bestMoment}) e "Tarefas de Preparo" (manhã/noite) que deem suporte a essa ação.
+    REGRAS DE GERAÇÃO:
+    1. Gere pelo menos 3 a 4 itens para CADA dia da semana.
+    2. O campo 'dayOfWeek' deve conter APENAS o número do dia específico (ex: [0] para Domingo), a menos que seja algo essencial como 'Oração da Manhã' que pode ser [0,1,2,3,4,5,6].
+    3. A "Ação Principal" de cada dia deve usar o 'actionLink' sugerido acima.
+    4. Use tons humildes e naturais. NUNCA use negritos ou símbolos de IA.
     
     Ações (actionLink): READ_LITURGY, OPEN_COMMUNITY, OPEN_SOCIAL, READ_KNOWLEDGE, NONE.
-    NÃO USE OPEN_MAP OU OPEN_CHAT, ELAS FORAM DESATIVADAS.
   `;
 
   const userContext = `
@@ -156,8 +159,14 @@ export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?
       profileReasoning: "Caminho de fé.",
       routine: [
         { id: 'f1', title: 'Oração da Manhã', description: 'Oferta do dia', xpReward: 20, completed: false, icon: 'sun', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
-        { id: 'f2', title: 'Evangelho do Dia', description: 'Escutar a Palavra', xpReward: 30, completed: false, icon: 'book', timeOfDay: 'morning', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'READ_LITURGY' },
-        { id: 'f3', title: 'Exame de Consciência', description: 'Revisão da noite', xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' }
+        { id: 'f2', title: 'Santa Missa', description: 'Dia do Senhor', xpReward: 50, completed: false, icon: 'cross', timeOfDay: 'morning', dayOfWeek: [0], actionLink: 'OPEN_SOCIAL' },
+        { id: 'f3', title: 'Estudo da Fé', description: 'Doutrina Católica', xpReward: 30, completed: false, icon: 'book', timeOfDay: 'afternoon', dayOfWeek: [1], actionLink: 'READ_KNOWLEDGE' },
+        { id: 'f4', title: 'Anjo da Guarda', description: 'Combate Espiritual', xpReward: 30, completed: false, icon: 'shield', timeOfDay: 'morning', dayOfWeek: [2], actionLink: 'READ_LITURGY' },
+        { id: 'f5', title: 'Gesto de Caridade', description: 'Exemplo de São José', xpReward: 30, completed: false, icon: 'heart', timeOfDay: 'afternoon', dayOfWeek: [3], actionLink: 'OPEN_COMMUNITY' },
+        { id: 'f6', title: 'Adoração Espiritual', description: 'Presença Real', xpReward: 30, completed: false, icon: 'sun', timeOfDay: 'afternoon', dayOfWeek: [4], actionLink: 'OPEN_SOCIAL' },
+        { id: 'f7', title: 'Via Sacra', description: 'Paixão de Cristo', xpReward: 30, completed: false, icon: 'cross', timeOfDay: 'afternoon', dayOfWeek: [5], actionLink: 'READ_LITURGY' },
+        { id: 'f8', title: 'Santo Terço', description: 'Com Maria', xpReward: 30, completed: false, icon: 'rosary', timeOfDay: 'morning', dayOfWeek: [6], actionLink: 'OPEN_COMMUNITY' },
+        { id: 'f9', title: 'Exame de Consciência', description: 'Revisão da noite', xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' }
       ]
     };
   }
