@@ -89,10 +89,28 @@ export const loginUser = async (email: string, password: string): Promise<AuthSe
 export const registerUser = async (data: OnboardingData): Promise<AuthSession> => {
   if (!supabase) throw new Error("Serviço indisponível.");
   const email = data.email.trim().toLowerCase();
-  const { data: authData, error: authError } = await supabase.auth.signUp({ email, password: data.password || '' });
-  if (authError) throw authError;
+  
+  // 1. Criar o usuário no Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({ 
+    email, 
+    password: data.password || '',
+    options: {
+      data: {
+        full_name: data.name.trim()
+      }
+    }
+  });
+  
+  if (authError) {
+    console.error("❌ Erro no Auth SignUp:", authError);
+    throw authError;
+  }
+  
+  if (!authData.user) throw new Error("Falha ao criar usuário no sistema de autenticação.");
+
+  // 2. Preparar o payload do perfil
   const profilePayload = {
-    id: authData.user!.id,
+    id: authData.user.id,
     name: data.name.trim(),
     phone: data.phone,
     spiritual_maturity: 'Iniciante',
@@ -106,13 +124,28 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     joined_date: new Date().toISOString(),
     spiritual_cycle_start: new Date().toISOString()
   };
+
+  // 3. Tentar inserir o perfil (com retry simples ou tratamento de erro detalhado)
   const { error: dbError } = await supabase.from('profiles').insert([profilePayload]);
+  
+  if (dbError) {
+    console.error("❌ Erro ao criar perfil no banco de dados:", dbError);
+    // Se o perfil falhar, o usuário ainda existe no Auth. 
+    // Tentamos um 'upsert' caso o trigger do banco já tenha criado algo.
+    const { error: upsertError } = await supabase.from('profiles').upsert([profilePayload]);
+    if (upsertError) {
+      console.error("❌ Falha crítica no Upsert do perfil:", upsertError);
+      throw new Error(`Erro ao salvar dados do perfil: ${upsertError.message}`);
+    }
+  }
+
   const newUser = mapProfileFromDB(profilePayload, email);
-	  const session: AuthSession = { 
-	    user: newUser, 
-	    token: authData.session?.access_token || '', 
-	    expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 dias de expiração
-	  };
+  const session: AuthSession = { 
+    user: newUser, 
+    token: authData.session?.access_token || '', 
+    expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 dias de expiração
+  };
+  
   localStorage.setItem(SESSION_KEY, safeStringify(session));
   return session;
 };
