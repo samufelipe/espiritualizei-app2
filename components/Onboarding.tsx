@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { OnboardingData } from '../types';
 import { ArrowRight, Check, User, Clock, Zap, CloudRain, Heart, Coffee, Car, Moon, Sun, Anchor, Shield, Brain, Lightbulb, Mail, Phone, Lock, Eye, EyeOff, BookOpen, Users, Sword, Flower, Hammer, Crown, Wifi, AlertCircle, ArrowLeft, MessageSquare } from 'lucide-react';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import BrandLogo from './BrandLogo';
 import { savePartialLead } from '../services/databaseService';
 
@@ -95,6 +96,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
   const handleNext = async () => {
     if (step === 1 && !formData.name.trim()) return;
     
+    try {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    } catch (e) {}
+
     if (step === 8) {
        handleCaptureLead();
     }
@@ -115,14 +120,14 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
        setIsSubmitting(true);
        setFieldErrors({});
 
-	       try {
-	         // Simulação de tempo de processamento para feedback visual
-	         await new Promise(resolve => setTimeout(resolve, 1500));
-	         await onComplete({ ...formData, email: cleanEmail, password: cleanPassword });
-	       } catch (error: any) {
-	         setIsSubmitting(false);
-	         setFieldErrors(prev => ({ ...prev, email: 'Erro no cadastro. Verifique os dados.' }));
-	       }
+       try {
+         // Simulação de tempo de processamento para feedback visual
+         await new Promise(resolve => setTimeout(resolve, 2000));
+         await onComplete({ ...formData, email: cleanEmail, password: cleanPassword });
+       } catch (error: any) {
+         setIsSubmitting(false);
+         setFieldErrors(prev => ({ ...prev, email: 'Erro no cadastro. Verifique os dados.' }));
+       }
        return;
     }
     setStep(step + 1);
@@ -130,8 +135,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
 
   const updateField = (field: keyof OnboardingData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    try {
+      Haptics.impact({ style: ImpactStyle.Light });
+    } catch (e) {}
     if (step >= 2 && step <= 8) {
-        setTimeout(() => setStep(prev => Math.min(prev + 1, TOTAL_STEPS)), 350); 
+        setTimeout(() => setStep(prev => Math.min(prev + 1, TOTAL_STEPS)), 450); 
     }
   };
 

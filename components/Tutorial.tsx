@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Book, Heart, ArrowRight, MapPin, User, Trophy } from 'lucide-react';
+import { CheckCircle2, Book, Heart, ArrowRight, MapPin, User, Trophy, Mail } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { UserProfile } from '../types';
 
@@ -78,6 +78,14 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
       positionClass: "bottom-24 right-0 sm:right-4", // Aponta para a 6ª aba
       arrowClass: "bottom-[-12px] right-6 border-t-brand-dark dark:border-t-white",
       highlightNav: 5
+    },
+    {
+      title: "Um Presente para Você",
+      description: "Enviamos um e-mail especial de boas-vindas para você. Verifique sua caixa de entrada para descobrir como daremos os primeiros passos juntos nesta jornada!",
+      icon: Mail,
+      positionClass: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+      arrowClass: "hidden",
+      highlightNav: -1
     }
   ];
 
