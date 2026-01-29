@@ -115,6 +115,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     return () => { isMounted = false; };
   }, []);
 
+  const firstName = user.name.split(' ')[0];
   const greeting = (() => {
     switch(timeOfDay) {
       case 'morning': return { text: 'Bom dia', icon: Sunrise };
@@ -354,13 +355,13 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <span className="text-brand-violet font-black text-lg">{user.name.charAt(0)}</span>
                 )}
             </div>
-            <div>
-                <div className="flex items-center gap-2">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{greeting.text},</p>
-                    <greeting.icon size={14} className="text-amber-500" />
-                </div>
-                <h1 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">{user.name.split(' ')[0]}</h1>
-            </div>
+	            <div>
+	                <div className="flex items-center gap-2">
+	                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{greeting.text},</p>
+	                    <greeting.icon size={14} className="text-amber-500" />
+	                </div>
+	                <h1 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">{firstName}</h1>
+	            </div>
         </div>
         
         <div className="flex items-center gap-3">

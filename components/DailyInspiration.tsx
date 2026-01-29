@@ -13,6 +13,10 @@ const DailyInspiration: React.FC<DailyInspirationProps> = ({ onClose, userName }
   const [quote, setQuote] = useState("Buscai primeiro o Reino de Deus, e tudo mais vos será acrescentado.");
   const [loading, setLoading] = useState(true);
 
+  const firstName = userName.split(' ')[0];
+  const hour = new Date().getHours();
+  const greeting = hour >= 5 && hour < 12 ? "Bom dia" : hour >= 12 && hour < 18 ? "Boa tarde" : "Boa noite";
+
   useEffect(() => {
     const loadQuote = async () => {
       // Tenta gerar uma frase nova via IA baseada no dia
@@ -61,7 +65,7 @@ const DailyInspiration: React.FC<DailyInspirationProps> = ({ onClose, userName }
             </div>
 
             <div className="w-12 h-1 bg-white/20 rounded-full mb-4 shrink-0" />
-            <p className="text-sm text-white/80 font-medium shrink-0">Bom dia, {userName}.</p>
+            <p className="text-sm text-white/80 font-medium shrink-0">{greeting}, {firstName}.</p>
          </div>
 
          {/* Footer Actions */}

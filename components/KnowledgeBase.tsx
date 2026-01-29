@@ -22,7 +22,9 @@ interface KnowledgeTrack {
   items: KnowledgeItem[];
 }
 
-// --- ACERVO COMPLETO EXPANDIDO E APROFUNDADO ---
+// --- ACERVO COMPLETO BLINDADO ---
+// Este acervo é a base do app e não deve ser removido.
+// Novos temas litúrgicos semanais são adicionados aqui sem excluir os anteriores.
 const STATIC_DATA: KnowledgeTrack[] = [
   {
     id: 'track-quaresma-2026',

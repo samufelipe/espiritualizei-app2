@@ -13,6 +13,7 @@ export const cleanAIOutput = (text: string): string => {
     .replace(/_/g, '')
     .replace(/#/g, '')
     .replace(/`/g, '')
+    .replace(/—/g, '-') // Substitui o travessão longo por um hífen simples
     .trim();
 };
 
@@ -26,6 +27,8 @@ export const sendMessageToAssistant = async (message: string, user?: UserProfile
       Você é um assistente católico humilde, sábio e acolhedor.
       RESPONDA SEMPRE EM PORTUGUÊS DO BRASIL.
       Seu tom é de um irmão que caminha junto, nunca autoritário ou frio.
+      NUNCA use negritos (**), hífens longos (—) ou listas numeradas robóticas.
+      Escreva de forma fluida, como uma carta de um amigo.
       Contexto: ${userContext}
     `;
 
@@ -45,7 +48,7 @@ export const generateDailyTheme = async (gospelText: string): Promise<string> =>
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Resuma este Evangelho em uma frase curta e poética (máximo 10 palavras) em Português: ${gospelText}`,
+      contents: `Resuma este Evangelho em uma frase curta, poética e humana (máximo 10 palavras) em Português. NÃO use negritos ou símbolos: ${gospelText}`,
     });
     return cleanAIOutput(response.text || "Caminhando na luz de Cristo.");
   } catch (error) {
@@ -57,7 +60,7 @@ export const generateDailyReflection = async (todaySaint: string): Promise<strin
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Gere uma frase católica curta inspirada em ${todaySaint}. Máximo 20 palavras.`,
+      contents: `Gere uma frase católica curta, inspiradora e humana inspirada em ${todaySaint}. Máximo 20 palavras. NÃO use negritos ou símbolos de IA.`,
     });
     return cleanAIOutput(response.text || "O Senhor é o meu pastor.");
   } catch (error) {
