@@ -57,15 +57,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
 
           <div className="flex items-center gap-2 sm:gap-4">
             <button 
-              onClick={(e) => { e.preventDefault(); onLogin(); }}
-              onTouchEnd={(e) => { e.preventDefault(); onLogin(); }}
-              className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-brand-violet transition-colors px-2 py-1 cursor-pointer"
+              onClick={(e) => { 
+                e.preventDefault(); 
+                e.stopPropagation();
+                onLogin(); 
+              }}
+              className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-brand-violet transition-colors px-2 py-1 cursor-pointer relative z-[60]"
             >
               Entrar
             </button>
             <button 
-              onClick={(e) => { e.preventDefault(); onStart(); }} 
-              className="bg-brand-violet text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-black shadow-lg hover:bg-purple-600 active:scale-95 transition-all whitespace-nowrap"
+              onClick={(e) => { 
+                e.preventDefault(); 
+                e.stopPropagation();
+                onStart(); 
+              }} 
+              className="bg-brand-violet text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-black shadow-lg hover:bg-purple-600 active:scale-95 transition-all whitespace-nowrap relative z-[60]"
             >
               COMEÇAR
             </button>
