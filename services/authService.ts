@@ -41,11 +41,12 @@ export const safeStringify = (obj: any) => {
   });
 };
 
-const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
+export const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   id: dbProfile.id,
   name: dbProfile.name || 'Peregrino',
   email: email,
   phone: dbProfile.phone,
+  photoUrl: dbProfile.photo_url, // ADICIONADO: Persistência da foto
   level: dbProfile.level || 1,
   currentXP: dbProfile.current_xp || 0,
   nextLevelXP: dbProfile.next_level_xp || 100,

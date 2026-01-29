@@ -15,7 +15,7 @@ import Paywall from './components/Paywall';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { requestNotificationPermission, scheduleRoutineNotifications } from './services/notificationService';
-import { registerUser, getSession, logoutUser, updateUserProfile, supabase } from './services/authService';
+import { registerUser, getSession, logoutUser, updateUserProfile, supabase, mapProfileFromDB } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
@@ -143,8 +143,27 @@ const App: React.FC = () => {
         
         // Solicitar permissão de notificação no primeiro acesso
         requestNotificationPermission();
+        // Sincronização Forçada: Sempre buscar dados frescos do servidor na inicialização
         fetchCommunityIntentions(session.user.id).then(setIntentions);
-        fetchGlobalChallenge().then((global) => global && setChallenges([global]));
+        fetchGlobalChallenge().then((global) => {
+           if (global) {
+              setChallenges([global]);
+              console.log("✅ Desafio Comunitário carregado:", global.title);
+           } else {
+              console.warn("⚠️ Nenhum desafio comunitário encontrado.");
+           }
+        });
+
+        // Garantir que o perfil do usuário esteja sincronizado com o XP e Foto do banco
+        if (supabase) {
+           supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle().then(({ data }) => {
+              if (data) {
+                 const updatedUser = mapProfileFromDB(data, session.user.email);
+                 setUser(updatedUser);
+                 updateUserProfile(updatedUser);
+              }
+           });
+        }
         
       } else {
          const path = window.location.pathname;
@@ -181,7 +200,11 @@ const App: React.FC = () => {
     try { await Haptics.impact({ style: ImpactStyle.Light }); } catch(e) {}
   } }} onAdd={async (title, desc) => { const newItem: RoutineItem = { id: crypto.randomUUID(), title, description: desc, xpReward: 10, completed: false, icon: 'cross', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] }; setRoutineItems(prev => [...prev, newItem]); await addRoutineItem(user.id, newItem); }} onDelete={async (id) => { setRoutineItems(prev => prev.filter(i => i.id !== id)); await deleteRoutineItem(id); }} onNavigate={setCurrentTab} /></Suspense>;
       case Tab.KNOWLEDGE: return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
-      case Tab.COMMUNITY: return <Suspense fallback={<TabLoader />}><Community intentions={intentions} challenges={challenges} onPray={async (id) => { await togglePrayerInteraction(id); fetchCommunityIntentions(user.id).then(setIntentions); }} onJoinChallenge={(id) => { toggleRoutineItemStatus(id, true); }} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={async (content) => { await createCommunityPost(user.id, user.name, user.photoUrl, content); }} user={user} /></Suspense>;
+      case Tab.COMMUNITY: return <Suspense fallback={<TabLoader />}><Community intentions={intentions} challenges={challenges} onPray={async (id) => { await togglePrayerInteraction(id); fetchCommunityIntentions(user.id).then(setIntentions); }} onJoinChallenge={async (id, amount) => { 
+        // Correção: Garantir que a participação no desafio seja persistida e atualize a UI
+        setChallenges(prev => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, participants: c.participants + 1 } : c));
+        await toggleRoutineItemStatus(id, true); 
+      }} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={async (content) => { await createCommunityPost(user.id, user.name, user.photoUrl, content); }} user={user} /></Suspense>;
       case Tab.SOCIAL: return <Suspense fallback={<TabLoader />}><SocialHub user={user} /></Suspense>;
       case Tab.PROFILE: return <Suspense fallback={<TabLoader />}><Profile user={user} onUpdateUser={setUser} onLogout={handleLogout} /></Suspense>;
       default: return <TabLoader />;
