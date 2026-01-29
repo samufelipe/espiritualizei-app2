@@ -169,7 +169,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                      <div className="flex items-start gap-4">
                         <div className="w-10 h-10 bg-brand-violet/20 rounded-xl flex items-center justify-center text-brand-violet shrink-0"><MessageCircle size={20} /></div>
                         <div>
-                           <h4 className="font-bold text-xl mb-1">Mural de Intenções</h4>
+                           <h4 className="font-bold text-xl mb-1">Comunidade de Orações</h4>
                            <p className="text-slate-400">Peça orações e reze pelos outros com apenas um toque.</p>
                         </div>
                      </div>
@@ -253,7 +253,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                   <div className="text-4xl font-black mb-8">Grátis</div>
                   <ul className="space-y-4 mb-10 flex-grow">
                      <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 size={18} className="text-green-500" /> Liturgia Diária</li>
-                     <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 size={18} className="text-green-500" /> Mural de Orações</li>
+                     <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 size={18} className="text-green-500" /> Comunidade de Orações</li>
                      <li className="flex items-center gap-3 text-sm font-medium opacity-50"><X size={18} className="text-slate-400" /> Regra de Vida Personalizada</li>
                      <li className="flex items-center gap-3 text-sm font-medium opacity-50"><X size={18} className="text-slate-400" /> Biblioteca Completa</li>
                   </ul>
