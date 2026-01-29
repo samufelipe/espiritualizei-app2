@@ -208,18 +208,46 @@ const App: React.FC = () => {
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark no-scrollbar">
           {viewState === 'landing' && <LandingPage onStart={() => setViewState('onboarding')} onLogin={() => setViewState('login')} />}
           {viewState === 'login' && <Login onLogin={(u) => { setUser(u); setViewState('app'); }} onRegister={() => setViewState('onboarding')} onBack={() => setViewState('landing')} />}
-          {viewState === 'onboarding' && <Onboarding onComplete={async (u) => { setViewState('generating'); }} onBack={() => setViewState('landing')} />}
+          {viewState === 'onboarding' && (
+            <Onboarding 
+	              onComplete={async (data) => { 
+	                setViewState('generating');
+	                try {
+	                  const session = await registerUser(data);
+	                  if (session && session.user) {
+	                    setUser(session.user);
+	                    // Gerar rotina inicial baseada nos dados do onboarding
+	                    const result = await generateSpiritualRoutine(data);
+	                    const initialRoutine = result.routine;
+	                    await saveUserRoutine(session.user.id, initialRoutine);
+	                    setRoutineItems(initialRoutine);
+	                    
+	                    // Simular tempo de "análise" para o usuário
+	                    setTimeout(() => {
+	                      setViewState('app');
+	                      setShowTutorial(true); // GATILHO DO TUTORIAL
+	                    }, 3000);
+	                  }
+	                } catch (e) {
+	                  console.error("Erro no onboarding:", e);
+	                  setViewState('landing');
+	                  alert("Erro ao criar conta. Tente novamente.");
+	                }
+	              }} 
+
+              onBack={() => setViewState('landing')} 
+            />
+          )}
           {viewState === 'generating' && (
-            <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-brand-dark">
               <div className="w-24 h-24 bg-brand-violet/20 rounded-full flex items-center justify-center mb-8 animate-bounce">
                 <Sparkles size={48} className="text-brand-violet" />
               </div>
-              <h2 className="text-3xl font-bold mb-4">Preparando sua Jornada...</h2>
+              <h2 className="text-3xl font-bold mb-4 text-white">Preparando sua Jornada...</h2>
               <p className="text-slate-400 max-w-md mx-auto mb-12">Nosso Diretor Espiritual está analisando seu perfil para criar uma rotina única e equilibrada.</p>
               <div className="w-full max-w-xs h-1.5 bg-white/5 rounded-full overflow-hidden">
                 <div className="h-full bg-brand-violet animate-progress-loading" />
               </div>
-              <button onClick={() => setViewState('app')} className="mt-12 text-brand-violet font-bold flex items-center gap-2 hover:underline">Pular espera <ArrowRight size={18} /></button>
             </div>
           )}
           {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} userName={user.name} onLogout={handleLogout} />}
