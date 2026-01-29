@@ -69,7 +69,26 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
     return { daysLeft: Math.max(0, daysLeft), nextDate: nextUpdateDate.toLocaleDateString('pt-BR'), progress };
   };
 
+  const getSubscriptionInfo = () => {
+    if (!user.isPremium) return null;
+    
+    const now = new Date();
+    const renewalDate = user.subscriptionRenewalAt ? new Date(user.subscriptionRenewalAt) : new Date(new Date(user.joinedDate).setMonth(new Date(user.joinedDate).getMonth() + 1));
+    
+    const diffTime = renewalDate.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const progress = Math.min(100, Math.max(0, ((30 - daysLeft) / 30) * 100));
+    
+    return {
+      daysLeft: Math.max(0, daysLeft),
+      renewalDate: renewalDate.toLocaleDateString('pt-BR'),
+      progress,
+      isAutoRenew: user.subscriptionStatus !== 'canceled'
+    };
+  };
+
   const cycle = getCycleInfo();
+  const subInfo = getSubscriptionInfo();
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -188,24 +207,24 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                        </p>
                     </div>
                     {user.isPremium && (
-                       <div className="text-right shrink-0">
-                          <p className="text-[10px] text-slate-500 font-bold uppercase">Renovação</p>
-                          <p className="text-white font-black text-sm">{user.subscriptionRenewalAt?.toLocaleDateString('pt-BR') || '--/--/----'}</p>
-                       </div>
+	                       <div className="text-right shrink-0">
+	                          <p className="text-[10px] text-slate-500 font-bold uppercase">Renovação</p>
+	                          <p className="text-white font-black text-sm">{subInfo?.renewalDate || '--/--/----'}</p>
+	                       </div>
                     )}
                  </div>
 
                  {user.isPremium ? (
                     <div className="space-y-6">
-                       <div>
-                          <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase mb-2">
-                             <span>Ciclo Mensal</span>
-                             <span>{user.subscriptionStatus === 'canceled' ? 'Termina em breve' : 'Renova automaticamente'}</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
-                             <div className="h-full bg-brand-violet" style={{ width: '75%' }} />
-                          </div>
-                       </div>
+	                       <div>
+	                          <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase mb-2">
+	                             <span>Ciclo Mensal</span>
+	                             <span>{subInfo?.isAutoRenew ? 'Renova automaticamente' : 'Termina em breve'}</span>
+	                          </div>
+	                          <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
+	                             <div className="h-full bg-brand-violet" style={{ width: `${subInfo?.progress || 0}%` }} />
+	                          </div>
+	                       </div>
                        
                        <div className="space-y-3">
                           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
@@ -242,13 +261,18 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                  )}
               </div>
               
-              {user.isPremium && (
-                 <div className="bg-black/20 p-4 border-t border-white/5 flex justify-center">
-                    <button className="text-[10px] font-bold text-slate-500 hover:text-brand-violet transition-colors uppercase tracking-widest flex items-center gap-2">
-                       <Settings size={12} /> Gerenciar Forma de Pagamento
-                    </button>
-                 </div>
-              )}
+	              {user.isPremium && (
+	                 <div className="bg-black/20 p-4 border-t border-white/5 flex justify-center">
+	                    <a 
+	                       href="https://cakto.com.br/portal-do-cliente" 
+	                       target="_blank" 
+	                       rel="noopener noreferrer"
+	                       className="text-[10px] font-bold text-slate-500 hover:text-brand-violet transition-colors uppercase tracking-widest flex items-center gap-2"
+	                    >
+	                       <Settings size={12} /> Gerenciar Forma de Pagamento
+	                    </a>
+	                 </div>
+	              )}
            </div>
         </div>
 
