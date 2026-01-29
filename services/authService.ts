@@ -125,24 +125,12 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     spiritual_cycle_start: new Date().toISOString()
   };
 
-  // 3. Tentar inserir o perfil de forma resiliente
-  // Primeiro tentamos o payload completo
-  const { error: dbError } = await supabase.from('profiles').insert([profilePayload]);
+  // 3. Inserir o perfil completo (colunas agora garantidas no banco)
+  const { error: dbError } = await supabase.from('profiles').upsert([profilePayload]);
   
   if (dbError) {
-    console.warn("⚠️ Falha na inserção inicial do perfil, tentando fallback resiliente...", dbError.message);
-    
-    // Fallback 1: Remover colunas que podem não existir no banco ainda
-    const resilientPayload = { ...profilePayload };
-    delete (resilientPayload as any).confession_frequency;
-    delete (resilientPayload as any).last_confession_at;
-    
-    const { error: retryError } = await supabase.from('profiles').upsert([resilientPayload]);
-    
-    if (retryError) {
-      console.error("❌ Falha crítica no registro do perfil:", retryError);
-      throw new Error(`Erro ao salvar dados do perfil: ${retryError.message}`);
-    }
+    console.error("❌ Erro ao criar perfil no banco de dados:", dbError);
+    throw new Error(`Erro ao salvar dados do perfil: ${dbError.message}`);
   }
 
   const newUser = mapProfileFromDB(profilePayload, email);
