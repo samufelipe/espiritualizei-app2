@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
-import { UserProfile } from '../types';
-import { Camera, Edit2, Mail, Phone, Save, User, X, Flame, LogOut, Award, Zap, Star, Heart, BookOpen, MapPin, Trophy, CreditCard, Calendar, Bell, HelpCircle, Settings, FileText, Lock, RefreshCw, Timer, ChevronRight, Info, CheckCircle2, Footprints, Loader2, MessageCircle, Shield } from 'lucide-react';
-import { uploadImage, updateLastConfessionDate } from '../services/databaseService';
+import { UserProfile, PaymentLog } from '../types';
+// Added Check to the import list to fix the error: Cannot find name 'Check'
+import { Camera, Edit2, Mail, Phone, Save, User, X, Flame, LogOut, Award, Zap, Star, Heart, BookOpen, MapPin, Trophy, CreditCard, Calendar, Bell, HelpCircle, Settings, FileText, Lock, RefreshCw, Timer, ChevronRight, Info, CheckCircle2, Footprints, Loader2, MessageCircle, Shield, ArrowRight, History, Check } from 'lucide-react';
+import { uploadImage, updateLastConfessionDate, fetchUserPaymentLogs } from '../services/databaseService';
 import { updateUserProfile } from '../services/authService';
 import { ContactModal, TermsModal } from './LegalModals';
 
@@ -17,14 +17,25 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false); 
   const [formData, setFormData] = useState<UserProfile>(user);
+  const [paymentLogs, setPaymentLogs] = useState<PaymentLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  // Sincroniza o formulário se o usuário mudar externamente
   useEffect(() => {
     setFormData(user);
+    if (user.isPremium) {
+      loadPaymentLogs();
+    }
   }, [user]);
+
+  const loadPaymentLogs = async () => {
+    setLoadingLogs(true);
+    const logs = await fetchUserPaymentLogs(user.id);
+    setPaymentLogs(logs);
+    setLoadingLogs(false);
+  };
 
   const getConfessionStatus = () => {
     if (!user.lastConfessionAt) return { days: null, level: 'none', label: 'Não registrado', color: 'text-slate-400' };
@@ -120,10 +131,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
   };
 
   return (
-    <div className="p-6 pb-32 animate-fade-in min-h-screen bg-brand-dark font-sans">
+    <div className="p-6 pb-40 animate-fade-in min-h-screen bg-brand-dark font-sans">
       
       <div className="flex justify-between items-center mb-8 sticky top-0 bg-brand-dark/90 backdrop-blur-xl z-30 py-4 -mx-6 px-6 border-b border-white/5">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Configurações</h1>
+        <h1 className="text-2xl font-bold text-white tracking-tight">Perfil Peregrino</h1>
         <div className="flex gap-2">
           {isEditing && (
             <button onClick={() => { setFormData(user); setIsEditing(false); }} className="w-9 h-9 rounded-full bg-white/10 text-slate-400 flex items-center justify-center hover:bg-white/20 transition-colors"><X size={18} /></button>
@@ -134,7 +145,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
         </div>
       </div>
 
-      <div className="max-w-xl mx-auto space-y-8">
+      <div className="max-w-xl mx-auto space-y-10">
 
         {/* PERFIL HERO */}
         <div className="flex flex-col items-center">
@@ -146,33 +157,123 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
             <label className="absolute bottom-1 right-1 bg-brand-violet text-white p-2.5 rounded-full shadow-lg border-4 border-brand-dark hover:bg-purple-600 cursor-pointer z-20"><Camera size={18} /><input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} disabled={isUploadingPhoto} /></label>
           </div>
           <div className="mt-5 text-center">
-            <h2 className="text-2xl font-bold text-white flex items-center justify-center gap-2">{formData.name}{user.isPremium && <Award size={20} className="text-brand-violet" />}</h2>
-            <p className="text-slate-400 text-sm font-medium mt-1">{formData.spiritualMaturity || 'Membro Iniciante'}</p>
+            <h2 className="text-2xl font-bold text-white flex items-center justify-center gap-2">{formData.name}{user.isPremium && <Award size={22} className="text-brand-violet" fill="currentColor" />}</h2>
+            <div className="flex items-center justify-center gap-2 mt-1">
+               <span className="bg-brand-violet/10 text-brand-violet text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-widest border border-brand-violet/20">Lvl {user.level}</span>
+               <p className="text-slate-400 text-sm font-medium">{formData.spiritualMaturity || 'Membro Iniciante'}</p>
+            </div>
           </div>
+        </div>
+
+        {/* ASSINATURA TRACKER (NOVA SEÇÃO) */}
+        <div className="animate-slide-up">
+           <div className="flex items-center gap-2 mb-3 px-1">
+              <CreditCard size={16} className="text-brand-violet" />
+              <span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Minha Assinatura</span>
+           </div>
+           <div className="bg-[#1A1F26] rounded-3xl border border-white/10 shadow-card overflow-hidden">
+              <div className="p-6">
+                 <div className="flex justify-between items-start mb-6">
+                    <div>
+                       <div className="flex items-center gap-2">
+                          <h3 className="text-white font-bold text-base">Plano Peregrino</h3>
+                          {user.isPremium ? (
+                             <span className="bg-green-500/10 text-green-500 text-[9px] font-black px-2 py-0.5 rounded uppercase border border-green-500/20">Ativo</span>
+                          ) : (
+                             <span className="bg-slate-500/10 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded uppercase border border-slate-500/20">Inativo</span>
+                          )}
+                       </div>
+                       <p className="text-slate-400 text-xs mt-1">
+                          {user.isPremium ? 'Acesso ilimitado a todas as funções.' : 'Acesse conteúdos básicos e rotina.'}
+                       </p>
+                    </div>
+                    {user.isPremium && (
+                       <div className="text-right shrink-0">
+                          <p className="text-[10px] text-slate-500 font-bold uppercase">Renovação</p>
+                          <p className="text-white font-black text-sm">{user.subscriptionRenewalAt?.toLocaleDateString('pt-BR') || '--/--/----'}</p>
+                       </div>
+                    )}
+                 </div>
+
+                 {user.isPremium ? (
+                    <div className="space-y-6">
+                       <div>
+                          <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase mb-2">
+                             <span>Ciclo Mensal</span>
+                             <span>{user.subscriptionStatus === 'canceled' ? 'Termina em breve' : 'Renova automaticamente'}</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
+                             <div className="h-full bg-brand-violet" style={{ width: '75%' }} />
+                          </div>
+                       </div>
+                       
+                       <div className="space-y-3">
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                             <History size={12} /> Histórico de Cobrança
+                          </p>
+                          <div className="space-y-2">
+                             {loadingLogs ? (
+                                <div className="animate-pulse space-y-2">
+                                   {[1,2].map(i => <div key={i} className="h-10 bg-white/5 rounded-xl" />)}
+                                </div>
+                             ) : paymentLogs.length === 0 ? (
+                                <p className="text-[10px] text-slate-600 italic">Nenhum registro encontrado.</p>
+                             ) : (
+                                paymentLogs.map(log => (
+                                   <div key={log.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 text-[11px]">
+                                      <div className="flex items-center gap-3">
+                                         <div className="w-6 h-6 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center">
+                                            <Check size={14} />
+                                         </div>
+                                         <span className="text-white font-bold">{log.created_at.toLocaleDateString('pt-BR')}</span>
+                                      </div>
+                                      <span className="text-slate-400 font-medium">PIX Automático</span>
+                                      <span className="text-white font-black">R$ {log.amount?.toFixed(2)}</span>
+                                   </div>
+                                ))
+                             )}
+                          </div>
+                       </div>
+                    </div>
+                 ) : (
+                    <button className="w-full bg-brand-violet text-white py-4 rounded-2xl font-black text-sm shadow-xl hover:bg-purple-600 transition-all flex items-center justify-center gap-2">
+                       Liberar Acesso Premium <ArrowRight size={18} />
+                    </button>
+                 )}
+              </div>
+              
+              {user.isPremium && (
+                 <div className="bg-black/20 p-4 border-t border-white/5 flex justify-center">
+                    <button className="text-[10px] font-bold text-slate-500 hover:text-brand-violet transition-colors uppercase tracking-widest flex items-center gap-2">
+                       <Settings size={12} /> Gerenciar Forma de Pagamento
+                    </button>
+                 </div>
+              )}
+           </div>
         </div>
 
         {/* CICLO ESPIRITUAL TRACKER */}
         <div className="animate-slide-up">
            <div className="flex items-center gap-2 mb-3 px-1">
               <RefreshCw size={16} className="text-brand-violet" />
-              <span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Seu Ciclo de 30 Dias</span>
+              <span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Recalibração Mensal</span>
            </div>
            <div className="bg-[#1A1F26] p-6 rounded-3xl border border-white/10 shadow-card">
               <div className="flex justify-between items-start mb-4">
                  <div>
-                    <h3 className="text-white font-bold text-base">Foco Atual</h3>
-                    <p className="text-slate-400 text-xs mt-1">Combatendo: <span className="text-white font-medium">{user.spiritualFocus || 'Indefinido'}</span></p>
+                    <h3 className="text-white font-bold text-base">Próxima Direção</h3>
+                    <p className="text-slate-400 text-xs mt-1">Luta atual: <span className="text-white font-medium">{user.spiritualFocus || 'Inconstância'}</span></p>
                  </div>
                  <div className="text-right">
                     <span className="text-2xl font-black text-brand-violet">{cycle.daysLeft}</span>
-                    <span className="block text-[9px] text-slate-500 font-bold uppercase">Dias p/ Avaliação</span>
+                    <span className="block text-[9px] text-slate-500 font-bold uppercase">Dias restantes</span>
                  </div>
               </div>
-              <div className="relative h-3 w-full bg-black/20 rounded-full overflow-hidden mb-3">
+              <div className="relative h-2 w-full bg-black/20 rounded-full overflow-hidden mb-3">
                  <div className="h-full rounded-full bg-gradient-to-r from-brand-violet to-purple-500" style={{ width: `${cycle.progress}%` }} />
               </div>
-              <p className="text-[10px] text-slate-500 leading-relaxed">
-                 A cada 30 dias, o Espiritualizei recalibra sua rotina baseado no seu progresso real. Faltam {cycle.daysLeft} dias para sua próxima direção espiritual.
+              <p className="text-[10px] text-slate-500 leading-relaxed italic">
+                O aplicativo ajusta sua carga de oração todo mês para evitar sobrecarga.
               </p>
            </div>
         </div>
@@ -191,19 +292,17 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                  </div>
                  <div className="text-right">
                     <span className="text-2xl font-black text-white">{confession.days ?? '--'}</span>
-                    <span className="block text-[9px] text-slate-500 font-bold uppercase">Dias desde a última</span>
+                    <span className="block text-[9px] text-slate-500 font-bold uppercase">Dias passados</span>
                  </div>
               </div>
-              <div className="flex gap-3">
-                 <button onClick={handleUpdateConfession} className="flex-1 bg-brand-violet text-white py-3 rounded-xl text-xs font-bold shadow-lg hover:bg-purple-600 transition-all flex items-center justify-center gap-2">
-                    <CheckCircle2 size={16} /> Me confessei hoje
-                 </button>
-              </div>
+              <button onClick={handleUpdateConfession} className="w-full bg-white/5 border border-white/10 text-white py-3 rounded-xl text-xs font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                 <CheckCircle2 size={16} className="text-brand-violet" /> Registar Confissão de Hoje
+              </button>
            </div>
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-2 px-1"><User size={16} className="text-brand-violet" /><span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Dados Pessoais</span></div>
+          <div className="flex items-center gap-2 mb-2 px-1"><User size={16} className="text-brand-violet" /><span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Dados Cadastrais</span></div>
           {renderField('Nome Completo', formData.name, (val) => setFormData({ ...formData, name: val }), User, 'Seu nome')}
           {renderField('E-mail', formData.email, (val) => setFormData({ ...formData, email: val }), Mail, 'seu@email.com', 'email')}
           {renderField('Telefone', formData.phone, (val) => setFormData({ ...formData, phone: val }), Phone, '(00) 00000-0000', 'tel')}
@@ -220,8 +319,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                  <span className="text-xs font-bold text-white">Termos de Uso</span>
               </button>
            </div>
-           <div className="flex justify-center pt-4">
-              <button onClick={() => setShowLogoutConfirm(true)} className="text-red-400 hover:text-red-600 text-xs font-bold flex items-center gap-2 px-6 py-3 rounded-xl bg-red-900/10"><LogOut size={16} /> Sair do app</button>
+           <div className="flex justify-center pt-8">
+              <button onClick={() => setShowLogoutConfirm(true)} className="text-red-400 hover:text-red-600 text-xs font-bold flex items-center gap-2 px-6 py-3 rounded-xl bg-red-900/10 transition-colors"><LogOut size={16} /> Sair da conta</button>
            </div>
         </div>
       </div>
@@ -233,9 +332,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
             <div className="absolute inset-0 bg-brand-dark/80 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)} />
             <div className="relative bg-brand-dark p-6 rounded-3xl shadow-2xl max-w-xs w-full text-center border border-white/10">
                <div className="w-16 h-16 bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"><LogOut size={28} /></div>
-               <h3 className="text-lg font-bold text-white mb-2">Sair do app?</h3>
-               <div className="flex gap-3 mt-6">
-                 <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-white/10">Cancelar</button>
+               <h3 className="text-lg font-bold text-white mb-2">Deseja sair?</h3>
+               <p className="text-xs text-slate-400 leading-relaxed px-4">Sua sessão será encerrada e você precisará logar novamente.</p>
+               <div className="flex gap-3 mt-8">
+                 <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-white/10">Voltar</button>
                  <button onClick={onLogout} className="flex-1 py-3 rounded-xl font-bold bg-red-500 text-white shadow-lg">Sair</button>
                </div>
             </div>

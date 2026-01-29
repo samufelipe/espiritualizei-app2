@@ -16,6 +16,14 @@ export interface UserSettings {
   theme?: 'light' | 'dark';
 }
 
+export interface PaymentLog {
+  id: string;
+  provider: string;
+  amount?: number;
+  status: string;
+  created_at: Date;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -39,6 +47,7 @@ export interface UserProfile {
   confessionFrequency?: 'frequent' | 'rare' | 'long_time' | 'never';
   isPremium?: boolean;
   subscriptionStatus?: 'active' | 'trial' | 'canceled' | 'expired';
+  subscriptionRenewalAt?: Date;
   activityHistory?: { date: string; count: number }[];
   patronSaint?: string;
   lastActiveAt?: Date;
@@ -227,7 +236,6 @@ export interface JournalEntry {
   createdAt: Date;
 }
 
-// Fix: Added missing Parish interface for ParishFinder and googlePlacesService
 export interface Parish {
   name: string;
   address: string;

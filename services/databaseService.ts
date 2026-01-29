@@ -1,7 +1,33 @@
-
 import { supabase, getConnectionStatus, getSession, safeStringify } from './authService';
-import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData, CommunityChallenge, DailyTopic } from '../types';
+import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData, CommunityChallenge, DailyTopic, PaymentLog } from '../types';
 import { getSeasonDetailedInfo } from './liturgyService';
+
+/**
+ * BUSCA HISTÓRICO DE PAGAMENTOS
+ */
+export const fetchUserPaymentLogs = async (userId: string): Promise<PaymentLog[]> => {
+  if (getConnectionStatus()) {
+    try {
+      const { data, error } = await supabase!
+        .from('payment_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return (data || []).map(p => ({
+        id: p.id,
+        provider: p.provider,
+        amount: p.payload?.amount || 37.90,
+        status: p.status,
+        created_at: new Date(p.created_at)
+      }));
+    } catch (e) {
+      console.error("Erro ao buscar logs de pagamento:", e);
+    }
+  }
+  return [];
+};
 
 /**
  * MENSAGENS DO CHAT DA COMUNIDADE (SOCIAL HUB)
@@ -19,9 +45,8 @@ export const fetchChatMessages = async (): Promise<any[]> => {
       return (data || []).map(m => ({
         ...m,
         timestamp: new Date(m.timestamp),
-        // Garante que reações e userReactions venham formatados
         reactions: m.reactions || { heart: 0, candle: 0, pray: 0 },
-        userReactions: { heart: false, candle: false, pray: false } // Será preenchido no componente com base no log do usuário
+        userReactions: { heart: false, candle: false, pray: false } 
       }));
     } catch (e) {
       console.error("Erro ao buscar mensagens do chat:", e);
@@ -378,6 +403,7 @@ export const addRoutineItem = async (userId: string, item: RoutineItem) => {
         icon: item.icon,
         time_of_day: item.timeOfDay,
         day_of_week: item.dayOfWeek,
+        // Fix: Changed action_link: item.action_link -> item.actionLink
         action_link: item.actionLink || 'NONE'
     }]);
   }

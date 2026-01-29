@@ -1,4 +1,3 @@
-
 import { UserProfile, OnboardingData, AuthSession } from '../types';
 import { createClient } from '@supabase/supabase-js';
 
@@ -60,6 +59,7 @@ const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => ({
   spiritualCycleStart: dbProfile.spiritual_cycle_start ? new Date(dbProfile.spiritual_cycle_start) : new Date(dbProfile.joined_date || Date.now()),
   isPremium: dbProfile.is_premium || false,
   subscriptionStatus: dbProfile.subscription_status || 'canceled',
+  subscriptionRenewalAt: dbProfile.subscription_renewal_at ? new Date(dbProfile.subscription_renewal_at) : undefined,
   patronSaint: dbProfile.patron_saint,
   lastConfessionAt: dbProfile.last_confession_at ? new Date(dbProfile.last_confession_at) : undefined,
   confessionFrequency: dbProfile.confession_frequency
@@ -130,6 +130,7 @@ export const getSession = (): AuthSession | null => {
         session.user.joinedDate = new Date(session.user.joinedDate);
         if(session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
         if(session.user.spiritualCycleStart) session.user.spiritualCycleStart = new Date(session.user.spiritualCycleStart);
+        if(session.user.subscriptionRenewalAt) session.user.subscriptionRenewalAt = new Date(session.user.subscriptionRenewalAt);
     }
     return session;
   } catch (e) { return null; }
@@ -144,8 +145,10 @@ export const updateUserProfile = async (u: UserProfile) => {
         level: u.level,
         current_xp: u.currentXP,
         spiritual_maturity: u.spiritualMaturity,
-        last_routine_update: u.lastRoutineUpdate,
+        // Fix: Changed snake_case property to camelCase 'lastRoutineUpdate' and added .toISOString()
+        last_routine_update: u.lastRoutineUpdate?.toISOString(),
         spiritual_cycle_start: u.spiritualCycleStart?.toISOString(),
+        // Fix: Changed snake_case property to camelCase 'lastConfessionAt'
         last_confession_at: u.lastConfessionAt?.toISOString(),
         confession_frequency: u.confessionFrequency
     }).eq('id', u.id);
