@@ -413,7 +413,29 @@ export const createCommunityPost = async (userId: string, userName: string, avat
 
 export const upgradeUserToPremium = async (userId: string) => {
   if (getConnectionStatus()) {
-    await supabase!.from('profiles').update({ is_premium: true, subscription_status: 'active' }).eq('id', userId);
+    try {
+      const { error } = await supabase!
+        .from('profiles')
+        .update({ 
+          is_premium: true, 
+          subscription_status: 'active' 
+        })
+        .eq('id', userId);
+      
+      if (error) throw error;
+
+      // Registrar log de pagamento para auditoria
+      await supabase!.from('payment_logs').insert([{
+        user_id: userId,
+        provider: 'cakto',
+        status: 'completed',
+        payload: { amount: 37.90, date: new Date().toISOString() }
+      }]);
+
+    } catch (e) {
+      console.error("Erro crítico ao atualizar para premium:", e);
+      throw e;
+    }
   }
 };
 

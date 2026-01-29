@@ -66,8 +66,10 @@ const App: React.FC = () => {
        const targetUserId = urlUserId || session?.user?.id;
        
        if (targetUserId) {
+          // Limpa a URL imediatamente para evitar re-processamento ao recarregar
           window.history.replaceState({}, document.title, "/");
           
+          // 1. Atualização Imediata da UI (Otimista)
           if (session?.user && session.user.id === targetUserId) {
             const updatedUser: UserProfile = { 
               ...session.user, 
@@ -78,8 +80,15 @@ const App: React.FC = () => {
             updateUserProfile(updatedUser);
           }
           
+          // 2. Transição para tela de celebração
           setViewState('welcome_premium');
-          upgradeUserToPremium(targetUserId);
+          
+          // 3. Persistência no Banco de Dados com Verificação
+          upgradeUserToPremium(targetUserId).then(() => {
+             console.log("💎 Premium ativado com sucesso no servidor.");
+          }).catch(err => {
+             console.error("❌ Erro ao ativar premium no servidor:", err);
+          });
        }
     }
   }, []);
