@@ -54,6 +54,35 @@ const STATIC_DATA: KnowledgeTrack[] = [
     ]
   },
   {
+    id: 'track-santos',
+    title: 'Vidas que Inspiram',
+    description: 'Conheça os amigos de Deus que caminharam antes de nós.',
+    items: [
+      {
+        id: 'santo-agostinho',
+        title: 'Santo Agostinho',
+        description: 'Da busca inquieta ao repouso em Deus.',
+        category: 'doctrine',
+        duration: '12 min',
+        icon: Heart,
+        videoSuggestion: { title: "A Vida de Santo Agostinho", url: "https://www.youtube.com/results?search_query=vida+de+santo+agostinho", channelName: "Padre Paulo Ricardo" },
+        musicSuggestion: { title: "Tarde te amei", url: "https://www.youtube.com/results?search_query=musica+tarde+te+amei", artist: "Com. Shalom" },
+        content: `"Tarde te amei, ó Beleza tão antiga e tão nova, tarde te amei!" Estas palavras de Santo Agostinho resumem a jornada de uma alma que buscou a felicidade em todas as coisas criadas, até descobrir que seu coração só repousaria quando encontrasse o Criador. Agostinho nos ensina que não importa quão longe tenhamos ido, a misericórdia de Deus é sempre maior e está à nossa espera.`
+      },
+      {
+        id: 'santa-teresinha',
+        title: 'Santa Teresinha',
+        description: 'A Pequena Via da infância espiritual.',
+        category: 'prayer',
+        duration: '10 min',
+        icon: Sparkles,
+        videoSuggestion: { title: "A Pequena Via de Teresinha", url: "https://www.youtube.com/results?search_query=santa+teresinha+pequena+via", channelName: "Minuto com Deus" },
+        musicSuggestion: { title: "Só por amor", url: "https://www.youtube.com/results?search_query=musica+santa+teresinha", artist: "Com. Shalom" },
+        content: `Santa Teresinha do Menino Jesus revolucionou a espiritualidade moderna com sua "Pequena Via". Ela nos ensina que a santidade não consiste em realizar obras grandiosas, mas em fazer as pequenas coisas do dia a dia com um amor extraordinário. Para Teresinha, ser santo é ser como uma criança nos braços do Pai: confiante, simples e totalmente dependente da Sua graça.`
+      }
+    ]
+  },
+  {
     id: 'track-missa',
     title: 'A Santa Missa',
     description: 'Entenda o mistério do Calvário em cada altar.',

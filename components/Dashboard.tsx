@@ -4,7 +4,7 @@ import { UserProfile, LiturgyDay, PrayerIntention, RoutineItem, CommunityPost } 
 import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap, Quote, Loader2, Crown, Trophy } from 'lucide-react';
 import { generateDailyTheme, cleanAIOutput } from '../services/geminiService';
 import { fetchRealDailyLiturgy } from '../services/liturgyService';
-import { fetchCommunityPosts } from '../services/databaseService';
+	import { fetchCommunityPosts, updateLastConfessionDate } from '../services/databaseService';
 import NotificationCenter from './NotificationCenter';
 import { ContactModal } from './LegalModals';
 import BrandLogo from './BrandLogo';
@@ -140,6 +140,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       const today = new Date();
       const updatedUser = { ...user, lastConfessionAt: today };
       onUpdateUser(updatedUser);
+      await updateLastConfessionDate(user.id, today);
   };
 
   const style = (() => {
@@ -412,8 +413,32 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
         ))}
 
-        {/* Footer Info */}
-        <div className="mt-12 mb-8 text-center">
+        {/* Footer Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 mb-12">
+            <button 
+                onClick={onNavigateToKnowledge}
+                className="bg-white dark:bg-[#1A1F26] p-6 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm text-left group hover:border-blue-500/30 transition-all"
+            >
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <GraduationCap size={24} />
+                </div>
+                <h4 className="text-base font-bold text-brand-dark dark:text-white mb-1">Conhecer para Amar</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">Explore nossa biblioteca de formação católica e aprofunde sua fé.</p>
+            </button>
+
+            <button 
+                onClick={onNavigateToSocial}
+                className="bg-white dark:bg-[#1A1F26] p-6 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm text-left group hover:border-amber-500/30 transition-all"
+            >
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Trophy size={24} />
+                </div>
+                <h4 className="text-base font-bold text-brand-dark dark:text-white mb-1">Ranking de Fidelidade</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">Veja como está sua constância e inspire-se na jornada de outros irmãos.</p>
+            </button>
+        </div>
+
+        <div className="mb-8 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-full border border-slate-200 dark:border-white/10">
                 <Shield size={14} className="text-slate-400" />
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Doutrina 100% Católica</span>

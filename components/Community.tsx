@@ -103,12 +103,12 @@ const Community: React.FC<CommunityProps> = ({
                      {/* Desafios Comunitários em Destaque (Mobile) */}
                      <div className="lg:hidden space-y-4 mb-6">
                         <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">Desafios Ativos</h3>
-                        {challenges.filter(c => c.status === 'active').map(challenge => (
+                        {challenges.length > 0 ? challenges.filter(c => c.status === 'active').map(challenge => (
                            <div 
-  key={challenge.id} 
-  onClick={() => onJoinChallenge(challenge.id)}
-  className="bg-gradient-to-br from-brand-violet/10 to-purple-500/5 border border-brand-violet/20 p-5 rounded-3xl relative overflow-hidden cursor-pointer hover:border-brand-violet/40 transition-all active:scale-[0.99]"
->
+                              key={challenge.id} 
+                              onClick={() => onJoinChallenge(challenge.id)}
+                              className="bg-gradient-to-br from-brand-violet/10 to-purple-500/5 border border-brand-violet/20 p-5 rounded-3xl relative overflow-hidden cursor-pointer hover:border-brand-violet/40 transition-all active:scale-[0.99]"
+                           >
                               <div className="flex justify-between items-start mb-3">
                                  <div className="w-10 h-10 flex items-center justify-center text-brand-violet">
                                     <Trophy size={28} />
@@ -126,7 +126,11 @@ const Community: React.FC<CommunityProps> = ({
                                  Participar do Desafio
                               </button>
                            </div>
-                        ))}
+                        )) : (
+                           <div className="bg-slate-100 dark:bg-white/5 p-6 rounded-3xl border border-dashed border-slate-300 dark:border-white/10 text-center">
+                              <p className="text-xs text-slate-500">Nenhum desafio ativo no momento. Volte em breve!</p>
+                           </div>
+                        )}
                      </div>
 
                      <div className="space-y-4">

@@ -110,7 +110,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
         try {
             const uploadedUrl = await uploadImage(file, 'avatars');
             if (uploadedUrl) {
-               const newUserState = { ...user, photoUrl: uploadedUrl };
+               // Update both photoUrl and photo_url for consistency
+               const newUserState = { ...user, photoUrl: uploadedUrl, photo_url: uploadedUrl };
                setFormData(newUserState);
                onUpdateUser(newUserState);
                await updateUserProfile(newUserState);

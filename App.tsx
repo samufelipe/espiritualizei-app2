@@ -44,6 +44,7 @@ const App: React.FC = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showDailyInspiration, setShowDailyInspiration] = useState(false);
   const [showIntentionModal, setShowIntentionModal] = useState(false);
+  const [showLiturgyModal, setShowLiturgyModal] = useState(false);
   const initializationRef = useRef(false);
 
   const [user, setUser] = useState<UserProfile>({
@@ -175,7 +176,7 @@ const App: React.FC = () => {
     }
 
     switch (currentTab) {
-      case Tab.DASHBOARD: return <Suspense fallback={<TabLoader />}><Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} onSaveJournal={() => {}} showLiturgyModal={false} setShowLiturgyModal={() => {}} onLogout={handleLogout} onOpenIntentionModal={() => setShowIntentionModal(true)} onUpdateUser={setUser} /></Suspense>;
+      case Tab.DASHBOARD: return <Suspense fallback={<TabLoader />}><Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} onSaveJournal={() => {}} showLiturgyModal={showLiturgyModal} setShowLiturgyModal={setShowLiturgyModal} onLogout={handleLogout} onOpenIntentionModal={() => setShowIntentionModal(true)} onUpdateUser={setUser} /></Suspense>;
       case Tab.ROUTINE: return <Suspense fallback={<TabLoader />}><Routine items={routineItems} activeChallenge={activeChallenge} onToggle={async (id) => { const item = routineItems.find(i => i.id === id); if (item) { const newStatus = !item.completed; setRoutineItems(prev => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i)); await toggleRoutineItemStatus(id, newStatus); 
     try { await Haptics.impact({ style: ImpactStyle.Light }); } catch(e) {}
   } }} onAdd={async (title, desc) => { const newItem: RoutineItem = { id: crypto.randomUUID(), title, description: desc, xpReward: 10, completed: false, icon: 'cross', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] }; setRoutineItems(prev => [...prev, newItem]); await addRoutineItem(user.id, newItem); }} onDelete={async (id) => { setRoutineItems(prev => prev.filter(i => i.id !== id)); await deleteRoutineItem(id); }} onNavigate={setCurrentTab} /></Suspense>;
