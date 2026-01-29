@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Crown, Play, Moon, Brain, Coffee, CloudRain, ChevronLeft, ChevronRight, Quote, Sun, Heart, Users, Flame, BookOpen, Plus, MapPin, Navigation, Star, Clock, MessageCircle, ExternalLink, Menu, X, Instagram, Youtube, Twitter, Mail, GraduationCap, Music, Video, Sparkles, Map, Bookmark, Check, Bell, Search, Home, Headphones, RefreshCw, Calendar, Wifi, Lock, ShieldCheck, Zap, PenTool, Trophy, HeartHandshake, MessageSquare } from 'lucide-react';
+import React, { useState } from 'react';
+import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Moon, Brain, Coffee, CloudRain, Quote, Sun, Heart, Users, Flame, BookOpen, Star, Clock, MessageCircle, Instagram, Youtube, Twitter, Sparkles, Calendar, Lock, ShieldCheck, Zap, Trophy, Check } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { TermsModal, PrivacyModal, AboutModal, ContactModal } from './LegalModals';
 
@@ -15,13 +15,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
   
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
-    const container = document.querySelector('main');
-    if (element && container) {
-      const headerOffset = 100;
-      const elementPosition = element.offsetTop;
-      container.scrollTo({ top: elementPosition - headerOffset, behavior: "smooth" });
-    } else if (id === 'top' && container) {
-      container.scrollTo({ top: 0, behavior: 'smooth' });
+    if (element) {
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
     }
   };
 
@@ -40,10 +42,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
       `}</style>
 
       {/* --- Navbar --- */}
-      <nav className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-        <div className="bg-white/90 dark:bg-brand-dark/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-full px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-2xl">
-          <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer group" onClick={() => scrollToSection('top')}>
-            <BrandLogo size={24} variant="fill" className="text-brand-violet sm:w-[28px]" />
+      <nav className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-5xl">
+        <div className="bg-white/90 dark:bg-brand-dark/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-2xl">
+          <div className="flex items-center gap-2 cursor-pointer group shrink-0" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
+            <BrandLogo size={24} variant="fill" className="text-brand-violet" />
             <span className="font-bold text-base sm:text-lg tracking-tighter">Espiritualizei</span>
           </div>
           
@@ -51,23 +53,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             <button onClick={() => scrollToSection('metodo')} className="hover:text-brand-violet transition-colors">O Método</button>
             <button onClick={() => scrollToSection('comunidade')} className="hover:text-brand-violet transition-colors">Comunidade</button>
             <button onClick={() => scrollToSection('biblioteca')} className="hover:text-brand-violet transition-colors">Formação</button>
-            <button onClick={() => scrollToSection('assinatura')} className="hover:text-brand-violet transition-colors">Planos</button>
           </div>
 
-	          <div className="flex items-center gap-1.5 sm:gap-3">
-	            <button 
-                onClick={(e) => { e.preventDefault(); onLogin(); }} 
-                className="text-[10px] sm:text-xs font-bold hover:text-brand-violet transition-colors px-2 py-1"
-              >
-                Entrar
-              </button>
-	            <button 
-                onClick={(e) => { e.preventDefault(); onStart(); }} 
-                className="bg-brand-violet text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-[9px] sm:text-xs font-black shadow-lg hover:bg-purple-600 active:scale-95 transition-all whitespace-nowrap"
-              >
-                COMEÇAR
-              </button>
-	          </div>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button 
+              onClick={(e) => { e.preventDefault(); onLogin(); }} 
+              className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-brand-violet transition-colors px-2 py-1"
+            >
+              Entrar
+            </button>
+            <button 
+              onClick={(e) => { e.preventDefault(); onStart(); }} 
+              className="bg-brand-violet text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-black shadow-lg hover:bg-purple-600 active:scale-95 transition-all whitespace-nowrap"
+            >
+              COMEÇAR
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -83,9 +84,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             Pare de recomeçar <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-violet to-purple-400">toda segunda-feira.</span>
           </h1>
-	          <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
-	            A vida espiritual não precisa ser um fardo. O **Espiritualizei** ajuda você a organizar sua jornada diária com humildade e constância, adaptando-se à sua realidade para que a oração seja seu verdadeiro porto seguro.
-	          </p>
+          <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
+            A vida espiritual não precisa ser um fardo. O **Espiritualizei** ajuda você a organizar sua jornada diária com humildade e constância, adaptando-se à sua realidade para que a oração seja seu verdadeiro porto seguro.
+          </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
              <button onClick={onStart} className="w-full sm:w-auto px-10 py-5 bg-brand-violet text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-brand-violet/30 hover:scale-105 transition-all flex items-center justify-center gap-3">
                 Organizar Minha Vida <ArrowRight size={24} />
@@ -104,7 +105,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                  <div className="p-8 pt-16">
                     <div className="flex justify-between items-center mb-8">
                        <div>
-                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Plano de Hoje</p>
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Jornada de Hoje</p>
                           <h3 className="text-white font-black text-2xl">Constância</h3>
                        </div>
                        <div className="w-12 h-12 bg-brand-violet rounded-2xl flex items-center justify-center text-white shadow-lg"><Check size={24} strokeWidth={3} /></div>
@@ -132,7 +133,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                  </div>
               </div>
            </div>
-           {/* Decorative Element */}
            <div className="absolute z-10 w-[300px] h-[500px] bg-brand-violet/30 rounded-[3rem] blur-3xl transform -translate-x-20 translate-y-20 opacity-30"></div>
         </div>
       </section>
@@ -145,11 +145,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed">Não queremos ser mais um peso na sua lista de tarefas, mas a mão que te ajuda a caminhar quando você se sente cansado.</p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
-	               <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-brand-violet/40 transition-all">
-	                  <div className="w-16 h-16 bg-brand-violet/10 rounded-2xl flex items-center justify-center text-brand-violet mb-8 group-hover:scale-110 transition-transform"><RefreshCw size={32} /></div>
-	                  <h3 className="text-2xl font-bold mb-4">Jornada Diária Real</h3>
-	                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">O **Espiritualizei** entende sua rotina e sugere práticas que cabem no seu tempo. Com humildade, caminhamos um passo de cada vez, ajustando o plano conforme sua vida muda.</p>
-	               </div>
+               <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-brand-violet/40 transition-all">
+                  <div className="w-16 h-16 bg-brand-violet/10 rounded-2xl flex items-center justify-center text-brand-violet mb-8 group-hover:scale-110 transition-transform"><RefreshCw size={32} /></div>
+                  <h3 className="text-2xl font-bold mb-4">Jornada Diária Real</h3>
+                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">O **Espiritualizei** entende sua rotina e sugere práticas que cabem no seu tempo. Com humildade, caminhamos um passo de cada vez, ajustando o plano conforme sua vida muda.</p>
+               </div>
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-blue-500/40 transition-all">
                   <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 mb-8 group-hover:scale-110 transition-transform"><BookOpen size={32} /></div>
                   <h3 className="text-2xl font-bold mb-4">Formação Sem Pressa</h3>
@@ -246,36 +246,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
          </div>
       </section>
 
-      {/* --- PLANOS --- */}
-      <section id="assinatura" className="py-32 bg-slate-50 dark:bg-black/20">
-         <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-20">
-               <h2 className="text-4xl sm:text-6xl font-black tracking-tighter mb-6">Escolha seu caminho</h2>
-               <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium">Comece hoje sua jornada de transformação espiritual.</p>
+      {/* --- CTA FINAL --- */}
+      <section className="py-32 bg-slate-50 dark:bg-black/20">
+         <div className="max-w-4xl mx-auto px-6 text-center">
+            <div className="bg-brand-dark p-12 sm:p-20 rounded-[4rem] border border-white/10 shadow-2xl relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-brand-violet/20 via-transparent to-transparent opacity-50" />
+               <div className="relative z-10">
+                  <h2 className="text-4xl sm:text-6xl font-black text-white mb-8 tracking-tighter">Pronto para começar?</h2>
+                  <p className="text-slate-400 text-xl mb-12 font-medium max-w-xl mx-auto">Junte-se a centenas de leigos que estão transformando suas vidas através da constância espiritual.</p>
+                  <button onClick={onStart} className="w-full sm:w-auto px-12 py-6 bg-brand-violet text-white rounded-[2rem] font-black text-2xl shadow-2xl shadow-brand-violet/30 hover:scale-105 transition-all flex items-center justify-center gap-3 mx-auto">
+                     COMEÇAR MINHA JORNADA <ArrowRight size={28} />
+                  </button>
+                  <p className="mt-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Acesso imediato • 100% Católico</p>
+               </div>
             </div>
-	            <div className="max-w-2xl mx-auto">
-	               <div className="bg-brand-dark p-10 rounded-[3rem] border-2 border-brand-violet relative flex flex-col shadow-2xl shadow-brand-violet/20">
-	                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-violet text-white px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Acesso Completo</div>
-	                  <div className="mb-8 text-center">
-	                     <h3 className="text-3xl font-bold mb-2 text-white">Plano Peregrino</h3>
-	                     <p className="text-slate-400 text-sm">Tudo o que você precisa para uma vida de oração constante.</p>
-	                  </div>
-	                  <div className="flex items-baseline justify-center gap-1 mb-8">
-	                     <span className="text-5xl font-black text-white">R$ 19,90</span>
-	                     <span className="text-slate-400 text-sm">/mês</span>
-	                  </div>
-	                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Jornada Diária com IA</li>
-	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Comunidade de Orações</li>
-	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Biblioteca da Fé Completa</li>
-	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Liturgia Diária</li>
-	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Desafios de Virtude</li>
-	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Suporte Exclusivo</li>
-	                  </ul>
-	                  <button onClick={onStart} className="w-full py-5 bg-brand-violet text-white rounded-2xl font-black text-lg shadow-lg shadow-brand-violet/30 hover:bg-purple-600 hover:scale-[1.02] active:scale-[0.98] transition-all">COMEÇAR MINHA JORNADA</button>
-                    <p className="text-center text-[10px] text-slate-500 mt-4 font-bold uppercase tracking-widest">Sem fidelidade. Cancele quando quiser.</p>
-	               </div>
-	            </div>
          </div>
       </section>
 
@@ -286,8 +270,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             <div className="space-y-4">
                {[
                   { q: "O aplicativo é realmente católico?", a: "Sim! Todo o conteúdo é baseado na doutrina da Igreja Católica Apostólica Romana, com foco na vida de oração e virtudes." },
-                  { q: "Como funciona a Regra de Vida?", a: "Você responde um questionário sobre sua rotina e nossa IA sugere os melhores horários e práticas para você rezar, adaptando-se ao seu dia a dia." },
-                  { q: "Posso cancelar o Premium quando quiser?", a: "Com certeza. O cancelamento é simples e pode ser feito a qualquer momento diretamente nas configurações do seu perfil." }
+                  { q: "Como funciona a Jornada Diária?", a: "Você responde um questionário sobre sua rotina e nossa IA sugere os melhores horários e práticas para você rezar, adaptando-se ao seu dia a dia com humildade." },
+                  { q: "O acesso é gratuito?", a: "O Espiritualizei é um projeto mantido por leigos e oferece uma experiência completa via assinatura, garantindo a manutenção do app e a criação de novos conteúdos sem anúncios." }
                ].map((item, i) => (
                   <div key={i} className="border border-slate-100 dark:border-white/5 rounded-3xl overflow-hidden">
                      <button onClick={() => toggleFaq(i)} className="w-full p-6 text-left flex justify-between items-center hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
@@ -310,7 +294,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                      <BrandLogo size={32} variant="fill" className="text-brand-violet" />
                      <span className="font-bold text-2xl tracking-tighter">Espiritualizei</span>
                   </div>
-                  <p className="text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed font-medium">Ajudando leigos a encontrarem a santidade no meio do mundo, através de uma vida de oração constante e equilibrada.</p>
+                  <p className="text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed font-medium">Ajudando leigos a encontrarem a santidade no meio do mundo, através de uma jornada diária constante e equilibrada.</p>
                </div>
                <div>
                   <h5 className="font-black uppercase text-[10px] tracking-widest text-slate-400 mb-6">Links Úteis</h5>

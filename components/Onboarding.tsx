@@ -219,8 +219,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
              <div className="w-16 h-16 bg-brand-violet/10 text-brand-violet rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Shield size={32} />
              </div>
-             <h2 className="text-2xl font-bold text-brand-dark dark:text-white mb-2">Salvar meu Plano</h2>
-             <p className="text-slate-500 dark:text-slate-400 text-sm">Crie sua conta para acessar sua rotina em qualquer lugar.</p>
+             <h2 className="text-2xl font-bold text-brand-dark dark:text-white mb-2">Confirmar minha Jornada</h2>
+             <p className="text-sm text-slate-500 dark:text-slate-400">Crie sua conta para acessar seu caminho espiritual em qualquer lugar.</p>
           </div>
           <div className="space-y-4 bg-white dark:bg-white/5 p-6 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-xl">
              <div className="space-y-1">
