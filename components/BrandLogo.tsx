@@ -21,10 +21,10 @@ const BrandLogo: React.FC<BrandLogoProps> = ({ size = 32, className = "", varian
       className={combinedClassName}
     >
       <path
-        d="M12.0002 20.5502L10.5502 19.2302C5.40019 14.5702 2.00019 11.4802 2.00019 7.69019C2.00019 4.60019 4.42019 2.18019 7.50019 2.18019C9.24019 2.18019 10.9102 2.99019 12.0002 4.27019C13.0902 2.99019 14.7602 2.18019 16.5002 2.18019C19.5802 2.18019 22.0002 4.60019 22.0002 7.69019C22.0002 11.4802 18.6002 14.5702 13.4502 19.2402L12.0002 20.5502Z"
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
         fill={variant === 'fill' ? "currentColor" : "none"}
         stroke={variant === 'outline' ? "currentColor" : "none"}
-        strokeWidth={variant === 'outline' ? "2.5" : "0"} 
+        strokeWidth={variant === 'outline' ? "2" : "0"} 
         strokeLinecap="round"
         strokeLinejoin="round"
       />
