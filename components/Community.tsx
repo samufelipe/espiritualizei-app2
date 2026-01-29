@@ -100,34 +100,42 @@ const Community: React.FC<CommunityProps> = ({
                         </div>
                      </button>
 
-                     {/* Desafios Comunitários em Destaque (Mobile) */}
-                     <div className="lg:hidden space-y-4 mb-6">
-                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">Desafios Ativos</h3>
-                        {challenges.length > 0 ? challenges.filter(c => c.status === 'active').map(challenge => (
-                           <div 
-                              key={challenge.id} 
-                              onClick={() => onJoinChallenge(challenge.id)}
-                              className="bg-gradient-to-br from-brand-violet/10 to-purple-500/5 border border-brand-violet/20 p-5 rounded-3xl relative overflow-hidden cursor-pointer hover:border-brand-violet/40 transition-all active:scale-[0.99]"
-                           >
-                              <div className="flex justify-between items-start mb-3">
-                                 <div className="w-10 h-10 flex items-center justify-center text-brand-violet">
-                                    <Trophy size={28} />
+                     {/* Desafios Comunitários em Destaque (Mobile/PWA) */}
+                     <div className="space-y-4 mb-8">
+                        <div className="flex items-center justify-between px-1">
+                           <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Desafios Ativos</h3>
+                           <span className="text-[10px] font-bold text-brand-violet bg-brand-violet/10 px-2 py-0.5 rounded-full">Comunitário</span>
+                        </div>
+                        {challenges.length > 0 ? (
+                           <div className="grid grid-cols-1 gap-4">
+                              {challenges.filter(c => c.status === 'active').map(challenge => (
+                                 <div 
+                                    key={challenge.id} 
+                                    onClick={() => onJoinChallenge(challenge.id)}
+                                    className="bg-gradient-to-br from-brand-violet/10 to-purple-500/5 border border-brand-violet/20 p-5 rounded-3xl relative overflow-hidden cursor-pointer hover:border-brand-violet/40 transition-all active:scale-[0.99] shadow-sm"
+                                 >
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-brand-violet/5 rounded-full blur-2xl -mr-8 -mt-8" />
+                                    <div className="flex justify-between items-start mb-3 relative z-10">
+                                       <div className="w-10 h-10 flex items-center justify-center text-brand-violet">
+                                          <Trophy size={28} />
+                                       </div>
+                                       <div className="bg-brand-violet/20 text-brand-violet text-[10px] font-bold px-2 py-1 rounded-lg uppercase">
+                                          {challenge.participants} Participando
+                                       </div>
+                                    </div>
+                                    <h4 className="font-bold text-brand-dark dark:text-white text-base mb-1 relative z-10">{challenge.title}</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 relative z-10">{challenge.description}</p>
+                                    <button 
+                                       onClick={(e) => { e.stopPropagation(); onJoinChallenge(challenge.id); }}
+                                       className="w-full bg-brand-violet text-white text-xs font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all relative z-10"
+                                    >
+                                       Participar do Desafio
+                                    </button>
                                  </div>
-                                 <div className="bg-brand-violet/20 text-brand-violet text-[10px] font-bold px-2 py-1 rounded-lg uppercase">
-                                    {challenge.participants} Participando
-                                 </div>
-                              </div>
-                              <h4 className="font-bold text-brand-dark dark:text-white text-sm mb-1">{challenge.title}</h4>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">{challenge.description}</p>
-                              <button 
-                                 onClick={() => onJoinChallenge(challenge.id)}
-                                 className="w-full bg-brand-violet text-white text-xs font-bold py-2.5 rounded-xl shadow-md active:scale-95 transition-all"
-                              >
-                                 Participar do Desafio
-                              </button>
+                              ))}
                            </div>
-                        )) : (
-                           <div className="bg-slate-100 dark:bg-white/5 p-6 rounded-3xl border border-dashed border-slate-300 dark:border-white/10 text-center">
+                        ) : (
+                           <div className="bg-slate-100 dark:bg-white/5 p-8 rounded-3xl border border-dashed border-slate-300 dark:border-white/10 text-center">
                               <p className="text-xs text-slate-500">Nenhum desafio ativo no momento. Volte em breve!</p>
                            </div>
                         )}

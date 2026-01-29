@@ -324,7 +324,7 @@ const KnowledgeBase: React.FC = () => {
             <p className="text-slate-500">Tente buscar por outros termos ou categorias.</p>
           </div>
         ) : (
-          <div className="space-y-12">
+          <div className="space-y-16">
             {filteredTracks.map((track) => (
               <div key={track.id} className="animate-slide-up">
                 <div className="flex items-center justify-between mb-6">
@@ -332,31 +332,40 @@ const KnowledgeBase: React.FC = () => {
                     <h2 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">{track.title}</h2>
                     <p className="text-sm text-slate-500 font-medium">{track.description}</p>
                   </div>
+                  <div className="hidden sm:flex gap-2">
+                    <button className="p-2 rounded-full bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 text-slate-400 hover:text-brand-violet transition-colors">
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button className="p-2 rounded-full bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 text-slate-400 hover:text-brand-violet transition-colors">
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Carrossel Horizontal para Mobile e Grid para Desktop */}
+                <div className="flex overflow-x-auto pb-8 -mx-6 px-6 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 scrollbar-hide snap-x">
                   {track.items.map((item) => (
                     <div 
                       key={item.id}
                       onClick={() => setSelectedItem(item)}
-                      className="group bg-white dark:bg-[#1A1F26] rounded-[2rem] border border-slate-100 dark:border-white/5 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer"
+                      className="min-w-[280px] sm:min-w-0 group bg-white dark:bg-[#1A1F26] rounded-[2.5rem] border border-slate-100 dark:border-white/5 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer snap-center"
                     >
-                      <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start justify-between mb-6">
                         <div className="text-brand-violet">
-                          <item.icon size={28} strokeWidth={1.5} />
+                          <item.icon size={32} strokeWidth={1.5} />
                         </div>
                         <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           <Clock size={12} />
                           {item.duration}
                         </div>
                       </div>
-                      <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-2 group-hover:text-brand-violet transition-colors">{item.title}</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">{item.description}</p>
+                      <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-2 group-hover:text-brand-violet transition-colors leading-tight">{item.title}</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">{item.description}</p>
                       
-                      <div className="mt-6 flex items-center justify-between">
+                      <div className="mt-8 flex items-center justify-between pt-5 border-t border-slate-50 dark:border-white/5">
                         <span className="text-[10px] font-black text-brand-violet uppercase tracking-[0.2em]">Ler agora</span>
-                        <div className="w-8 h-8 rounded-xl bg-brand-violet/10 text-brand-violet flex items-center justify-center group-hover:bg-brand-violet group-hover:text-white transition-all">
-                          <ChevronRight size={18} />
+                        <div className="w-10 h-10 rounded-full bg-brand-violet/10 text-brand-violet flex items-center justify-center group-hover:bg-brand-violet group-hover:text-white transition-all">
+                          <ChevronRight size={20} />
                         </div>
                       </div>
                     </div>
