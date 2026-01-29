@@ -40,8 +40,8 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
       highlightNav: -1
     },
     {
-      title: "Seu Plano Personalizado",
-      description: "Lembra das perguntas que você respondeu? Aqui está o resultado: uma rotina espiritual moldada exatamente para sua realidade e suas lutas. É aqui que a transformação acontece.",
+      title: "Sua Jornada Diária",
+      description: "Lembra das perguntas que você respondeu? Aqui está o resultado: um caminho espiritual moldado com humildade para sua realidade. É aqui que a constância floresce.",
       icon: CheckCircle2,
       positionClass: "bottom-24 left-4 sm:left-[16%]", // Aponta para a 2ª aba
       arrowClass: "bottom-[-12px] left-8 border-t-brand-dark dark:border-t-white", 
@@ -64,9 +64,9 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
       highlightNav: 3
     },
     {
-      title: "Encontre Jesus",
-      description: "Viajou ou mudou de bairro? Localize as Igrejas Católicas e horários de Missa mais próximos de você em segundos.",
-      icon: MapPin,
+      title: "Ranking de Caridade",
+      description: "Um incentivo fraterno para sua constância. Ganhe pontos ao rezar pelos outros e manter sua jornada diária ativa.",
+      icon: Trophy,
       positionClass: "bottom-24 right-2 sm:right-[16%]", // Aponta para a 5ª aba
       arrowClass: "bottom-[-12px] right-20 border-t-brand-dark dark:border-t-white",
       highlightNav: 4

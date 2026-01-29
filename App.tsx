@@ -201,7 +201,7 @@ const App: React.FC = () => {
           {viewState === 'generating' && (
              <div className="min-h-screen bg-brand-dark flex flex-col items-center justify-center p-8 text-center animate-fade-in">
                 <Loader2 size={40} className="animate-spin text-brand-violet mb-4" />
-                <h2 className="text-xl font-bold">Gerando sua Regra de Vida...</h2>
+                <h2 className="text-xl font-bold">Preparando sua Jornada Diária...</h2>
              </div>
           )}
           

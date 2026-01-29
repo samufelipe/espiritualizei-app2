@@ -118,7 +118,7 @@ const KnowledgeBase: React.FC = () => {
               <h1 className="text-3xl font-extrabold text-brand-dark dark:text-white mb-2 flex items-center gap-3">
                 <BookOpen className="text-brand-violet" /> Biblioteca da Fé
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 font-medium">Formação e espiritualidade para sua jornada.</p>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">Formação e espiritualidade para sua jornada diária.</p>
             </div>
             
             <div className="relative group">

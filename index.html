@@ -104,15 +104,15 @@
     <script>
       // Remove a splash screen com uma transição mais suave e lenta
       window.addEventListener('load', function() {
-        // Aumentamos para 2.5 segundos para o usuário apreciar o ícone
+        // Aumentamos para 4 segundos para o usuário apreciar o ícone com calma
         setTimeout(function() {
           const splash = document.getElementById('pwa-splash');
           if (splash) {
             splash.style.opacity = '0';
-            splash.style.transition = 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
-            setTimeout(() => splash.remove(), 1200);
+            splash.style.transition = 'opacity 2s cubic-bezier(0.4, 0, 0.2, 1)';
+            setTimeout(() => splash.remove(), 2000);
           }
-        }, 2500);
+        }, 4000);
       });
     </script>
   </body>

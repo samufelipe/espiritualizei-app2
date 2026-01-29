@@ -80,7 +80,7 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-3">Recalibrando seu Caminho</h2>
                 <p className="text-slate-400 leading-relaxed text-sm">
-                  Unindo sua realidade à Tradição da Igreja para escrever sua nova Regra de Vida.
+                  Unindo sua realidade à Tradição da Igreja para escrever sua nova Jornada Diária.
                 </p>
             </div>
         </div>

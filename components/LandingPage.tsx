@@ -54,10 +54,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             <button onClick={() => scrollToSection('assinatura')} className="hover:text-brand-violet transition-colors">Planos</button>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button onClick={onLogin} className="text-[10px] sm:text-xs font-bold hover:text-brand-violet transition-colors px-2 py-1">Entrar</button>
-            <button onClick={onStart} className="bg-brand-violet text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-black shadow-lg hover:bg-purple-600 active:scale-95 transition-all">COMEÇAR</button>
-          </div>
+	          <div className="flex items-center gap-1.5 sm:gap-3">
+	            <button 
+                onClick={(e) => { e.preventDefault(); onLogin(); }} 
+                className="text-[10px] sm:text-xs font-bold hover:text-brand-violet transition-colors px-2 py-1"
+              >
+                Entrar
+              </button>
+	            <button 
+                onClick={(e) => { e.preventDefault(); onStart(); }} 
+                className="bg-brand-violet text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-[9px] sm:text-xs font-black shadow-lg hover:bg-purple-600 active:scale-95 transition-all whitespace-nowrap"
+              >
+                COMEÇAR
+              </button>
+	          </div>
         </div>
       </nav>
 
@@ -73,9 +83,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             Pare de recomeçar <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-violet to-purple-400">toda segunda-feira.</span>
           </h1>
-          <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
-            Sabemos que sua vida é corrida. **Nosso aplicativo** cria uma Regra de Vida que se adapta à sua realidade, para que a oração deixe de ser um peso e se torne seu porto seguro.
-          </p>
+	          <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
+	            A vida espiritual não precisa ser um fardo. O **Espiritualizei** ajuda você a organizar sua jornada diária com humildade e constância, adaptando-se à sua realidade para que a oração seja seu verdadeiro porto seguro.
+	          </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
              <button onClick={onStart} className="w-full sm:w-auto px-10 py-5 bg-brand-violet text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-brand-violet/30 hover:scale-105 transition-all flex items-center justify-center gap-3">
                 Organizar Minha Vida <ArrowRight size={24} />
@@ -135,11 +145,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed">Não queremos ser mais um peso na sua lista de tarefas, mas a mão que te ajuda a caminhar quando você se sente cansado.</p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
-               <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-brand-violet/40 transition-all">
-                  <div className="w-16 h-16 bg-brand-violet/10 rounded-2xl flex items-center justify-center text-brand-violet mb-8 group-hover:scale-110 transition-transform"><RefreshCw size={32} /></div>
-                  <h3 className="text-2xl font-bold mb-4">Regra de Vida Real</h3>
-                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">**Nosso aplicativo** analisa sua rotina e sugere práticas que cabem no seu tempo. Se sua vida mudar, o plano muda com você.</p>
-               </div>
+	               <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-brand-violet/40 transition-all">
+	                  <div className="w-16 h-16 bg-brand-violet/10 rounded-2xl flex items-center justify-center text-brand-violet mb-8 group-hover:scale-110 transition-transform"><RefreshCw size={32} /></div>
+	                  <h3 className="text-2xl font-bold mb-4">Jornada Diária Real</h3>
+	                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">O **Espiritualizei** entende sua rotina e sugere práticas que cabem no seu tempo. Com humildade, caminhamos um passo de cada vez, ajustando o plano conforme sua vida muda.</p>
+	               </div>
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-blue-500/40 transition-all">
                   <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 mb-8 group-hover:scale-110 transition-transform"><BookOpen size={32} /></div>
                   <h3 className="text-2xl font-bold mb-4">Formação Sem Pressa</h3>
@@ -243,42 +253,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                <h2 className="text-4xl sm:text-6xl font-black tracking-tighter mb-6">Escolha seu caminho</h2>
                <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium">Comece hoje sua jornada de transformação espiritual.</p>
             </div>
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-               {/* Plano Grátis */}
-               <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] border border-slate-100 dark:border-white/5 flex flex-col">
-                  <div className="mb-8">
-                     <h3 className="text-2xl font-bold mb-2">Plano Peregrino</h3>
-                     <p className="text-slate-500 dark:text-slate-400 text-sm">Para quem está começando a caminhar.</p>
-                  </div>
-                  <div className="text-4xl font-black mb-8">Grátis</div>
-                  <ul className="space-y-4 mb-10 flex-grow">
-                     <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 size={18} className="text-green-500" /> Liturgia Diária</li>
-                     <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 size={18} className="text-green-500" /> Comunidade de Orações</li>
-                     <li className="flex items-center gap-3 text-sm font-medium opacity-50"><X size={18} className="text-slate-400" /> Regra de Vida Personalizada</li>
-                     <li className="flex items-center gap-3 text-sm font-medium opacity-50"><X size={18} className="text-slate-400" /> Biblioteca Completa</li>
-                  </ul>
-                  <button onClick={onStart} className="w-full py-4 border-2 border-slate-200 dark:border-white/10 rounded-2xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-all">Começar Agora</button>
-               </div>
-               {/* Plano Premium */}
-               <div className="bg-brand-dark p-10 rounded-[3rem] border-2 border-brand-violet relative flex flex-col shadow-2xl shadow-brand-violet/20">
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-violet text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Mais Escolhido</div>
-                  <div className="mb-8">
-                     <h3 className="text-2xl font-bold mb-2 text-white">Plano Apóstolo</h3>
-                     <p className="text-slate-400 text-sm">Para quem busca a santidade no dia a dia.</p>
-                  </div>
-                  <div className="flex items-baseline gap-1 mb-8">
-                     <span className="text-4xl font-black text-white">R$ 19,90</span>
-                     <span className="text-slate-400 text-sm">/mês</span>
-                  </div>
-                  <ul className="space-y-4 mb-10 flex-grow">
-                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Tudo do Plano Peregrino</li>
-                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Regra de Vida com IA</li>
-                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Acesso Total à Biblioteca</li>
-                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Desafios Exclusivos</li>
-                  </ul>
-                  <button onClick={onStart} className="w-full py-4 bg-brand-violet text-white rounded-2xl font-bold shadow-lg shadow-brand-violet/30 hover:bg-purple-600 transition-all">Ser Premium</button>
-               </div>
-            </div>
+	            <div className="max-w-2xl mx-auto">
+	               <div className="bg-brand-dark p-10 rounded-[3rem] border-2 border-brand-violet relative flex flex-col shadow-2xl shadow-brand-violet/20">
+	                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-violet text-white px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Acesso Completo</div>
+	                  <div className="mb-8 text-center">
+	                     <h3 className="text-3xl font-bold mb-2 text-white">Plano Peregrino</h3>
+	                     <p className="text-slate-400 text-sm">Tudo o que você precisa para uma vida de oração constante.</p>
+	                  </div>
+	                  <div className="flex items-baseline justify-center gap-1 mb-8">
+	                     <span className="text-5xl font-black text-white">R$ 19,90</span>
+	                     <span className="text-slate-400 text-sm">/mês</span>
+	                  </div>
+	                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Jornada Diária com IA</li>
+	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Comunidade de Orações</li>
+	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Biblioteca da Fé Completa</li>
+	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Liturgia Diária</li>
+	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Desafios de Virtude</li>
+	                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Suporte Exclusivo</li>
+	                  </ul>
+	                  <button onClick={onStart} className="w-full py-5 bg-brand-violet text-white rounded-2xl font-black text-lg shadow-lg shadow-brand-violet/30 hover:bg-purple-600 hover:scale-[1.02] active:scale-[0.98] transition-all">COMEÇAR MINHA JORNADA</button>
+                    <p className="text-center text-[10px] text-slate-500 mt-4 font-bold uppercase tracking-widest">Sem fidelidade. Cancele quando quiser.</p>
+	               </div>
+	            </div>
          </div>
       </section>
 

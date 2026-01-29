@@ -151,7 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   })();
 
   const handleShareApp = () => {
-    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha rotina de oração e vida espiritual. 💜\n\nConheça aqui: https://www.espiritualizei.com/");
+    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha jornada diária e vida espiritual. 💜\n\nConheça aqui: https://www.espiritualizei.com/");
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
@@ -212,12 +212,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                             {post.userAvatar ? <img src={post.userAvatar} className="w-full h-full object-cover" /> : post.userName.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-brand-dark dark:text-white mb-0.5">{post.userName}</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2 italic">"{post.content}"</p>
-                            <div className="flex items-center gap-4">
-                                <span className="text-[10px] text-slate-400 flex items-center gap-1"><Heart size={10} /> {post.likesCount}</span>
-                                <span className="text-[10px] text-slate-400 flex items-center gap-1"><MessageSquare size={10} /> {post.commentsCount}</span>
+                            <div className="flex justify-between items-start mb-1">
+                                <h4 className="text-sm font-bold text-brand-dark dark:text-white truncate">{post.userName}</h4>
+                                <span className="text-[9px] text-slate-400 font-medium">{new Date(post.timestamp).toLocaleDateString()}</span>
                             </div>
+                            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{post.content}</p>
                         </div>
                     </div>
                 ))}
@@ -226,206 +225,302 @@ const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 
-  const liturgyTabs = ['first', 'psalm', 'second', 'gospel'].filter(tab => {
-    if (tab === 'second') return !!liturgyData?.readings.second;
-    return true;
-  });
+  const renderLiturgyHero = () => (
+    <div className="relative mb-8 group">
+        <div className={`absolute inset-0 ${style.gradient} rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-30 transition-opacity`} />
+        <div className={`relative overflow-hidden rounded-[2.5rem] ${style.gradient} p-8 sm:p-10 shadow-2xl shadow-brand-violet/20`}>
+            <div className="absolute top-0 right-0 p-10 opacity-10 group-hover:scale-110 transition-transform duration-700"><Compass size={180} /></div>
+            
+            <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full border border-white/20">
+                        <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Liturgia de Hoje</span>
+                    </div>
+                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                </div>
 
-  const getTabLabel = (tab: string) => {
-    switch (tab) {
-      case 'first': return '1ª Leitura';
-      case 'psalm': return 'Salmo';
-      case 'second': return '2ª Leitura';
-      case 'gospel': return 'Evangelho';
-      default: return '';
+                <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tighter leading-tight max-w-xl">
+                    "{dailyTheme}"
+                </h2>
+                
+                <p className={`text-sm ${style.text} font-medium mb-8 max-w-md leading-relaxed opacity-90`}>
+                    {liturgyData?.liturgicalDay || 'Carregando liturgia...'} • {style.meaning}
+                </p>
+
+                <div className="flex flex-wrap gap-4">
+                    <button 
+                        onClick={() => setShowLiturgyModal(true)}
+                        className="bg-white text-brand-dark px-8 py-4 rounded-2xl font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                    >
+                        <BookOpen size={18} /> Ler Evangelho
+                    </button>
+                    <button 
+                        onClick={handleShareApp}
+                        className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 py-4 rounded-2xl font-bold text-sm hover:bg-white/20 transition-all flex items-center gap-2"
+                    >
+                        <Share2 size={18} /> Convidar Amigo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+  );
+
+  const renderProgressSummary = () => {
+    const completed = routineItems.filter(i => i.completed).length;
+    const total = routineItems.length;
+    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return (
+        <div className="bg-white dark:bg-[#1A1F26] rounded-[2.5rem] p-8 border border-slate-100 dark:border-white/5 shadow-card mb-8 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-[0.03]"><Trophy size={100} /></div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative z-10">
+                <div className="flex-1 w-full">
+                    <div className="flex justify-between items-end mb-3">
+                        <div>
+                            <h3 className="text-lg font-bold text-brand-dark dark:text-white">Sua Fidelidade</h3>
+                            <p className="text-xs text-slate-500">Você completou {completed} de {total} práticas hoje</p>
+                        </div>
+                        <span className="text-2xl font-black text-brand-violet">{progress}%</span>
+                    </div>
+                    <div className="h-3 w-full bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                        <div 
+                            className="h-full bg-brand-violet transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(167,139,250,0.5)]" 
+                            style={{ width: `${progress}%` }} 
+                        />
+                    </div>
+                </div>
+                <button 
+                    onClick={onNavigateToRoutine}
+                    className="w-full sm:w-auto bg-slate-50 dark:bg-white/5 hover:bg-brand-violet hover:text-white p-5 rounded-3xl border border-slate-100 dark:border-white/10 transition-all flex items-center justify-center gap-3 group"
+                >
+                    <div className="text-left">
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Ver Minha</p>
+                        <p className="font-bold">Jornada</p>
+                    </div>
+                    <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+            </div>
+        </div>
+    );
+  };
+
+  const renderQuickActions = () => (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        {[
+            { label: 'Biblioteca', icon: GraduationCap, color: 'text-blue-500', bg: 'bg-blue-500/10', action: onNavigateToKnowledge },
+            { label: 'Ranking', icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10', action: onNavigateToSocial },
+            { label: 'Confissão', icon: Shield, color: confession.color, bg: confession.bg, action: handleUpdateConfession },
+            { label: 'Suporte', icon: MessageSquare, color: 'text-slate-500', bg: 'bg-slate-500/10', action: () => setShowContactModal(true) }
+        ].map((item, i) => (
+            <button 
+                key={i}
+                onClick={item.action}
+                className="bg-white dark:bg-[#1A1F26] p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all flex flex-col items-center text-center gap-3 group"
+            >
+                <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                    <item.icon size={24} />
+                </div>
+                <span className="text-xs font-bold text-brand-dark dark:text-white">{item.label}</span>
+            </button>
+        ))}
+    </div>
+  );
+
+  const renderWidget = (id: WidgetId) => {
+    switch(id) {
+      case 'liturgyHero': return renderLiturgyHero();
+      case 'prayerIncentives': return renderPrayerIncentives();
+      case 'communityPreview': return renderCommunityPreview();
+      case 'progressSummary': return renderProgressSummary();
+      case 'quickActions': return renderQuickActions();
+      default: return null;
     }
   };
 
   return (
-    <div className="p-4 md:p-8 pb-32 space-y-6 animate-fade-in font-sans min-h-screen relative">
-      
-      {/* Banner Premium para não assinantes */}
-      {!user.isPremium && (
-        <div 
-          onClick={onNavigateToProfile}
-          className="bg-gradient-to-r from-brand-violet to-purple-600 p-4 rounded-3xl shadow-lg flex items-center justify-between group cursor-pointer animate-slide-up relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 p-2 opacity-10 rotate-12 group-hover:scale-110 transition-transform"><Crown size={60} fill="white" /></div>
-          <div className="flex items-center gap-4 relative z-10">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white"><Crown size={22} fill="white" /></div>
-            <div>
-              <h4 className="text-sm font-black text-white">Libere o acesso completo</h4>
-              <p className="text-[10px] font-bold text-white/80 uppercase tracking-widest">Clique aqui e conheça o plano premium</p>
+    <div className="min-h-screen bg-slate-50/50 dark:bg-brand-dark pb-32 animate-fade-in">
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-slate-50/80 dark:bg-brand-dark/80 backdrop-blur-xl px-6 py-6 flex justify-between items-center border-b border-transparent">
+        <div className="flex items-center gap-4">
+            <div 
+                onClick={onNavigateToProfile}
+                className="w-12 h-12 rounded-2xl bg-brand-violet/10 flex items-center justify-center overflow-hidden border-2 border-white dark:border-white/5 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+            >
+                {user.photoUrl ? (
+                    <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                    <span className="text-brand-violet font-black text-lg">{user.name.charAt(0)}</span>
+                )}
             </div>
-          </div>
-          <ArrowRight size={20} className="text-white group-hover:translate-x-1 transition-transform" />
+            <div>
+                <div className="flex items-center gap-2">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{greeting.text},</p>
+                    <greeting.icon size={14} className="text-amber-500" />
+                </div>
+                <h1 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">{user.name.split(' ')[0]}</h1>
+            </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+            <button 
+                onClick={() => setShowNotifications(true)}
+                className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 relative hover:bg-slate-50 transition-colors"
+            >
+                <Bell size={22} />
+                <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-brand-violet rounded-full border-2 border-white dark:border-brand-dark" />
+            </button>
+            <button 
+                onClick={() => setIsCustomizing(true)}
+                className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 transition-colors"
+            >
+                <LayoutGrid size={22} />
+            </button>
+        </div>
+      </header>
+
+      <main className="px-6 pt-4 max-w-4xl mx-auto">
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-3 mb-8">
+            <div className="bg-white dark:bg-[#1A1F26] p-4 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm flex flex-col items-center">
+                <div className="flex items-center gap-1.5 text-orange-500 mb-1">
+                    <Flame size={16} fill="currentColor" />
+                    <span className="text-lg font-black">{user.streakDays}</span>
+                </div>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Dias</span>
+            </div>
+            <div className="bg-white dark:bg-[#1A1F26] p-4 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm flex flex-col items-center">
+                <div className="flex items-center gap-1.5 text-brand-violet mb-1">
+                    <Crown size={16} fill="currentColor" />
+                    <span className="text-lg font-black">{user.level}</span>
+                </div>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Nível</span>
+            </div>
+            <div className="bg-white dark:bg-[#1A1F26] p-4 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm flex flex-col items-center">
+                <div className="flex items-center gap-1.5 text-blue-500 mb-1">
+                    <Sparkles size={16} fill="currentColor" />
+                    <span className="text-lg font-black">{user.currentXP}</span>
+                </div>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">XP</span>
+            </div>
+        </div>
+
+        {/* Widgets Dinâmicos */}
+        {widgetConfig.filter(w => w.isVisible).map(w => (
+            <div key={w.id} className="animate-fade-in">
+                {renderWidget(w.id)}
+            </div>
+        ))}
+
+        {/* Footer Info */}
+        <div className="mt-12 mb-8 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-full border border-slate-200 dark:border-white/10">
+                <Shield size={14} className="text-slate-400" />
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Doutrina 100% Católica</span>
+            </div>
+        </div>
+      </main>
+
+      {/* Modais */}
+      {showNotifications && <NotificationCenter onClose={() => setShowNotifications(false)} userId={user.id} />}
+      
+      {isCustomizing && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
+            <div className="absolute inset-0 bg-brand-dark/80 backdrop-blur-md animate-fade-in" onClick={() => setIsCustomizing(false)} />
+            <div className="relative w-full max-w-lg bg-white dark:bg-brand-dark rounded-t-[3rem] sm:rounded-[3rem] p-8 shadow-2xl animate-slide-up border border-white/10">
+                <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-2xl font-black text-brand-dark dark:text-white tracking-tight">Personalizar Início</h3>
+                    <button onClick={() => setIsCustomizing(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500"><X size={20} /></button>
+                </div>
+                <div className="space-y-4 mb-10">
+                    {widgetConfig.map((w, idx) => (
+                        <div key={w.id} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/10 flex items-center justify-center text-brand-violet shadow-sm">
+                                    <LayoutGrid size={20} />
+                                </div>
+                                <span className="font-bold text-brand-dark dark:text-white">
+                                    {w.id === 'liturgyHero' && 'Liturgia de Hoje'}
+                                    {w.id === 'prayerIncentives' && 'Incentivos de Oração'}
+                                    {w.id === 'communityPreview' && 'Prévia da Comunidade'}
+                                    {w.id === 'progressSummary' && 'Resumo de Progresso'}
+                                    {w.id === 'quickActions' && 'Ações Rápidas'}
+                                </span>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    const newConfig = [...widgetConfig];
+                                    newConfig[idx].isVisible = !newConfig[idx].isVisible;
+                                    setWidgetConfig(newConfig);
+                                    localStorage.setItem('dashboard_widgets_v9', JSON.stringify(newConfig));
+                                }}
+                                className={`w-14 h-8 rounded-full transition-all relative ${w.isVisible ? 'bg-brand-violet' : 'bg-slate-300 dark:bg-slate-700'}`}
+                            >
+                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${w.isVisible ? 'left-7' : 'left-1'}`} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+                <button onClick={() => setIsCustomizing(false)} className="w-full bg-brand-dark dark:bg-white text-white dark:text-brand-dark py-5 rounded-2xl font-black text-lg shadow-xl">Salvar Alterações</button>
+            </div>
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={onNavigateToProfile}> 
-          <div className="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-white/20 shadow-sm overflow-hidden transition-all group-hover:border-brand-violet p-0.5">
-             {user.photoUrl ? <img src={user.photoUrl} className="w-full h-full object-cover rounded-full" /> : <div className="w-full h-full flex items-center justify-center bg-brand-dark text-white rounded-full font-bold">{user.name.charAt(0)}</div>}
-          </div>
-          <div><p className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"><greeting.icon size={10} /> {greeting.text}</p><p className="text-lg font-bold text-brand-dark dark:text-white leading-none group-hover:text-brand-violet transition-colors">{user.name.split(' ')[0]}</p></div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowNotifications(true)} className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 border border-slate-200 dark:border-white/10 hover:text-brand-violet transition-colors"><Bell size={20} strokeWidth={1.5} /></button>
-          <button onClick={() => setIsCustomizing(!isCustomizing)} className={`w-10 h-10 rounded-full flex items-center justify-center border ${isCustomizing ? 'bg-brand-violet text-white' : 'text-slate-400 border-slate-200 dark:border-white/10'}`}>{isCustomizing ? <CheckCircle2 size={20} /> : <Settings2 size={20} />}</button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-         <div className="md:col-span-8 flex flex-col gap-6">
-	            {/* RASTREADOR DE CONFISSÃO (ESTRATÉGICO) */}
-		            <div className="animate-slide-up mb-2">
-		               <div 
-                      onClick={handleUpdateConfession}
-                      className={`bg-white dark:bg-[#1A1F26] p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group cursor-pointer hover:border-brand-violet/30 transition-all active:scale-[0.99]`}
-                    >
-	                  <div className="flex justify-between items-center">
-	                     <div className="flex items-center gap-4">
-	                        <div className={`w-12 h-12 rounded-2xl ${confession.bg} ${confession.color} flex items-center justify-center shrink-0`}>
-	                           <Shield size={24} />
-	                        </div>
-	                        <div>
-	                           <h3 className="text-sm font-bold text-brand-dark dark:text-white">Vida Sacramental</h3>
-	                           <p className={`text-[11px] font-bold ${confession.color}`}>{confession.label}</p>
-	                        </div>
-	                     </div>
-	                     <div className="text-right">
-	                        <span className="text-2xl font-black text-brand-dark dark:text-white">{confession.days ?? '--'}</span>
-	                        <span className="block text-[9px] text-slate-500 font-bold uppercase">Dias</span>
-	                     </div>
-	                  </div>
-	                  <button 
-	                    onClick={handleUpdateConfession}
-	                    className="w-full mt-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-brand-dark dark:text-white py-3 rounded-xl text-[11px] font-bold hover:bg-brand-violet hover:text-white hover:border-brand-violet transition-all flex items-center justify-center gap-2"
-	                  >
-	                     <CheckCircle2 size={14} /> Registar Confissão de Hoje
-	                  </button>
-	               </div>
-	            </div>
-
-		            {widgetConfig.find(w => w.id === 'liturgyHero')?.isVisible && (
-		                <div 
-                      onClick={() => setShowLiturgyModal(true)}
-                      className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${style.gradient} p-6 md:p-8 text-white flex flex-col justify-between group transition-all duration-500 min-h-[260px] cursor-pointer hover:scale-[1.01] active:scale-[0.99]`}
-                    >
-                    <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
-                    <div className="relative z-10 flex flex-col h-full">
-                        <div className="flex justify-between items-start mb-6">
-                            <div><div className="flex items-center gap-2 mb-1 opacity-90"><Calendar size={14} /><span className="text-xs font-bold uppercase tracking-widest">{liturgyData ? liturgyData.date.split(',')[0] : 'Hoje'}</span></div>
-                            {liturgyData?.season && <h2 className="text-2xl font-bold">{liturgyData.season}</h2>}</div>
-                        </div>
-                        <div className="flex-1 flex flex-col justify-center mb-6">
-                            <p className="font-serif text-2xl sm:text-3xl leading-tight mb-4 drop-shadow-md">"{dailyTheme}"</p>
-                        </div>
-                        <button onClick={() => setShowLiturgyModal(true)} className="w-full bg-white/95 text-brand-dark py-4 px-6 rounded-2xl font-bold text-sm shadow-xl flex items-center justify-between group/btn">
-                            <span className="flex items-center gap-2"><BookOpen size={18} className="text-brand-violet"/> Ler Evangelho de Hoje</span>
-                            <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-all" />
-                        </button>
+      {showLiturgyModal && liturgyData && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-6">
+            <div className="absolute inset-0 bg-brand-dark/90 backdrop-blur-xl animate-fade-in" onClick={() => setShowLiturgyModal(false)} />
+            <div className="relative w-full h-full sm:h-auto sm:max-w-2xl bg-white dark:bg-brand-dark sm:rounded-[3rem] flex flex-col overflow-hidden animate-slide-up border border-white/10">
+                <div className="p-8 flex justify-between items-center border-b border-slate-100 dark:border-white/5">
+                    <div>
+                        <h3 className="text-2xl font-black text-brand-dark dark:text-white tracking-tight">Liturgia Diária</h3>
+                        <p className="text-xs text-slate-500 font-medium">{liturgyData.liturgicalDay}</p>
                     </div>
+                    <button onClick={() => setShowLiturgyModal(false)} className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500"><X size={24} /></button>
                 </div>
-            )}
-            
-            {widgetConfig.find(w => w.id === 'prayerIncentives')?.isVisible && renderPrayerIncentives()}
-            
-            {widgetConfig.find(w => w.id === 'communityPreview')?.isVisible && renderCommunityPreview()}
-         </div>
-
-         <div className="md:col-span-4 flex flex-col gap-6">
-	            <div 
-                  onClick={onNavigateToKnowledge}
-                  className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl min-h-[240px] flex flex-col justify-between group cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
-                >
-               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10" />
-               <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity rotate-12"><BookOpen size={100} /></div>
-               <div>
-                  <div className="flex items-center gap-2 mb-3">
-                     <Quote size={16} className="text-purple-200 fill-current" />
-                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-200">"Ninguém ama o que não conhece"</span>
-                  </div>
-                  <h3 className="font-black text-2xl mb-2 tracking-tight">Conhecer para Amar</h3>
-                  <p className="text-purple-100 text-xs leading-relaxed font-medium opacity-90">O amor a Deus passa pela compreensão. Mergulhe nos tesouros da Igreja e descubra a beleza escondida em cada mistério.</p>
-               </div>
-               <button onClick={onNavigateToKnowledge} className="w-full bg-white text-brand-violet font-black py-4 rounded-2xl text-xs flex items-center justify-center gap-2 mt-6 shadow-xl group-hover:scale-[1.03] transition-all active:scale-95"><BookOpen size={14} fill="currentColor" /> Abrir Biblioteca</button>
-            </div>
-            
-            <div className="bg-white dark:bg-[#1A1F26] rounded-[2rem] p-6 border border-slate-100 dark:border-white/5 flex flex-col gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center"><Users size={18} /></div>
-                    <span className="text-xs font-bold text-brand-dark dark:text-white">Convide um amigo</span>
-                </div>
-                <button onClick={handleShareApp} className="w-full py-3 rounded-xl border border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2"><Share2 size={12} /> Compartilhar App</button>
-            </div>
-         </div>
-      </div>
-
-      {showLiturgyModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-brand-dark/90 backdrop-blur-md" onClick={() => setShowLiturgyModal(false)} />
-          <div className="relative w-full max-w-lg h-[85vh] bg-[#FFFCF5] dark:bg-brand-dark rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col border border-white/10 animate-slide-up">
-            
-            <div className="p-5 border-b flex justify-between items-center shrink-0">
-                <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Liturgia Diária</p>
-                    <h3 className="text-sm font-bold">{isLiturgyLoading ? "Carregando..." : (liturgyData?.saint || "Leituras do Dia")}</h3>
-                </div>
-                <button onClick={() => setShowLiturgyModal(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center"><X size={20} /></button>
-            </div>
-
-            {isLiturgyLoading ? (
-                <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-4">
-                    <div className="relative">
-                        <div className="w-16 h-16 rounded-full border-4 border-brand-violet/20 border-t-brand-violet animate-spin" />
-                        <BrandLogo size={24} variant="fill" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-brand-violet opacity-50" />
-                    </div>
-                </div>
-            ) : liturgyData ? (
-                <>
-                    <div className="flex bg-slate-50 dark:bg-black/20 p-1 shrink-0">
-                    {liturgyTabs.map((tab) => (
-                        <button key={tab} onClick={() => setActiveLiturgyTab(tab as any)} className={`flex-1 py-2 text-[10px] font-bold rounded-lg transition-all ${activeLiturgyTab === tab ? 'bg-white dark:bg-white/10 text-brand-violet' : 'text-slate-400'}`}>
-                        {getTabLabel(tab)}
+                
+                <div className="flex p-2 bg-slate-50 dark:bg-black/20 gap-1">
+                    {[
+                        { id: 'first', label: '1ª Leitura' },
+                        { id: 'psalm', label: 'Salmo' },
+                        { id: 'second', label: '2ª Leitura', hidden: !liturgyData.readings.secondReading },
+                        { id: 'gospel', label: 'Evangelho' }
+                    ].filter(t => !t.hidden).map(tab => (
+                        <button 
+                            key={tab.id}
+                            onClick={() => setActiveLiturgyTab(tab.id as any)}
+                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeLiturgyTab === tab.id ? 'bg-white dark:bg-brand-violet text-brand-violet dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            {tab.label}
                         </button>
                     ))}
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-8">
-                        <div className="prose prose-lg dark:prose-invert mx-auto">
-                            <div className="text-center mb-8">
-                                <p className="italic text-slate-500 text-sm">
-                                    {activeLiturgyTab === 'first' && liturgyData.readings.first.ref}
-                                    {activeLiturgyTab === 'psalm' && liturgyData.readings.psalm.ref}
-                                    {activeLiturgyTab === 'second' && liturgyData.readings.second?.ref}
-                                    {activeLiturgyTab === 'gospel' && liturgyData.readings.gospel.ref}
-                                </p>
-                            </div>
-                            <div className="font-sans text-lg leading-loose text-justify whitespace-pre-line text-slate-800 dark:text-slate-200">
-                                {activeLiturgyTab === 'first' && cleanAIOutput(liturgyData.readings.first.text)}
-                                {activeLiturgyTab === 'psalm' && cleanAIOutput(liturgyData.readings.psalm.text)}
-                                {activeLiturgyTab === 'second' && liturgyData.readings.second && cleanAIOutput(liturgyData.readings.second.text)}
-                                {activeLiturgyTab === 'gospel' && cleanAIOutput(liturgyData.readings.gospel.text)}
-                            </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
+                    <div className="max-w-prose mx-auto">
+                        <p className="text-[10px] font-black text-brand-violet uppercase tracking-[0.3em] mb-4">
+                            {activeLiturgyTab === 'first' && liturgyData.readings.firstReading.reference}
+                            {activeLiturgyTab === 'psalm' && liturgyData.readings.psalm.reference}
+                            {activeLiturgyTab === 'second' && liturgyData.readings.secondReading?.reference}
+                            {activeLiturgyTab === 'gospel' && liturgyData.readings.gospel.reference}
+                        </p>
+                        <div className="prose dark:prose-invert prose-slate max-w-none">
+                            <p className="text-lg leading-relaxed text-slate-700 dark:text-slate-300 font-medium whitespace-pre-wrap italic">
+                                {activeLiturgyTab === 'first' && liturgyData.readings.firstReading.text}
+                                {activeLiturgyTab === 'psalm' && liturgyData.readings.psalm.text}
+                                {activeLiturgyTab === 'second' && liturgyData.readings.secondReading?.text}
+                                {activeLiturgyTab === 'gospel' && liturgyData.readings.gospel.text}
+                            </p>
                         </div>
                     </div>
-                    <div className="p-6 bg-white dark:bg-white/5 border-t shrink-0">
-                        <button onClick={() => setShowLiturgyModal(false)} className="w-full bg-brand-violet text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2">
-                            <CheckCircle2 size={20} /> Concluir Leitura
-                        </button>
-                    </div>
-                </>
-            ) : (
-                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-                    <p className="text-red-400 font-bold mb-2">Erro de conexão</p>
-                    <button onClick={() => window.location.reload()} className="px-6 py-2 bg-slate-100 dark:bg-white/10 rounded-xl text-xs font-bold text-slate-400">Tentar Recarregar</button>
                 </div>
-            )}
-          </div>
+                
+                <div className="p-8 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5">
+                    <button onClick={() => setShowLiturgyModal(false)} className="w-full bg-brand-violet text-white py-5 rounded-2xl font-black text-lg shadow-xl">Concluir Leitura</button>
+                </div>
+            </div>
         </div>
       )}
 
-      {showNotifications && <NotificationCenter onClose={() => setShowNotifications(false)} />}
       {showContactModal && <ContactModal onClose={() => setShowContactModal(false)} />}
     </div>
   );

@@ -115,12 +115,14 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
        setIsSubmitting(true);
        setFieldErrors({});
 
-       try {
-         await onComplete({ ...formData, email: cleanEmail, password: cleanPassword });
-       } catch (error: any) {
-         setIsSubmitting(false);
-         setFieldErrors(prev => ({ ...prev, email: 'Erro no cadastro. Verifique os dados.' }));
-       }
+	       try {
+	         // Simulação de tempo de processamento para feedback visual
+	         await new Promise(resolve => setTimeout(resolve, 1500));
+	         await onComplete({ ...formData, email: cleanEmail, password: cleanPassword });
+	       } catch (error: any) {
+	         setIsSubmitting(false);
+	         setFieldErrors(prev => ({ ...prev, email: 'Erro no cadastro. Verifique os dados.' }));
+	       }
        return;
     }
     setStep(step + 1);
@@ -257,7 +259,12 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
           </div>
           <div className="mt-8">
              <button onClick={handleNext} disabled={!isValid || isSubmitting} className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-xl transition-all ${isValid ? 'bg-brand-violet text-white hover:bg-purple-600' : 'bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed'}`}>
-                {isSubmitting ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finalizar Cadastro <ArrowRight size={20} /></>}
+	                {isSubmitting ? (
+	                   <div className="flex items-center gap-3">
+	                      <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+	                      <span>Preparando sua Jornada...</span>
+	                   </div>
+	                ) : <>Finalizar Cadastro <ArrowRight size={20} /></>}
              </button>
           </div>
         </div>

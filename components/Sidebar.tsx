@@ -14,7 +14,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, user, onLogout }) => {
   const navItems = [
     { tab: Tab.DASHBOARD, icon: Home, label: 'Início' },
-    { tab: Tab.ROUTINE, icon: CheckCircle2, label: 'Minha Rotina' },
+    { tab: Tab.ROUTINE, icon: CheckCircle2, label: 'Minha Jornada' },
     { tab: Tab.COMMUNITY, icon: Heart, label: 'Comunidade' },
     { tab: Tab.SOCIAL, icon: Trophy, label: 'Ranking & Social' },
     { tab: Tab.KNOWLEDGE, icon: Book, label: 'Biblioteca' },

@@ -39,7 +39,7 @@ const Community: React.FC<CommunityProps> = ({
   }, [initialTab, feedInitialContent]); // Depender também do conteúdo inicial ajuda no reset
 
   const handleShareApp = () => {
-    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha rotina de oração e vida espiritual. 💜\n\nConheça aqui: https://www.espiritualizei.com/");
+    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha jornada diária e vida espiritual. 💜\n\nConheça aqui: https://www.espiritualizei.com/");
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
