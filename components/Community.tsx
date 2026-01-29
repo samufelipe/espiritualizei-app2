@@ -62,7 +62,7 @@ const Community: React.FC<CommunityProps> = ({
                 onClick={() => setActiveTab('mural')} 
                 className={`flex-1 py-3 px-2 text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all relative z-10 whitespace-nowrap ${activeTab === 'mural' ? 'bg-white dark:bg-[#2A2E35] text-brand-violet shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
               >
-                <Heart size={16} /> Mural de Orações
+                <Heart size={16} /> Comunidade
               </button>
               <button 
                 onClick={() => setActiveTab('feed')} 
@@ -100,7 +100,33 @@ const Community: React.FC<CommunityProps> = ({
                         </div>
                      </button>
 
+                     {/* Desafios Comunitários em Destaque (Mobile) */}
+                     <div className="lg:hidden space-y-4 mb-6">
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">Desafios Ativos</h3>
+                        {challenges.filter(c => c.status === 'active').map(challenge => (
+                           <div key={challenge.id} className="bg-gradient-to-br from-brand-violet/10 to-purple-500/5 border border-brand-violet/20 p-5 rounded-3xl relative overflow-hidden">
+                              <div className="flex justify-between items-start mb-3">
+                                 <div className="w-10 h-10 rounded-2xl bg-brand-violet text-white flex items-center justify-center shadow-lg shadow-brand-violet/20">
+                                    <Trophy size={20} />
+                                 </div>
+                                 <div className="bg-brand-violet/20 text-brand-violet text-[10px] font-bold px-2 py-1 rounded-lg uppercase">
+                                    {challenge.participants} Participando
+                                 </div>
+                              </div>
+                              <h4 className="font-bold text-brand-dark dark:text-white text-sm mb-1">{challenge.title}</h4>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">{challenge.description}</p>
+                              <button 
+                                 onClick={() => onJoinChallenge(challenge.id)}
+                                 className="w-full bg-brand-violet text-white text-xs font-bold py-2.5 rounded-xl shadow-md active:scale-95 transition-all"
+                              >
+                                 Participar do Desafio
+                              </button>
+                           </div>
+                        ))}
+                     </div>
+
                      <div className="space-y-4">
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">Mural de Orações</h3>
                         {intentions.map((intention) => (
                            <div key={intention.id} className="bg-white dark:bg-[#1A1F26] p-6 rounded-[2rem] shadow-card border border-slate-100 dark:border-white/5 relative overflow-hidden group hover:shadow-lg transition-all">
                               <div className="flex justify-between items-start mb-3">
