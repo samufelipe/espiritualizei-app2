@@ -77,11 +77,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150vw] h-[100vh] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-violet/20 via-transparent to-transparent pointer-events-none" />
         
         <div className="max-w-4xl relative z-10 space-y-8 animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-violet/10 border border-brand-violet/20 rounded-full text-brand-violet text-[10px] font-black uppercase tracking-widest mx-auto">
-            <Sparkles size={12} fill="currentColor" /> Sua alma merece paz, não mais cansaço
+          <div className="text-brand-violet text-[10px] font-black uppercase tracking-[0.2em] mx-auto opacity-80">
+            Sua alma merece paz, não mais cansaço
           </div>
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter leading-[0.95]">
-            Pare de recomeçar <br />
+          <h1 className="text-[2.75rem] sm:text-7xl md:text-8xl font-black tracking-tighter leading-[1.1] sm:leading-[0.95] max-w-[15ch] mx-auto">
+            Pare de recomeçar <br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-violet to-purple-400">toda segunda-feira.</span>
           </h1>
           <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
