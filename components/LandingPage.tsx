@@ -41,10 +41,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
 
       {/* --- Navbar --- */}
       <nav className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-        <div className="bg-white/90 dark:bg-brand-dark/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-full px-4 sm:px-6 py-3 flex items-center justify-between shadow-2xl">
-          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => scrollToSection('top')}>
-            <BrandLogo size={28} variant="fill" className="text-brand-violet" />
-            <span className="font-bold text-lg tracking-tighter">Espiritualizei</span>
+        <div className="bg-white/90 dark:bg-brand-dark/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-full px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-2xl">
+          <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer group" onClick={() => scrollToSection('top')}>
+            <BrandLogo size={24} variant="fill" className="text-brand-violet sm:w-[28px]" />
+            <span className="font-bold text-base sm:text-lg tracking-tighter">Espiritualizei</span>
           </div>
           
           <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
@@ -54,9 +54,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             <button onClick={() => scrollToSection('assinatura')} className="hover:text-brand-violet transition-colors">Planos</button>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button onClick={onLogin} className="hidden sm:block text-xs font-bold hover:text-brand-violet transition-colors">Entrar</button>
-            <button onClick={onStart} className="bg-brand-violet text-white px-5 py-2.5 rounded-full text-xs font-black shadow-lg hover:bg-purple-600 active:scale-95 transition-all">COMEÇAR</button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button onClick={onLogin} className="text-[10px] sm:text-xs font-bold hover:text-brand-violet transition-colors px-2 py-1">Entrar</button>
+            <button onClick={onStart} className="bg-brand-violet text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-black shadow-lg hover:bg-purple-600 active:scale-95 transition-all">COMEÇAR</button>
           </div>
         </div>
       </nav>
@@ -154,50 +154,56 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
          </div>
       </section>
 
-      {/* --- COMUNIDADE (NOVA SEÇÃO) --- */}
+      {/* --- COMUNIDADE --- */}
       <section id="comunidade" className="py-32 bg-brand-dark text-white relative overflow-hidden">
          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-violet/10 rounded-full blur-[120px]" />
-         <div className="max-w-6xl mx-auto px-6 flex flex-col lg:flex-row items-center gap-20">
-            <div className="flex-1 space-y-8 animate-slide-in-left">
-               <span className="text-brand-violet font-black uppercase tracking-[0.3em] text-xs">Fraternidade Ativa</span>
-               <h2 className="text-5xl md:text-7xl font-black leading-[0.95] tracking-tighter">Ninguém caminha sozinho para o Céu.</h2>
-               <p className="text-xl text-slate-400 leading-relaxed font-medium">
-                  No **Espiritualizei**, você faz parte de uma família. Interceda por irmãos no Mural de Orações, partilhe graças no Feed e conecte-se em tempo real.
-               </p>
-               
-               <div className="space-y-6 pt-4">
-                  <div className="flex gap-4 items-start">
-                     <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-brand-violet shrink-0 border border-white/10"><MessageSquare size={24} /></div>
-                     <div>
-                        <h4 className="font-bold text-lg">Chat Global ao Vivo</h4>
-                        <p className="text-sm text-slate-500">Converse com outros peregrinos, tire dúvidas e sinta o suporte da comunidade 24h por dia.</p>
-                     </div>
+         <div className="max-w-6xl mx-auto px-6 relative z-10">
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+               <div>
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-violet/20 border border-brand-violet/30 rounded-full text-brand-violet text-[10px] font-black uppercase tracking-widest mb-6">
+                     <Users size={12} fill="currentColor" /> Você não está sozinho
                   </div>
-                  <div className="flex gap-4 items-start">
-                     <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-amber-500 shrink-0 border border-white/10"><Trophy size={24} /></div>
-                     <div>
-                        <h4 className="font-bold text-lg">Ranking de Caridade</h4>
-                        <p className="text-sm text-slate-500">Um incentivo fraterno. Ganhe pontos ao rezar pelos outros e manter sua constância diária.</p>
+                  <h2 className="text-4xl sm:text-6xl font-black mb-8 tracking-tighter leading-tight">Uma rede de oração que nunca dorme.</h2>
+                  <p className="text-slate-400 text-lg mb-10 leading-relaxed font-medium">No Espiritualizei, você pode postar suas intenções e saber que centenas de pessoas estão rezando por você naquele exato momento. A fé se fortalece na união.</p>
+                  <div className="space-y-6">
+                     <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-brand-violet/20 rounded-xl flex items-center justify-center text-brand-violet shrink-0"><MessageCircle size={20} /></div>
+                        <div>
+                           <h4 className="font-bold text-xl mb-1">Mural de Intenções</h4>
+                           <p className="text-slate-400">Peça orações e reze pelos outros com apenas um toque.</p>
+                        </div>
+                     </div>
+                     <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-brand-violet/20 rounded-xl flex items-center justify-center text-brand-violet shrink-0"><Flame size={20} /></div>
+                        <div>
+                           <h4 className="font-bold text-xl mb-1">Desafios de Virtude</h4>
+                           <p className="text-slate-400">Participe de desafios semanais para crescer em santidade com a comunidade.</p>
+                        </div>
                      </div>
                   </div>
                </div>
-            </div>
-            
-            <div className="flex-1 w-full max-w-md">
-               <div className="bg-[#1A1F26] rounded-[3.5rem] p-8 border border-white/10 shadow-2xl relative card-float">
-                  <div className="flex items-center gap-4 mb-8">
-                     <div className="w-12 h-12 rounded-full bg-brand-violet/20 flex items-center justify-center text-brand-violet"><Users size={24} /></div>
-                     <p className="text-white font-black text-xl">Mural de Orações</p>
-                  </div>
-                  <div className="space-y-4">
-                     <div className="bg-white/5 p-4 rounded-2xl border border-white/5 animate-pulse">
-                        <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">MARIA R. PEDIU ORAÇÃO</p>
-                        <p className="text-white text-sm italic font-medium">"Pela saúde da minha mãe que está no hospital..."</p>
-                        <div className="mt-3 flex items-center gap-2 text-brand-violet">
-                           <Flame size={14} fill="currentColor" /> <span className="text-[10px] font-black uppercase">42 irmãos rezando agora</span>
+               <div className="relative">
+                  <div className="bg-white/5 border border-white/10 p-8 rounded-[3rem] backdrop-blur-md">
+                     <div className="space-y-6">
+                        <div className="bg-white/5 p-6 rounded-3xl border border-white/5 animate-pulse">
+                           <div className="flex items-center gap-3 mb-3">
+                              <div className="w-8 h-8 bg-slate-700 rounded-full"></div>
+                              <div className="h-3 w-24 bg-slate-700 rounded"></div>
+                           </div>
+                           <div className="h-4 w-full bg-slate-800 rounded mb-2"></div>
+                           <div className="h-4 w-2/3 bg-slate-800 rounded"></div>
+                        </div>
+                        <div className="bg-brand-violet/10 p-6 rounded-3xl border border-brand-violet/20">
+                           <div className="flex items-center gap-3 mb-3">
+                              <div className="w-8 h-8 bg-brand-violet rounded-full flex items-center justify-center text-[10px] font-bold">SF</div>
+                              <div className="text-xs font-bold">Samuel Felipe</div>
+                           </div>
+                           <p className="text-sm font-medium italic">"Peço orações pela saúde da minha avó que fará uma cirurgia amanhã."</p>
+                           <div className="mt-4 flex items-center gap-2 text-brand-violet text-[10px] font-black uppercase">
+                              <Flame size={14} fill="currentColor" /> 124 pessoas rezando agora
+                           </div>
                         </div>
                      </div>
-                     <button onClick={onStart} className="w-full bg-brand-violet text-white py-4 rounded-2xl font-black shadow-lg">ENTRAR NA FRATERNIDADE</button>
                   </div>
                </div>
             </div>
@@ -205,109 +211,93 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
       </section>
 
       {/* --- BIBLIOTECA --- */}
-      <section id="biblioteca" className="py-32 bg-white dark:bg-[#0F1115]">
+      <section id="biblioteca" className="py-32 bg-white dark:bg-brand-dark">
          <div className="max-w-6xl mx-auto px-6">
-            <div className="flex flex-col lg:flex-row items-center gap-24">
-               <div className="flex-1 grid grid-cols-2 gap-6">
-                  <div className="p-8 bg-slate-50 dark:bg-[#1A1F26] rounded-[2.5rem] border border-slate-100 dark:border-white/5 space-y-4">
-                     <GraduationCap size={40} className="text-blue-500" />
-                     <h4 className="font-bold text-lg">Doutrina Clara</h4>
-                     <p className="text-xs text-slate-500 leading-relaxed font-medium">Entenda os dogmas e a fé de forma simples, fiel ao Magistério.</p>
-                  </div>
-                  <div className="p-8 bg-slate-50 dark:bg-[#1A1F26] rounded-[2.5rem] border border-slate-100 dark:border-white/5 space-y-4 shadow-xl">
-                     <Users size={40} className="text-purple-500" />
-                     <h4 className="font-bold text-lg">Vidas de Santos</h4>
-                     <p className="text-xs text-slate-500 leading-relaxed font-medium">Inspire-se com Carlo Acutis, Santa Teresinha e outros heróis reais.</p>
-                  </div>
-                  <div className="p-8 bg-slate-50 dark:bg-[#1A1F26] rounded-[2.5rem] border border-slate-100 dark:border-white/5 space-y-4">
-                     <Sun size={40} className="text-amber-500" />
-                     <h4 className="font-bold text-lg">Sentido da Missa</h4>
-                     <p className="text-xs text-slate-500 leading-relaxed font-medium">Nunca mais vá à Missa por obrigação. Entenda cada gesto do altar.</p>
-                  </div>
-                  <div className="p-8 bg-slate-50 dark:bg-[#1A1F26] rounded-[2.5rem] border border-slate-100 dark:border-white/5 space-y-4">
-                     <Heart size={40} className="text-rose-500" />
-                     <h4 className="font-bold text-lg">Escola de Oração</h4>
-                     <p className="text-xs text-slate-500 leading-relaxed font-medium">Aprenda métodos como a Lectio Divina e o Exame de Consciência.</p>
-                  </div>
+            <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-20">
+               <div className="max-w-2xl">
+                  <h2 className="text-4xl sm:text-6xl font-black tracking-tighter leading-tight mb-6">Conhecimento que transforma a alma.</h2>
+                  <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">Nossa biblioteca é atualizada semanalmente com conteúdos que te ajudam a entender a beleza da nossa fé.</p>
                </div>
-               <div className="flex-1 space-y-8">
-                  <h2 className="text-5xl font-black tracking-tighter leading-[0.95]">Alimento real para a sua inteligência.</h2>
-                  <p className="text-xl text-slate-500 dark:text-slate-300 leading-relaxed font-medium">
-                     Ninguém ama o que não conhece. **Nosso aplicativo** reúne um acervo curado para que sua fé seja fundamentada na verdade e na beleza da Tradição.
-                  </p>
-                  <button onClick={onStart} className="bg-brand-dark dark:bg-white text-white dark:text-brand-dark px-10 py-5 rounded-[2rem] font-black text-lg shadow-xl flex items-center gap-3 transition-all">
-                     Acessar Biblioteca <ArrowRight size={20} />
-                  </button>
-               </div>
+               <button onClick={onStart} className="px-8 py-4 bg-slate-100 dark:bg-white/5 rounded-2xl font-bold hover:bg-brand-violet hover:text-white transition-all flex items-center gap-2">Explorar Biblioteca <ArrowRight size={20} /></button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+               {[
+                  { title: 'Vidas de Santos', icon: <Star />, color: 'bg-amber-100 text-amber-600' },
+                  { title: 'Doutrina Católica', icon: <Shield />, color: 'bg-blue-100 text-blue-600' },
+                  { title: 'Liturgia Diária', icon: <Calendar />, color: 'bg-purple-100 text-purple-600' },
+                  { title: 'Orações e Terços', icon: <Heart />, color: 'bg-rose-100 text-rose-600' }
+               ].map((item, i) => (
+                  <div key={i} className="p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 flex flex-col items-center text-center hover:shadow-xl transition-all cursor-pointer group">
+                     <div className={`w-16 h-16 ${item.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>{item.icon}</div>
+                     <h4 className="font-bold text-lg">{item.title}</h4>
+                  </div>
+               ))}
             </div>
          </div>
       </section>
 
-      {/* --- PRICING --- */}
-      <section id="assinatura" className="py-32 bg-brand-violet/5 relative overflow-hidden">
-         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-violet/20 to-transparent" />
-         <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2 className="text-5xl md:text-7xl font-black mb-12 tracking-tighter">Sua alma não tem preço. <br /> <span className="text-brand-violet">Sua rotina tem método.</span></h2>
-            
-            <div className="bg-white dark:bg-[#1A1F26] rounded-[3.5rem] p-10 sm:p-16 shadow-2xl border border-brand-violet/20 relative overflow-hidden max-w-lg mx-auto transform hover:scale-[1.02] transition-all">
-               <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-brand-violet to-purple-500" />
-               <div className="bg-brand-violet/10 text-brand-violet text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest mb-8 w-fit mx-auto border border-brand-violet/20">PLANO PEREGRINO</div>
-               
-               <div className="flex items-center justify-center gap-1 mb-2">
-                  <span className="text-2xl font-bold text-slate-400 mt-2">R$</span>
-                  <span className="text-7xl font-black tracking-tighter">37,90</span>
+      {/* --- PLANOS --- */}
+      <section id="assinatura" className="py-32 bg-slate-50 dark:bg-black/20">
+         <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-20">
+               <h2 className="text-4xl sm:text-6xl font-black tracking-tighter mb-6">Escolha seu caminho</h2>
+               <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium">Comece hoje sua jornada de transformação espiritual.</p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+               {/* Plano Grátis */}
+               <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] border border-slate-100 dark:border-white/5 flex flex-col">
+                  <div className="mb-8">
+                     <h3 className="text-2xl font-bold mb-2">Plano Peregrino</h3>
+                     <p className="text-slate-500 dark:text-slate-400 text-sm">Para quem está começando a caminhar.</p>
+                  </div>
+                  <div className="text-4xl font-black mb-8">Grátis</div>
+                  <ul className="space-y-4 mb-10 flex-grow">
+                     <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 size={18} className="text-green-500" /> Liturgia Diária</li>
+                     <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 size={18} className="text-green-500" /> Mural de Orações</li>
+                     <li className="flex items-center gap-3 text-sm font-medium opacity-50"><X size={18} className="text-slate-400" /> Regra de Vida Personalizada</li>
+                     <li className="flex items-center gap-3 text-sm font-medium opacity-50"><X size={18} className="text-slate-400" /> Biblioteca Completa</li>
+                  </ul>
+                  <button onClick={onStart} className="w-full py-4 border-2 border-slate-200 dark:border-white/10 rounded-2xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-all">Começar Agora</button>
                </div>
-               <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mb-12">mensal • PIX Automático ou Cartão</p>
-               
-               <div className="space-y-5 text-left mb-12">
-                  {[
-                     { t: 'Regra de Vida Adaptável', d: 'Seu plano se ajusta à sua vida real.' },
-                     { t: 'Direção Espiritual via Chat', d: 'Tire dúvidas e peça conselhos 24h.' },
-                     { t: 'Mural e Chat Global', d: 'Nunca reze ou caminhe sozinho.' },
-                     { t: 'Biblioteca de Formação', d: 'Conteúdo profundo para sua alma.' },
-                     { t: 'Diário da Alma', d: 'Registre e acompanhe sua evolução.' }
-                  ].map((feat, i) => (
-                     <div key={i} className="flex gap-4">
-                        <div className="w-6 h-6 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center shrink-0"><Check size={14} strokeWidth={4} /></div>
-                        <div>
-                           <p className="text-sm font-black text-brand-dark dark:text-white leading-none">{feat.t}</p>
-                           <p className="text-[10px] text-slate-500 mt-1">{feat.d}</p>
-                        </div>
-                     </div>
-                  ))}
-               </div>
-
-               <button onClick={onStart} className="w-full bg-brand-violet text-white py-6 rounded-3xl font-black text-xl shadow-2xl shadow-brand-violet/30 hover:bg-purple-600 active:scale-95 transition-all mb-6">
-                  COMEÇAR MINHA JORNADA
-               </button>
-               
-               <div className="flex items-center justify-center gap-6 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <span className="flex items-center gap-1.5"><Lock size={12} /> Checkout Seguro</span>
-                  <span className="flex items-center gap-1.5"><Shield size={12} /> 7 dias de Garantia</span>
+               {/* Plano Premium */}
+               <div className="bg-brand-dark p-10 rounded-[3rem] border-2 border-brand-violet relative flex flex-col shadow-2xl shadow-brand-violet/20">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-violet text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Mais Escolhido</div>
+                  <div className="mb-8">
+                     <h3 className="text-2xl font-bold mb-2 text-white">Plano Apóstolo</h3>
+                     <p className="text-slate-400 text-sm">Para quem busca a santidade no dia a dia.</p>
+                  </div>
+                  <div className="flex items-baseline gap-1 mb-8">
+                     <span className="text-4xl font-black text-white">R$ 19,90</span>
+                     <span className="text-slate-400 text-sm">/mês</span>
+                  </div>
+                  <ul className="space-y-4 mb-10 flex-grow">
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Tudo do Plano Peregrino</li>
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Regra de Vida com IA</li>
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Acesso Total à Biblioteca</li>
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Desafios Exclusivos</li>
+                  </ul>
+                  <button onClick={onStart} className="w-full py-4 bg-brand-violet text-white rounded-2xl font-bold shadow-lg shadow-brand-violet/30 hover:bg-purple-600 transition-all">Ser Premium</button>
                </div>
             </div>
          </div>
       </section>
 
       {/* --- FAQ --- */}
-      <section className="py-32 px-6">
-         <div className="max-w-3xl mx-auto">
-            <h2 className="text-4xl font-black mb-16 text-center tracking-tight">Dúvidas Frequentes</h2>
+      <section className="py-32 bg-white dark:bg-brand-dark">
+         <div className="max-w-3xl mx-auto px-6">
+            <h2 className="text-4xl font-black text-center mb-16 tracking-tighter">Dúvidas Frequentes</h2>
             <div className="space-y-4">
                {[
-                  { q: "O aplicativo substitui o Diretor Espiritual?", a: "Não. O Espiritualizei é uma ferramenta de organização e apoio. Ele te ajuda a ter o que partilhar com seu diretor presencial ou confessor, organizando os frutos da sua oração diária." },
-                  { q: "Preciso dedicar muito tempo por dia?", a: "Pelo contrário. Nosso método foca na 'pequena via'. Se você tiver apenas 15 minutos, o aplicativo organizará o essencial para que esses 15 minutos sejam de profunda intimidade com Deus." },
-                  { q: "O conteúdo é fiel à Igreja Católica?", a: "Sim, 100%. Todo o nosso acervo e as lógicas de rotina são baseados no Magistério da Igreja, na vida dos santos e na tradição bimilenar católica." },
-                  { q: "Posso cancelar a assinatura quando quiser?", a: "Sim. A assinatura é mensal e não possui fidelidade. Você pode cancelar com um único clique diretamente no seu perfil dentro do aplicativo." }
+                  { q: "O aplicativo é realmente católico?", a: "Sim! Todo o conteúdo é baseado na doutrina da Igreja Católica Apostólica Romana, com foco na vida de oração e virtudes." },
+                  { q: "Como funciona a Regra de Vida?", a: "Você responde um questionário sobre sua rotina e nossa IA sugere os melhores horários e práticas para você rezar, adaptando-se ao seu dia a dia." },
+                  { q: "Posso cancelar o Premium quando quiser?", a: "Com certeza. O cancelamento é simples e pode ser feito a qualquer momento diretamente nas configurações do seu perfil." }
                ].map((item, i) => (
-                  <div key={i} className="bg-slate-50 dark:bg-white/5 rounded-3xl p-8 border border-transparent hover:border-brand-violet/20 transition-all">
-                     <button onClick={() => toggleFaq(i)} className="w-full flex justify-between items-center text-left">
-                        <span className="font-bold text-lg">{item.q}</span>
-                        <div className={`w-8 h-8 rounded-full bg-white dark:bg-white/10 flex items-center justify-center transition-transform ${openFaq === i ? 'rotate-180' : ''}`}>
-                           <ChevronDown size={20} />
-                        </div>
+                  <div key={i} className="border border-slate-100 dark:border-white/5 rounded-3xl overflow-hidden">
+                     <button onClick={() => toggleFaq(i)} className="w-full p-6 text-left flex justify-between items-center hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+                        <span className="font-bold">{item.q}</span>
+                        {openFaq === i ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                      </button>
-                     {openFaq === i && <p className="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed font-medium animate-fade-in">{item.a}</p>}
+                     {openFaq === i && <div className="p-6 pt-0 text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{item.a}</div>}
                   </div>
                ))}
             </div>
@@ -315,50 +305,45 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
       </section>
 
       {/* --- FOOTER --- */}
-      <footer className="bg-slate-50 dark:bg-[#0F1115] pt-32 pb-12 px-6 border-t border-slate-100 dark:border-white/5">
-         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16 mb-24">
-            <div className="space-y-8">
-               <div className="flex items-center gap-3">
-                  <BrandLogo size={36} variant="fill" className="text-brand-violet" />
-                  <span className="font-black text-2xl tracking-tighter">Espiritualizei</span>
+      <footer className="py-20 bg-slate-50 dark:bg-black/40 border-t border-slate-100 dark:border-white/5">
+         <div className="max-w-6xl mx-auto px-6">
+            <div className="grid md:grid-cols-4 gap-12 mb-16">
+               <div className="col-span-2">
+                  <div className="flex items-center gap-2 mb-6">
+                     <BrandLogo size={32} variant="fill" className="text-brand-violet" />
+                     <span className="font-bold text-2xl tracking-tighter">Espiritualizei</span>
+                  </div>
+                  <p className="text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed font-medium">Ajudando leigos a encontrarem a santidade no meio do mundo, através de uma vida de oração constante e equilibrada.</p>
                </div>
-               <p className="text-sm text-slate-500 leading-relaxed font-medium max-w-xs">Humilde tecnologia católica a serviço da sua santidade. Organize sua vida espiritual com ordem, beleza e fraternidade.</p>
-            </div>
-            <div>
-               <h4 className="font-black text-xs uppercase tracking-[0.2em] text-slate-400 mb-8">Navegação</h4>
-               <ul className="space-y-4 text-sm font-bold text-slate-500">
-                  <li><button onClick={() => scrollToSection('metodo')} className="hover:text-brand-violet transition-colors">O Método</button></li>
-                  <li><button onClick={() => scrollToSection('comunidade')} className="hover:text-brand-violet transition-colors">Comunidade</button></li>
-                  <li><button onClick={() => scrollToSection('biblioteca')} className="hover:text-brand-violet transition-colors">Aprender</button></li>
-               </ul>
-            </div>
-            <div>
-               <h4 className="font-black text-xs uppercase tracking-[0.2em] text-slate-400 mb-8">Suporte</h4>
-               <ul className="space-y-4 text-sm font-bold text-slate-500">
-                  <li><button onClick={() => setActiveModal('contact')} className="hover:text-brand-violet transition-colors">Fale Conosco</button></li>
-                  <li><button onClick={() => setActiveModal('terms')} className="hover:text-brand-violet transition-colors">Termos</button></li>
-                  <li><button onClick={() => setActiveModal('privacy')} className="hover:text-brand-violet transition-colors">Privacidade</button></li>
-               </ul>
-            </div>
-            <div>
-               <h4 className="font-black text-xs uppercase tracking-[0.2em] text-slate-400 mb-8">Newsletter</h4>
-               <p className="text-xs text-slate-500 mb-6 font-medium">Receba sementes de espiritualidade semanalmente.</p>
-               <div className="flex gap-2">
-                  <input className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs flex-1 outline-none" placeholder="Seu e-mail" />
-                  <button className="bg-brand-violet text-white p-3 rounded-xl shadow-lg"><ArrowRight size={18} /></button>
+               <div>
+                  <h5 className="font-black uppercase text-[10px] tracking-widest text-slate-400 mb-6">Links Úteis</h5>
+                  <ul className="space-y-4 text-sm font-bold">
+                     <li><button onClick={() => setActiveModal('about')} className="hover:text-brand-violet transition-colors">Sobre Nós</button></li>
+                     <li><button onClick={() => setActiveModal('contact')} className="hover:text-brand-violet transition-colors">Contato</button></li>
+                     <li><button onClick={() => setActiveModal('terms')} className="hover:text-brand-violet transition-colors">Termos de Uso</button></li>
+                     <li><button onClick={() => setActiveModal('privacy')} className="hover:text-brand-violet transition-colors">Privacidade</button></li>
+                  </ul>
+               </div>
+               <div>
+                  <h5 className="font-black uppercase text-[10px] tracking-widest text-slate-400 mb-6">Redes Sociais</h5>
+                  <div className="flex gap-4">
+                     <a href="#" className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center hover:text-brand-violet transition-all shadow-sm"><Instagram size={20} /></a>
+                     <a href="#" className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center hover:text-brand-violet transition-all shadow-sm"><Youtube size={20} /></a>
+                     <a href="#" className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center hover:text-brand-violet transition-all shadow-sm"><Twitter size={20} /></a>
+                  </div>
                </div>
             </div>
-         </div>
-         <div className="border-t border-slate-200 dark:border-white/10 pt-12 text-center space-y-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Ad Maiorem Dei Gloriam</p>
-            <p className="text-[10px] text-slate-500 font-medium">© 2025 Espiritualizei. Desenvolvido com fé para a Igreja.</p>
+            <div className="pt-8 border-t border-slate-200 dark:border-white/5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+               © 2026 Espiritualizei. Todos os direitos reservados. Feito com amor para a maior glória de Deus.
+            </div>
          </div>
       </footer>
 
+      {/* Modais */}
       {activeModal === 'terms' && <TermsModal onClose={() => setActiveModal(null)} />}
       {activeModal === 'privacy' && <PrivacyModal onClose={() => setActiveModal(null)} />}
-      {activeModal === 'contact' && <ContactModal onClose={() => setActiveModal(null)} />}
       {activeModal === 'about' && <AboutModal onClose={() => setActiveModal(null)} />}
+      {activeModal === 'contact' && <ContactModal onClose={() => setActiveModal(null)} />}
     </div>
   );
 };
