@@ -133,6 +133,17 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
     setStep(step + 1);
   };
 
+  const handlePrev = () => {
+    if (step === 0) {
+      onBack();
+    } else {
+      setStep(step - 1);
+      try {
+        Haptics.impact({ style: ImpactStyle.Light });
+      } catch (e) {}
+    }
+  };
+
   const updateField = (field: keyof OnboardingData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     try {
@@ -163,8 +174,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
   );
 
   const renderName = () => (
-    <div className="flex flex-col h-full pt-32 px-6 animate-slide-in-right overflow-y-auto">
+    <div className="flex flex-col h-full pt-24 px-6 animate-slide-in-right overflow-y-auto">
       <div className="max-w-lg mx-auto w-full">
+        <button onClick={handlePrev} className="mb-8 text-slate-400 hover:text-brand-violet transition-colors flex items-center gap-1 font-bold text-sm">
+          <ArrowLeft size={18} /> Voltar
+        </button>
         <h2 className="text-3xl font-bold text-brand-dark dark:text-white mb-3">Como você se chama?</h2>
         <p className="text-slate-500 dark:text-slate-400 mb-12 font-medium text-lg">Gostaríamos de personalizar sua experiência.</p>
         <input
@@ -186,8 +200,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
   );
 
   const renderSelectionStep = (title: string, subtitle: string, field: keyof OnboardingData, options: any[], hint?: any) => (
-    <div className="flex flex-col h-full pt-32 px-6 animate-slide-in-right overflow-y-auto pb-32">
+    <div className="flex flex-col h-full pt-24 px-6 animate-slide-in-right overflow-y-auto pb-32">
       <div className="max-w-lg mx-auto w-full">
+        <button onClick={handlePrev} className="mb-8 text-slate-400 hover:text-brand-violet transition-colors flex items-center gap-1 font-bold text-sm">
+          <ArrowLeft size={18} /> Voltar
+        </button>
         <h2 className="text-2xl font-bold text-brand-dark dark:text-white mb-2">{title}</h2>
         <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm font-medium">{subtitle}</p>
         <div className="space-y-3">
@@ -221,8 +238,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
     const isValid = isEmailValid && isPasswordValid;
 
     return (
-      <div className="flex flex-col h-full pt-24 px-6 animate-slide-in-right overflow-y-auto pb-10">
+      <div className="flex flex-col h-full pt-20 px-6 animate-slide-in-right overflow-y-auto pb-10">
         <div className="max-w-lg mx-auto w-full">
+          <button onClick={handlePrev} className="mb-6 text-slate-400 hover:text-brand-violet transition-colors flex items-center gap-1 font-bold text-sm">
+            <ArrowLeft size={18} /> Voltar
+          </button>
           <div className="text-center mb-8">
              <div className="w-16 h-16 bg-brand-violet/10 text-brand-violet rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Shield size={32} />
