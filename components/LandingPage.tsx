@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Moon, Brain, Coffee, CloudRain, Quote, Sun, Heart, Users, Flame, BookOpen, Star, Clock, MessageCircle, Instagram, Youtube, Twitter, Sparkles, Calendar, Lock, ShieldCheck, Zap, Trophy, Check } from 'lucide-react';
+import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Moon, Brain, Coffee, CloudRain, Quote, Sun, Heart, Users, Flame, BookOpen, Star, Clock, MessageCircle, Instagram, Youtube, Twitter, Sparkles, Calendar, Lock, ShieldCheck, Zap, Trophy, Check, Home, RefreshCw } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { TermsModal, PrivacyModal, AboutModal, ContactModal } from './LegalModals';
 

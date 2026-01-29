@@ -6,7 +6,7 @@ interface BrandLogoProps {
   variant?: 'outline' | 'fill';
 }
 
-export const BrandLogo: React.FC<BrandLogoProps> = ({ size = 32, className = "", variant = 'outline' }) => {
+const BrandLogo: React.FC<BrandLogoProps> = ({ size = 32, className = "", variant = 'outline' }) => {
   // Default to brand-violet if no text color class is provided, but allow overrides
   const defaultColorClass = className.includes('text-') ? '' : 'text-brand-violet';
   const combinedClassName = `${defaultColorClass} ${className}`.trim();

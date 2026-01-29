@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { UserProfile, LiturgyDay, PrayerIntention, RoutineItem, CommunityPost } from '../types';
-import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap, Quote, Loader2, Crown } from 'lucide-react';
+import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap, Quote, Loader2, Crown, Trophy } from 'lucide-react';
 import { generateDailyTheme, cleanAIOutput } from '../services/geminiService';
 import { fetchRealDailyLiturgy } from '../services/liturgyService';
 import { fetchCommunityPosts } from '../services/databaseService';
@@ -244,7 +244,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </h2>
                 
                 <p className={`text-sm ${style.text} font-medium mb-8 max-w-md leading-relaxed opacity-90`}>
-                    {liturgyData?.liturgicalDay || 'Carregando liturgia...'} • {style.meaning}
+                    {liturgyData?.season || 'Carregando liturgia...'} • {style.meaning}
                 </p>
 
                 <div className="flex flex-wrap gap-4">
@@ -422,7 +422,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       </main>
 
       {/* Modais */}
-      {showNotifications && <NotificationCenter onClose={() => setShowNotifications(false)} userId={user.id} />}
+      {showNotifications && <NotificationCenter onClose={() => setShowNotifications(false)} />}
       
       {isCustomizing && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
@@ -473,7 +473,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <div className="p-8 flex justify-between items-center border-b border-slate-100 dark:border-white/5">
                     <div>
                         <h3 className="text-2xl font-black text-brand-dark dark:text-white tracking-tight">Liturgia Diária</h3>
-                        <p className="text-xs text-slate-500 font-medium">{liturgyData.liturgicalDay}</p>
+                        <p className="text-xs text-slate-500 font-medium">{liturgyData.season}</p>
                     </div>
                     <button onClick={() => setShowLiturgyModal(false)} className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500"><X size={24} /></button>
                 </div>
@@ -482,7 +482,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     {[
                         { id: 'first', label: '1ª Leitura' },
                         { id: 'psalm', label: 'Salmo' },
-                        { id: 'second', label: '2ª Leitura', hidden: !liturgyData.readings.secondReading },
+                        { id: 'second', label: '2ª Leitura', hidden: !liturgyData.readings.second },
                         { id: 'gospel', label: 'Evangelho' }
                     ].filter(t => !t.hidden).map(tab => (
                         <button 
@@ -498,16 +498,16 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
                     <div className="max-w-prose mx-auto">
                         <p className="text-[10px] font-black text-brand-violet uppercase tracking-[0.3em] mb-4">
-                            {activeLiturgyTab === 'first' && liturgyData.readings.firstReading.reference}
-                            {activeLiturgyTab === 'psalm' && liturgyData.readings.psalm.reference}
-                            {activeLiturgyTab === 'second' && liturgyData.readings.secondReading?.reference}
-                            {activeLiturgyTab === 'gospel' && liturgyData.readings.gospel.reference}
+                            {activeLiturgyTab === 'first' && liturgyData.readings.first.ref}
+                            {activeLiturgyTab === 'psalm' && liturgyData.readings.psalm.ref}
+                            {activeLiturgyTab === 'second' && liturgyData.readings.second?.ref}
+                            {activeLiturgyTab === 'gospel' && liturgyData.readings.gospel.ref}
                         </p>
                         <div className="prose dark:prose-invert prose-slate max-w-none">
                             <p className="text-lg leading-relaxed text-slate-700 dark:text-slate-300 font-medium whitespace-pre-wrap italic">
-                                {activeLiturgyTab === 'first' && liturgyData.readings.firstReading.text}
+                                {activeLiturgyTab === 'first' && liturgyData.readings.first.text}
                                 {activeLiturgyTab === 'psalm' && liturgyData.readings.psalm.text}
-                                {activeLiturgyTab === 'second' && liturgyData.readings.secondReading?.text}
+                                {activeLiturgyTab === 'second' && liturgyData.readings.second?.text}
                                 {activeLiturgyTab === 'gospel' && liturgyData.readings.gospel.text}
                             </p>
                         </div>
