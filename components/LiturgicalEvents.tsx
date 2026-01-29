@@ -63,13 +63,16 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
 
 Minha missão foi: ${currentDayTopic.actionContent}
 
-Convido toda a comunidade a perseverar nesta jornada! 🙏✨`;
+Convido toda a comunidade a perseverar nesta jornada de fé e constância! 🙏✨ #Espiritualizei`;
         onTestify(text);
-        // Mantemos o modal aberto para mostrar o botão do Instagram
+        setShowCompletion(false);
+        // Redirecionar para a aba de comunidade (Social)
+        const socialTab = document.querySelector('[data-tab="social"]') as HTMLElement;
+        if (socialTab) socialTab.click();
     }
   };
 
-  const handleInstagramShare = () => {
+  const handleInstagramShare = async () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
     canvas.height = 1920;
@@ -137,14 +140,31 @@ Convido toda a comunidade a perseverar nesta jornada! 🙏✨`;
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.fillText('espiritualizei.com', 540, 1750);
 
-    // Download/Share
-    const dataUrl = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.download = `desafio-espiritualizei-${activeChallenge.currentDay}.png`;
-    link.href = dataUrl;
-    link.click();
-    
-    alert("Imagem gerada com sucesso! Agora você pode postar no seu Story e marcar o @espiritualizei.");
+    try {
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) return;
+
+      const file = new File([blob], 'desafio-espiritualizei.png', { type: 'image/png' });
+      const shareData = {
+        title: 'Desafio Concluído - Espiritualizei',
+        text: 'Estou usando o aplicativo Espiritualizei para organizar minha jornada de fé e acabei de concluir um desafio comunitário! O app é essencial para minha constância diária. Conheça em espiritualizei.com',
+        files: [file]
+      };
+
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback para download se não suportar Web Share API
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `desafio-espiritualizei.png`;
+        link.href = dataUrl;
+        link.click();
+        alert("Imagem gerada! Salve-a e compartilhe no seu Story marcando o @espiritualizei.");
+      }
+    } catch (err) {
+      console.error('Erro ao compartilhar:', err);
+    }
   };
 
   const progressPercent = ((activeChallenge.currentDay || 1) / (activeChallenge.totalDays || 3)) * 100;
@@ -395,13 +415,32 @@ Convido toda a comunidade a perseverar nesta jornada! 🙏✨`;
                   <h3 className="text-3xl font-black text-white mb-3">Deus seja louvado!</h3>
                   <p className="text-slate-400 text-sm mb-8 leading-relaxed">Sua fidelidade nas pequenas coisas do cotidiano edifica toda a nossa Igreja.</p>
                   <div className="space-y-4">
-                     <button onClick={handleShare} className="w-full py-4 rounded-2xl text-white font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg" style={{ backgroundColor: activeChallenge.seasonColor || '#7C3AED' }}>
-                        <MessageCircle size={20} /> Compartilhar com a Comunidade
+                     <button 
+                        onClick={handleShare} 
+                        className="w-full py-5 rounded-[1.5rem] text-white font-black hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 group"
+                        style={{ 
+                           background: `linear-gradient(135deg, ${activeChallenge.seasonColor || '#7C3AED'}, #4C1D95)`,
+                           boxShadow: `0 10px 30px -10px ${activeChallenge.seasonColor}80`
+                        }}
+                     >
+                        <MessageCircle size={22} className="group-hover:rotate-12 transition-transform" /> 
+                        <span className="tracking-tight">Compartilhar com a Comunidade</span>
                      </button>
-                     <button onClick={handleInstagramShare} className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-pink-500/20">
-                        <Share2 size={20} /> Story do Instagram
+                     
+                     <button 
+                        onClick={handleInstagramShare} 
+                        className="w-full py-5 rounded-[1.5rem] bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white font-black hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 group"
+                     >
+                        <Share2 size={22} className="group-hover:scale-110 transition-transform" /> 
+                        <span className="tracking-tight">Story do Instagram</span>
                      </button>
-                     <button onClick={() => setShowCompletion(false)} className="w-full py-3 text-slate-500 text-sm font-bold">Apenas Concluir</button>
+                     
+                     <button 
+                        onClick={() => setShowCompletion(false)} 
+                        className="w-full py-3 text-slate-500 text-sm font-bold hover:text-slate-300 transition-colors"
+                     >
+                        Apenas Concluir
+                     </button>
                   </div>
                </div>
             </div>
