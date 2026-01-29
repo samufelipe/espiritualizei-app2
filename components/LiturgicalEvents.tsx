@@ -46,12 +46,15 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   const handleOpen = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!currentDayTopic.isCompleted) {
-        setShowSession(true);
+    if (currentDayTopic.isCompleted) {
+        alert("Você já concluiu este desafio! Sua oferta já foi contabilizada em seu perfil. A constância é o segredo da santidade. 🙏");
+        return;
     }
+    setShowSession(true);
   };
 
   const handleComplete = () => {
+    if (currentDayTopic.isCompleted) return;
     onJoin(activeChallenge.id, 1); 
     setShowSession(false);
     setShowCompletion(true);
@@ -59,16 +62,24 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
 
   const handleShare = () => {
     if (onTestify) {
-        const text = `Concluí o desafio comunitário de hoje: "${currentDayTopic.title}". 
-
-Minha missão foi: ${currentDayTopic.actionContent}
-
-Convido toda a comunidade a perseverar nesta jornada de fé e constância! 🙏✨ #Espiritualizei`;
+        const text = `Hoje escolhi a constância! ✨ \n\nConcluí o desafio comunitário: "${currentDayTopic.title}". \nMinha missão foi: ${currentDayTopic.actionContent}\n\nConvido toda a comunidade a também realizar este gesto hoje. Vamos juntos santificar o cotidiano! 🙏💜 #Espiritualizei`;
         onTestify(text);
         setShowCompletion(false);
-        // Redirecionar para a aba de comunidade (Social)
-        const socialTab = document.querySelector('[data-tab="social"]') as HTMLElement;
-        if (socialTab) socialTab.click();
+        
+        // Tenta encontrar a tab de feed/social para redirecionar
+        const communityTab = document.querySelector('button[data-tab-id="feed"]') as HTMLElement;
+        if (communityTab) {
+            communityTab.click();
+        } else {
+            // Fallback para o nome, mais genérico
+            const allTabs = document.querySelectorAll('button');
+            for (let tab of allTabs) {
+                if (tab.innerText.toLowerCase().includes('feed')) {
+                    tab.click();
+                    break;
+                }
+            }
+        }
     }
   };
 
@@ -79,65 +90,86 @@ Convido toda a comunidade a perseverar nesta jornada de fé e constância! 🙏�
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Fundo Oficial #1A2530
-    ctx.fillStyle = '#1A2530';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Gradiente sutil
-    const grad = ctx.createRadialGradient(540, 960, 0, 540, 960, 1000);
-    grad.addColorStop(0, '#2A2E35');
+    // Fundo Oficial #1A2530 com gradiente de profundidade
+    const grad = ctx.createLinearGradient(0, 0, 0, 1920);
+    grad.addColorStop(0, '#1A2530');
+    grad.addColorStop(0.5, '#242F3A');
     grad.addColorStop(1, '#1A2530');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Desenhar Coração Lilás (Marca)
+    // Pontos de luz para um toque celestial
+    ctx.globalAlpha = 0.1;
     ctx.fillStyle = '#A78BFA';
-    const drawHeart = (x: number, y: number, size: number) => {
-      ctx.beginPath();
-      ctx.moveTo(x, y + size / 4);
-      ctx.quadraticCurveTo(x, y, x + size / 4, y);
-      ctx.quadraticCurveTo(x + size / 2, y, x + size / 2, y + size / 4);
-      ctx.quadraticCurveTo(x + size / 2, y, x + size * 3/4, y);
-      ctx.quadraticCurveTo(x + size, y, x + size, y + size / 4);
-      ctx.quadraticCurveTo(x + size, y + size / 2, x + size / 2, y + size * 3/4);
-      ctx.quadraticCurveTo(x, y + size / 2, x, y + size / 4);
-      ctx.fill();
-    };
-    drawHeart(540 - 60, 300, 120);
+    ctx.beginPath(); ctx.arc(1080, 0, 600, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 1920, 400, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1.0;
 
-    // Textos
+    // Desenhar Coração Lilás (Marca Oficial) - Vetorizado
+    ctx.fillStyle = '#A78BFA';
+    const heartPath = new Path2D("M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z");
+    ctx.save();
+    ctx.translate(540 - 150, 320 - 150); // Centralizar e posicionar
+    ctx.scale(12.5, 12.5); // Escalar o path (24x24 para 300x300)
+    ctx.fill(heartPath);
+    ctx.restore();
+
+    // Textos com design refinado
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#FFFFFF';
     
-    ctx.font = 'bold 40px sans-serif';
-    ctx.fillText('ESPIRITUALIZEI', 540, 500);
-
-    ctx.font = 'bold 30px sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.fillText('DESAFIO CONCLUÍDO', 540, 800);
-
-    ctx.font = 'bold 80px sans-serif';
     ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 42px sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText('ESPIRITUALIZEI', 540, 580);
+
+    // Divisor sutil
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(440, 650); ctx.lineTo(640, 650); ctx.stroke();
+
+    // Badge de Conclusão
+    ctx.fillStyle = 'rgba(167, 139, 250, 0.15)';
+    ctx.roundRect(540 - 200, 780, 400, 60, 30); ctx.fill();
+    ctx.fillStyle = '#A78BFA';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.letterSpacing = '2px';
+    ctx.fillText('DESAFIO CONCLUÍDO', 540, 818);
+
+    // Título do Desafio
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 85px sans-serif';
     const words = currentDayTopic.title.split(' ');
     let line = '';
-    let y = 950;
+    let y = 1000;
     words.forEach(word => {
-      if ((line + word).length > 15) {
-        ctx.fillText(line, 540, y);
+      const testLine = line + word + ' ';
+      if (ctx.measureText(testLine).width > 800 && line.length > 0) {
+        ctx.fillText(line.trim(), 540, y);
         line = word + ' ';
-        y += 100;
+        y += 110;
       } else {
-        line += word + ' ';
+        line = testLine;
       }
     });
-    ctx.fillText(line, 540, y);
+    ctx.fillText(line.trim(), 540, y);
 
-    ctx.font = 'italic 40px serif';
+    // Ação Concreta (Box de destaque)
+    const boxY = y + 100;
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    ctx.roundRect(100, boxY, 880, 200, 40); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.stroke();
+
     ctx.fillStyle = '#A78BFA';
-    ctx.fillText(`"${currentDayTopic.actionContent}"`, 540, y + 200);
+    ctx.font = 'italic 45px serif';
+    ctx.fillText(`"${currentDayTopic.actionContent}"`, 540, boxY + 120);
 
-    ctx.font = 'bold 35px sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    // Call to Action (Rodapé)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.fillText('Organize sua vida espiritual.', 540, 1680);
+    
+    ctx.fillStyle = '#A78BFA';
+    ctx.font = 'bold 38px sans-serif';
     ctx.fillText('espiritualizei.com', 540, 1750);
 
     try {
@@ -146,21 +178,20 @@ Convido toda a comunidade a perseverar nesta jornada de fé e constância! 🙏�
 
       const file = new File([blob], 'desafio-espiritualizei.png', { type: 'image/png' });
       const shareData = {
-        title: 'Desafio Concluído - Espiritualizei',
-        text: 'Estou usando o aplicativo Espiritualizei para organizar minha jornada de fé e acabei de concluir um desafio comunitário! O app é essencial para minha constância diária. Conheça em espiritualizei.com',
+        title: 'Minha Jornada no Espiritualizei',
+        text: 'Hoje escolhi a constância na minha vida de fé. Conheça o app que está me ajudando a organizar minha rotina de oração: espiritualizei.com 💜 #Fé #JornadaDiária',
         files: [file]
       };
 
       if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
-        // Fallback para download se não suportar Web Share API
         const dataUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.download = `desafio-espiritualizei.png`;
         link.href = dataUrl;
         link.click();
-        alert("Imagem gerada! Salve-a e compartilhe no seu Story marcando o @espiritualizei.");
+        alert("Imagem premium gerada! ✨ Salve-a e compartilhe no seu Story para inspirar outros. Não esqueça de marcar o @espiritualizei.");
       }
     } catch (err) {
       console.error('Erro ao compartilhar:', err);

@@ -97,7 +97,9 @@ export const updateChatMessageReaction = async (messageId: string, reactions: an
 const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
   const season = getSeasonDetailedInfo(date);
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
-  const cycleId = Math.floor(date.getTime() / (MS_PER_DAY * 3));
+  // Sincronização absoluta baseada em dias desde a época Unix para garantir 3 dias exatos
+  const daysSinceEpoch = Math.floor(date.getTime() / MS_PER_DAY);
+  const cycleId = Math.floor(daysSinceEpoch / 3);
   const isPreLent = date.getMonth() === 1 && date.getDate() < 18 && date.getFullYear() === 2026;
   const isLent = (date.getMonth() === 1 && date.getDate() >= 18 && date.getFullYear() === 2026) || season.id === 'lent';
 
@@ -173,7 +175,7 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
     currentAmount: 0,
     targetAmount: 5000,
     unit: 'atos de amor',
-    daysLeft: 3 - (Math.floor((date.getTime() / MS_PER_DAY)) % 3),
+    daysLeft: 3 - (daysSinceEpoch % 3),
     seasonColor: season.color,
     icon: season.id === 'lent' ? 'cross' : (season.id === 'easter' ? 'fire' : (season.id === 'advent' ? 'star' : 'fire')),
     type: 'season',
@@ -182,7 +184,7 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
     status: 'active',
     participants: 1450 + (cycleId % 100),
     userContribution: 0,
-    currentDay: (Math.floor(date.getTime() / MS_PER_DAY) % 3) + 1,
+    currentDay: (daysSinceEpoch % 3) + 1,
     totalDays: 3,
     dailyTopics
   };
