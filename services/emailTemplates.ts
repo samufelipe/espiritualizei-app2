@@ -33,7 +33,7 @@ const baseTemplate = (content: string, previewText: string) => `
     <div style="display: none; max-height: 0px; overflow: hidden;">${previewText}</div>
     <div class="container">
         <div class="header">
-            <img src="https://www.espiritualizei.com/logo-email.png" alt="Espiritualizei" class="logo">
+            <img src="https://raw.githubusercontent.com/samufelipe/espiritualizei-app2/main/public/icon-512.png" alt="Espiritualizei" class="logo">
         </div>
         <div class="card">
             ${content}
