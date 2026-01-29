@@ -238,11 +238,21 @@ const App: React.FC = () => {
 	                      setShowTutorial(true); // GATILHO DO TUTORIAL
 	                    }, 3000);
 	                  }
-	                } catch (e) {
-	                  console.error("Erro no onboarding:", e);
-	                  setViewState('landing');
-	                  alert("Erro ao criar conta. Tente novamente.");
-	                }
+		                } catch (e: any) {
+		                  console.error("Erro no onboarding:", e);
+		                  setViewState('onboarding'); // Volta para o passo de cadastro em vez da landing
+		                  
+		                  let errorMessage = "Erro ao criar conta. Tente novamente.";
+		                  if (e.message?.includes("User already registered")) {
+		                    errorMessage = "Este e-mail já está cadastrado. Tente fazer login.";
+		                  } else if (e.message?.includes("Password should be at least 6 characters")) {
+		                    errorMessage = "A senha deve ter no mínimo 6 caracteres.";
+		                  } else if (e.message) {
+		                    errorMessage = `Erro: ${e.message}`;
+		                  }
+		                  
+		                  alert(errorMessage);
+		                }
 	              }} 
 
               onBack={() => setViewState('landing')} 
@@ -250,8 +260,8 @@ const App: React.FC = () => {
           )}
           {viewState === 'generating' && (
             <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-brand-dark">
-              <div className="w-24 h-24 bg-brand-violet/20 rounded-full flex items-center justify-center mb-8 animate-bounce">
-                <Sparkles size={48} className="text-brand-violet" />
+              <div className="w-24 h-24 bg-brand-violet/20 rounded-full flex items-center justify-center mb-8 animate-pulse-slow">
+                <BrandLogo size={64} variant="fill" className="text-brand-violet" />
               </div>
               <h2 className="text-3xl font-bold mb-4 text-white">Preparando sua Jornada...</h2>
               <p className="text-slate-400 max-w-md mx-auto mb-12">Nossa inteligência está analisando seu perfil para criar uma rotina única e equilibrada.</p>
