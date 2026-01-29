@@ -14,6 +14,7 @@ import InstallPWA from './components/InstallPWA';
 import Paywall from './components/Paywall';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
+import { requestNotificationPermission, scheduleRoutineNotifications } from './services/notificationService';
 import { registerUser, getSession, logoutUser, updateUserProfile, supabase } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -131,7 +132,16 @@ const App: React.FC = () => {
             localStorage.setItem('espiritualizei_daily_inspiration_date', new Date().toDateString());
         }
         
-        fetchUserRoutine(session.user.id).then((db) => db && db.length > 0 && setRoutineItems(db));
+        fetchUserRoutine(session.user.id).then((db) => {
+          if (db && db.length > 0) {
+            setRoutineItems(db);
+            // Agendar notificações se houver itens
+            scheduleRoutineNotifications(db);
+          }
+        });
+        
+        // Solicitar permissão de notificação no primeiro acesso
+        requestNotificationPermission();
         fetchCommunityIntentions(session.user.id).then(setIntentions);
         fetchGlobalChallenge().then((global) => global && setChallenges([global]));
         
