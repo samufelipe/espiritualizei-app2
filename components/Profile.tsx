@@ -264,9 +264,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
 	              {user.isPremium && (
 	                 <div className="bg-black/20 p-4 border-t border-white/5 flex justify-center">
 	                    <a 
-	                       href="https://cakto.com.br/portal-do-cliente" 
-	                       target="_blank" 
-	                       rel="noopener noreferrer"
+	                       href="mailto:compradores@cakto.com.br?subject=Gerenciamento de Assinatura - Espiritualizei&body=Olá, gostaria de gerenciar minha assinatura do aplicativo Espiritualizei vinculada ao e-mail: " 
 	                       className="text-[10px] font-bold text-slate-500 hover:text-brand-violet transition-colors uppercase tracking-widest flex items-center gap-2"
 	                    >
 	                       <Settings size={12} /> Gerenciar Forma de Pagamento
