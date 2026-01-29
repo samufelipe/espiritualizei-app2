@@ -14,7 +14,7 @@ interface CommunityProps {
   onOpenCreateModal: () => void;
   onTestify: (content: string) => void;
   feedInitialContent?: string;
-  initialTab?: 'mural' | 'feed' | 'ranking';
+  initialTab?: 'comunidade' | 'feed' | 'ranking';
   user: UserProfile;
 }
 
@@ -29,7 +29,7 @@ const Community: React.FC<CommunityProps> = ({
   initialTab,
   user
 }) => {
-  const [activeTab, setActiveTab] = useState<'mural' | 'feed' | 'ranking'>('mural');
+  const [activeTab, setActiveTab] = useState<'comunidade' | 'feed' | 'ranking'>('comunidade');
 
   // Este efeito é crucial para que o redirecionamento via App.tsx funcione
   useEffect(() => {
@@ -59,8 +59,8 @@ const Community: React.FC<CommunityProps> = ({
       <div className="px-4 sm:px-6 sticky top-0 z-30 bg-slate-50/95 dark:bg-[#0F1115]/95 backdrop-blur-xl py-2">
           <div className="flex p-1.5 bg-slate-200/50 dark:bg-white/5 rounded-2xl mx-auto max-w-lg relative overflow-x-auto shadow-sm border border-slate-200/50 dark:border-white/5">
               <button 
-                onClick={() => setActiveTab('mural')} 
-                className={`flex-1 py-3 px-2 text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all relative z-10 whitespace-nowrap ${activeTab === 'mural' ? 'bg-white dark:bg-[#2A2E35] text-brand-violet shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                onClick={() => setActiveTab('comunidade')} 
+                className={`flex-1 py-3 px-2 text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all relative z-10 whitespace-nowrap ${activeTab === 'comunidade' ? 'bg-white dark:bg-[#2A2E35] text-brand-violet shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
               >
                 <Heart size={16} /> Comunidade
               </button>
@@ -85,7 +85,7 @@ const Community: React.FC<CommunityProps> = ({
             {/* Main Content Column */}
             <div className="lg:col-span-8">
                
-               {activeTab === 'mural' && (
+               {activeTab === 'comunidade' && (
                   <div className="space-y-6 animate-slide-up">
                      <button 
                         onClick={onOpenCreateModal}
@@ -126,7 +126,7 @@ const Community: React.FC<CommunityProps> = ({
                      </div>
 
                      <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">Mural de Orações</h3>
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">Comunidade de Orações</h3>
                         {intentions.map((intention) => (
                            <div key={intention.id} className="bg-white dark:bg-[#1A1F26] p-6 rounded-[2rem] shadow-card border border-slate-100 dark:border-white/5 relative overflow-hidden group hover:shadow-lg transition-all">
                               <div className="flex justify-between items-start mb-3">

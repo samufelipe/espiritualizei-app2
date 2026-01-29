@@ -12,7 +12,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange }) => {
   const navItems = [
     { tab: Tab.DASHBOARD, icon: Home, label: 'Início' },
     { tab: Tab.ROUTINE, icon: CheckCircle2, label: 'Rotina' },
-    { tab: Tab.COMMUNITY, icon: Heart, label: 'Mural' },
+    { tab: Tab.COMMUNITY, icon: Heart, label: 'Comunidade' },
     { tab: Tab.SOCIAL, icon: Trophy, label: 'Ranking' },
     { tab: Tab.KNOWLEDGE, icon: Book, label: 'Biblioteca' },
     { tab: Tab.PROFILE, icon: User, label: 'Perfil' },

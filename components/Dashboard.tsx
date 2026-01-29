@@ -14,7 +14,7 @@ interface DashboardProps {
   myIntentions: PrayerIntention[];
   routineItems?: RoutineItem[]; 
   onToggleRoutine?: (id: string) => void;
-  onNavigateToCommunity: (initialTab?: 'mural' | 'feed') => void;
+  onNavigateToCommunity: (initialTab?: 'comunidade' | 'feed') => void;
   onNavigateToRoutine: () => void; 
   onNavigateToKnowledge: () => void;
   onNavigateToProfile: () => void;
@@ -158,7 +158,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const renderPrayerIncentives = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <button 
-            onClick={() => onNavigateToCommunity('mural')}
+            onClick={() => onNavigateToCommunity('comunidade')}
             className="bg-white dark:bg-[#1A1F26] p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm text-left group hover:border-brand-violet/30 transition-all overflow-hidden relative"
         >
             <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"><Flame size={80} /></div>
@@ -167,7 +167,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Intercessão</span>
             </div>
             <h4 className="text-sm font-bold text-brand-dark dark:text-white mb-1">Já rezou por alguém hoje?</h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed">A caridade é o combustível da fé. Entre no mural e interceda por um irmão.</p>
+            <p className="text-[11px] text-slate-500 leading-relaxed">A caridade é o combustível da fé. Entre na comunidade e interceda por um irmão.</p>
         </button>
 
         <button 
