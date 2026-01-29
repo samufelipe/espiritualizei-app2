@@ -85,7 +85,7 @@ export const sendMessageToSpiritualDirector = async (message: string): Promise<s
 
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string, profileReasoning: string }> => {
   const systemPrompt = `
-    Você é um Diretor Espiritual Católico. Crie uma "Regra de Vida Semanal" personalizada.
+    Você é um Diretor Espiritual Católico. Crie uma "Jornada Diária" personalizada.
     A rotina DEVE mudar conforme o dia da semana seguindo a tradição da Igreja:
     - Domingo (0): Santa Missa. Preparar o coração no sábado/domingo manhã. (OPEN_SOCIAL)
     - Segunda (1): Almas/Fé Intelectual. Estudar conteúdo. (READ_KNOWLEDGE)

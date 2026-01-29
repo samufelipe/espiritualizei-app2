@@ -371,7 +371,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             <div className="space-y-4">
                {[
                   { q: "O aplicativo é realmente católico?", a: "Sim. Todo o conteúdo é baseado na doutrina da Igreja Católica Apostólica Romana, com foco na vida de oração, virtudes e sacramentos." },
-                  { q: "Como funciona a Jornada Diária?", a: "Você responde um questionário sobre sua rotina e nossa inteligência sugere os melhores horários e práticas para você rezar, adaptando-se ao seu dia a dia com humildade." },
+                  { q: "Como funciona a Jornada Diária?", a: "Você responde um questionário sobre sua rotina e nosso aplicativo sugere os melhores horários e práticas para você rezar, adaptando-se ao seu dia a dia com humildade." },
                   { q: "Como funciona o cancelamento?", a: "O Espiritualizei utiliza um modelo de assinatura mensal. Você pode cancelar a renovação a qualquer momento diretamente nas configurações do seu perfil, sem burocracia." },
                   { q: "O app substitui a direção espiritual?", a: "De forma alguma. O Espiritualizei é uma ferramenta de auxílio para a constância diária. Recomendamos sempre que você busque um sacerdote para direção espiritual pessoal." }
                ].map((item, i) => (

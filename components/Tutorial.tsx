@@ -41,7 +41,7 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
     },
     {
       title: "Sua Jornada Diária",
-      description: "Lembra das perguntas que você respondeu? Aqui está o resultado: um caminho espiritual moldado com humildade para sua realidade. É aqui que a constância floresce.",
+      description: "Lembra das perguntas que você respondeu? Aqui está o resultado: um caminho espiritual moldado com humildade pelo nosso aplicativo para sua realidade. É aqui que a constância floresce.",
       icon: CheckCircle2,
       positionClass: "bottom-24 left-4 sm:left-[16%]", // Aponta para a 2ª aba
       arrowClass: "bottom-[-12px] left-8 border-t-brand-dark dark:border-t-white", 
