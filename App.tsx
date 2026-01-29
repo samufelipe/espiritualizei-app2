@@ -15,7 +15,7 @@ import Paywall from './components/Paywall';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { registerUser, getSession, logoutUser, updateUserProfile, supabase } from './services/authService'; 
-import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge } from './services/databaseService';
+import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost } from './services/databaseService';
 import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -152,9 +152,9 @@ const App: React.FC = () => {
 
     switch (currentTab) {
       case Tab.DASHBOARD: return <Suspense fallback={<TabLoader />}><Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} onSaveJournal={() => {}} showLiturgyModal={false} setShowLiturgyModal={() => {}} onLogout={handleLogout} onOpenIntentionModal={() => setShowIntentionModal(true)} onUpdateUser={setUser} /></Suspense>;
-      case Tab.ROUTINE: return <Suspense fallback={<TabLoader />}><Routine items={routineItems} activeChallenge={activeChallenge} onToggle={() => {}} onAdd={() => {}} onDelete={() => {}} onNavigate={setCurrentTab} /></Suspense>;
+      case Tab.ROUTINE: return <Suspense fallback={<TabLoader />}><Routine items={routineItems} activeChallenge={activeChallenge} onToggle={async (id) => { const item = routineItems.find(i => i.id === id); if (item) { const newStatus = !item.completed; setRoutineItems(prev => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i)); await toggleRoutineItemStatus(id, newStatus); } }} onAdd={async (title, desc) => { const newItem: RoutineItem = { id: crypto.randomUUID(), title, description: desc, xpReward: 10, completed: false, icon: 'cross', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] }; setRoutineItems(prev => [...prev, newItem]); await addRoutineItem(user.id, newItem); }} onDelete={async (id) => { setRoutineItems(prev => prev.filter(i => i.id !== id)); await deleteRoutineItem(id); }} onNavigate={setCurrentTab} /></Suspense>;
       case Tab.KNOWLEDGE: return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
-      case Tab.COMMUNITY: return <Suspense fallback={<TabLoader />}><Community intentions={intentions} challenges={challenges} onPray={() => {}} onJoinChallenge={() => {}} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={() => {}} user={user} /></Suspense>;
+      case Tab.COMMUNITY: return <Suspense fallback={<TabLoader />}><Community intentions={intentions} challenges={challenges} onPray={async (id) => { await togglePrayerInteraction(id); fetchCommunityIntentions(user.id).then(setIntentions); }} onJoinChallenge={() => {}} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={async (content) => { await createCommunityPost(user.id, user.name, user.photoUrl, content); }} user={user} /></Suspense>;
       case Tab.SOCIAL: return <Suspense fallback={<TabLoader />}><SocialHub user={user} /></Suspense>;
       case Tab.PROFILE: return <Suspense fallback={<TabLoader />}><Profile user={user} onUpdateUser={setUser} onLogout={handleLogout} /></Suspense>;
       default: return <TabLoader />;
