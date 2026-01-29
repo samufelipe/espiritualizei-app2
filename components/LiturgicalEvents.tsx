@@ -135,33 +135,74 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
     ctx.letterSpacing = '2px';
     ctx.fillText('DESAFIO CONCLUÍDO', 540, 818);
 
+    // Função auxiliar para desenhar texto com quebra de linha e retornar a altura total
+    const wrapText = (context: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
+      const words = text.split(' ');
+      let line = '';
+      let currentY = y;
+      const lines = [];
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = context.measureText(testLine);
+        const testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+          lines.push(line.trim());
+          line = words[n] + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line.trim());
+
+      // Desenhar as linhas centralizadas
+      lines.forEach((l, i) => {
+        context.fillText(l, x, currentY + (i * lineHeight));
+      });
+
+      return lines.length * lineHeight;
+    };
+
     // Título do Desafio
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 85px sans-serif';
-    const words = currentDayTopic.title.split(' ');
-    let line = '';
-    let y = 1000;
-    words.forEach(word => {
-      const testLine = line + word + ' ';
-      if (ctx.measureText(testLine).width > 800 && line.length > 0) {
-        ctx.fillText(line.trim(), 540, y);
-        line = word + ' ';
-        y += 110;
+    const titleY = 1000;
+    const titleHeight = wrapText(ctx, currentDayTopic.title, 540, titleY, 850, 100);
+
+    // Ação Concreta (Box de destaque dinâmico)
+    const actionText = `"${currentDayTopic.actionContent}"`;
+    ctx.font = 'italic 48px serif';
+    
+    // Calcular altura necessária para o texto da ação
+    const actionMaxWidth = 780;
+    const actionLineHeight = 65;
+    const actionWords = actionText.split(' ');
+    let tempLine = '';
+    let actionLinesCount = 1;
+    for (let n = 0; n < actionWords.length; n++) {
+      const testLine = tempLine + actionWords[n] + ' ';
+      if (ctx.measureText(testLine).width > actionMaxWidth && n > 0) {
+        actionLinesCount++;
+        tempLine = actionWords[n] + ' ';
       } else {
-        line = testLine;
+        tempLine = testLine;
       }
-    });
-    ctx.fillText(line.trim(), 540, y);
+    }
 
-    // Ação Concreta (Box de destaque)
-    const boxY = y + 100;
+    const boxPadding = 60;
+    const boxHeight = (actionLinesCount * actionLineHeight) + (boxPadding * 2);
+    const boxY = titleY + titleHeight + 80;
+    
+    // Desenhar Box
     ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    ctx.roundRect(100, boxY, 880, 200, 40); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.stroke();
+    ctx.roundRect(100, boxY, 880, boxHeight, 40); 
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; 
+    ctx.stroke();
 
+    // Desenhar Texto da Ação
     ctx.fillStyle = '#A78BFA';
-    ctx.font = 'italic 45px serif';
-    ctx.fillText(`"${currentDayTopic.actionContent}"`, 540, boxY + 120);
+    wrapText(ctx, actionText, 540, boxY + boxPadding + 40, actionMaxWidth, actionLineHeight);
 
     // Call to Action (Rodapé)
     ctx.fillStyle = '#FFFFFF';
@@ -179,7 +220,7 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
       const file = new File([blob], 'desafio-espiritualizei.png', { type: 'image/png' });
       const shareData = {
         title: 'Minha Jornada no Espiritualizei',
-        text: 'Hoje escolhi a constância na minha vida de fé. Conheça o app que está me ajudando a organizar minha rotina de oração: espiritualizei.com 💜 #Fé #JornadaDiária',
+        text: 'Hoje escolhi a constância na minha vida de fé. ✨\n\nConheça o app que está me ajudando a organizar minha rotina de oração e desafios comunitários: https://www.espiritualizei.com/ 💜\n\n#Espiritualizei #VidaDeOração #Fé',
         files: [file]
       };
 
