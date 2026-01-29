@@ -9,7 +9,7 @@ const testSend = async () => {
   
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Espiritualizei <onboarding@resend.dev>', // Usando o domínio de teste do Resend até o domínio oficial ser validado
+      from: 'Espiritualizei <contato@espiritualizei.com>',
       to: ['samucafe01@gmail.com'],
       subject: 'Teste de Integração: Espiritualizei + Resend ✨',
       html: `
