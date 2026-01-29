@@ -3,9 +3,12 @@
   "short_name": "Espiritualizei",
   "start_url": ".",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#1A2530",
   "theme_color": "#1A2530",
   "orientation": "portrait",
+  "categories": ["lifestyle", "social"],
+  "description": "Sua jornada diária de fé e constância.",
   "icons": [
     {
       "src": "icon-192.png",

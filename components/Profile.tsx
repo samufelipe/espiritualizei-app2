@@ -256,9 +256,12 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                        </div>
                     </div>
                  ) : (
-                    <button className="w-full bg-brand-violet text-white py-4 rounded-2xl font-black text-sm shadow-xl hover:bg-purple-600 transition-all flex items-center justify-center gap-2">
-                       Liberar Acesso Premium <ArrowRight size={18} />
-                    </button>
+	                    <button 
+                          onClick={() => window.open('https://www.espiritualizei.com/', '_blank')}
+                          className="w-full bg-brand-violet text-white py-4 rounded-2xl font-black text-sm shadow-xl hover:bg-purple-600 transition-all flex items-center justify-center gap-2"
+                       >
+	                       Liberar Acesso Premium <ArrowRight size={18} />
+	                    </button>
                  )}
               </div>
               

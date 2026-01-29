@@ -43,9 +43,11 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
 
   if (!activeChallenge || !currentDayTopic) return null;
 
-  const handleOpen = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleOpen = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (currentDayTopic.isCompleted) {
         alert("Você já concluiu este desafio! Sua oferta já foi contabilizada em seu perfil. A constância é o segredo da santidade. 🙏");
         return;
@@ -374,11 +376,12 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
   };
 
   return (
-    <div className="mb-8 animate-slide-up">
-      <div 
-        onClick={handleOpen}
-        className="relative w-full rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-[#1A1F26] via-[#2A2E35] to-[#1A1F26] shadow-2xl border border-white/5 group isolate transition-all hover:shadow-brand-violet/10 cursor-pointer"
-      >
+    <div className="relative w-full">
+       <div 
+          onClick={handleOpen}
+          data-challenge-banner="true"
+          className="bg-white dark:bg-[#1A1F26] p-5 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-white/5 flex items-center gap-4 cursor-pointer hover:border-brand-violet/30 transition-all group"
+       >
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none mix-blend-overlay" />
          
          <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between p-8 sm:p-12 gap-8">

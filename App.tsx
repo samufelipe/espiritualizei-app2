@@ -55,7 +55,6 @@ const App: React.FC = () => {
   const [intentions, setIntentions] = useState<PrayerIntention[]>([]);
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
 
-  // ESCUTA DE PAGAMENTO: Verifica se o usuário voltou com parâmetro de sucesso
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
@@ -89,7 +88,6 @@ const App: React.FC = () => {
     if (initializationRef.current) return;
     initializationRef.current = true;
 
-    // Configurações Nativas
     const initNative = async () => {
       try {
         await StatusBar.setStyle({ style: Style.Dark });
@@ -103,73 +101,55 @@ const App: React.FC = () => {
     const initSession = async () => {
       const session = getSession();
       if (session) {
-        setUser(session.user);
-        setViewState('app');
-
-        try {
+        if (Date.now() < session.expiresAt) {
+          // Sincronização Mestre: Prioridade total para os dados do servidor
           if (supabase) {
-            const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-            if (profile && !error) {
-              const isNowPremium = profile.is_premium || profile.subscription_status === 'active' || profile.subscription_status === 'premium';
-              
-              if (isNowPremium !== session.user.isPremium) {
-                const updatedUser = { 
-                  ...session.user, 
-                  isPremium: isNowPremium,
-                  subscriptionStatus: profile.subscription_status 
-                };
-                setUser(updatedUser);
-                updateUserProfile(updatedUser);
-              }
-            }
+             try {
+                const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+                if (profile && !error) {
+                   const updatedUser = mapProfileFromDB(profile, session.user.email);
+                   setUser(updatedUser);
+                   // Atualiza o cache local com os dados reais do servidor
+                   const s = getSession();
+                   if (s) { s.user = updatedUser; localStorage.setItem('espiritualizei_session', JSON.stringify(s)); }
+                   console.log("🛡️ Sincronização Mestre: Perfil restaurado do servidor.");
+                } else {
+                   setUser(session.user);
+                }
+             } catch (e) {
+                setUser(session.user);
+             }
+          } else {
+             setUser(session.user);
           }
-        } catch (e) {
-          console.warn("Falha ao sincronizar status em tempo real:", e);
-        }
-        
-        const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
-        if (lastSeen !== new Date().toDateString()) {
-            setShowDailyInspiration(true);
-            localStorage.setItem('espiritualizei_daily_inspiration_date', new Date().toDateString());
-        }
-        
-        fetchUserRoutine(session.user.id).then((db) => {
-          if (db && db.length > 0) {
-            setRoutineItems(db);
-            // Agendar notificações se houver itens
-            scheduleRoutineNotifications(db);
-          }
-        });
-        
-        // Solicitar permissão de notificação no primeiro acesso
-        requestNotificationPermission();
-        // Sincronização Forçada: Sempre buscar dados frescos do servidor na inicialização
-        fetchCommunityIntentions(session.user.id).then(setIntentions);
-        fetchGlobalChallenge().then((global) => {
-           if (global) {
-              setChallenges([global]);
-              console.log("✅ Desafio Comunitário carregado:", global.title);
-           } else {
-              console.warn("⚠️ Nenhum desafio comunitário encontrado.");
-           }
-        });
 
-        // Garantir que o perfil do usuário esteja sincronizado com o XP e Foto do banco
-        if (supabase) {
-           supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle().then(({ data }) => {
-              if (data) {
-                 const updatedUser = mapProfileFromDB(data, session.user.email);
-                 setUser(updatedUser);
-                 updateUserProfile(updatedUser);
-              }
-           });
+          setViewState('app');
+          requestNotificationPermission();
+
+          // Sincronização de Desafios e Intenções
+          fetchCommunityIntentions(session.user.id).then(setIntentions);
+          fetchGlobalChallenge().then((global) => {
+             if (global) {
+                setChallenges([global]);
+             }
+          });
+
+          fetchUserRoutine(session.user.id).then((db) => {
+             if (db && db.length > 0) setRoutineItems(db);
+          });
+          
+          const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
+          if (lastSeen !== new Date().toDateString()) {
+              setShowDailyInspiration(true);
+              localStorage.setItem('espiritualizei_daily_inspiration_date', new Date().toDateString());
+          }
+          
+        } else {
+           const path = window.location.pathname;
+           if (path === '/login') setViewState('login');
+           else if (path === '/onboarding') setViewState('onboarding');
+           else setViewState('landing');
         }
-        
-      } else {
-         const path = window.location.pathname;
-         if (path === '/login') setViewState('login');
-         else if (path === '/onboarding') setViewState('onboarding');
-         else setViewState('landing');
       }
     };
     initSession();
@@ -201,7 +181,6 @@ const App: React.FC = () => {
   } }} onAdd={async (title, desc) => { const newItem: RoutineItem = { id: crypto.randomUUID(), title, description: desc, xpReward: 10, completed: false, icon: 'cross', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] }; setRoutineItems(prev => [...prev, newItem]); await addRoutineItem(user.id, newItem); }} onDelete={async (id) => { setRoutineItems(prev => prev.filter(i => i.id !== id)); await deleteRoutineItem(id); }} onNavigate={setCurrentTab} /></Suspense>;
       case Tab.KNOWLEDGE: return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
       case Tab.COMMUNITY: return <Suspense fallback={<TabLoader />}><Community intentions={intentions} challenges={challenges} onPray={async (id) => { await togglePrayerInteraction(id); fetchCommunityIntentions(user.id).then(setIntentions); }} onJoinChallenge={async (id, amount) => { 
-        // Correção: Garantir que a participação no desafio seja persistida e atualize a UI
         setChallenges(prev => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, participants: c.participants + 1 } : c));
         await toggleRoutineItemStatus(id, true); 
       }} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={async (content) => { await createCommunityPost(user.id, user.name, user.photoUrl, content); }} user={user} /></Suspense>;
@@ -220,59 +199,41 @@ const App: React.FC = () => {
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark no-scrollbar">
           {viewState === 'landing' && <LandingPage onStart={() => setViewState('onboarding')} onLogin={() => setViewState('login')} />}
           {viewState === 'login' && <Login onLogin={(u) => { setUser(u); setViewState('app'); }} onRegister={() => setViewState('onboarding')} onBack={() => setViewState('landing')} />}
-          {viewState === 'onboarding' && <Onboarding onComplete={async (d) => { setViewState('generating'); }} onBack={() => setViewState('landing')} />}
-          
+          {viewState === 'onboarding' && <Onboarding onComplete={async (u) => { setViewState('generating'); }} onBack={() => setViewState('landing')} />}
           {viewState === 'generating' && (
-             <div className="min-h-screen bg-brand-dark flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-                <Loader2 size={40} className="animate-spin text-brand-violet mb-4" />
-                <h2 className="text-xl font-bold">Preparando sua Jornada Diária...</h2>
-             </div>
-          )}
-          
-          {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} userName={user.name} onLogout={handleLogout} />}
-          
-          {viewState === 'welcome_premium' && (
-             <div className="min-h-screen bg-brand-dark flex flex-col items-center justify-center p-8 text-center animate-fade-in relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-full bg-brand-violet/5 animate-pulse" />
-                
-                <div className="relative z-10 flex flex-col items-center">
-                    <div className="w-28 h-28 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mb-8 animate-bounce border-2 border-green-500/20">
-                        <CheckCircle2 size={56} />
-                    </div>
-                    <h1 className="text-4xl font-black text-white mb-3 tracking-tight">Deus seja louvado!</h1>
-                    <p className="text-slate-400 max-w-xs mb-12 leading-relaxed text-lg">Sua assinatura foi confirmada. O acesso completo está liberado para sua alma peregrina.</p>
-                    
-                    <div className="w-full max-w-xs space-y-4">
-                        <button 
-                            onClick={() => setViewState('app')} 
-                            className="w-full bg-brand-violet text-white py-5 rounded-[2rem] font-black shadow-2xl shadow-brand-violet/30 flex items-center justify-center gap-3 transition-transform active:scale-95 text-lg"
-                        >
-                            Entrar no App <ArrowRight size={22} />
-                        </button>
-                    </div>
-                    
-                    <div className="mt-12 flex items-center gap-2 text-slate-500 font-bold uppercase tracking-widest text-[10px]">
-                        <PartyPopper size={14} className="text-brand-violet" /> 
-                        Aproveite sua jornada espiritual
-                    </div>
-                </div>
-             </div>
-          )}
-
-          {viewState === 'app' && (
-            <>
-              <div className="w-full max-w-[1600px] mx-auto min-h-full">
-                <div className="h-full relative z-10 md:p-8">
-                  {renderContent()}
-                </div>
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+              <div className="w-24 h-24 bg-brand-violet/20 rounded-full flex items-center justify-center mb-8 animate-bounce">
+                <Sparkles size={48} className="text-brand-violet" />
               </div>
-              <Navigation currentTab={currentTab} onTabChange={setCurrentTab} />
-            </>
+              <h2 className="text-3xl font-bold mb-4">Preparando sua Jornada...</h2>
+              <p className="text-slate-400 max-w-md mx-auto mb-12">Nosso Diretor Espiritual está analisando seu perfil para criar uma rotina única e equilibrada.</p>
+              <div className="w-full max-w-xs h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-brand-violet animate-progress-loading" />
+              </div>
+              <button onClick={() => setViewState('app')} className="mt-12 text-brand-violet font-bold flex items-center gap-2 hover:underline">Pular espera <ArrowRight size={18} /></button>
+            </div>
           )}
+          {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} userName={user.name} onLogout={handleLogout} />}
+          {viewState === 'welcome_premium' && (
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-gradient-to-b from-brand-violet/20 to-brand-dark">
+              <div className="w-24 h-24 bg-brand-violet text-white rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-brand-violet/40">
+                <Crown size={48} fill="currentColor" />
+              </div>
+              <h2 className="text-4xl font-black mb-4">Bem-vindo ao Elite!</h2>
+              <p className="text-slate-300 max-w-md mx-auto mb-12 text-lg">Sua assinatura foi confirmada. Agora você tem acesso total à Biblioteca, Ranking e todas as funções premium.</p>
+              <button onClick={() => setViewState('app')} className="bg-white text-brand-dark px-12 py-5 rounded-2xl font-black text-xl shadow-xl hover:scale-105 transition-all flex items-center gap-3">
+                Começar Jornada <PartyPopper size={24} />
+              </button>
+            </div>
+          )}
+          {viewState === 'app' && renderContent()}
       </main>
+
+      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} /></div>}
       
-      {showDailyInspiration && <DailyInspiration onClose={() => setShowDailyInspiration(false)} userName={user.name} />}
-      {showIntentionModal && <CreateIntentionModal onClose={() => setShowIntentionModal(false)} onSubmit={async (c, cat) => { await createIntention(user.id, user.name, user.photoUrl, c, cat, []); fetchCommunityIntentions(user.id).then(setIntentions); }} />}
+      {showTutorial && <Tutorial user={user} onComplete={() => setShowTutorial(false)} />}
+      {showDailyInspiration && <DailyInspiration userName={user.name} onClose={() => setShowDailyInspiration(false)} />}
+      {showIntentionModal && <CreateIntentionModal onClose={() => setShowIntentionModal(false)} onSubmit={async (content, category) => { await createIntention(user.id, user.name, user.photoUrl, content, category, []); fetchCommunityIntentions(user.id).then(setIntentions); setShowIntentionModal(false); }} />}
     </div>
   );
 };

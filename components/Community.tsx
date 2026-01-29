@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PrayerIntention, CommunityChallenge, UserProfile } from '../types';
-import { Heart, Image, Trophy, Plus, Flame, Share2 } from 'lucide-react';
+import { Heart, Image, Trophy, Plus, Flame, Share2, CheckCircle2 } from 'lucide-react';
 import LiturgicalEvents from './LiturgicalEvents';
 import CommunityFeed from './CommunityFeed';
 import LeaderboardWidget from './LeaderboardWidget';
@@ -109,29 +109,45 @@ const Community: React.FC<CommunityProps> = ({
                         {challenges.length > 0 ? (
                            <div className="grid grid-cols-1 gap-4">
                               {challenges.filter(c => c.status === 'active').map(challenge => (
-                                 <div 
-                                    key={challenge.id} 
-                                    onClick={() => onJoinChallenge(challenge.id)}
-                                    className="bg-gradient-to-br from-brand-violet/10 to-purple-500/5 border border-brand-violet/20 p-5 rounded-3xl relative overflow-hidden cursor-pointer hover:border-brand-violet/40 transition-all active:scale-[0.99] shadow-sm"
-                                 >
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-brand-violet/5 rounded-full blur-2xl -mr-8 -mt-8" />
-                                    <div className="flex justify-between items-start mb-3 relative z-10">
-                                       <div className="w-10 h-10 flex items-center justify-center text-brand-violet">
-                                          <Trophy size={28} />
-                                       </div>
-                                       <div className="bg-brand-violet/20 text-brand-violet text-[10px] font-bold px-2 py-1 rounded-lg uppercase">
-                                          {challenge.participants} Participando
-                                       </div>
-                                    </div>
-                                    <h4 className="font-bold text-brand-dark dark:text-white text-base mb-1 relative z-10">{challenge.title}</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 relative z-10">{challenge.description}</p>
-                                    <button 
-                                       onClick={(e) => { e.stopPropagation(); onJoinChallenge(challenge.id); }}
-                                       className="w-full bg-brand-violet text-white text-xs font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all relative z-10"
-                                    >
-                                       Participar do Desafio
-                                    </button>
-                                 </div>
+	                                 <div 
+	                                    key={challenge.id} 
+	                                    onClick={() => {
+                                          if (challenge.isUserParticipating) {
+                                             // Se já participa, abre o banner de desafio (LiturgicalEvents)
+                                             const banner = document.querySelector('[data-challenge-banner="true"]') as HTMLElement;
+                                             if (banner) banner.click();
+                                          } else {
+                                             onJoinChallenge(challenge.id);
+                                          }
+                                       }}
+	                                    className={`bg-gradient-to-br border p-5 rounded-3xl relative overflow-hidden cursor-pointer transition-all active:scale-[0.99] shadow-sm ${challenge.isUserParticipating ? 'from-green-500/10 to-emerald-500/5 border-green-500/20' : 'from-brand-violet/10 to-purple-500/5 border-brand-violet/20 hover:border-brand-violet/40'}`}
+	                                 >
+	                                    <div className="absolute top-0 right-0 w-24 h-24 bg-brand-violet/5 rounded-full blur-2xl -mr-8 -mt-8" />
+	                                    <div className="flex justify-between items-start mb-3 relative z-10">
+	                                       <div className={`w-10 h-10 flex items-center justify-center ${challenge.isUserParticipating ? 'text-green-500' : 'text-brand-violet'}`}>
+	                                          {challenge.isUserParticipating ? <CheckCircle2 size={28} /> : <Trophy size={28} />}
+	                                       </div>
+	                                       <div className={`${challenge.isUserParticipating ? 'bg-green-500/20 text-green-500' : 'bg-brand-violet/20 text-brand-violet'} text-[10px] font-bold px-2 py-1 rounded-lg uppercase`}>
+	                                          {challenge.participants} Participando
+	                                       </div>
+	                                    </div>
+	                                    <h4 className="font-bold text-brand-dark dark:text-white text-base mb-1 relative z-10">{challenge.title}</h4>
+	                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 relative z-10">{challenge.description}</p>
+	                                    <button 
+	                                       onClick={(e) => { 
+                                             e.stopPropagation(); 
+                                             if (challenge.isUserParticipating) {
+                                                const banner = document.querySelector('[data-challenge-banner="true"]') as HTMLElement;
+                                                if (banner) banner.click();
+                                             } else {
+                                                onJoinChallenge(challenge.id);
+                                             }
+                                          }}
+	                                       className={`w-full text-white text-xs font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all relative z-10 ${challenge.isUserParticipating ? 'bg-green-500' : 'bg-brand-violet'}`}
+	                                    >
+	                                       {challenge.isUserParticipating ? 'Ver Desafio de Hoje' : 'Participar do Desafio'}
+	                                    </button>
+	                                 </div>
                               ))}
                            </div>
                         ) : (
