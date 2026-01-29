@@ -20,6 +20,7 @@
     "@capacitor/ios": "^6.0.0",
     "@capacitor/keyboard": "^6.0.4",
     "@capacitor/local-notifications": "^6.1.1",
+    "@capacitor/splash-screen": "^6.0.3",
     "@capacitor/status-bar": "^6.0.3",
     "@google/genai": "^1.30.0",
     "@supabase/supabase-js": "^2.39.3",
