@@ -105,21 +105,25 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
     ORDINARY: {
         RELATIONAL: [
             { title: "Caridade no Olhar", desc: "Procure uma qualidade em alguém que você costuma criticar e elogie essa pessoa hoje.", action: "Mude o ambiente com um elogio sincero.", script: "Acima de tudo, cultivai o amor, que é o laço da perfeição. (Col 3, 14)" },
-            { title: "Escuta Fraterna", desc: "Dedique 10 minutos para ouvir alguém sem interromper ou dar conselhos não pedidos.", action: "Seja o ouvido de Cristo para um irmão.", script: "Todo homem deve ser pronto para ouvir, tardio para falar. (Tg 1, 19)" }
+            { title: "Escuta Fraterna", desc: "Dedique 10 minutos para ouvir alguém sem interromper ou dar conselhos não pedidos.", action: "Seja o ouvido de Cristo para um irmão.", script: "Todo homem deve ser pronto para ouvir, tardio para falar. (Tg 1, 19)" },
+            { title: "Pequeno Gesto", desc: "Faça uma tarefa doméstica ou de trabalho que ninguém gosta de fazer, sem que ninguém perceba.", action: "Sirva com humildade no escondido.", script: "O maior entre vós seja como o menor. (Lc 22, 26)" }
         ],
         SACRIFICE: [
             { title: "Pontualidade Sagrada", desc: "Cumpra rigorosamente seu horário de trabalho ou compromisso como oferta a Deus.", action: "Deus habita na ordem. Seja pontual.", script: "O que fizerdes, fazei-o de bom coração, como para o Senhor. (Col 3, 23)" },
-            { title: "Doce Renúncia", desc: "Abstenha-se de reclamar do clima, do trânsito ou do cansaço durante todo o dia.", action: "Transforme reclamação em oração silenciosa.", script: "Fazei tudo sem murmurações nem críticas. (Fl 2, 14)" }
+            { title: "Doce Renúncia", desc: "Abstenha-se de reclamar do clima, do trânsito ou do cansaço durante todo o dia.", action: "Transforme reclamação em oração silenciosa.", script: "Fazei tudo sem murmurações nem críticas. (Fl 2, 14)" },
+            { title: "Jejum de Curiosidade", desc: "Não procure saber de fofocas ou notícias irrelevantes hoje. Guarde seus sentidos.", action: "Proteja a paz da sua alma.", script: "Guarda a tua língua do mal. (Sl 34, 13)" }
         ]
     },
     LENT: {
         PRAYER: [
             { title: "Deserto Interior", desc: "Passe 15 minutos em silêncio absoluto, sem celular ou distrações, apenas ouvindo Deus.", action: "Abra espaço para a voz do Espírito Santo.", script: "Conduzi-la-ei ao deserto e falarei ao seu coração. (Os 2, 16)" },
-            { title: "Via Sacra Viva", desc: "Ao sentir qualquer dor ou cansaço hoje, una esse sofrimento à Paixão de Cristo.", action: "Sua cruz diária é o caminho da glória.", script: "Quem quiser vir após mim, negue-se a si mesmo e tome sua cruz. (Mt 16, 24)" }
+            { title: "Via Sacra Viva", desc: "Ao sentir qualquer dor ou cansaço hoje, una esse sofrimento à Paixão de Cristo.", action: "Sua cruz diária é o caminho da glória.", script: "Quem quiser vir após mim, negue-se a si mesmo e tome sua cruz. (Mt 16, 24)" },
+            { title: "Intercessão Fervorosa", desc: "Reze um mistério do Rosário por alguém que te ofendeu ou que você tem dificuldade de conviver.", action: "Ame seus inimigos através da oração.", script: "Rezai pelos que vos perseguem. (Mt 5, 44)" }
         ],
         FASTING: [
             { title: "Jejum de Telas", desc: "Desligue todas as notificações não essenciais e só use redes sociais para o necessário.", action: "Recupere o controle da sua atenção para o Céu.", script: "Vigiai e orai, para que não entreis em tentação. (Mt 26, 41)" },
-            { title: "Mesa Humilde", desc: "Faça uma refeição mais simples hoje e ofereça a diferença em esmola ou oração.", action: "Alimente a alma mortificando o corpo.", script: "Nem só de pão vive o homem. (Mt 4, 4)" }
+            { title: "Mesa Humilde", desc: "Faça uma refeição mais simples hoje e ofereça a diferença em esmola ou oração.", action: "Alimente a alma mortificando o corpo.", script: "Nem só de pão vive o homem. (Mt 4, 4)" },
+            { title: "Silêncio de Ouro", desc: "Evite falar palavras desnecessárias hoje. Fale apenas o que for bom para edificar.", action: "O silêncio é a linguagem do amor.", script: "No muito falar não falta pecado. (Pr 10, 19)" }
         ]
     }
   };

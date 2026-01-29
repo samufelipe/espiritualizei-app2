@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CommunityChallenge } from '../types';
-import { CheckCircle2, Play, X, Trophy, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Lightbulb, ListChecks } from 'lucide-react';
+import { CheckCircle2, Play, X, Trophy, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Lightbulb, ListChecks, Share2 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 interface LiturgicalEventsProps {
@@ -59,10 +59,92 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
 
   const handleShare = () => {
     if (onTestify) {
-        const text = `Concluí o desafio comunitário: "${currentDayTopic.title}". 🙏✨`;
+        const text = `Concluí o desafio comunitário de hoje: "${currentDayTopic.title}". 
+
+Minha missão foi: ${currentDayTopic.actionContent}
+
+Convido toda a comunidade a perseverar nesta jornada! 🙏✨`;
         onTestify(text);
-        setShowCompletion(false);
+        // Mantemos o modal aberto para mostrar o botão do Instagram
     }
+  };
+
+  const handleInstagramShare = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Fundo Oficial #1A2530
+    ctx.fillStyle = '#1A2530';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Gradiente sutil
+    const grad = ctx.createRadialGradient(540, 960, 0, 540, 960, 1000);
+    grad.addColorStop(0, '#2A2E35');
+    grad.addColorStop(1, '#1A2530');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Desenhar Coração Lilás (Marca)
+    ctx.fillStyle = '#A78BFA';
+    const drawHeart = (x: number, y: number, size: number) => {
+      ctx.beginPath();
+      ctx.moveTo(x, y + size / 4);
+      ctx.quadraticCurveTo(x, y, x + size / 4, y);
+      ctx.quadraticCurveTo(x + size / 2, y, x + size / 2, y + size / 4);
+      ctx.quadraticCurveTo(x + size / 2, y, x + size * 3/4, y);
+      ctx.quadraticCurveTo(x + size, y, x + size, y + size / 4);
+      ctx.quadraticCurveTo(x + size, y + size / 2, x + size / 2, y + size * 3/4);
+      ctx.quadraticCurveTo(x, y + size / 2, x, y + size / 4);
+      ctx.fill();
+    };
+    drawHeart(540 - 60, 300, 120);
+
+    // Textos
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#FFFFFF';
+    
+    ctx.font = 'bold 40px sans-serif';
+    ctx.fillText('ESPIRITUALIZEI', 540, 500);
+
+    ctx.font = 'bold 30px sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText('DESAFIO CONCLUÍDO', 540, 800);
+
+    ctx.font = 'bold 80px sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    const words = currentDayTopic.title.split(' ');
+    let line = '';
+    let y = 950;
+    words.forEach(word => {
+      if ((line + word).length > 15) {
+        ctx.fillText(line, 540, y);
+        line = word + ' ';
+        y += 100;
+      } else {
+        line += word + ' ';
+      }
+    });
+    ctx.fillText(line, 540, y);
+
+    ctx.font = 'italic 40px serif';
+    ctx.fillStyle = '#A78BFA';
+    ctx.fillText(`"${currentDayTopic.actionContent}"`, 540, y + 200);
+
+    ctx.font = 'bold 35px sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillText('espiritualizei.com', 540, 1750);
+
+    // Download/Share
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `desafio-espiritualizei-${activeChallenge.currentDay}.png`;
+    link.href = dataUrl;
+    link.click();
+    
+    alert("Imagem gerada com sucesso! Agora você pode postar no seu Story e marcar o @espiritualizei.");
   };
 
   const progressPercent = ((activeChallenge.currentDay || 1) / (activeChallenge.totalDays || 3)) * 100;
@@ -313,8 +395,11 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
                   <h3 className="text-3xl font-black text-white mb-3">Deus seja louvado!</h3>
                   <p className="text-slate-400 text-sm mb-8 leading-relaxed">Sua fidelidade nas pequenas coisas do cotidiano edifica toda a nossa Igreja.</p>
                   <div className="space-y-4">
-                     <button onClick={handleShare} className="w-full py-4 rounded-2xl bg-gradient-to-r from-brand-violet to-purple-600 text-white font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-brand-violet/20">
+                     <button onClick={handleShare} className="w-full py-4 rounded-2xl bg-brand-violet text-white font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-brand-violet/20">
                         <MessageCircle size={20} /> Compartilhar com a Comunidade
+                     </button>
+                     <button onClick={handleInstagramShare} className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-pink-500/20">
+                        <Share2 size={20} /> Story do Instagram
                      </button>
                      <button onClick={() => setShowCompletion(false)} className="w-full py-3 text-slate-500 text-sm font-bold">Apenas Concluir</button>
                   </div>
