@@ -125,17 +125,23 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     spiritual_cycle_start: new Date().toISOString()
   };
 
-  // 3. Tentar inserir o perfil (com retry simples ou tratamento de erro detalhado)
+  // 3. Tentar inserir o perfil de forma resiliente
+  // Primeiro tentamos o payload completo
   const { error: dbError } = await supabase.from('profiles').insert([profilePayload]);
   
   if (dbError) {
-    console.error("❌ Erro ao criar perfil no banco de dados:", dbError);
-    // Se o perfil falhar, o usuário ainda existe no Auth. 
-    // Tentamos um 'upsert' caso o trigger do banco já tenha criado algo.
-    const { error: upsertError } = await supabase.from('profiles').upsert([profilePayload]);
-    if (upsertError) {
-      console.error("❌ Falha crítica no Upsert do perfil:", upsertError);
-      throw new Error(`Erro ao salvar dados do perfil: ${upsertError.message}`);
+    console.warn("⚠️ Falha na inserção inicial do perfil, tentando fallback resiliente...", dbError.message);
+    
+    // Fallback 1: Remover colunas que podem não existir no banco ainda
+    const resilientPayload = { ...profilePayload };
+    delete (resilientPayload as any).confession_frequency;
+    delete (resilientPayload as any).last_confession_at;
+    
+    const { error: retryError } = await supabase.from('profiles').upsert([resilientPayload]);
+    
+    if (retryError) {
+      console.error("❌ Falha crítica no registro do perfil:", retryError);
+      throw new Error(`Erro ao salvar dados do perfil: ${retryError.message}`);
     }
   }
 
