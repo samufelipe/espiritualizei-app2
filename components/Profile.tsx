@@ -306,7 +306,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
 	              <Shield size={16} className="text-brand-violet" />
 	              <span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Vida Sacramental</span>
 	           </div>
-	           <div className="bg-[#1A1F26] p-5 rounded-3xl border border-white/10 shadow-card flex items-center justify-between">
+		           <div 
+                  onClick={handleUpdateConfession}
+                  className="bg-[#1A1F26] p-5 rounded-3xl border border-white/10 shadow-card flex items-center justify-between cursor-pointer hover:border-brand-violet/30 transition-all active:scale-[0.98]"
+                >
 	              <div className="flex items-center gap-4">
 	                 <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center ${confession.color}`}>
 	                    <Shield size={20} />

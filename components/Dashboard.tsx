@@ -278,8 +278,11 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
          <div className="md:col-span-8 flex flex-col gap-6">
 	            {/* RASTREADOR DE CONFISSÃO (ESTRATÉGICO) */}
-	            <div className="animate-slide-up mb-2">
-	               <div className={`bg-white dark:bg-[#1A1F26] p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group`}>
+		            <div className="animate-slide-up mb-2">
+		               <div 
+                      onClick={handleUpdateConfession}
+                      className={`bg-white dark:bg-[#1A1F26] p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group cursor-pointer hover:border-brand-violet/30 transition-all active:scale-[0.99]`}
+                    >
 	                  <div className="flex justify-between items-center">
 	                     <div className="flex items-center gap-4">
 	                        <div className={`w-12 h-12 rounded-2xl ${confession.bg} ${confession.color} flex items-center justify-center shrink-0`}>
@@ -304,8 +307,11 @@ const Dashboard: React.FC<DashboardProps> = ({
 	               </div>
 	            </div>
 
-	            {widgetConfig.find(w => w.id === 'liturgyHero')?.isVisible && (
-	                <div className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${style.gradient} p-6 md:p-8 text-white flex flex-col justify-between group transition-all duration-500 min-h-[260px]`}>
+		            {widgetConfig.find(w => w.id === 'liturgyHero')?.isVisible && (
+		                <div 
+                      onClick={() => setShowLiturgyModal(true)}
+                      className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${style.gradient} p-6 md:p-8 text-white flex flex-col justify-between group transition-all duration-500 min-h-[260px] cursor-pointer hover:scale-[1.01] active:scale-[0.99]`}
+                    >
                     <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
                     <div className="relative z-10 flex flex-col h-full">
                         <div className="flex justify-between items-start mb-6">
@@ -329,7 +335,10 @@ const Dashboard: React.FC<DashboardProps> = ({
          </div>
 
          <div className="md:col-span-4 flex flex-col gap-6">
-            <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl min-h-[240px] flex flex-col justify-between group">
+	            <div 
+                  onClick={onNavigateToKnowledge}
+                  className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl min-h-[240px] flex flex-col justify-between group cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10" />
                <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity rotate-12"><BookOpen size={100} /></div>
                <div>

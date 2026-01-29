@@ -102,16 +102,17 @@
     </div>
     <script type="module" src="/index.tsx"></script>
     <script>
-      // Remove a splash screen assim que o React montar
+      // Remove a splash screen com uma transição mais suave e lenta
       window.addEventListener('load', function() {
+        // Aumentamos para 2.5 segundos para o usuário apreciar o ícone
         setTimeout(function() {
           const splash = document.getElementById('pwa-splash');
           if (splash) {
             splash.style.opacity = '0';
-            splash.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => splash.remove(), 500);
+            splash.style.transition = 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+            setTimeout(() => splash.remove(), 1200);
           }
-        }, 1000);
+        }, 2500);
       });
     </script>
   </body>

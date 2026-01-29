@@ -104,7 +104,11 @@ const Community: React.FC<CommunityProps> = ({
                      <div className="lg:hidden space-y-4 mb-6">
                         <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">Desafios Ativos</h3>
                         {challenges.filter(c => c.status === 'active').map(challenge => (
-                           <div key={challenge.id} className="bg-gradient-to-br from-brand-violet/10 to-purple-500/5 border border-brand-violet/20 p-5 rounded-3xl relative overflow-hidden">
+                           <div 
+  key={challenge.id} 
+  onClick={() => onJoinChallenge(challenge.id)}
+  className="bg-gradient-to-br from-brand-violet/10 to-purple-500/5 border border-brand-violet/20 p-5 rounded-3xl relative overflow-hidden cursor-pointer hover:border-brand-violet/40 transition-all active:scale-[0.99]"
+>
                               <div className="flex justify-between items-start mb-3">
                                  <div className="w-10 h-10 rounded-2xl bg-brand-violet text-white flex items-center justify-center shadow-lg shadow-brand-violet/20">
                                     <Trophy size={20} />
