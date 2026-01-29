@@ -35,21 +35,13 @@ serve(async (req) => {
      * A Cakto geralmente envia o status em campos como 'status' ou dentro de um objeto 'data'.
      * O 'ref' é o ID do usuário que injetamos na URL de checkout no frontend.
      */
-    // A Cakto envia o evento em 'events' (array) ou 'event_type'
-    // Na imagem, vemos 'purchase_approved' como um custom_id de evento
-    const eventName = body.event_type || (body.events && body.events[0]?.custom_id) || "";
-    const status = (body.status || body.data?.status || eventName || "").toLowerCase();
-    
-    // O userId é enviado no external_id que configuramos no checkout
-    const userId = body.external_id || body.data?.external_id || body.ref || body.data?.ref;
+    const status = (body.status || body.data?.status || body.event_type || "").toLowerCase();
+    const userId = body.ref || body.data?.ref || body.external_id || body.data?.external_id;
 
-    console.log(`Processando pagamento: Evento [${eventName}] Status [${status}] para Usuário [${userId}]`);
+    console.log(`Processando pagamento: Status [${status}] para Usuário [${userId}]`);
 
     // Lista de status que significam "Dinheiro no bolso / Acesso liberado"
-    const isApproved = [
-      'paid', 'succeeded', 'completed', 'approved', 'payment.succeeded', 'active', 
-      'venda_paga', 'venda_aprovada', 'purchase_approved', 'compra_aprovada'
-    ].includes(status);
+    const isApproved = ['paid', 'succeeded', 'completed', 'approved', 'payment.succeeded', 'active'].includes(status);
 
     if (isApproved && userId) {
       // 3. Atualizar o Perfil do Usuário para Premium
@@ -58,14 +50,20 @@ serve(async (req) => {
         .update({ 
           is_premium: true, 
           subscription_status: 'active',
-          payment_provider: 'cakto',
-          premium_since: new Date().toISOString(),
           last_active_at: new Date().toISOString()
         })
         .eq('id', userId)
         .select()
 
       if (updateError) throw updateError;
+
+      // 4. Registrar log de sucesso na tabela de auditoria
+      await supabaseClient.from('payment_logs').insert({
+        user_id: userId,
+        provider: 'cakto',
+        payload: body,
+        status: 'success'
+      })
 
       console.log(`✅ ACESSO LIBERADO: Usuário ${userId} agora é Premium.`);
 

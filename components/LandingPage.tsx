@@ -533,7 +533,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                         Sua oração é sagrada
                      </h3>
                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Em um mundo barulhento, oferecemos um ambiente limpo, sem anúncios, sem rastreamento e 100% focado no seu momento com Deus. Sua privacidade é sagrada.
+                        Em um mundo barulhento, oferecemos um ambiente limpo, sem anúncios, sem rastreamento e 100% focado no seu momento com Deus. Seu Diário da Alma é privado.
                      </p>
                   </div>
                   <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-slate-100 dark:border-white/5">

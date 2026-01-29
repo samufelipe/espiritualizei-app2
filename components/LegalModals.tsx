@@ -53,7 +53,7 @@ export const PrivacyModal: React.FC<ModalProps> = ({ onClose }) => (
       </div>
       <div className="p-8 overflow-y-auto prose prose-sm prose-slate dark:prose-invert max-w-none leading-relaxed">
         <h3>Dados Coletados</h3>
-        <p>Coletamos apenas nome, e-mail e suas preferências espirituais para personalizar sua jornada. Sua jornada espiritual é estritamente privada.</p>
+        <p>Coletamos apenas nome, e-mail e suas preferências espirituais para personalizar sua jornada. O conteúdo do seu "Diário da Alma" é estritamente privado.</p>
         <h3>Exclusão de Dados</h3>
         <p>Você pode solicitar a exclusão total da sua conta e de todos os seus dados a qualquer momento nas configurações do perfil.</p>
       </div>

@@ -14,8 +14,8 @@ import InstallPWA from './components/InstallPWA';
 import Paywall from './components/Paywall';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
-import { registerUser, getSession, logoutUser, updateUserProfile, supabase } from './services/authService'; 
-import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge } from './services/databaseService';
+import { registerUser, getSession, logoutUser, updateUserProfile } from './services/authService'; 
+import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, createJournalEntry, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge } from './services/databaseService';
 import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -54,28 +54,30 @@ const App: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
-    const urlUserId = params.get('userId');
     const isSuccess = status === 'success' || status === 'paid' || status === 'approved';
     
     if (isSuccess) {
        const session = getSession();
-       const targetUserId = urlUserId || session?.user?.id;
-       
-       if (targetUserId) {
+       if (session?.user) {
+          // 1. Limpa a URL
           window.history.replaceState({}, document.title, "/");
           
-          if (session?.user && session.user.id === targetUserId) {
-            const updatedUser: UserProfile = { 
-              ...session.user, 
-              isPremium: true, 
-              subscriptionStatus: 'active' 
-            };
-            setUser(updatedUser);
-            updateUserProfile(updatedUser);
-          }
+          // 2. Define visualmente como Premium (enquanto o webhook não chega no DB)
+          const updatedUser: UserProfile = { 
+            ...session.user, 
+            isPremium: true, 
+            subscriptionStatus: 'active' 
+          };
+          setUser(updatedUser);
           
+          // 3. Mostra tela de celebração
           setViewState('welcome_premium');
-          upgradeUserToPremium(targetUserId);
+          
+          // 4. Salva no local
+          updateUserProfile(updatedUser);
+
+          // 5. Tenta avisar o banco (fallback caso o webhook falhe mas o redirecionamento ocorra)
+          upgradeUserToPremium(session.user.id);
        }
     }
   }, []);
@@ -89,27 +91,6 @@ const App: React.FC = () => {
       if (session) {
         setUser(session.user);
         setViewState('app');
-
-        try {
-          if (supabase) {
-            const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-            if (profile && !error) {
-              const isNowPremium = profile.is_premium || profile.subscription_status === 'active' || profile.subscription_status === 'premium';
-              
-              if (isNowPremium !== session.user.isPremium) {
-                const updatedUser = { 
-                  ...session.user, 
-                  isPremium: isNowPremium,
-                  subscriptionStatus: profile.subscription_status 
-                };
-                setUser(updatedUser);
-                updateUserProfile(updatedUser);
-              }
-            }
-          }
-        } catch (e) {
-          console.warn("Falha ao sincronizar status em tempo real:", e);
-        }
         
         const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
         if (lastSeen !== new Date().toDateString()) {
@@ -151,7 +132,7 @@ const App: React.FC = () => {
     }
 
     switch (currentTab) {
-      case Tab.DASHBOARD: return <Suspense fallback={<TabLoader />}><Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} onSaveJournal={() => {}} showLiturgyModal={false} setShowLiturgyModal={() => {}} onLogout={handleLogout} onOpenIntentionModal={() => setShowIntentionModal(true)} /></Suspense>;
+      case Tab.DASHBOARD: return <Suspense fallback={<TabLoader />}><Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} onSaveJournal={createJournalEntry} showLiturgyModal={false} setShowLiturgyModal={() => {}} onLogout={handleLogout} onOpenIntentionModal={() => setShowIntentionModal(true)} /></Suspense>;
       case Tab.ROUTINE: return <Suspense fallback={<TabLoader />}><Routine items={routineItems} activeChallenge={activeChallenge} onToggle={() => {}} onAdd={() => {}} onDelete={() => {}} onNavigate={setCurrentTab} /></Suspense>;
       case Tab.KNOWLEDGE: return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
       case Tab.COMMUNITY: return <Suspense fallback={<TabLoader />}><Community intentions={intentions} challenges={challenges} onPray={() => {}} onJoinChallenge={() => {}} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={() => {}} user={user} /></Suspense>;
