@@ -57,8 +57,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
 
           <div className="flex items-center gap-2 sm:gap-4">
             <button 
-              onClick={(e) => { e.preventDefault(); onLogin(); }} 
-              className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-brand-violet transition-colors px-2 py-1"
+              onClick={(e) => { e.preventDefault(); onLogin(); }}
+              onTouchEnd={(e) => { e.preventDefault(); onLogin(); }}
+              className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-brand-violet transition-colors px-2 py-1 cursor-pointer"
             >
               Entrar
             </button>
