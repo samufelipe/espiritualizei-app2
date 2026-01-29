@@ -1,38 +1,35 @@
 
-import { Resend } from 'resend';
+// O SDK do Resend é voltado para ambiente de servidor (Node.js).
+// Para evitar erros de "tela branca" no navegador (PWA), usamos a API REST direta via fetch.
 
-// A chave da API será injetada via variável de ambiente no deploy real
-// Para o ambiente de desenvolvimento, usamos a chave fornecida pelo usuário
-const RESEND_API_KEY = process.env.VITE_RESEND_API_KEY || 're_GeQaP7ie_DBq2jMNrPhmh1B448WErYigA';
-const resend = new Resend(RESEND_API_KEY);
+const RESEND_API_KEY = 're_GeQaP7ie_DBq2jMNrPhmh1B448WErYigA';
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'Espiritualizei <contato@espiritualizei.com>',
-      to: [to],
-      subject: subject,
-      html: html,
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: 'Espiritualizei <contato@espiritualizei.com>',
+        to: [to],
+        subject: subject,
+        html: html,
+      }),
     });
 
-    if (error) {
-      console.error('Erro ao enviar e-mail via Resend:', error);
-      return { success: false, error };
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Erro ao enviar e-mail via Resend API:', data);
+      return { success: false, error: data };
     }
 
     return { success: true, data };
   } catch (error) {
-    console.error('Erro inesperado no serviço de e-mail:', error);
+    console.error('Erro inesperado no serviço de e-mail (Fetch):', error);
     return { success: false, error };
-  }
-};
-
-// Função para validar se o domínio está configurado (útil para debug)
-export const checkDomainStatus = async (domainId: string) => {
-  try {
-    const { data, error } = await resend.domains.get(domainId);
-    return { data, error };
-  } catch (error) {
-    return { error };
   }
 };
