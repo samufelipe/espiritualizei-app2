@@ -52,6 +52,68 @@ const STATIC_DATA: KnowledgeTrack[] = [
         videoSuggestion: { title: "Jejum de Dopamina Católico", url: "https://www.youtube.com/results?search_query=jejum+de+telas+quaresma", channelName: "Italo Marsili" },
         musicSuggestion: { title: "Silêncio Sagrado", url: "https://www.youtube.com/results?search_query=musica+instrumental+catolica+silencio", artist: "Com. Shalom" },
         content: `Vivemos em uma era de hiperestimulação. O cérebro moderno está constantemente sendo bombardeado por notificações, vídeos curtos e curtidas, criando um ciclo de dependência de dopamina que torna a oração profunda quase impossível. A alma, para rezar, precisa de estabilidade e atenção, coisas que o ruído digital destrói.\n\nO jejum de telas na Quaresma é uma forma de "ascese digital". Não se trata de demonizar a tecnologia, mas de recuperar o domínio sobre os nossos sentidos. Quando desligamos o celular, forçamos nossa mente a lidar com o tédio, e é justamente no tédio que muitas vezes Deus começa a falar.\n\nPrática sugerida: Determine "zonas livres de tecnologia" na sua casa e horários sagrados onde o celular não entra. Ao acordar, que a sua primeira conexão seja com o Criador, não com o Wi-Fi. Ao deitar, que a última imagem seja a de uma cruz ou de uma oração, não a luz azul de uma tela. Recupere sua liberdade interior para que sua alma possa voar livremente em direção a Deus.`
+      },
+      {
+        id: 'jejum-agrada-deus',
+        title: 'O Jejum que Agrada a Deus',
+        description: 'Diferença entre dieta e sacrifício espiritual real.',
+        category: 'prayer',
+        duration: '12 min',
+        icon: Flame,
+        videoSuggestion: { title: "Como jejuar corretamente", url: "https://www.youtube.com/results?search_query=como+fazer+jejum+catolico", channelName: "Padre Paulo Ricardo" },
+        musicSuggestion: { title: "Attende Domine", url: "https://www.youtube.com/results?search_query=attende+domine+gregoriano", artist: "Canto Gregoriano" },
+        content: `Muitas vezes confundimos o jejum cristão com uma simples restrição alimentar ou dieta. No entanto, o jejum espiritual tem um propósito muito mais profundo: ele serve para "domar" a nossa vontade e abrir espaço para a fome de Deus. Quando sentimos o vazio no estômago, somos lembrados de que "nem só de pão vive o homem".\n\nO verdadeiro jejum deve ser acompanhado de caridade. Se você economiza dinheiro deixando de comer algo, esse valor deve ser destinado a quem passa fome. Caso contrário, é apenas economia, não sacrifício. Além disso, o jejum deve nos tornar mais pacientes e dóceis, não irritados. Se o seu jejum faz você tratar mal as pessoas ao seu redor, é melhor comer e trabalhar a sua humildade.`
+      },
+      {
+        id: 'vencendo-tentacoes',
+        title: 'Vencendo as Tentações',
+        description: 'Como lidar com a ira e a preguiça no cotidiano.',
+        category: 'doctrine',
+        duration: '15 min',
+        icon: Shield,
+        videoSuggestion: { title: "Combate Espiritual", url: "https://www.youtube.com/results?search_query=combate+espiritual+tentacoes", channelName: "Padre Leonardo Holtz" },
+        musicSuggestion: { title: "Agnus Dei", url: "https://www.youtube.com/results?search_query=agnus+dei+catolico", artist: "Tradicional" },
+        content: `As tentações não acontecem apenas em grandes dilemas morais, mas nas pequenas frestas do nosso dia. A preguiça de acordar no horário, a ira no trânsito, a fofoca disfarçada de "preocupação". Na Quaresma, essas batalhas se intensificam porque estamos tentando subir a montanha.\n\nA estratégia dos santos para vencer a tentação é a vigilância. Santo Agostinho dizia que o inimigo é como um cão acorrentado: ele só morde quem se aproxima demais. Identifique os seus gatilhos. Se você sabe que certas conversas te levam ao pecado, evite-as. Se o cansaço te torna impaciente, reze antes de chegar em casa. A vitória não vem da nossa força, mas da nossa docilidade em pedir socorro a Deus no exato momento da prova.`
+      }
+    ]
+  },
+  {
+    id: 'track-duvidas-coracao',
+    title: 'Dúvidas de Coração',
+    description: 'Respostas para as inquietações da alma peregrina.',
+    items: [
+      {
+        id: 'por-que-rezar',
+        title: 'Por que rezar se Deus já sabe?',
+        description: 'A teologia da oração explicada com simplicidade.',
+        category: 'doctrine',
+        duration: '10 min',
+        icon: MessageSquare,
+        videoSuggestion: { title: "Por que rezar?", url: "https://www.youtube.com/results?search_query=por+que+rezar+se+deus+sabe+tudo", channelName: "Padre Paulo Ricardo" },
+        musicSuggestion: { title: "Oração de São Francisco", url: "https://www.youtube.com/results?search_query=oracao+de+sao+francisco+musica", artist: "Fagner" },
+        content: `Se Deus é onisciente e sabe do que precisamos antes mesmo de pedirmos, por que Ele insiste na oração? A resposta é simples e profunda: Deus não precisa da nossa oração, mas nós precisamos dela. A oração não serve para mudar a mente de Deus, mas para mudar o nosso coração e nos tornar capazes de receber o que Ele já quer nos dar.\n\nRezar é cultivar um relacionamento. Imagine um filho que nunca fala com o pai porque "o pai já sabe que eu o amo". O relacionamento esfriaria. A oração dilata a nossa alma, cria intimidade e nos sintoniza com a vontade divina. É no diálogo orante que deixamos de ser escravos do medo para nos tornarmos filhos da confiança.`
+      },
+      {
+        id: 'ouvir-voz-deus',
+        title: 'Como ouvir a voz de Deus?',
+        description: 'Técnicas de discernimento para o barulho moderno.',
+        category: 'prayer',
+        duration: '15 min',
+        icon: Headphones,
+        videoSuggestion: { title: "Como discernir a voz de Deus", url: "https://www.youtube.com/results?search_query=como+ouvir+a+voz+de+deus+catolico", channelName: "Comunidade Shalom" },
+        musicSuggestion: { title: "Voz de Deus", url: "https://www.youtube.com/results?search_query=musica+voz+de+deus+instrumental", artist: "Suave" },
+        content: `Deus raramente fala em trovões; Ele prefere a "brisa leve", como descobriu o profeta Elias. Para ouvi-Lo, o primeiro passo é o silêncio exterior e interior. Mas como saber se é Deus falando ou apenas a nossa imaginação? O discernimento passa por três filtros:\n\n1. A Palavra: Deus nunca dirá algo que contradiga as Escrituras ou o ensinamento da Igreja.\n2. A Paz: A voz de Deus traz uma paz profunda, mesmo que peça algo difícil. A voz do inimigo ou do nosso ego traz agitação e ansiedade.\n3. Os Frutos: O que essa "voz" produz em você? Mais humildade, caridade e paciência? Então, provavelmente, vem do Alto. Aprenda a ler os sinais nos acontecimentos e nas moções do seu coração durante a oração silenciosa.`
+      },
+      {
+        id: 'oracao-seca',
+        title: 'Quando a oração parece seca',
+        description: 'Lidando com a desolação sem desistir do caminho.',
+        category: 'prayer',
+        duration: '12 min',
+        icon: CloudRain,
+        videoSuggestion: { title: "Aridez Espiritual", url: "https://www.youtube.com/results?search_query=aridez+espiritual+como+lidar", channelName: "Padre Paulo Ricardo" },
+        musicSuggestion: { title: "Nada te turbe", url: "https://www.youtube.com/results?search_query=nada+te+turbe+taize", artist: "Taizé" },
+        content: `Há dias em que rezar é um deleite, e há dias em que parece que estamos falando com o teto. Essa "aridez" é uma etapa comum e necessária na vida espiritual. No início, Deus nos dá "doces" (consolações) para nos atrair, mas depois Ele os retira para ver se O amamos por quem Ele é, ou apenas pelos sentimentos bons que Ele nos proporciona.\n\nSanta Teresa d'Ávila dizia que a oração não consiste em pensar muito, mas em amar muito. Na secura, o seu "sim" vale o dobro. Continue fiel ao seu horário, mesmo sem sentir nada. É no deserto que a fé amadurece e deixa de ser emocional para se tornar uma decisão da vontade. Não desista; o sol continua lá, mesmo atrás das nuvens.`
       }
     ]
   },
@@ -81,6 +143,68 @@ const STATIC_DATA: KnowledgeTrack[] = [
         videoSuggestion: { title: "A Pequena Via de Teresinha", url: "https://www.youtube.com/results?search_query=santa+teresinha+pequena+via", channelName: "Minuto com Deus" },
         musicSuggestion: { title: "Só por amor", url: "https://www.youtube.com/results?search_query=musica+santa+teresinha", artist: "Com. Shalom" },
         content: `Santa Teresinha do Menino Jesus revolucionou a espiritualidade moderna com sua "Pequena Via". Ela nos ensina que a santidade não consiste em realizar obras grandiosas, mas em fazer as pequenas coisas do dia a dia com um amor extraordinário. Para Teresinha, ser santo é ser como uma criança nos braços do Pai: confiante, simples e totalmente dependente da Sua graça.`
+      },
+      {
+        id: 'santos-humanos',
+        title: 'Santos "Gente como a Gente"',
+        description: 'Lutas modernas de quem alcançou o céu.',
+        category: 'doctrine',
+        duration: '15 min',
+        icon: Users,
+        videoSuggestion: { title: "Santos e suas fraquezas", url: "https://www.youtube.com/results?search_query=santos+que+tiveram+depressao+ou+ansiedade", channelName: "Canção Nova" },
+        musicSuggestion: { title: "Hino dos Santos", url: "https://www.youtube.com/results?search_query=musica+todos+os+santos", artist: "Tradicional" },
+        content: `Muitas vezes pintamos os santos em redomas de vidro, como se nunca tivessem sentido medo, raiva ou cansaço. Mas a verdade é que eles foram homens e mulheres de carne e osso. São Marcos tinha um temperamento difícil; Santa Jane de Chantal lutou contra a depressão; São Camilo de Lellis era viciado em jogos antes da conversão.\n\nA santidade não é a ausência de lutas, mas a persistência em Deus apesar delas. Eles não foram perfeitos, foram fiéis. Conhecer o lado humano dos santos nos dá esperança: se Deus fez maravilhas na fraqueza deles, também pode fazer na nossa. Você não precisa ser um anjo para começar o caminho; precisa apenas ser um pecador que não desiste de ser amado.`
+      }
+    ]
+  },
+  {
+    id: 'track-beleza-liturgia',
+    title: 'Beleza e Liturgia',
+    description: 'Descubra o sagrado nos detalhes da nossa fé.',
+    items: [
+      {
+        id: 'simbolos-missa',
+        title: 'Símbolos que você não vê',
+        description: 'O significado das cores, incenso e gestos.',
+        category: 'mass',
+        duration: '10 min',
+        icon: Sparkles,
+        videoSuggestion: { title: "Significado dos Símbolos Litúrgicos", url: "https://www.youtube.com/results?search_query=simbolos+da+missa+significado", channelName: "Minuto com Deus" },
+        musicSuggestion: { title: "Kyrie Eleison", url: "https://www.youtube.com/results?search_query=kyrie+eleison+gregoriano", artist: "Tradicional" },
+        content: `Na Missa, nada é por acaso. O incenso que sobe representa nossas orações elevando-se a Deus. O roxo da Quaresma fala de penitência e espera. Quando o padre mistura uma gota de água no vinho, ele está simbolizando a nossa humanidade sendo mergulhada na divindade de Cristo.\n\nEntender esses sinais transforma a Missa de um rito repetitivo em uma experiência mística. Quando você se ajoelha, não é apenas um gesto físico, mas a sua alma reconhecendo a grandeza do Criador. Ao bater no peito no "Confesso", você está despertando o seu coração para a necessidade de cura. A liturgia é uma linguagem de amor que fala aos nossos sentidos para alcançar o nosso espírito.`
+      },
+      {
+        id: 'ler-biblia',
+        title: 'Como ler a Bíblia sem se perder',
+        description: 'Um mapa para começar pelos Evangelhos.',
+        category: 'doctrine',
+        duration: '12 min',
+        icon: BookOpen,
+        videoSuggestion: { title: "Como começar a ler a Bíblia", url: "https://www.youtube.com/results?search_query=como+ler+a+biblia+catolico+por+onde+comecar", channelName: "Padre Paulo Ricardo" },
+        musicSuggestion: { title: "Tua Palavra", url: "https://www.youtube.com/results?search_query=musica+tua+palavra+e+luz", artist: "Aline Barros" },
+        content: `Muitos desistem de ler a Bíblia porque tentam começar pelo Gênesis e param no Levítico. A Bíblia é uma biblioteca, e toda biblioteca precisa de um guia. Para o cristão, o centro de tudo é Jesus. Por isso, comece sempre pelos Evangelhos (Marcos é o mais curto e dinâmico).\n\nDepois, siga para os Atos dos Apóstolos para ver a Igreja nascendo. Só então mergulhe nos Salmos para aprender a rezar com todas as emoções humanas. O Antigo Testamento deve ser lido como uma promessa que se cumpre em Cristo. Não tenha pressa de terminar; tenha sede de encontrar. Use uma boa tradução e, se possível, uma Bíblia de estudos para entender o contexto histórico e teológico.`
+      },
+      {
+        id: 'poder-rosario',
+        title: 'O Poder do Rosário',
+        description: 'Por que esta oração ainda é a arma mais poderosa.',
+        category: 'prayer',
+        duration: '15 min',
+        icon: Cross,
+        videoSuggestion: { title: "O Poder do Santo Terço", url: "https://www.youtube.com/results?search_query=por+que+rezar+o+terço+todos+os+dias", channelName: "Padre Paulo Ricardo" },
+        musicSuggestion: { title: "Maria de Nazaré", url: "https://www.youtube.com/results?search_query=musica+maria+de+nazare", artist: "Padre Zezinho" },
+        content: `O Rosário não é uma repetição mecânica de palavras, mas uma meditação dos mistérios da vida de Cristo através dos olhos de Maria. É o "Evangelho dos humildes". Enquanto nossos lábios dizem a Ave-Maria, nossa mente contempla o nascimento, a paixão e a glória do Senhor.\n\nNossa Senhora prometeu em Fátima que o Rosário é a arma para alcançar a paz. Ele acalma a mente, disciplina o coração e nos coloca sob a proteção materna da Rainha do Céu. Se você não consegue rezar o Rosário inteiro, comece com um mistério (uma dezena) por dia. O importante é a constância e o amor com que cada conta é percorrida.`
+      },
+      {
+        id: 'domingo-familia',
+        title: 'Viver o Domingo em Família',
+        description: 'Como santificar o dia do Senhor na correria.',
+        category: 'mass',
+        duration: '10 min',
+        icon: Moon,
+        videoSuggestion: { title: "Como santificar o Domingo", url: "https://www.youtube.com/results?search_query=como+viver+o+domingo+em+familia+catolico", channelName: "Família Católica" },
+        musicSuggestion: { title: "Dia do Senhor", url: "https://www.youtube.com/results?search_query=musica+dia+do+senhor", artist: "Com. Shalom" },
+        content: `O Domingo não é apenas o "fim de semana", é o Dia do Senhor, o oitavo dia da criação. Santificá-lo vai além de ir à Missa. Significa fazer desse dia um tempo de repouso sagrado, de convívio familiar e de caridade.\n\nEvite trabalhos desnecessários e compras que poderiam ser feitas em outro dia. Prepare um almoço especial, desligue as telas e dedique tempo real aos seus filhos, pais ou cônjuge. O descanso dominical é um ato de rebeldia contra o mundo que nos quer transformar em máquinas de produção. É o dia em que lembramos que somos filhos amados de Deus, destinados à eternidade.`
       }
     ]
   },
@@ -169,16 +293,16 @@ const KnowledgeBase: React.FC = () => {
             {[
               { id: 'all', label: 'Tudo', icon: Sparkles },
               { id: 'doctrine', label: 'Doutrina', icon: GraduationCap },
-              { id: 'prayer', label: 'Oração', icon: Flame },
-              { id: 'mass', label: 'Santa Missa', icon: Church }
-            ].map(cat => (
+              { id: 'prayer', label: 'Oração', icon: Heart },
+              { id: 'mass', label: 'Missa', icon: Church },
+            ].map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id as any)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
                   activeCategory === cat.id 
                     ? 'bg-brand-violet text-white shadow-lg shadow-brand-violet/20' 
-                    : 'bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/10'
+                    : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-200'
                 }`}
               >
                 <cat.icon size={16} />
@@ -190,40 +314,49 @@ const KnowledgeBase: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {filteredTracks.length > 0 ? (
+      <div className="max-w-6xl mx-auto px-6 mt-10">
+        {filteredTracks.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-20 h-20 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="text-slate-300" size={32} />
+            </div>
+            <h3 className="text-lg font-bold text-brand-dark dark:text-white">Nenhum conteúdo encontrado</h3>
+            <p className="text-slate-500">Tente buscar por outros termos ou categorias.</p>
+          </div>
+        ) : (
           <div className="space-y-12">
-            {filteredTracks.map(track => (
+            {filteredTracks.map((track) => (
               <div key={track.id} className="animate-slide-up">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-xl font-extrabold text-brand-dark dark:text-white">{track.title}</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{track.description}</p>
+                    <h2 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">{track.title}</h2>
+                    <p className="text-sm text-slate-500 font-medium">{track.description}</p>
                   </div>
                 </div>
-
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {track.items.map(item => (
-	                    <div 
-	                      key={item.id}
-	                      onClick={() => setSelectedItem(item)}
-	                      className="bg-white dark:bg-[#1A1F26] rounded-[2rem] p-6 shadow-card border border-slate-100 dark:border-white/5 hover:shadow-xl hover:border-brand-violet/20 transition-all cursor-pointer group active:scale-[0.98]"
-	                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 flex items-center justify-center text-brand-violet group-hover:scale-110 transition-transform">
-                          <item.icon size={32} />
+                  {track.items.map((item) => (
+                    <div 
+                      key={item.id}
+                      onClick={() => setSelectedItem(item)}
+                      className="group bg-white dark:bg-[#1A1F26] rounded-[2rem] border border-slate-100 dark:border-white/5 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="text-brand-violet">
+                          <item.icon size={28} strokeWidth={1.5} />
                         </div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          <Clock size={12} /> {item.duration}
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <Clock size={12} />
+                          {item.duration}
                         </div>
                       </div>
                       <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-2 group-hover:text-brand-violet transition-colors">{item.title}</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-6">{item.description}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">{item.description}</p>
                       
-                      <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-white/5">
-                        <span className="text-[10px] font-bold text-brand-violet uppercase tracking-widest">Ler agora</span>
-                        <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-brand-violet group-hover:text-white transition-all">
-                          <ChevronRight size={16} />
+                      <div className="mt-6 flex items-center justify-between">
+                        <span className="text-[10px] font-black text-brand-violet uppercase tracking-[0.2em]">Ler agora</span>
+                        <div className="w-8 h-8 rounded-xl bg-brand-violet/10 text-brand-violet flex items-center justify-center group-hover:bg-brand-violet group-hover:text-white transition-all">
+                          <ChevronRight size={18} />
                         </div>
                       </div>
                     </div>
@@ -232,100 +365,89 @@ const KnowledgeBase: React.FC = () => {
               </div>
             ))}
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center text-slate-400 mb-4">
-              <Search size={32} />
-            </div>
-            <h3 className="text-xl font-bold text-brand-dark dark:text-white">Nenhum conteúdo encontrado</h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-xs mt-2">Tente buscar por outros termos ou mude a categoria.</p>
-          </div>
         )}
       </div>
 
-      {/* Modal de Conteúdo */}
+      {/* Detail Modal */}
       {selectedItem && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-brand-dark/90 backdrop-blur-md animate-fade-in" onClick={() => setSelectedItem(null)} />
-          
-          <div className="relative w-full max-w-4xl bg-white dark:bg-brand-dark rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-slide-up border border-white/10">
+          <div className="absolute inset-0 bg-brand-dark/80 backdrop-blur-md animate-fade-in" onClick={() => setSelectedItem(null)} />
+          <div className="relative w-full max-w-3xl bg-white dark:bg-[#1A1F26] rounded-[2.5rem] shadow-2xl overflow-hidden animate-slide-up flex flex-col max-h-[90vh]">
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-black/20">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-brand-violet/10 flex items-center justify-center text-brand-violet">
-                  <selectedItem.icon size={20} />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-brand-dark dark:text-white leading-tight">{selectedItem.title}</h2>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedItem.duration} de leitura</p>
-                </div>
+            <div className="relative h-48 sm:h-64 bg-brand-violet overflow-hidden shrink-0">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                <selectedItem.icon size={120} strokeWidth={1} className="text-white" />
               </div>
               <button 
                 onClick={() => setSelectedItem(null)}
-                className="w-10 h-10 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-brand-dark dark:hover:text-white transition-colors shadow-sm"
+                className="absolute top-6 right-6 z-20 w-10 h-10 bg-black/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-black/40 transition-all"
               >
                 <X size={20} />
               </button>
+              <div className="absolute bottom-8 left-8 right-8 z-20">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-3 py-1 bg-brand-violet text-white text-[10px] font-black uppercase tracking-widest rounded-full">
+                    {selectedItem.category === 'doctrine' ? 'Doutrina' : selectedItem.category === 'prayer' ? 'Oração' : 'Missa'}
+                  </span>
+                  <span className="text-white/80 text-xs font-medium flex items-center gap-1">
+                    <Clock size={12} /> {selectedItem.duration} de leitura
+                  </span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">{selectedItem.title}</h2>
+              </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-8 sm:p-12">
-              <div className="max-w-2xl mx-auto">
-                <div className="prose prose-slate dark:prose-invert max-w-none">
-                  {selectedItem.content.split('\n\n').map((paragraph, idx) => (
-                    <p key={idx} className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed mb-6 font-medium">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-8 sm:p-10 no-scrollbar">
+              <div className="prose prose-slate dark:prose-invert max-w-none">
+                {selectedItem.content.split('\n\n').map((paragraph, idx) => (
+                  <p key={idx} className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed mb-6 font-medium">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
 
-                {/* Aprofundamento */}
-                <div className="mt-12 pt-12 border-t border-slate-100 dark:border-white/10">
-                  <h3 className="text-xl font-bold text-brand-dark dark:text-white mb-6 flex items-center gap-2">
-                    <Zap className="text-brand-violet" size={20} /> Aprofunde sua Experiência
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <a 
-                      href={selectedItem.videoSuggestion.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl hover:bg-brand-violet/5 transition-all group border border-transparent hover:border-brand-violet/20"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/20 flex items-center justify-center text-red-600">
-                        <Youtube size={24} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Vídeo Sugerido</p>
-                        <p className="text-sm font-bold text-brand-dark dark:text-white group-hover:text-brand-violet transition-colors">{selectedItem.videoSuggestion.title}</p>
-                      </div>
-                    </a>
-
-                    <a 
-                      href={selectedItem.musicSuggestion.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl hover:bg-brand-violet/5 transition-all group border border-transparent hover:border-brand-violet/20"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-600">
-                        <Music size={24} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Música para Rezar</p>
-                        <p className="text-sm font-bold text-brand-dark dark:text-white group-hover:text-brand-violet transition-colors">{selectedItem.musicSuggestion.title}</p>
-                      </div>
-                    </a>
+              {/* Suggestions */}
+              <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <a 
+                  href={selectedItem.videoSuggestion.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-500/20 group hover:scale-[1.02] transition-all"
+                >
+                  <div className="w-12 h-12 bg-red-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20">
+                    <Youtube size={24} />
                   </div>
-                </div>
+                  <div>
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Vídeo Sugerido</p>
+                    <p className="text-sm font-bold text-brand-dark dark:text-white truncate max-w-[180px]">{selectedItem.videoSuggestion.title}</p>
+                  </div>
+                </a>
+
+                <a 
+                  href={selectedItem.musicSuggestion.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-500/20 group hover:scale-[1.02] transition-all"
+                >
+                  <div className="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <Music size={24} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Música para Orar</p>
+                    <p className="text-sm font-bold text-brand-dark dark:text-white truncate max-w-[180px]">{selectedItem.musicSuggestion.title}</p>
+                  </div>
+                </a>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex justify-center">
-              <button 
-                onClick={() => setSelectedItem(null)}
-                className="bg-brand-violet text-white font-bold px-10 py-4 rounded-2xl shadow-lg shadow-brand-violet/20 hover:scale-105 active:scale-95 transition-all"
-              >
+            <div className="p-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-black/20">
+              <button className="flex items-center gap-2 text-slate-500 font-bold text-sm hover:text-brand-violet transition-colors">
+                <Bookmark size={18} /> Salvar nos favoritos
+              </button>
+              <button className="bg-brand-violet text-white px-8 py-3 rounded-xl font-bold text-sm shadow-lg shadow-brand-violet/20 hover:scale-105 active:scale-95 transition-all">
                 Concluir Leitura
               </button>
             </div>
