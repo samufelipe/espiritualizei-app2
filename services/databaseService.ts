@@ -2,6 +2,7 @@ import { supabase, getConnectionStatus, getSession, safeStringify } from './auth
 import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData, CommunityChallenge, DailyTopic, PaymentLog } from '../types';
 import { getSeasonDetailedInfo } from './liturgyService';
 import * as EmailTemplates from './emailTemplates';
+import { sendEmail } from './resendService';
 
 /**
  * BUSCA HISTÓRICO DE PAGAMENTOS
@@ -659,6 +660,14 @@ export const queueEngagementEmail = async (userId: string, type: 'welcome' | 'ac
         status: 'pending',
         created_at: new Date().toISOString()
       }]);
+
+      // Tenta enviar imediatamente se for um e-mail crítico (como boas-vindas)
+      if (type === 'welcome') {
+        const userEmail = localStorage.getItem('user_email');
+        if (userEmail) {
+          await sendEmail(userEmail, subject, htmlContent);
+        }
+      }
     } catch (e) {
       console.error("Erro ao enfileirar e-mail:", e);
     }

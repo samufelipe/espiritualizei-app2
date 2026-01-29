@@ -120,7 +120,11 @@ const App: React.FC = () => {
                    setUser(updatedUser);
                    // Atualiza o cache local com os dados reais do servidor
                    const s = getSession();
-                   if (s) { s.user = updatedUser; localStorage.setItem('espiritualizei_session', JSON.stringify(s)); }
+                   if (s) { 
+                     s.user = updatedUser; 
+                     localStorage.setItem('espiritualizei_session', JSON.stringify(s));
+                     localStorage.setItem('user_email', updatedUser.email || '');
+                   }
                    console.log("🛡️ Sincronização Mestre: Perfil restaurado do servidor.");
                 } else {
                    setUser(session.user);
