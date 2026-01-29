@@ -19,7 +19,7 @@ import { registerUser, getSession, logoutUser, updateUserProfile, supabase, mapP
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
-import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost, checkAndLogActivity } from './services/databaseService';
+import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost, checkAndLogActivity, queueEngagementEmail } from './services/databaseService';
 import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -225,6 +225,9 @@ const App: React.FC = () => {
 	                    await saveUserRoutine(session.user.id, initialRoutine);
 	                    setRoutineItems(initialRoutine);
 	                    
+	                    // Disparar e-mail de boas-vindas
+	                    queueEngagementEmail(session.user.id, 'welcome', { userName: session.user.name });
+
 	                    // Simular tempo de "análise" para o usuário
 	                    setTimeout(() => {
 	                      setViewState('app');
@@ -247,7 +250,7 @@ const App: React.FC = () => {
                 <Sparkles size={48} className="text-brand-violet" />
               </div>
               <h2 className="text-3xl font-bold mb-4 text-white">Preparando sua Jornada...</h2>
-              <p className="text-slate-400 max-w-md mx-auto mb-12">Nosso Diretor Espiritual está analisando seu perfil para criar uma rotina única e equilibrada.</p>
+              <p className="text-slate-400 max-w-md mx-auto mb-12">Nossa inteligência está analisando seu perfil para criar uma rotina única e equilibrada.</p>
               <div className="w-full max-w-xs h-1.5 bg-white/5 rounded-full overflow-hidden">
                 <div className="h-full bg-brand-violet animate-progress-loading" />
               </div>

@@ -69,7 +69,7 @@ export const generateDailyReflection = async (todaySaint: string): Promise<strin
 };
 
 // Fix: Added missing sendMessageToSpiritualDirector function used by JournalModal
-export const sendMessageToSpiritualDirector = async (message: string): Promise<string> => {
+export const sendMessageToGuide = async (message: string): Promise<string> => {
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -85,7 +85,7 @@ export const sendMessageToSpiritualDirector = async (message: string): Promise<s
 
 export const generateSpiritualRoutine = async (data: OnboardingData, reviewData?: MonthlyReviewData): Promise<{ routine: RoutineItem[], profileDescription: string, profileReasoning: string }> => {
   const systemPrompt = `
-    Você é um Diretor Espiritual Católico. Crie uma "Jornada Diária" personalizada e ÚNICA para cada dia da semana.
+    Você é um Guia de Jornada Católica. Crie uma "Regra de Vida" personalizada e ÚNICA para cada dia da semana.
     IMPORTANTE: Cada dia da semana DEVE ter itens específicos que NÃO se repetem nos outros dias, respeitando a tradição da Igreja:
     
     - Domingo (0): FOCO ABSOLUTO NA SANTA MISSA. Itens: Preparação para a Missa (manhã), Participar da Santa Missa (Ação Principal), Descanso do Senhor (tarde/noite). (Ação: OPEN_SOCIAL para ver a comunidade unida).

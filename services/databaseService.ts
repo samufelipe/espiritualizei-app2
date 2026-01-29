@@ -1,6 +1,7 @@
 import { supabase, getConnectionStatus, getSession, safeStringify } from './authService';
 import { RoutineItem, PrayerIntention, JournalEntry, CommunityPost, Comment, Notification, LeaderboardData, CommunityChallenge, DailyTopic, PaymentLog } from '../types';
 import { getSeasonDetailedInfo } from './liturgyService';
+import * as EmailTemplates from './emailTemplates';
 
 /**
  * BUSCA HISTÓRICO DE PAGAMENTOS
@@ -620,12 +621,40 @@ export const uploadImage = async (file: File, bucket: 'avatars' | 'posts'): Prom
 /**
  * FILA DE E-MAILS PARA ENGAJAMENTO
  */
-export const queueEngagementEmail = async (userId: string, type: 'challenge' | 'liturgy' | 'ranking' | 'inactivity', payload: any) => {
+export const queueEngagementEmail = async (userId: string, type: 'welcome' | 'achievement' | 'liturgy' | 'intercession' | 'inactivity', payload: any) => {
   if (getConnectionStatus()) {
     try {
+      let htmlContent = '';
+      let subject = '';
+
+      switch (type) {
+        case 'welcome':
+          htmlContent = EmailTemplates.getWelcomeEmail(payload.userName);
+          subject = `Bem-vindo ao Espiritualizei, ${payload.userName.split(' ')[0]}!`;
+          break;
+        case 'achievement':
+          htmlContent = EmailTemplates.getAchievementEmail(payload.userName, payload.achievement);
+          subject = 'Sua alma está florescendo! ✨';
+          break;
+        case 'liturgy':
+          htmlContent = EmailTemplates.getLiturgyEmail(payload.userName, payload.seasonName, payload.seasonColor);
+          subject = `Um novo tempo começou: ${payload.seasonName}`;
+          break;
+        case 'intercession':
+          htmlContent = EmailTemplates.getIntercessionEmail(payload.userName);
+          subject = 'Alguém acendeu uma vela por você! 🕯️';
+          break;
+        case 'inactivity':
+          htmlContent = EmailTemplates.getInactivityEmail(payload.userName);
+          subject = 'Sentimos sua falta... Vamos retomar?';
+          break;
+      }
+
       await supabase!.from('email_queue').insert([{
         user_id: userId,
         email_type: type,
+        subject: subject,
+        html_content: htmlContent,
         payload: payload,
         status: 'pending',
         created_at: new Date().toISOString()

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { X, PenLine, Save, BookOpen } from 'lucide-react';
 import { JournalEntry } from '../types';
-import { sendMessageToSpiritualDirector } from '../services/geminiService';
+import { sendMessageToGuide } from '../services/geminiService';
 import BrandLogo from './BrandLogo';
 
 interface JournalModalProps {
@@ -36,7 +36,7 @@ const JournalModal: React.FC<JournalModalProps> = ({ mood, onClose, onSave }) =>
              "verse": "Uma referência bíblica (ex: Salmo 23, 1) que conforte ou ilumine."
           }
         `;
-        const response = await sendMessageToSpiritualDirector(prompt);
+        const response = await sendMessageToGuide(prompt);
         
         const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
         
