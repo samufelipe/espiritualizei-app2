@@ -15,7 +15,7 @@ import Paywall from './components/Paywall';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { registerUser, getSession, logoutUser, updateUserProfile, supabase } from './services/authService'; 
-import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, createJournalEntry, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge } from './services/databaseService';
+import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge } from './services/databaseService';
 import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -59,14 +59,11 @@ const App: React.FC = () => {
     
     if (isSuccess) {
        const session = getSession();
-       // Se temos o userId na URL ou na sessão, podemos processar
        const targetUserId = urlUserId || session?.user?.id;
        
        if (targetUserId) {
-          // 1. Limpa a URL para evitar re-processamento ao dar refresh
           window.history.replaceState({}, document.title, "/");
           
-          // 2. Se o usuário logado for o mesmo do pagamento, atualiza localmente
           if (session?.user && session.user.id === targetUserId) {
             const updatedUser: UserProfile = { 
               ...session.user, 
@@ -77,10 +74,7 @@ const App: React.FC = () => {
             updateUserProfile(updatedUser);
           }
           
-          // 3. Mostra tela de celebração (independente de estar logado ou não, pois o pagamento foi dele)
           setViewState('welcome_premium');
-
-          // 4. Tenta avisar o banco (fallback caso o webhook demore)
           upgradeUserToPremium(targetUserId);
        }
     }
@@ -93,19 +87,15 @@ const App: React.FC = () => {
     const initSession = async () => {
       const session = getSession();
       if (session) {
-        // 1. Define o usuário local imediatamente para não travar a tela
         setUser(session.user);
         setViewState('app');
 
-        // 2. VERIFICAÇÃO EM TEMPO REAL: Busca o status mais recente do banco
-        // Isso resolve o problema de o usuário ser Premium no banco mas o LocalStorage estar desatualizado
         try {
           if (supabase) {
             const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
             if (profile && !error) {
               const isNowPremium = profile.is_premium || profile.subscription_status === 'active' || profile.subscription_status === 'premium';
               
-              // Se o status no banco for diferente do local, atualiza tudo
               if (isNowPremium !== session.user.isPremium) {
                 const updatedUser = { 
                   ...session.user, 
@@ -114,7 +104,6 @@ const App: React.FC = () => {
                 };
                 setUser(updatedUser);
                 updateUserProfile(updatedUser);
-                console.log("Status de assinatura sincronizado com o banco de dados.");
               }
             }
           }
@@ -162,7 +151,7 @@ const App: React.FC = () => {
     }
 
     switch (currentTab) {
-      case Tab.DASHBOARD: return <Suspense fallback={<TabLoader />}><Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} onSaveJournal={createJournalEntry} showLiturgyModal={false} setShowLiturgyModal={() => {}} onLogout={handleLogout} onOpenIntentionModal={() => setShowIntentionModal(true)} /></Suspense>;
+      case Tab.DASHBOARD: return <Suspense fallback={<TabLoader />}><Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} onSaveJournal={() => {}} showLiturgyModal={false} setShowLiturgyModal={() => {}} onLogout={handleLogout} onOpenIntentionModal={() => setShowIntentionModal(true)} /></Suspense>;
       case Tab.ROUTINE: return <Suspense fallback={<TabLoader />}><Routine items={routineItems} activeChallenge={activeChallenge} onToggle={() => {}} onAdd={() => {}} onDelete={() => {}} onNavigate={setCurrentTab} /></Suspense>;
       case Tab.KNOWLEDGE: return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
       case Tab.COMMUNITY: return <Suspense fallback={<TabLoader />}><Community intentions={intentions} challenges={challenges} onPray={() => {}} onJoinChallenge={() => {}} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={() => {}} user={user} /></Suspense>;

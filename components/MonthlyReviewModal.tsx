@@ -31,8 +31,7 @@ const MonthlyReviewModal: React.FC<MonthlyReviewModalProps> = ({ onClose, onComp
     { id: 'community', label: 'Mural de Orações', icon: Users },
     { id: 'challenge', label: 'Desafio Comunitário', icon: Trophy },
     { id: 'library', label: 'Biblioteca da Fé', icon: GraduationCap },
-    { id: 'maps', label: 'Localizador de Igrejas', icon: MapPin },
-    { id: 'journal', label: 'Diário da Alma', icon: PenLine }
+    { id: 'maps', label: 'Localizador de Igrejas', icon: MapPin }
   ];
 
   const STRUGGLES = [

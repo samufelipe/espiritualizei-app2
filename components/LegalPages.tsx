@@ -48,7 +48,7 @@ export const PrivacyPage: React.FC = () => (
   <PageLayout title="Política de Privacidade">
     <div className="prose prose-lg prose-slate dark:prose-invert max-w-none">
         <h3>Privacidade</h3>
-        <p>Seus dados são protegidos e seu Diário da Alma é privado.</p>
+        <p>Seus dados são protegidos e sua privacidade é sagrada.</p>
     </div>
   </PageLayout>
 );
