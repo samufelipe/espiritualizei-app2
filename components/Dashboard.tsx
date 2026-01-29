@@ -24,6 +24,7 @@ interface DashboardProps {
   setShowLiturgyModal: (show: boolean) => void;
   onLogout: () => void;
   onOpenIntentionModal: () => void;
+  onUpdateUser: (u: UserProfile) => void;
 }
 
 type WidgetId = 'liturgyHero' | 'prayerIncentives' | 'communityPreview' | 'quickActions' | 'progressSummary';
@@ -54,7 +55,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   showLiturgyModal,
   setShowLiturgyModal,
   onLogout,
-  onOpenIntentionModal
+  onOpenIntentionModal,
+  onUpdateUser
 }) => {
   const [dailyTheme, setDailyTheme] = useState<string>('Buscai as coisas do alto.');
   const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening'>('morning');
@@ -120,6 +122,25 @@ const Dashboard: React.FC<DashboardProps> = ({
       case 'evening': return { text: 'Boa noite', icon: Moon };
     }
   })();
+
+  const getConfessionStatus = () => {
+    if (!user.lastConfessionAt) return { days: null, label: 'Não registrado', color: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/20' };
+    const last = new Date(user.lastConfessionAt);
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diff <= 15) return { days: diff, label: 'Alma em paz', color: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-500/20' };
+    if (diff <= 30) return { days: diff, label: 'Vigilância necessária', color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' };
+    return { days: diff, label: 'Busque o Sacramento', color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/20' };
+  };
+
+  const confession = getConfessionStatus();
+
+  const handleUpdateConfession = async () => {
+      const today = new Date();
+      const updatedUser = { ...user, lastConfessionAt: today };
+      onUpdateUser(updatedUser);
+  };
 
   const style = (() => {
      const color = liturgyData?.liturgicalColor?.toLowerCase() || '';
@@ -256,8 +277,35 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
          <div className="md:col-span-8 flex flex-col gap-6">
-            {widgetConfig.find(w => w.id === 'liturgyHero')?.isVisible && (
-                <div className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${style.gradient} p-6 md:p-8 text-white flex flex-col justify-between group transition-all duration-500 min-h-[260px]`}>
+	            {/* RASTREADOR DE CONFISSÃO (ESTRATÉGICO) */}
+	            <div className="animate-slide-up mb-2">
+	               <div className={`bg-white dark:bg-[#1A1F26] p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group`}>
+	                  <div className="flex justify-between items-center">
+	                     <div className="flex items-center gap-4">
+	                        <div className={`w-12 h-12 rounded-2xl ${confession.bg} ${confession.color} flex items-center justify-center shrink-0`}>
+	                           <Shield size={24} />
+	                        </div>
+	                        <div>
+	                           <h3 className="text-sm font-bold text-brand-dark dark:text-white">Vida Sacramental</h3>
+	                           <p className={`text-[11px] font-bold ${confession.color}`}>{confession.label}</p>
+	                        </div>
+	                     </div>
+	                     <div className="text-right">
+	                        <span className="text-2xl font-black text-brand-dark dark:text-white">{confession.days ?? '--'}</span>
+	                        <span className="block text-[9px] text-slate-500 font-bold uppercase">Dias</span>
+	                     </div>
+	                  </div>
+	                  <button 
+	                    onClick={handleUpdateConfession}
+	                    className="w-full mt-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-brand-dark dark:text-white py-3 rounded-xl text-[11px] font-bold hover:bg-brand-violet hover:text-white hover:border-brand-violet transition-all flex items-center justify-center gap-2"
+	                  >
+	                     <CheckCircle2 size={14} /> Registar Confissão de Hoje
+	                  </button>
+	               </div>
+	            </div>
+
+	            {widgetConfig.find(w => w.id === 'liturgyHero')?.isVisible && (
+	                <div className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${style.gradient} p-6 md:p-8 text-white flex flex-col justify-between group transition-all duration-500 min-h-[260px]`}>
                     <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
                     <div className="relative z-10 flex flex-col h-full">
                         <div className="flex justify-between items-start mb-6">

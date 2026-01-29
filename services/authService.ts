@@ -147,11 +147,12 @@ export const updateUserProfile = async (u: UserProfile) => {
         spiritual_maturity: u.spiritualMaturity,
         // Fix: Changed snake_case property to camelCase 'lastRoutineUpdate' and added .toISOString()
         last_routine_update: u.lastRoutineUpdate?.toISOString(),
-        spiritual_cycle_start: u.spiritualCycleStart?.toISOString(),
-        // Fix: Changed snake_case property to camelCase 'lastConfessionAt'
-        last_confession_at: u.lastConfessionAt?.toISOString(),
-        confession_frequency: u.confessionFrequency
-    }).eq('id', u.id);
+	        spiritual_cycle_start: u.spiritualCycleStart?.toISOString(),
+	        last_confession_at: u.lastConfessionAt?.toISOString(),
+	        confession_frequency: u.confessionFrequency,
+	        phone: u.phone,
+	        photo_url: u.photoUrl
+	    }).eq('id', u.id);
   }
 };
 

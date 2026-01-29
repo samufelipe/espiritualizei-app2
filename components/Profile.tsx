@@ -300,28 +300,31 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
            </div>
         </div>
 
-        {/* SACRAMENTO TRACKER */}
-        <div className="animate-slide-up">
-           <div className="flex items-center gap-2 mb-3 px-1">
-              <Shield size={16} className="text-brand-violet" />
-              <span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Vida Sacramental</span>
-           </div>
-           <div className="bg-[#1A1F26] p-6 rounded-3xl border border-white/10 shadow-card relative overflow-hidden group">
-              <div className="flex justify-between items-start mb-6">
-                 <div>
-                    <h3 className="text-white font-bold text-base flex items-center gap-2">Confissão Frequente</h3>
-                    <p className={`text-xs font-bold mt-1 ${confession.color}`}>{confession.label}</p>
-                 </div>
-                 <div className="text-right">
-                    <span className="text-2xl font-black text-white">{confession.days ?? '--'}</span>
-                    <span className="block text-[9px] text-slate-500 font-bold uppercase">Dias passados</span>
-                 </div>
-              </div>
-              <button onClick={handleUpdateConfession} className="w-full bg-white/5 border border-white/10 text-white py-3 rounded-xl text-xs font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-                 <CheckCircle2 size={16} className="text-brand-violet" /> Registar Confissão de Hoje
-              </button>
-           </div>
-        </div>
+	        {/* SACRAMENTO SUMMARY */}
+	        <div className="animate-slide-up">
+	           <div className="flex items-center gap-2 mb-3 px-1">
+	              <Shield size={16} className="text-brand-violet" />
+	              <span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Vida Sacramental</span>
+	           </div>
+	           <div className="bg-[#1A1F26] p-5 rounded-3xl border border-white/10 shadow-card flex items-center justify-between">
+	              <div className="flex items-center gap-4">
+	                 <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center ${confession.color}`}>
+	                    <Shield size={20} />
+	                 </div>
+	                 <div>
+	                    <h3 className="text-white font-bold text-sm">Última Confissão</h3>
+	                    <p className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">{confession.label}</p>
+	                 </div>
+	              </div>
+	              <div className="text-right">
+	                 <p className="text-white font-black text-lg">{confession.days ?? '--'}</p>
+	                 <p className="text-[9px] text-slate-500 font-bold uppercase">Dias</p>
+	              </div>
+	           </div>
+	           <p className="mt-3 px-2 text-[10px] text-slate-500 italic leading-relaxed">
+	              O registro diário agora está disponível no seu Dashboard para facilitar sua vigilância espiritual.
+	           </p>
+	        </div>
 
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-2 px-1"><User size={16} className="text-brand-violet" /><span className="text-xs font-bold uppercase text-slate-500 tracking-widest">Dados Cadastrais</span></div>
