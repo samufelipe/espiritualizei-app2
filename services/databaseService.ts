@@ -500,6 +500,26 @@ export const fetchCommunityPosts = async (page: number = 0, pageSize: number = 1
           .range(from, to);
           
         if (error) throw error;
+        
+        if (!data || data.length === 0) {
+            // Retornar posts padrão caso o banco esteja vazio para não travar a UI
+            return [
+                {
+                    id: 'welcome-1',
+                    userId: 'system',
+                    userName: 'Equipe Espiritualizei',
+                    userAvatar: '',
+                    content: 'Bem-vindo à nossa família de fé! Use este espaço para partilhar suas graças e testemunhos.',
+                    likesCount: 0,
+                    commentsCount: 0,
+                    isLikedByUser: false,
+                    timestamp: new Date(),
+                    type: 'testimony',
+                    comments: []
+                }
+            ];
+        }
+
         return (data || []).map((p: any) => ({
             id: p.id,
             userId: p.user_id,
@@ -522,6 +542,21 @@ export const fetchCommunityPosts = async (page: number = 0, pageSize: number = 1
         }));
     } catch (e) {
         console.error("Erro ao buscar posts:", e);
+        return [
+            {
+                id: 'error-fallback',
+                userId: 'system',
+                userName: 'Espiritualizei',
+                userAvatar: '',
+                content: 'Estamos preparando as partilhas da comunidade para você. Em breve aparecerão aqui!',
+                likesCount: 0,
+                commentsCount: 0,
+                isLikedByUser: false,
+                timestamp: new Date(),
+                type: 'testimony',
+                comments: []
+            }
+        ];
     }
   }
   return [];
@@ -686,5 +721,165 @@ export const checkAndLogActivity = async (userId: string) => {
     } catch (e) {
       console.error("Erro ao registrar atividade:", e);
     }
+  }
+};
+
+/**
+ * VERIFICAÇÃO E RENOVAÇÃO DO CICLO ESPIRITUAL DE 30 DIAS
+ * Chamado ao iniciar o app para verificar se o ciclo do usuário precisa ser renovado
+ */
+export const checkAndRenewSpiritualCycle = async (userId: string, cycleStart: Date): Promise<{ needsRenewal: boolean; newCycleStart?: Date }> => {
+  const now = new Date();
+  const daysSinceCycleStart = Math.floor((now.getTime() - cycleStart.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (daysSinceCycleStart >= 30) {
+    // Ciclo expirado, renovar
+    const newCycleStart = new Date();
+    
+    if (getConnectionStatus()) {
+      try {
+        await supabase!.from('profiles').update({
+          spiritual_cycle_start: newCycleStart.toISOString(),
+          last_routine_update: newCycleStart.toISOString()
+        }).eq('id', userId);
+        
+        console.log("🔄 Ciclo espiritual renovado para o usuário:", userId);
+      } catch (e) {
+        console.error("Erro ao renovar ciclo espiritual:", e);
+      }
+    }
+    
+    return { needsRenewal: true, newCycleStart };
+  }
+  
+  return { needsRenewal: false };
+};
+
+/**
+ * ATUALIZAÇÃO DE XP E NÍVEL DO USUÁRIO
+ * Chamado quando o usuário completa uma atividade
+ */
+export const addUserXP = async (userId: string, xpAmount: number): Promise<{ newXP: number; newLevel: number; leveledUp: boolean }> => {
+  if (!getConnectionStatus()) {
+    return { newXP: 0, newLevel: 1, leveledUp: false };
+  }
+  
+  try {
+    // Buscar dados atuais do usuário
+    const { data: profile, error: fetchError } = await supabase!
+      .from('profiles')
+      .select('current_xp, level, next_level_xp')
+      .eq('id', userId)
+      .single();
+    
+    if (fetchError || !profile) throw fetchError;
+    
+    let currentXP = (profile.current_xp || 0) + xpAmount;
+    let currentLevel = profile.level || 1;
+    let nextLevelXP = profile.next_level_xp || 100;
+    let leveledUp = false;
+    
+    // Verificar se subiu de nível
+    while (currentXP >= nextLevelXP) {
+      currentXP -= nextLevelXP;
+      currentLevel += 1;
+      nextLevelXP = Math.floor(nextLevelXP * 1.5); // Progressão exponencial
+      leveledUp = true;
+    }
+    
+    // Atualizar no banco
+    const { error: updateError } = await supabase!.from('profiles').update({
+      current_xp: currentXP,
+      level: currentLevel,
+      next_level_xp: nextLevelXP
+    }).eq('id', userId);
+    
+    if (updateError) throw updateError;
+    
+    console.log(`✨ XP adicionado: +${xpAmount} | Nível: ${currentLevel} | XP Total: ${currentXP}`);
+    
+    return { newXP: currentXP, newLevel: currentLevel, leveledUp };
+  } catch (e) {
+    console.error("Erro ao adicionar XP:", e);
+    return { newXP: 0, newLevel: 1, leveledUp: false };
+  }
+};
+
+/**
+ * ATUALIZAÇÃO DE STREAK (DIAS CONSECUTIVOS)
+ * Chamado diariamente para verificar e atualizar o streak do usuário
+ */
+export const updateUserStreak = async (userId: string): Promise<{ streakDays: number; streakBroken: boolean }> => {
+  if (!getConnectionStatus()) {
+    return { streakDays: 0, streakBroken: false };
+  }
+  
+  try {
+    const { data: profile, error: fetchError } = await supabase!
+      .from('profiles')
+      .select('streak_days, last_activity_at')
+      .eq('id', userId)
+      .single();
+    
+    if (fetchError || !profile) throw fetchError;
+    
+    const now = new Date();
+    const lastActivity = profile.last_activity_at ? new Date(profile.last_activity_at) : null;
+    let streakDays = profile.streak_days || 0;
+    let streakBroken = false;
+    
+    if (lastActivity) {
+      const daysSinceLastActivity = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceLastActivity === 0) {
+        // Já acessou hoje, não faz nada
+      } else if (daysSinceLastActivity === 1) {
+        // Acessou ontem, incrementa streak
+        streakDays += 1;
+      } else {
+        // Mais de 1 dia sem acessar, streak quebrado
+        streakDays = 1;
+        streakBroken = true;
+      }
+    } else {
+      // Primeiro acesso
+      streakDays = 1;
+    }
+    
+    // Atualizar no banco
+    await supabase!.from('profiles').update({
+      streak_days: streakDays,
+      last_activity_at: now.toISOString()
+    }).eq('id', userId);
+    
+    console.log(`🔥 Streak atualizado: ${streakDays} dias`);
+    
+    return { streakDays, streakBroken };
+  } catch (e) {
+    console.error("Erro ao atualizar streak:", e);
+    return { streakDays: 0, streakBroken: false };
+  }
+};
+
+/**
+ * SINCRONIZAÇÃO COMPLETA DO PERFIL
+ * Garante que todos os dados estejam consistentes entre local e servidor
+ */
+export const syncProfileData = async (userId: string): Promise<any | null> => {
+  if (!getConnectionStatus()) return null;
+  
+  try {
+    const { data: profile, error } = await supabase!
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) throw error;
+    
+    return profile;
+  } catch (e) {
+    console.error("Erro ao sincronizar perfil:", e);
+    return null;
   }
 };

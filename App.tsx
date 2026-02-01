@@ -10,12 +10,12 @@ import CreateIntentionModal from './components/CreateIntentionModal';
 import DailyInspiration from './components/DailyInspiration';
 import UpdatePasswordModal from './components/UpdatePasswordModal'; 
 import MonthlyReviewModal from './components/MonthlyReviewModal'; 
-import InstallPWA from './components/InstallPWA';
+import InstallPWAGuide from './components/InstallPWAGuide';
 import Paywall from './components/Paywall';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { requestNotificationPermission, scheduleRoutineNotifications } from './services/notificationService';
-import { registerUser, getSession, logoutUser, updateUserProfile, supabase, mapProfileFromDB } from './services/authService';
+import { registerUser, getSession, logoutUser, updateUserProfile, supabase, mapProfileFromDB, syncUserFromServer } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
@@ -45,6 +45,7 @@ const App: React.FC = () => {
   const [showDailyInspiration, setShowDailyInspiration] = useState(false);
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [showLiturgyModal, setShowLiturgyModal] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
   const initializationRef = useRef(false);
 
   const [user, setUser] = useState<UserProfile>({
@@ -55,6 +56,7 @@ const App: React.FC = () => {
   const [intentions, setIntentions] = useState<PrayerIntention[]>([]);
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
 
+  // Verificação de pagamento bem-sucedido via URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
@@ -66,10 +68,8 @@ const App: React.FC = () => {
        const targetUserId = urlUserId || session?.user?.id;
        
        if (targetUserId) {
-          // Limpa a URL imediatamente para evitar re-processamento ao recarregar
           window.history.replaceState({}, document.title, "/");
           
-          // 1. Atualização Imediata da UI (Otimista)
           if (session?.user && session.user.id === targetUserId) {
             const updatedUser: UserProfile = { 
               ...session.user, 
@@ -80,10 +80,8 @@ const App: React.FC = () => {
             updateUserProfile(updatedUser);
           }
           
-          // 2. Transição para tela de celebração
           setViewState('welcome_premium');
           
-          // 3. Persistência no Banco de Dados com Verificação
           upgradeUserToPremium(targetUserId).then(() => {
              console.log("💎 Premium ativado com sucesso no servidor.");
           }).catch(err => {
@@ -93,6 +91,7 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Inicialização principal do app
   useEffect(() => {
     if (initializationRef.current) return;
     initializationRef.current = true;
@@ -109,65 +108,76 @@ const App: React.FC = () => {
 
     const initSession = async () => {
       const session = getSession();
-      if (session) {
+      
+      if (session && session.user && session.user.id !== 'guest') {
+        // Verificar se a sessão ainda é válida
         if (Date.now() < session.expiresAt) {
-          // Sincronização Mestre: Prioridade total para os dados do servidor
-          if (supabase) {
-             try {
-                const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-                if (profile && !error) {
-                   const updatedUser = mapProfileFromDB(profile, session.user.email);
-                   setUser(updatedUser);
-                   // Atualiza o cache local com os dados reais do servidor
-                   const s = getSession();
-                   if (s) { 
-                     s.user = updatedUser; 
-                     localStorage.setItem('espiritualizei_session', JSON.stringify(s));
-                     localStorage.setItem('user_email', updatedUser.email || '');
-                   }
-                   console.log("🛡️ Sincronização Mestre: Perfil restaurado do servidor.");
-                } else {
-                   setUser(session.user);
-                }
-             } catch (e) {
-                setUser(session.user);
-             }
+          
+          // SINCRONIZAÇÃO MESTRE: Buscar dados mais recentes do servidor
+          const serverUser = await syncUserFromServer(session.user.id, session.user.email);
+          
+          if (serverUser) {
+            setUser(serverUser);
+            console.log("🛡️ Dados do usuário sincronizados do servidor.");
           } else {
-             setUser(session.user);
+            // Fallback para dados locais se servidor indisponível
+            setUser(session.user);
+            console.log("⚠️ Usando dados locais (servidor indisponível).");
           }
 
           setViewState('app');
           requestNotificationPermission();
 
-          // Sincronização de Desafios e Intenções
-          fetchCommunityIntentions(session.user.id).then(setIntentions);
-          fetchGlobalChallenge().then((global) => {
-             if (global) {
-                setChallenges([global]);
-             }
-          });
+          // Carregar dados complementares
+          try {
+            const [dbIntentions, globalChallenge, dbRoutine] = await Promise.all([
+              fetchCommunityIntentions(session.user.id),
+              fetchGlobalChallenge(),
+              fetchUserRoutine(session.user.id)
+            ]);
+            
+            setIntentions(dbIntentions);
+            if (globalChallenge) setChallenges([globalChallenge]);
+            if (dbRoutine && dbRoutine.length > 0) {
+              setRoutineItems(dbRoutine);
+              console.log("✅ Rotina carregada do servidor:", dbRoutine.length, "itens");
+            }
+          } catch (e) {
+            console.error("Erro ao carregar dados complementares:", e);
+          }
 
-	          fetchUserRoutine(session.user.id).then((db) => {
-	             if (db && db.length > 0) setRoutineItems(db);
-	          });
-
-	          // Registrar atividade para e-mails de inatividade
-	          checkAndLogActivity(session.user.id);
-	          
-	          const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
-          if (lastSeen !== new Date().toDateString()) {
-              setShowDailyInspiration(true);
-              localStorage.setItem('espiritualizei_daily_inspiration_date', new Date().toDateString());
+          // Registrar atividade
+          checkAndLogActivity(session.user.id);
+          
+          // Verificar se deve mostrar Inspiração Diária
+          const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
+          const today = new Date().toDateString();
+          if (lastSeen !== today) {
+            setShowDailyInspiration(true);
+            localStorage.setItem('espiritualizei_daily_inspiration_date', today);
+          }
+          
+          // Verificar se deve mostrar guia de instalação PWA
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+          const hasSeenGuide = localStorage.getItem('espiritualizei_pwa_guide_seen');
+          if (!isStandalone && !hasSeenGuide) {
+            setTimeout(() => setShowInstallGuide(true), 5000);
           }
           
         } else {
-           const path = window.location.pathname;
-           if (path === '/login') setViewState('login');
-           else if (path === '/onboarding') setViewState('onboarding');
-           else setViewState('landing');
+          // Sessão expirada
+          console.log("⏰ Sessão expirada, redirecionando para login.");
+          setViewState('login');
         }
+      } else {
+        // Sem sessão, verificar URL
+        const path = window.location.pathname;
+        if (path === '/login') setViewState('login');
+        else if (path === '/onboarding') setViewState('onboarding');
+        else setViewState('landing');
       }
     };
+    
     initSession();
   }, []); 
 
@@ -176,6 +186,14 @@ const App: React.FC = () => {
      setViewState('landing');
      setUser({ id: 'guest', name: 'Visitante', email: '', level: 1, currentXP: 0, nextLevelXP: 100, streakDays: 0, joinedDate: new Date() });
      setRoutineItems([]);
+     setIntentions([]);
+     setChallenges([]);
+  };
+
+  // Handler para atualização de usuário com persistência garantida
+  const handleUpdateUser = async (updatedUser: UserProfile) => {
+    setUser(updatedUser);
+    await updateUserProfile(updatedUser);
   };
 
   const renderContent = () => {
@@ -191,73 +209,192 @@ const App: React.FC = () => {
     }
 
     switch (currentTab) {
-      case Tab.DASHBOARD: return <Suspense fallback={<TabLoader />}><Dashboard user={user} myIntentions={intentions.filter(i => i.author === user.name)} routineItems={routineItems} onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} onSaveJournal={() => {}} showLiturgyModal={showLiturgyModal} setShowLiturgyModal={setShowLiturgyModal} onLogout={handleLogout} onOpenIntentionModal={() => setShowIntentionModal(true)} onUpdateUser={setUser} /></Suspense>;
-      case Tab.ROUTINE: return <Suspense fallback={<TabLoader />}><Routine items={routineItems} activeChallenge={activeChallenge} onToggle={async (id) => { const item = routineItems.find(i => i.id === id); if (item) { const newStatus = !item.completed; setRoutineItems(prev => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i)); await toggleRoutineItemStatus(id, newStatus); 
-    try { await Haptics.impact({ style: ImpactStyle.Light }); } catch(e) {}
-  } }} onAdd={async (title, desc) => { const newItem: RoutineItem = { id: crypto.randomUUID(), title, description: desc, xpReward: 10, completed: false, icon: 'cross', timeOfDay: 'any', dayOfWeek: [0,1,2,3,4,5,6] }; setRoutineItems(prev => [...prev, newItem]); await addRoutineItem(user.id, newItem); }} onDelete={async (id) => { setRoutineItems(prev => prev.filter(i => i.id !== id)); await deleteRoutineItem(id); }} onNavigate={setCurrentTab} /></Suspense>;
-      case Tab.KNOWLEDGE: return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
-      case Tab.COMMUNITY: return <Suspense fallback={<TabLoader />}><Community intentions={intentions} challenges={challenges} onPray={async (id) => { await togglePrayerInteraction(id); fetchCommunityIntentions(user.id).then(setIntentions); }} onJoinChallenge={async (id, amount) => { 
-        setChallenges(prev => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, participants: c.participants + 1 } : c));
-        await toggleRoutineItemStatus(id, true); 
-      }} onOpenCreateModal={() => setShowIntentionModal(true)} onTestify={async (content) => { await createCommunityPost(user.id, user.name, user.photoUrl, content); }} user={user} /></Suspense>;
-      case Tab.SOCIAL: return <Suspense fallback={<TabLoader />}><SocialHub user={user} /></Suspense>;
-      case Tab.PROFILE: return <Suspense fallback={<TabLoader />}><Profile user={user} onUpdateUser={setUser} onLogout={handleLogout} /></Suspense>;
+      case Tab.DASHBOARD: 
+        return (
+          <Suspense fallback={<TabLoader />}>
+            <Dashboard 
+              user={user} 
+              myIntentions={intentions.filter(i => i.author === user.name)} 
+              routineItems={routineItems} 
+              onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} 
+              onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} 
+              onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} 
+              onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} 
+              onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} 
+              onSaveJournal={() => {}} 
+              showLiturgyModal={showLiturgyModal} 
+              setShowLiturgyModal={setShowLiturgyModal} 
+              onLogout={handleLogout} 
+              onOpenIntentionModal={() => setShowIntentionModal(true)} 
+              onUpdateUser={handleUpdateUser} 
+            />
+          </Suspense>
+        );
+        
+      case Tab.ROUTINE: 
+        return (
+          <Suspense fallback={<TabLoader />}>
+            <Routine 
+              items={routineItems} 
+              activeChallenge={activeChallenge} 
+              onToggle={async (id) => { 
+                const item = routineItems.find(i => i.id === id); 
+                if (item) { 
+                  const newStatus = !item.completed; 
+                  setRoutineItems(prev => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i)); 
+                  await toggleRoutineItemStatus(id, newStatus); 
+                  try { await Haptics.impact({ style: ImpactStyle.Light }); } catch(e) {}
+                } 
+              }} 
+              onAdd={async (title, desc) => { 
+                const newItem: RoutineItem = { 
+                  id: crypto.randomUUID(), 
+                  title, 
+                  description: desc, 
+                  xpReward: 10, 
+                  completed: false, 
+                  icon: 'cross', 
+                  timeOfDay: 'any', 
+                  dayOfWeek: [0,1,2,3,4,5,6] 
+                }; 
+                setRoutineItems(prev => [...prev, newItem]); 
+                await addRoutineItem(user.id, newItem); 
+              }} 
+              onDelete={async (id) => { 
+                setRoutineItems(prev => prev.filter(i => i.id !== id)); 
+                await deleteRoutineItem(id); 
+              }} 
+              onNavigate={setCurrentTab} 
+            />
+          </Suspense>
+        );
+        
+      case Tab.KNOWLEDGE: 
+        return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
+        
+      case Tab.COMMUNITY: 
+        return (
+          <Suspense fallback={<TabLoader />}>
+            <Community 
+              intentions={intentions} 
+              challenges={challenges} 
+              onPray={async (id) => { 
+                await togglePrayerInteraction(id); 
+                fetchCommunityIntentions(user.id).then(setIntentions); 
+              }} 
+              onJoinChallenge={async (id, amount) => { 
+                setChallenges(prev => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, participants: c.participants + 1 } : c));
+                await toggleRoutineItemStatus(id, true); 
+              }} 
+              onOpenCreateModal={() => setShowIntentionModal(true)} 
+              onTestify={async (content) => { 
+                await createCommunityPost(user.id, user.name, user.photoUrl, content); 
+              }} 
+              user={user} 
+            />
+          </Suspense>
+        );
+        
+      case Tab.SOCIAL: 
+        return <Suspense fallback={<TabLoader />}><SocialHub user={user} /></Suspense>;
+        
+      case Tab.PROFILE: 
+        return (
+          <Suspense fallback={<TabLoader />}>
+            <Profile user={user} onUpdateUser={handleUpdateUser} onLogout={handleLogout} />
+          </Suspense>
+        );
+        
       default: return <TabLoader />;
     }
   };
 
   return (
     <div className="flex h-screen overflow-hidden bg-brand-dark font-sans text-slate-100 selection:bg-brand-violet/30 pt-safe pb-safe">
-      {viewState === 'app' && <InstallPWA />}
+      {/* Guia de Instalação PWA */}
+      {showInstallGuide && (
+        <InstallPWAGuide onClose={() => {
+          setShowInstallGuide(false);
+          localStorage.setItem('espiritualizei_pwa_guide_seen', 'true');
+        }} />
+      )}
       
       {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} /></div>}
       
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark no-scrollbar">
-          {viewState === 'landing' && <LandingPage onStart={() => setViewState('onboarding')} onLogin={() => setViewState('login')} />}
-          {viewState === 'login' && <Login onLogin={(u) => { setUser(u); setViewState('app'); }} onRegister={() => setViewState('onboarding')} onBack={() => setViewState('landing')} />}
-          {viewState === 'onboarding' && (
-            <Onboarding 
-	              onComplete={async (data) => { 
-	                setViewState('generating');
-	                try {
-	                  const session = await registerUser(data);
-	                  if (session && session.user) {
-	                    setUser(session.user);
-	                    // Gerar rotina inicial baseada nos dados do onboarding
-	                    const result = await generateSpiritualRoutine(data);
-	                    const initialRoutine = result.routine;
-	                    await saveUserRoutine(session.user.id, initialRoutine);
-	                    setRoutineItems(initialRoutine);
-	                    
-	                    // Disparar e-mail de boas-vindas
-	                    queueEngagementEmail(session.user.id, 'welcome', { userName: session.user.name });
-
-	                    // Simular tempo de "análise" para o usuário
-	                    setTimeout(() => {
-	                      setViewState('app');
-	                      setShowTutorial(true); // GATILHO DO TUTORIAL
-	                    }, 3000);
-	                  }
-		                } catch (e: any) {
-		                  console.error("Erro no onboarding:", e);
-		                  setViewState('onboarding'); // Volta para o passo de cadastro em vez da landing
-		                  
-		                  let errorMessage = "Erro ao criar conta. Tente novamente.";
-		                  if (e.message?.includes("User already registered")) {
-		                    errorMessage = "Este e-mail já está cadastrado. Tente fazer login.";
-		                  } else if (e.message?.includes("Password should be at least 6 characters")) {
-		                    errorMessage = "A senha deve ter no mínimo 6 caracteres.";
-		                  } else if (e.message) {
-		                    errorMessage = `Erro: ${e.message}`;
-		                  }
-		                  
-		                  alert(errorMessage);
-		                }
-	              }} 
-
+          {viewState === 'landing' && (
+            <Suspense fallback={<TabLoader />}>
+              <LandingPage onStart={() => setViewState('onboarding')} onLogin={() => setViewState('login')} />
+            </Suspense>
+          )}
+          
+          {viewState === 'login' && (
+            <Login 
+              onLogin={(u) => { 
+                setUser(u); 
+                setViewState('app'); 
+                // Carregar rotina após login
+                fetchUserRoutine(u.id).then((db) => {
+                  if (db && db.length > 0) setRoutineItems(db);
+                });
+                fetchCommunityIntentions(u.id).then(setIntentions);
+                fetchGlobalChallenge().then((global) => {
+                  if (global) setChallenges([global]);
+                });
+              }} 
+              onRegister={() => setViewState('onboarding')} 
               onBack={() => setViewState('landing')} 
             />
           )}
+          
+          {viewState === 'onboarding' && (
+            <Suspense fallback={<TabLoader />}>
+              <Onboarding 
+                onComplete={async (data) => { 
+                  setViewState('generating');
+                  try {
+                    const session = await registerUser(data);
+                    if (session && session.user) {
+                      setUser(session.user);
+                      
+                      // Gerar rotina inicial baseada nos dados do onboarding
+                      const result = await generateSpiritualRoutine(data);
+                      const initialRoutine = result.routine;
+                      
+                      // Salvar rotina no servidor
+                      await saveUserRoutine(session.user.id, initialRoutine);
+                      setRoutineItems(initialRoutine);
+                      
+                      console.log("✅ Rotina inicial salva no servidor:", initialRoutine.length, "itens");
+                      
+                      // Disparar e-mail de boas-vindas
+                      queueEngagementEmail(session.user.id, 'welcome', { userName: session.user.name });
+
+                      // Transição para o app
+                      setViewState('app');
+                      setShowTutorial(true);
+                    }
+                  } catch (e: any) {
+                    console.error("Erro no onboarding:", e);
+                    setViewState('onboarding');
+                    
+                    let errorMessage = "Erro ao criar conta. Tente novamente.";
+                    if (e.message?.includes("User already registered")) {
+                      errorMessage = "Este e-mail já está cadastrado. Tente fazer login.";
+                    } else if (e.message?.includes("Password should be at least 6 characters")) {
+                      errorMessage = "A senha deve ter no mínimo 6 caracteres.";
+                    } else if (e.message) {
+                      errorMessage = `Erro: ${e.message}`;
+                    }
+                    
+                    alert(errorMessage);
+                  }
+                }} 
+                onBack={() => setViewState('landing')} 
+              />
+            </Suspense>
+          )}
+          
           {viewState === 'generating' && (
             <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-brand-dark">
               <div className="w-24 h-24 bg-brand-violet/20 rounded-full flex items-center justify-center mb-8 animate-pulse-slow">
@@ -270,7 +407,9 @@ const App: React.FC = () => {
               </div>
             </div>
           )}
+          
           {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} userName={user.name} onLogout={handleLogout} />}
+          
           {viewState === 'welcome_premium' && (
             <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-gradient-to-b from-brand-violet/20 to-brand-dark">
               <div className="w-24 h-24 bg-brand-violet text-white rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-brand-violet/40">
@@ -283,6 +422,7 @@ const App: React.FC = () => {
               </button>
             </div>
           )}
+          
           {viewState === 'app' && renderContent()}
       </main>
 
@@ -290,7 +430,16 @@ const App: React.FC = () => {
       
       {showTutorial && <Tutorial user={user} onComplete={() => setShowTutorial(false)} />}
       {showDailyInspiration && <DailyInspiration userName={user.name} onClose={() => setShowDailyInspiration(false)} />}
-      {showIntentionModal && <CreateIntentionModal onClose={() => setShowIntentionModal(false)} onSubmit={async (content, category) => { await createIntention(user.id, user.name, user.photoUrl, content, category, []); fetchCommunityIntentions(user.id).then(setIntentions); setShowIntentionModal(false); }} />}
+      {showIntentionModal && (
+        <CreateIntentionModal 
+          onClose={() => setShowIntentionModal(false)} 
+          onSubmit={async (content, category) => { 
+            await createIntention(user.id, user.name, user.photoUrl, content, category, []); 
+            fetchCommunityIntentions(user.id).then(setIntentions); 
+            setShowIntentionModal(false); 
+          }} 
+        />
+      )}
     </div>
   );
 };

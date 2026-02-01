@@ -121,9 +121,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
        setFieldErrors({});
 
        try {
-         // Simulação de tempo de processamento para feedback visual
-         await new Promise(resolve => setTimeout(resolve, 2000));
-         await onComplete({ ...formData, email: cleanEmail, password: cleanPassword });
+         // Processamento otimizado: chama onComplete imediatamente
+         onComplete({ ...formData, email: cleanEmail, password: cleanPassword });
        } catch (error: any) {
          setIsSubmitting(false);
          setFieldErrors(prev => ({ ...prev, email: 'Erro no cadastro. Verifique os dados.' }));

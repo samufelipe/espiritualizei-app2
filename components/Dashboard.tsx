@@ -99,10 +99,18 @@ const Dashboard: React.FC<DashboardProps> = ({
             if (isMounted) setIsLiturgyLoading(false);
         }
         
-        const posts = await fetchCommunityPosts(0, 3);
-        if (isMounted) {
-            setRecentPosts(posts);
-            setLoadingPosts(false);
+        try {
+            const posts = await fetchCommunityPosts(0, 3);
+            if (isMounted) {
+                setRecentPosts(posts || []);
+                setLoadingPosts(false);
+            }
+        } catch (postError) {
+            console.error("Erro ao carregar posts da comunidade:", postError);
+            if (isMounted) {
+                setRecentPosts([]);
+                setLoadingPosts(false);
+            }
         }
     };
     loadData();

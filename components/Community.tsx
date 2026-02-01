@@ -46,14 +46,16 @@ const Community: React.FC<CommunityProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black/20 pb-32 animate-fade-in">
         
-      {/* Liturgical Events Banner */}
-      <div className="p-4 sm:p-6 pb-2">
-         <LiturgicalEvents 
-            challenges={challenges} 
-            onJoin={onJoinChallenge} 
-            onTestify={onTestify}
-         />
-      </div>
+	      {/* Liturgical Events Banner - Prioridade Máxima de Visibilidade */}
+	      {challenges.length > 0 && challenges.some(c => c.status === 'active') && (
+	        <div className="p-4 sm:p-6 pb-2 animate-fade-in">
+	           <LiturgicalEvents 
+	              challenges={challenges} 
+	              onJoin={onJoinChallenge} 
+	              onTestify={onTestify}
+	           />
+	        </div>
+	      )}
 
       {/* Tabs Navigation */}
       <div className="px-4 sm:px-6 sticky top-0 z-30 bg-slate-50/95 dark:bg-[#0F1115]/95 backdrop-blur-xl py-2">

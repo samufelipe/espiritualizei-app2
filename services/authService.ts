@@ -11,6 +11,7 @@ const initSupabase = () => {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
+          storageKey: 'espiritualizei_supabase_auth', // Chave única para evitar conflitos
         }
       });
     } catch (e) {
@@ -46,7 +47,7 @@ export const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => 
   name: dbProfile.name || 'Peregrino',
   email: email,
   phone: dbProfile.phone,
-  photoUrl: dbProfile.photo_url, // ADICIONADO: Persistência da foto
+  photoUrl: dbProfile.photo_url,
   level: dbProfile.level || 1,
   currentXP: dbProfile.current_xp || 0,
   nextLevelXP: dbProfile.next_level_xp || 100,
@@ -66,21 +67,73 @@ export const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => 
   confessionFrequency: dbProfile.confession_frequency
 });
 
+/**
+ * SINCRONIZAÇÃO MESTRE: Busca os dados mais recentes do servidor
+ * Esta função é chamada sempre que o app é aberto para garantir consistência
+ */
+export const syncUserFromServer = async (userId: string, email: string): Promise<UserProfile | null> => {
+  if (!supabase) return null;
+  
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (profile && !error) {
+      const updatedUser = mapProfileFromDB(profile, email);
+      
+      // Atualiza o cache local com os dados do servidor
+      const session = getSession();
+      if (session) {
+        session.user = updatedUser;
+        localStorage.setItem(SESSION_KEY, safeStringify(session));
+      }
+      
+      console.log("🛡️ Sincronização Mestre: Perfil restaurado do servidor com sucesso.");
+      return updatedUser;
+    }
+  } catch (e) {
+    console.error("❌ Erro na sincronização mestre:", e);
+  }
+  
+  return null;
+};
+
 export const loginUser = async (email: string, password: string): Promise<AuthSession> => {
   if (!supabase) throw new Error("Banco de dados não configurado.");
   const normalizedEmail = email.trim().toLowerCase();
+  
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password: password.trim() });
+    const { data, error } = await supabase.auth.signInWithPassword({ 
+      email: normalizedEmail, 
+      password: password.trim() 
+    });
+    
     if (error) throw error;
     if (!data.session) throw new Error("Falha ao iniciar sessão.");
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user!.id).maybeSingle();
+    
+    // Buscar perfil completo do banco
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user!.id)
+      .maybeSingle();
+    
     const session: AuthSession = {
       user: mapProfileFromDB(profile || { id: data.user!.id, name: 'Usuário' }, normalizedEmail),
       token: data.session.access_token,
       expiresAt: (data.session.expires_at || 0) * 1000
     };
+    
+    // Salvar sessão no localStorage
     localStorage.setItem(SESSION_KEY, safeStringify(session));
+    localStorage.setItem('user_email', normalizedEmail);
+    
+    console.log("✅ Login realizado com sucesso. Dados persistidos.");
     return session;
+    
   } catch (error: any) {
     throw error;
   }
@@ -121,11 +174,13 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     confession_frequency: data.confessionFrequency,
     level: 1,
     current_xp: 0,
+    streak_days: 0,
     joined_date: new Date().toISOString(),
-    spiritual_cycle_start: new Date().toISOString()
+    spiritual_cycle_start: new Date().toISOString(),
+    last_routine_update: new Date().toISOString()
   };
 
-  // 3. Inserir o perfil completo (colunas agora garantidas no banco)
+  // 3. Inserir o perfil completo
   const { error: dbError } = await supabase.from('profiles').upsert([profilePayload]);
   
   if (dbError) {
@@ -141,47 +196,91 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
   };
   
   localStorage.setItem(SESSION_KEY, safeStringify(session));
+  localStorage.setItem('user_email', email);
+  
+  console.log("✅ Registro realizado com sucesso. Dados persistidos.");
   return session;
 };
 
 export const logoutUser = async () => {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem('user_email');
+  localStorage.removeItem('espiritualizei_daily_inspiration_date');
   if (supabase) await supabase.auth.signOut();
 };
 
 export const getSession = (): AuthSession | null => {
   const s = localStorage.getItem(SESSION_KEY);
   if (!s) return null;
+  
   try {
     const session = JSON.parse(s);
     if (session.user) {
-        session.user.joinedDate = new Date(session.user.joinedDate);
-        if(session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
-        if(session.user.spiritualCycleStart) session.user.spiritualCycleStart = new Date(session.user.spiritualCycleStart);
-        if(session.user.subscriptionRenewalAt) session.user.subscriptionRenewalAt = new Date(session.user.subscriptionRenewalAt);
+      // Restaurar datas como objetos Date
+      session.user.joinedDate = new Date(session.user.joinedDate);
+      if (session.user.lastRoutineUpdate) session.user.lastRoutineUpdate = new Date(session.user.lastRoutineUpdate);
+      if (session.user.spiritualCycleStart) session.user.spiritualCycleStart = new Date(session.user.spiritualCycleStart);
+      if (session.user.subscriptionRenewalAt) session.user.subscriptionRenewalAt = new Date(session.user.subscriptionRenewalAt);
+      if (session.user.lastConfessionAt) session.user.lastConfessionAt = new Date(session.user.lastConfessionAt);
     }
     return session;
-  } catch (e) { return null; }
+  } catch (e) { 
+    console.error("Erro ao parsear sessão:", e);
+    return null; 
+  }
 };
 
-export const updateUserProfile = async (u: UserProfile) => {
+/**
+ * ATUALIZAÇÃO DE PERFIL: Salva no servidor E no cache local
+ * Garante que os dados persistam entre sessões
+ */
+export const updateUserProfile = async (u: UserProfile): Promise<boolean> => {
+  // 1. Atualizar cache local PRIMEIRO (resposta imediata)
   const s = getSession();
-  if (s) { s.user = u; localStorage.setItem(SESSION_KEY, safeStringify(s)); }
+  if (s) { 
+    s.user = u; 
+    localStorage.setItem(SESSION_KEY, safeStringify(s)); 
+  }
+  
+  // 2. Persistir no servidor (fonte da verdade)
   if (supabase) {
-    await supabase.from('profiles').update({
+    try {
+      const { error } = await supabase.from('profiles').update({
         name: u.name,
+        phone: u.phone,
+        photo_url: u.photoUrl,
         level: u.level,
         current_xp: u.currentXP,
+        next_level_xp: u.nextLevelXP,
+        streak_days: u.streakDays,
         spiritual_maturity: u.spiritualMaturity,
-        // Fix: Changed snake_case property to camelCase 'lastRoutineUpdate' and added .toISOString()
+        spiritual_focus: u.spiritualFocus,
+        spiritual_goal: u.spiritualGoal,
+        state_of_life: u.stateOfLife,
+        patron_saint: u.patronSaint,
         last_routine_update: u.lastRoutineUpdate?.toISOString(),
-	        spiritual_cycle_start: u.spiritualCycleStart?.toISOString(),
-	        last_confession_at: u.lastConfessionAt?.toISOString(),
-	        confession_frequency: u.confessionFrequency,
-	        phone: u.phone,
-	        photo_url: u.photoUrl
-	    }).eq('id', u.id);
+        spiritual_cycle_start: u.spiritualCycleStart?.toISOString(),
+        last_confession_at: u.lastConfessionAt?.toISOString(),
+        confession_frequency: u.confessionFrequency,
+        is_premium: u.isPremium,
+        subscription_status: u.subscriptionStatus,
+        subscription_renewal_at: u.subscriptionRenewalAt?.toISOString()
+      }).eq('id', u.id);
+      
+      if (error) {
+        console.error("❌ Erro ao salvar perfil no servidor:", error);
+        return false;
+      }
+      
+      console.log("✅ Perfil salvo no servidor com sucesso.");
+      return true;
+    } catch (e) {
+      console.error("❌ Exceção ao salvar perfil:", e);
+      return false;
+    }
   }
+  
+  return false;
 };
 
 export const sendPasswordResetEmail = async (email: string) => {
