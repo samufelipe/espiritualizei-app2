@@ -11,6 +11,7 @@ import DailyInspiration from './components/DailyInspiration';
 import UpdatePasswordModal from './components/UpdatePasswordModal'; 
 import MonthlyReviewModal from './components/MonthlyReviewModal'; 
 import InstallPWAGuide from './components/InstallPWAGuide';
+import NotificationPermissionModal from './components/NotificationPermissionModal';
 import Paywall from './components/Paywall';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
@@ -46,6 +47,7 @@ const App: React.FC = () => {
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [showLiturgyModal, setShowLiturgyModal] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
   const initializationRef = useRef(false);
 
   const [user, setUser] = useState<UserProfile>({
@@ -331,6 +333,21 @@ const App: React.FC = () => {
         }} />
       )}
       
+      {/* Modal de Permissão de Notificações */}
+      {showNotificationModal && (
+        <NotificationPermissionModal
+          userId={user.id}
+          onClose={() => {
+            setShowNotificationModal(false);
+            localStorage.setItem(`notification_asked_${user.id}`, 'true');
+          }}
+          onSuccess={() => {
+            setShowNotificationModal(false);
+            localStorage.setItem(`notification_asked_${user.id}`, 'true');
+          }}
+        />
+      )}
+      
       {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} /></div>}
       
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark no-scrollbar">
@@ -465,7 +482,14 @@ const App: React.FC = () => {
 
       {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} /></div>}
       
-      {showTutorial && <Tutorial user={user} onComplete={() => setShowTutorial(false)} />}
+      {showTutorial && <Tutorial user={user} onComplete={() => {
+        setShowTutorial(false);
+        // Verificar se já pediu permissão de notificação
+        const notificationAsked = localStorage.getItem(`notification_asked_${user.id}`);
+        if (!notificationAsked && 'Notification' in window && Notification.permission === 'default') {
+          setTimeout(() => setShowNotificationModal(true), 1000);
+        }
+      }} />}
       {showDailyInspiration && <DailyInspiration userName={user.name} onClose={() => setShowDailyInspiration(false)} />}
       {showIntentionModal && (
         <CreateIntentionModal 

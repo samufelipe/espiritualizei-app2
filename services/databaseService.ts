@@ -323,6 +323,41 @@ export const togglePrayerInteraction = async (intentionId: string) => {
   } else {
     await supabase!.from('prayer_intercessions').insert([{ intention_id: intentionId, user_id: session.user.id }]);
     await supabase!.rpc('increment_praying_count', { row_id: intentionId });
+    
+    // NOTIFICAR O AUTOR DA INTENÇÃO
+    try {
+      // Buscar dados da intenção para notificar o autor
+      const { data: intention } = await supabase!.from('prayer_intentions')
+        .select('user_id, user_name')
+        .eq('id', intentionId)
+        .maybeSingle();
+      
+      if (intention && intention.user_id !== session.user.id) {
+        // Enfileirar notificação push
+        await supabase!.from('notification_queue').insert({
+          user_id: intention.user_id,
+          title: 'Alguém rezou por você! 🙏',
+          body: `${session.user.name} acendeu uma vela e intercedeu pela sua intenção.`,
+          type: 'intercession',
+          data: { intercessorName: session.user.name, intentionId },
+          status: 'pending',
+          created_at: new Date().toISOString()
+        });
+        
+        // Também enviar e-mail de notificação
+        const { data: authorProfile } = await supabase!.from('profiles')
+          .select('email')
+          .eq('id', intention.user_id)
+          .maybeSingle();
+        
+        if (authorProfile?.email) {
+          // E-mail será enviado pelo sistema de backup
+          console.log(`📧 Notificação de intercessão enfileirada para ${authorProfile.email}`);
+        }
+      }
+    } catch (e) {
+      console.error('❌ Erro ao notificar intercessão:', e);
+    }
   }
 };
 
