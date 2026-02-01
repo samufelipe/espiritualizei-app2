@@ -200,10 +200,17 @@ const savePushSubscription = async (userId: string, subscription: PushSubscripti
       onConflict: 'user_id'
     });
     
-    if (error) throw error;
+    if (error) {
+      // Ignorar erro se tabela não existir
+      if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+        console.warn('⚠️ Tabela push_subscriptions não existe ainda. Notificações push não serão salvas no servidor.');
+        return;
+      }
+      throw error;
+    }
     console.log('✅ Subscription salva no servidor');
   } catch (e) {
-    console.error('❌ Erro ao salvar subscription:', e);
+    console.warn('⚠️ Erro ao salvar subscription (pode ser ignorado se tabela não existir):', e);
   }
 };
 
@@ -332,12 +339,19 @@ export const sendPushNotification = async (
       created_at: new Date().toISOString()
     });
     
-    if (error) throw error;
+    if (error) {
+      // Ignorar erro se tabela não existir
+      if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+        console.warn('⚠️ Tabela notification_queue não existe ainda.');
+        return false;
+      }
+      throw error;
+    }
     
     console.log('✅ Notificação enfileirada:', type);
     return true;
   } catch (e) {
-    console.error('❌ Erro ao enviar notificação:', e);
+    console.warn('⚠️ Erro ao enviar notificação (pode ser ignorado se tabela não existir):', e);
     return false;
   }
 };

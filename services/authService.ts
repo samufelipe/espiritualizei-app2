@@ -161,8 +161,8 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
   
   if (!authData.user) throw new Error("Falha ao criar usuário no sistema de autenticação.");
 
-  // 2. Preparar o payload do perfil
-  const profilePayload = {
+  // 2. Preparar o payload do perfil (apenas campos que existem na tabela)
+  const profilePayload: Record<string, any> = {
     id: authData.user.id,
     name: data.name.trim(),
     phone: data.phone,
@@ -175,17 +175,31 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     level: 1,
     current_xp: 0,
     streak_days: 0,
-    joined_date: new Date().toISOString(),
+    joined_date: new Date().toISOString()
+  };
+  
+  // Campos opcionais - adicionar apenas se a coluna existir no banco
+  // Esses campos serão ignorados silenciosamente se não existirem
+  const optionalFields = {
     spiritual_cycle_start: new Date().toISOString(),
     last_routine_update: new Date().toISOString()
   };
 
-  // 3. Inserir o perfil completo
+  // 3. Inserir o perfil básico primeiro
   const { error: dbError } = await supabase.from('profiles').upsert([profilePayload]);
   
   if (dbError) {
     console.error("❌ Erro ao criar perfil no banco de dados:", dbError);
     throw new Error(`Erro ao salvar dados do perfil: ${dbError.message}`);
+  }
+  
+  // 4. Tentar adicionar campos opcionais (ignorar erros se colunas não existirem)
+  try {
+    await supabase.from('profiles').update(optionalFields).eq('id', authData.user.id);
+    console.log('✅ Campos opcionais atualizados com sucesso');
+  } catch (optionalError) {
+    console.warn('⚠️ Campos opcionais não puderam ser atualizados (colunas podem não existir):', optionalError);
+    // Não lançar erro - campos opcionais não são críticos
   }
 
   const newUser = mapProfileFromDB(profilePayload, email);

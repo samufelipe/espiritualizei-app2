@@ -56,9 +56,11 @@
         padding: 0;
         height: 100%;
         width: 100%;
+      }
+      /* Aplicar overflow hidden apenas quando não estiver na LP */
+      body.app-mode {
         overflow: hidden;
-        /* Evita o efeito "elástico" de scroll no iOS que quebra o layout fixo */
-        position: fixed; 
+        position: fixed;
       }
       #root { height: 100%; width: 100%; }
       .no-scrollbar::-webkit-scrollbar { display: none; }

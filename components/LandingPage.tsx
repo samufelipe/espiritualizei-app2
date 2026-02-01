@@ -42,7 +42,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
       `}</style>
 
       {/* --- Navbar --- */}
-      <nav className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-5xl">
+      <nav className="fixed top-[max(1rem,env(safe-area-inset-top))] sm:top-[max(1.5rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-5xl">
         <div className="bg-white/90 dark:bg-brand-dark/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-2xl">
           <div className="flex items-center gap-2 cursor-pointer group shrink-0" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
             <BrandLogo size={24} variant="fill" className="text-brand-violet" />

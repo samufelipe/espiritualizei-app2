@@ -58,6 +58,15 @@ const App: React.FC = () => {
   const [intentions, setIntentions] = useState<PrayerIntention[]>([]);
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
 
+  // Controlar classe do body para scroll na LP vs app
+  useEffect(() => {
+    if (viewState === 'landing' || viewState === 'login' || viewState === 'onboarding' || viewState === 'checkout') {
+      document.body.classList.remove('app-mode');
+    } else {
+      document.body.classList.add('app-mode');
+    }
+  }, [viewState]);
+
   // Verificação de pagamento bem-sucedido via URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

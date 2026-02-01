@@ -333,16 +333,20 @@ export const togglePrayerInteraction = async (intentionId: string) => {
         .maybeSingle();
       
       if (intention && intention.user_id !== session.user.id) {
-        // Enfileirar notificação push
-        await supabase!.from('notification_queue').insert({
-          user_id: intention.user_id,
-          title: 'Alguém rezou por você! 🙏',
-          body: `${session.user.name} acendeu uma vela e intercedeu pela sua intenção.`,
-          type: 'intercession',
-          data: { intercessorName: session.user.name, intentionId },
-          status: 'pending',
-          created_at: new Date().toISOString()
-        });
+        // Enfileirar notificação push (ignorar erro se tabela não existir)
+        try {
+          await supabase!.from('notification_queue').insert({
+            user_id: intention.user_id,
+            title: 'Alguém rezou por você! 🙏',
+            body: `${session.user.name} acendeu uma vela e intercedeu pela sua intenção.`,
+            type: 'intercession',
+            data: { intercessorName: session.user.name, intentionId },
+            status: 'pending',
+            created_at: new Date().toISOString()
+          });
+        } catch (notifError) {
+          console.warn('⚠️ Tabela notification_queue pode não existir:', notifError);
+        }
         
         // Também enviar e-mail de notificação
         const { data: authorProfile } = await supabase!.from('profiles')
