@@ -160,7 +160,7 @@ export const subscribeToPush = async (userId: string): Promise<PushSubscription 
       // Criar nova subscription
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource
       });
       
       console.log('✅ Nova subscription criada:', subscription.endpoint);
@@ -298,9 +298,8 @@ export const scheduleLocalNotification = async (
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
       tag: type,
-      vibrate: [100, 50, 100],
       data: { type }
-    });
+    } as NotificationOptions);
     
     notification.onclick = () => {
       window.focus();
