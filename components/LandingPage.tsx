@@ -435,7 +435,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
 
             <div className="mt-12 text-center">
                <div className="inline-flex items-center gap-3 bg-green-500/10 text-green-600 dark:text-green-400 px-6 py-3 rounded-full text-sm font-bold">
-                  <CheckCircle2 size={18} /> Funciona offline • Notificações • Acesso instantâneo
+                  <CheckCircle2 size={18} /> Funciona offline • Acesso instantâneo • Sem ocupar espaço
                </div>
             </div>
          </div>

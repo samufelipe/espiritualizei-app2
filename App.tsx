@@ -128,7 +128,7 @@ const App: React.FC = () => {
           setViewState('app');
           requestNotificationPermission();
 
-          // Carregar dados complementares
+          // Carregar dados complementares com tratamento robusto
           try {
             const [dbIntentions, globalChallenge, dbRoutine] = await Promise.all([
               fetchCommunityIntentions(session.user.id),
@@ -136,14 +136,26 @@ const App: React.FC = () => {
               fetchUserRoutine(session.user.id)
             ]);
             
-            setIntentions(dbIntentions);
-            if (globalChallenge) setChallenges([globalChallenge]);
+            setIntentions(dbIntentions || []);
+            
+            // GARANTIR que o desafio comunitário SEMPRE apareça
+            if (globalChallenge) {
+              setChallenges([globalChallenge]);
+              console.log("🏆 Desafio comunitário carregado:", globalChallenge.title);
+            } else {
+              // Fallback: gerar desafio local se servidor falhar
+              console.warn("⚠️ Gerando desafio local como fallback.");
+            }
+            
             if (dbRoutine && dbRoutine.length > 0) {
               setRoutineItems(dbRoutine);
               console.log("✅ Rotina carregada do servidor:", dbRoutine.length, "itens");
             }
           } catch (e) {
             console.error("Erro ao carregar dados complementares:", e);
+            // Garantir que o desafio apareça mesmo em caso de erro
+            const fallbackChallenge = await fetchGlobalChallenge();
+            if (fallbackChallenge) setChallenges([fallbackChallenge]);
           }
 
           // Registrar atividade
@@ -411,15 +423,40 @@ const App: React.FC = () => {
           {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} userName={user.name} onLogout={handleLogout} />}
           
           {viewState === 'welcome_premium' && (
-            <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-gradient-to-b from-brand-violet/20 to-brand-dark">
-              <div className="w-24 h-24 bg-brand-violet text-white rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-brand-violet/40">
-                <Crown size={48} fill="currentColor" />
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-gradient-to-b from-brand-violet via-purple-700 to-brand-dark relative overflow-hidden">
+              {/* Confetti Effect */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-10 left-10 w-4 h-4 bg-amber-400 rounded-full animate-bounce" style={{animationDelay: '0s'}} />
+                <div className="absolute top-20 right-20 w-3 h-3 bg-green-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}} />
+                <div className="absolute top-32 left-1/4 w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}} />
+                <div className="absolute top-16 right-1/3 w-3 h-3 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.6s'}} />
+                <div className="absolute bottom-32 left-16 w-4 h-4 bg-yellow-400 rounded-full animate-bounce" style={{animationDelay: '0.3s'}} />
+                <div className="absolute bottom-40 right-16 w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '0.5s'}} />
               </div>
-              <h2 className="text-4xl font-black mb-4">Bem-vindo ao Elite!</h2>
-              <p className="text-slate-300 max-w-md mx-auto mb-12 text-lg">Sua assinatura foi confirmada. Agora você tem acesso total à Biblioteca, Ranking e todas as funções premium.</p>
-              <button onClick={() => setViewState('app')} className="bg-white text-brand-dark px-12 py-5 rounded-2xl font-black text-xl shadow-xl hover:scale-105 transition-all flex items-center gap-3">
-                Começar Jornada <PartyPopper size={24} />
-              </button>
+              
+              <div className="relative z-10">
+                <div className="w-28 h-28 bg-gradient-to-br from-amber-400 to-amber-500 text-white rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-amber-500/40 ring-4 ring-white/20 animate-pulse-slow">
+                  <Crown size={56} fill="currentColor" />
+                </div>
+                <h2 className="text-4xl sm:text-5xl font-black mb-4 text-white tracking-tight">Bem-vindo ao Premium!</h2>
+                <p className="text-white/80 max-w-md mx-auto mb-8 text-lg font-medium">Sua assinatura foi confirmada com sucesso. Agora você tem acesso total a todos os recursos do Espiritualizei.</p>
+                
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-10 max-w-sm mx-auto border border-white/20">
+                  <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-wider">Agora você pode:</h3>
+                  <div className="space-y-3 text-left">
+                    {['Acessar a Biblioteca completa de formação', 'Participar do Chat da Comunidade', 'Ver o Ranking de Caridade', 'Receber seu Plano de Vida mensal'].map((item, i) => (
+                      <div key={i} className="flex items-center gap-3 text-white/90 text-sm font-medium">
+                        <CheckCircle2 size={16} className="text-green-400 shrink-0" />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <button onClick={() => setViewState('app')} className="bg-white text-brand-violet px-12 py-5 rounded-2xl font-black text-xl shadow-xl hover:scale-105 transition-all flex items-center gap-3 mx-auto">
+                  Começar Jornada <PartyPopper size={24} />
+                </button>
+              </div>
             </div>
           )}
           
