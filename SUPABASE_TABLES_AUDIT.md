@@ -315,3 +315,199 @@ CREATE POLICY "Users can insert own journal" ON journal FOR INSERT WITH CHECK (a
 CREATE POLICY "Users can update own journal" ON journal FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own journal" ON journal FOR DELETE USING (auth.uid() = user_id);
 ```
+
+
+---
+
+## 🔐 POLÍTICAS DE SEGURANÇA (RLS - Row Level Security)
+
+### IMPORTANTE: Habilitar RLS em TODAS as tabelas
+
+O RLS (Row Level Security) é **ESSENCIAL** para proteger os dados dos usuários. Sem ele, qualquer pessoa com a chave anon pode acessar TODOS os dados.
+
+### SQL para habilitar RLS e criar políticas:
+
+```sql
+-- =====================================================
+-- 1. HABILITAR RLS EM TODAS AS TABELAS
+-- =====================================================
+
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE routines ENABLE ROW LEVEL SECURITY;
+ALTER TABLE intentions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE prayer_intercessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE post_likes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE journal ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_logs ENABLE ROW LEVEL SECURITY;
+
+-- =====================================================
+-- 2. POLÍTICAS PARA TABELA PROFILES
+-- =====================================================
+
+-- Usuário pode ver apenas seu próprio perfil
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+
+-- Usuário pode atualizar apenas seu próprio perfil
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+-- Permitir inserção durante registro (service role)
+CREATE POLICY "Enable insert for authenticated users" ON profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- =====================================================
+-- 3. POLÍTICAS PARA TABELA ROUTINES
+-- =====================================================
+
+-- Usuário pode ver apenas suas próprias rotinas
+CREATE POLICY "Users can view own routines" ON routines
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Usuário pode criar suas próprias rotinas
+CREATE POLICY "Users can insert own routines" ON routines
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Usuário pode atualizar suas próprias rotinas
+CREATE POLICY "Users can update own routines" ON routines
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- Usuário pode deletar suas próprias rotinas
+CREATE POLICY "Users can delete own routines" ON routines
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- =====================================================
+-- 4. POLÍTICAS PARA TABELA INTENTIONS (Intenções de Oração)
+-- =====================================================
+
+-- Todos os usuários autenticados podem ver intenções (comunidade)
+CREATE POLICY "Authenticated users can view intentions" ON intentions
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Usuário pode criar suas próprias intenções
+CREATE POLICY "Users can insert own intentions" ON intentions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Usuário pode deletar suas próprias intenções
+CREATE POLICY "Users can delete own intentions" ON intentions
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- =====================================================
+-- 5. POLÍTICAS PARA TABELA PRAYER_INTERCESSIONS
+-- =====================================================
+
+-- Todos podem ver intercessões (para contagem)
+CREATE POLICY "Anyone can view intercessions" ON prayer_intercessions
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Usuário pode registrar suas intercessões
+CREATE POLICY "Users can insert own intercessions" ON prayer_intercessions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Usuário pode remover suas intercessões
+CREATE POLICY "Users can delete own intercessions" ON prayer_intercessions
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- =====================================================
+-- 6. POLÍTICAS PARA TABELA POSTS (Comunidade)
+-- =====================================================
+
+-- Todos os usuários autenticados podem ver posts
+CREATE POLICY "Authenticated users can view posts" ON posts
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Usuário pode criar seus próprios posts
+CREATE POLICY "Users can insert own posts" ON posts
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Usuário pode deletar seus próprios posts
+CREATE POLICY "Users can delete own posts" ON posts
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- =====================================================
+-- 7. POLÍTICAS PARA TABELA JOURNAL (Diário Pessoal)
+-- =====================================================
+
+-- Usuário pode ver apenas seu próprio diário (PRIVADO)
+CREATE POLICY "Users can view own journal" ON journal
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Usuário pode criar entradas no seu diário
+CREATE POLICY "Users can insert own journal entries" ON journal
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Usuário pode atualizar seu diário
+CREATE POLICY "Users can update own journal" ON journal
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- Usuário pode deletar entradas do seu diário
+CREATE POLICY "Users can delete own journal entries" ON journal
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- =====================================================
+-- 8. POLÍTICAS PARA TABELA PAYMENT_LOGS (Apenas Admin)
+-- =====================================================
+
+-- Apenas service role pode acessar logs de pagamento
+-- (Nenhuma política para usuários normais = acesso negado)
+-- O webhook usa service_role_key que bypassa RLS
+
+-- =====================================================
+-- 9. POLÍTICAS PARA TABELA NOTIFICATIONS
+-- =====================================================
+
+-- Usuário pode ver apenas suas próprias notificações
+CREATE POLICY "Users can view own notifications" ON notifications
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Sistema pode criar notificações (via service role)
+CREATE POLICY "System can insert notifications" ON notifications
+  FOR INSERT WITH CHECK (true);
+
+-- Usuário pode marcar suas notificações como lidas
+CREATE POLICY "Users can update own notifications" ON notifications
+  FOR UPDATE USING (auth.uid() = user_id);
+```
+
+---
+
+## 🛡️ BOAS PRÁTICAS DE SEGURANÇA IMPLEMENTADAS
+
+### No Código:
+1. ✅ Senhas nunca são armazenadas em texto plano (Supabase Auth cuida disso)
+2. ✅ Tokens de sessão têm expiração (30 dias)
+3. ✅ E-mails são normalizados (lowercase, trim)
+4. ✅ Dados sensíveis não são expostos em logs
+5. ✅ Webhook valida assinatura da Cakto
+6. ✅ Proteção contra eventos duplicados de pagamento
+
+### No Supabase:
+1. ⚠️ **EXECUTE O SQL ACIMA** para habilitar RLS
+2. ⚠️ Nunca exponha a `service_role_key` no frontend
+3. ⚠️ Use apenas `anon_key` no código do cliente
+4. ⚠️ Configure variáveis de ambiente na Vercel
+
+### Na Cakto:
+1. ⚠️ Configure o webhook URL corretamente
+2. ⚠️ Guarde o `CAKTO_CLIENT_SECRET` nas variáveis do Supabase
+
+---
+
+## 📊 ÍNDICES DE PERFORMANCE
+
+```sql
+-- Índices para melhorar performance de queries frequentes
+CREATE INDEX IF NOT EXISTS idx_routines_user_id ON routines(user_id);
+CREATE INDEX IF NOT EXISTS idx_routines_day_of_week ON routines(day_of_week);
+CREATE INDEX IF NOT EXISTS idx_intentions_created_at ON intentions(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_intentions_user_id ON intentions(user_id);
+CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_prayer_intercessions_intention ON prayer_intercessions(intention_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_logs_user_id ON payment_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_logs_event_id ON payment_logs(event_id);
+```

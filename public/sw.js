@@ -1,16 +1,33 @@
 /**
  * ESPIRITUALIZEI - SERVICE WORKER
- * Sistema completo de notificações push para PWA
- * Versão 2.0.0
+ * Sistema completo de notificações push e cache otimizado para PWA
+ * Versão 2.1.0
  */
 
-const CACHE_NAME = 'espiritualizei-v2.0.0';
+const CACHE_NAME = 'espiritualizei-v2.1.0';
 const APP_ICON = '/icons/icon-192x192.png';
 const BADGE_ICON = '/icons/icon-72x72.png';
 
-// Instalação do Service Worker
+// Recursos para pré-cache (carregamento offline)
+const PRECACHE_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png'
+];
+
+// Instalação do Service Worker com pré-cache
 self.addEventListener('install', (event) => {
   console.log('🔧 Service Worker instalado');
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('📦 Pré-cacheando recursos essenciais');
+      return cache.addAll(PRECACHE_ASSETS).catch(err => {
+        console.warn('⚠️ Alguns recursos não puderam ser cacheados:', err);
+      });
+    })
+  );
   self.skipWaiting();
 });
 
@@ -33,12 +50,96 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// Estratégia de cache: Network First
+// Estratégia de cache: Stale-While-Revalidate para melhor performance
 self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // Ignorar requisições não-GET
+  if (request.method !== 'GET') {
+    return;
+  }
+  
+  // Ignorar requisições de outros domínios (exceto CDNs conhecidos)
+  if (!url.origin.includes(self.location.origin) && 
+      !url.hostname.includes('fonts.googleapis.com') &&
+      !url.hostname.includes('fonts.gstatic.com')) {
+    return;
+  }
+  
+  // Para APIs do Supabase, sempre buscar da rede (dados em tempo real)
+  if (url.hostname.includes('supabase')) {
+    return;
+  }
+  
+  // Para assets estáticos (JS, CSS, imagens, fontes), usar cache-first
+  const isStaticAsset = 
+    request.destination === 'script' || 
+    request.destination === 'style' || 
+    request.destination === 'image' ||
+    request.destination === 'font' ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.jpg') ||
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.woff2');
+    
+  if (isStaticAsset) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        // Se tem cache, retorna imediatamente e atualiza em background
+        if (cachedResponse) {
+          fetch(request).then((networkResponse) => {
+            if (networkResponse && networkResponse.ok) {
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, networkResponse);
+              });
+            }
+          }).catch(() => {});
+          return cachedResponse;
+        }
+        
+        // Se não tem cache, busca da rede e cacheia
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.ok) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return networkResponse;
+        }).catch(() => {
+          // Fallback para assets que falharam
+          return new Response('', { status: 404 });
+        });
+      })
+    );
+    return;
+  }
+  
+  // Para HTML e outras requisições, network-first com fallback para cache
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
+    fetch(request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.ok) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(request).then((cachedResponse) => {
+          // Se tem cache, retorna
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // Fallback para a página inicial (SPA)
+          return caches.match('/');
+        });
+      })
   );
 });
 
@@ -68,8 +169,6 @@ self.addEventListener('push', (event) => {
         badge: BADGE_ICON,
         tag: payload.tag || 'default',
         data: payload.data || {},
-        // Configurações avançadas
-        vibrate: [100, 50, 100],
         requireInteraction: payload.requireInteraction || false,
         actions: payload.actions || []
       };
@@ -86,7 +185,6 @@ self.addEventListener('push', (event) => {
       badge: notificationData.badge,
       tag: notificationData.tag,
       data: notificationData.data,
-      vibrate: notificationData.vibrate,
       requireInteraction: notificationData.requireInteraction,
       actions: notificationData.actions
     }
@@ -197,8 +295,7 @@ async function showDailyInspiration() {
     icon: APP_ICON,
     badge: BADGE_ICON,
     tag: 'daily-inspiration',
-    data: { type: 'inspiration' },
-    vibrate: [100, 50, 100]
+    data: { type: 'inspiration' }
   });
 }
 
@@ -219,8 +316,7 @@ async function showRoutineReminder() {
     icon: APP_ICON,
     badge: BADGE_ICON,
     tag: 'routine-reminder',
-    data: { type: 'routine' },
-    vibrate: [100, 50, 100]
+    data: { type: 'routine' }
   });
 }
 
@@ -231,9 +327,8 @@ async function showChallengeUpdate() {
     badge: BADGE_ICON,
     tag: 'challenge-update',
     data: { type: 'challenge' },
-    requireInteraction: true,
-    vibrate: [100, 50, 100, 50, 100]
+    requireInteraction: true
   });
 }
 
-console.log('🚀 Espiritualizei Service Worker carregado com sucesso!');
+console.log('🚀 Espiritualizei Service Worker v2.1.0 carregado com sucesso!');
