@@ -549,6 +549,10 @@ const App: React.FC = () => {
             window.history.pushState({}, '', '/');
             setViewState('landing');
           }}
+          onBackToApp={() => {
+            window.history.pushState({}, '', '/');
+            setViewState('landing');
+          }}
         />
       )}
     </div>
