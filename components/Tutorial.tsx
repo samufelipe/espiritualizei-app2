@@ -112,15 +112,15 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
   return (
     <div className={`fixed inset-0 z-[60] flex flex-col transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
       
-      {/* Backdrop with Blur/Darken */}
-      <div className={`absolute inset-0 backdrop-blur-sm transition-all duration-500 ${isPremiumSlide ? 'bg-brand-violet/90' : 'bg-brand-dark/80 dark:bg-black/90'}`} />
+      {/* Backdrop with Blur/Darken - Cores oficiais Espiritualizei */}
+      <div className={`absolute inset-0 backdrop-blur-sm transition-all duration-500 ${isPremiumSlide ? 'bg-gradient-to-br from-brand-violet via-purple-700 to-brand-dark' : 'bg-gradient-to-br from-brand-dark via-[#1a1a2e] to-[#0f0f1a]'}`} />
 
       {/* Content Card */}
       <div className={`absolute ${currentStep.positionClass} w-[90%] max-w-sm transition-all duration-500 ease-in-out`}>
-        <div className={`border shadow-2xl rounded-[2rem] p-6 relative overflow-visible animate-slide-up ${isPremiumSlide ? 'bg-gradient-to-br from-brand-violet to-purple-700 border-white/20 ring-4 ring-white/20' : 'bg-white dark:bg-brand-dark border-slate-200 dark:border-white/20 ring-4 ring-brand-violet/20'}`}>
+        <div className={`border shadow-2xl rounded-[2rem] p-6 relative overflow-visible animate-slide-up ${isPremiumSlide ? 'bg-gradient-to-br from-brand-violet to-purple-700 border-white/20 ring-4 ring-white/20' : 'bg-gradient-to-br from-brand-dark to-[#1a1a2e] border-brand-violet/30 ring-4 ring-brand-violet/20'}`}>
           
-          {/* Decorative Blob */}
-          <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-2xl animate-pulse-slow pointer-events-none ${isPremiumSlide ? 'bg-white/20' : 'bg-brand-violet/10'}`} />
+          {/* Decorative Blob - Roxo oficial */}
+          <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-2xl animate-pulse-slow pointer-events-none ${isPremiumSlide ? 'bg-white/20' : 'bg-brand-violet/30'}`} />
 
           {/* Badge */}
           {currentStep.badge && (
@@ -139,11 +139,11 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
               )}
             </div>
 
-            <h3 className={`text-2xl font-bold mb-3 leading-tight ${isPremiumSlide ? 'text-white' : 'text-brand-dark dark:text-white'}`}>
+            <h3 className={`text-2xl font-bold mb-3 leading-tight ${isPremiumSlide ? 'text-white' : 'text-white'}`}>
               {currentStep.title}
             </h3>
             
-            <p className={`leading-relaxed mb-6 text-base font-medium ${isPremiumSlide ? 'text-white/90' : 'text-slate-600 dark:text-slate-300'}`}>
+            <p className={`leading-relaxed mb-6 text-base font-medium ${isPremiumSlide ? 'text-white/90' : 'text-slate-300'}`}>
               {currentStep.description}
             </p>
 
@@ -166,7 +166,7 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
                   <div 
                     key={idx}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
-                      idx === step ? `w-6 ${isPremiumSlide ? 'bg-white' : 'bg-brand-violet'}` : `w-1.5 ${isPremiumSlide ? 'bg-white/30' : 'bg-slate-200 dark:bg-white/20'}`
+                      idx === step ? `w-6 ${isPremiumSlide ? 'bg-white' : 'bg-brand-violet'}` : `w-1.5 ${isPremiumSlide ? 'bg-white/30' : 'bg-white/20'}`
                     }`}
                   />
                 ))}
@@ -174,7 +174,7 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
 
               <button 
                 onClick={handleNext}
-                className={`px-6 py-3 rounded-xl font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 ${isPremiumSlide ? 'bg-white text-brand-violet' : 'bg-brand-dark dark:bg-white text-white dark:text-brand-dark'}`}
+                className={`px-6 py-3 rounded-xl font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 ${isPremiumSlide ? 'bg-white text-brand-violet' : 'bg-brand-violet text-white'}`}
               >
                 {step === steps.length - 1 ? 'Começar Jornada' : 'Próximo'} <ArrowRight size={16} />
               </button>
@@ -183,7 +183,7 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
 
           {/* Pointer Arrow */}
           {!isCenter && (
-             <div className={`absolute w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] ${currentStep.arrowClass}`}></div>
+             <div className={`absolute w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] border-t-brand-dark`}></div>
           )}
         </div>
       </div>

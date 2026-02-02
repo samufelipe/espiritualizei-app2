@@ -13,6 +13,8 @@ import MonthlyReviewModal from './components/MonthlyReviewModal';
 import InstallPWAGuide from './components/InstallPWAGuide';
 import NotificationPermissionModal from './components/NotificationPermissionModal';
 import Paywall from './components/Paywall';
+import AdminPanel from './components/AdminPanel';
+import AdminLogin, { checkAdminSession, clearAdminSession } from './components/AdminLogin';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { requestNotificationPermission, scheduleRoutineNotifications } from './services/notificationService';
@@ -40,7 +42,7 @@ const TabLoader = () => (
 );
 
 const App: React.FC = () => {
-  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'checkout' | 'welcome_premium' | 'app'>('landing');
+  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'checkout' | 'welcome_premium' | 'app' | 'admin_login' | 'admin'>('landing');
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.DASHBOARD);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showDailyInspiration, setShowDailyInspiration] = useState(false);
@@ -66,6 +68,20 @@ const App: React.FC = () => {
       document.body.classList.add('app-mode');
     }
   }, [viewState]);
+
+  // Verificação de acesso ao painel admin via URL
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/admin' || path === '/admin/') {
+      // Verificar se já tem sessão admin válida
+      if (checkAdminSession()) {
+        setViewState('admin');
+      } else {
+        setViewState('admin_login');
+      }
+      return;
+    }
+  }, []);
 
   // Verificação de pagamento bem-sucedido via URL
   useEffect(() => {
@@ -508,6 +524,31 @@ const App: React.FC = () => {
             fetchCommunityIntentions(user.id).then(setIntentions); 
             setShowIntentionModal(false); 
           }} 
+        />
+      )}
+      
+      {/* Painel Administrativo */}
+      {viewState === 'admin_login' && (
+        <AdminLogin 
+          onLogin={(success) => {
+            if (success) {
+              setViewState('admin');
+            }
+          }}
+          onBack={() => {
+            window.history.pushState({}, '', '/');
+            setViewState('landing');
+          }}
+        />
+      )}
+      
+      {viewState === 'admin' && (
+        <AdminPanel 
+          onLogout={() => {
+            clearAdminSession();
+            window.history.pushState({}, '', '/');
+            setViewState('landing');
+          }}
         />
       )}
     </div>
