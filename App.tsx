@@ -69,14 +69,18 @@ const App: React.FC = () => {
     }
   }, [viewState]);
 
-  // Verificação de acesso ao painel admin via URL
+  // Verificação de acesso ao painel admin via URL - PRIORIDADE MÁXIMA
   useEffect(() => {
     const path = window.location.pathname;
-    if (path === '/admin' || path === '/admin/') {
+    console.log('🔍 Verificando path:', path);
+    if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
+      console.log('✅ Rota admin detectada!');
       // Verificar se já tem sessão admin válida
       if (checkAdminSession()) {
+        console.log('🔐 Sessão admin válida, redirecionando para painel');
         setViewState('admin');
       } else {
+        console.log('🔑 Sem sessão admin, mostrando login');
         setViewState('admin_login');
       }
       return;
@@ -134,6 +138,13 @@ const App: React.FC = () => {
     initNative();
 
     const initSession = async () => {
+      // NÃO inicializar se estiver na rota admin
+      const path = window.location.pathname;
+      if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
+        console.log('🚫 Pulando initSession - rota admin detectada');
+        return;
+      }
+      
       const session = getSession();
       
       if (session && session.user && session.user.id !== 'guest') {
