@@ -9,13 +9,13 @@ interface AdminLoginProps {
 
 // Lista de emails autorizados como administradores
 const ADMIN_EMAILS = [
-  'samufelipe@gmail.com',
+  'samucafe01@gmail.com',
   'admin@espiritualizei.com',
   'espiritualizeiapp@gmail.com'
 ];
 
 // Senha mestra do painel admin (em produção, isso deveria estar no servidor)
-const ADMIN_PASSWORD = 'Espiritualizei@Admin2024';
+const ADMIN_PASSWORD = 'Samuel@2022';
 
 const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
   const [email, setEmail] = useState('');
