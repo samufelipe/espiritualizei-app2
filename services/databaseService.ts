@@ -45,10 +45,16 @@ export const fetchChatMessages = async (): Promise<any[]> => {
       
       if (error) throw error;
       return (data || []).map(m => ({
-        ...m,
+        id: m.id,
+        userId: m.user_id,
+        userName: m.user_name,
+        userAvatar: m.user_avatar,
+        userLevel: m.user_level,
+        text: m.text,
         timestamp: new Date(m.timestamp),
+        type: m.type || 'chat',
         reactions: m.reactions || { heart: 0, candle: 0, pray: 0 },
-        userReactions: { heart: false, candle: false, pray: false } 
+        userReactions: { heart: false, candle: false, pray: false }
       }));
     } catch (e) {
       console.error("Erro ao buscar mensagens do chat:", e);
