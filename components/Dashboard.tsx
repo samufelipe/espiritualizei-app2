@@ -248,7 +248,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             )}
 
             <button 
-                onClick={() => onNavigateToCommunity('social')} 
+                onClick={() => onNavigateToSocial()} 
                 className="w-full bg-white text-brand-violet px-6 py-4 rounded-2xl font-black text-sm shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
             >
                 <MessageCircle size={18} /> Entrar no Chat
