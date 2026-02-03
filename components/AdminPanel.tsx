@@ -1374,9 +1374,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   }
 
   return (
-    <div className="min-h-screen h-screen bg-slate-50 dark:bg-brand-dark overflow-y-auto flex flex-col">
+    <div className="fixed inset-0 bg-slate-50 dark:bg-brand-dark flex flex-col z-[100]">
       {/* Header - Centralizado */}
-      <header className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10 sticky top-0 z-50">
+      <header className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10 flex-shrink-0">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
@@ -1421,7 +1421,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       </header>
 
       {/* Navegação - Centralizada */}
-      <nav className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10 sticky top-16 z-40">
+      <nav className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10 flex-shrink-0">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 overflow-x-auto py-2 justify-center">
             {[
