@@ -102,10 +102,35 @@ const Checkout: React.FC<CheckoutProps> = ({ onSuccess, userName, userEmail, use
               )}
            </button>
            
-           <p className="text-[10px] text-center text-slate-400 mt-5 font-medium leading-relaxed italic">
-              Você será levado ao ambiente de pagamento seguro.<br />
-              O acesso é liberado assim que o pagamento for confirmado.
-           </p>
+           <div className="mt-6 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-2xl p-5 border-2 border-blue-200 dark:border-blue-800/30">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                  <Shield size={18} className="text-white" />
+                </div>
+                <div>
+                  <h4 className="font-black text-brand-dark dark:text-white text-sm mb-1">Importante: Como funciona o pagamento</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Você será redirecionado para o ambiente seguro da <strong>Cakto</strong> para concluir o pagamento.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-white/5 rounded-xl p-4 border border-blue-200 dark:border-blue-800/30">
+                <p className="text-xs font-bold text-brand-dark dark:text-white mb-2 flex items-center gap-2">
+                  <ArrowRight size={14} className="text-blue-500" />
+                  Após concluir o pagamento:
+                </p>
+                <ol className="text-xs text-slate-600 dark:text-slate-300 space-y-2 ml-5 list-decimal">
+                  <li>Volte para o <strong>Espiritualizei</strong> (você pode fechar a aba da Cakto)</li>
+                  <li>Faça <strong>login novamente</strong> com seu e-mail e senha</li>
+                  <li>Seu <strong>acesso Premium estará liberado</strong> automaticamente! 🎉</li>
+                </ol>
+              </div>
+              
+              <p className="text-[10px] text-center text-slate-500 dark:text-slate-400 mt-3 font-medium italic">
+                A ativação é automática e leva apenas alguns segundos.
+              </p>
+           </div>
         </div>
         
         <div className="flex flex-col items-center gap-6 mb-10">
