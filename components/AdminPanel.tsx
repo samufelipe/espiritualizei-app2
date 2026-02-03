@@ -9,7 +9,8 @@ import {
   MessageSquare, Send, FileText, AlertTriangle,
   Heart, BookOpen, Target, Gift, Megaphone, Headphones,
   Smartphone, Monitor, PieChart, ArrowUpRight, ArrowDownRight,
-  TrendingDown, Award, Flame, Coffee, Sun, Moon
+  TrendingDown, Award, Flame, Coffee, Sun, Moon,
+  Compass, Church, Cross, Sparkles, Layers
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
@@ -40,6 +41,8 @@ interface AdminUser {
   confession_frequency?: string;
   payment_provider?: string;
   premium_since?: string;
+  last_routine_update?: string;
+  last_confession_at?: string;
 }
 
 interface AdminStats {
@@ -57,15 +60,13 @@ interface AdminStats {
   avgStreak: number;
 }
 
-interface CommunityPost {
-  id: string;
-  user_id: string;
-  user_name: string;
-  content: string;
-  type: string;
-  created_at: string;
-  likes_count: number;
-  is_flagged?: boolean;
+interface FeatureUsage {
+  feature: string;
+  icon: any;
+  count: number;
+  percentage: number;
+  color: string;
+  description: string;
 }
 
 interface AdminPanelProps {
@@ -74,10 +75,10 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'content' | 'analytics' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'analytics' | 'features' | 'settings'>('dashboard');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<AdminUser[]>([]);
-  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,6 +93,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   const [broadcastTitle, setBroadcastTitle] = useState('');
   const [broadcastTarget, setBroadcastTarget] = useState<'all' | 'premium' | 'free'>('all');
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  
+  // Contadores de funcionalidades
+  const [featureStats, setFeatureStats] = useState({
+    totalPosts: 0,
+    totalComments: 0,
+    totalIntentions: 0,
+    totalJournalEntries: 0,
+    totalRoutines: 0,
+    totalPrayerIntentions: 0,
+    totalPrayerInteractions: 0,
+    usersWithConfession: 0,
+    usersWithRoutineUpdate: 0,
+    usersWithStreak: 0
+  });
   
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
@@ -127,6 +142,27 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     }
     
     return response.json();
+  };
+
+  // Função para contar registros
+  const countRecords = async (table: string): Promise<number> => {
+    try {
+      const response = await fetch(`${ADMIN_SUPABASE_URL}/rest/v1/${table}?select=id`, {
+        headers: {
+          'apikey': ADMIN_SUPABASE_KEY,
+          'Authorization': `Bearer ${ADMIN_SUPABASE_KEY}`,
+          'Prefer': 'count=exact'
+        }
+      });
+      const contentRange = response.headers.get('content-range');
+      if (contentRange) {
+        const match = contentRange.match(/\/(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      }
+      return 0;
+    } catch {
+      return 0;
+    }
   };
 
   // Carregar dados
@@ -182,6 +218,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       const profilesData = await supabaseFetch('profiles?select=*&order=joined_date.desc');
       console.log('[AdminPanel] Profiles carregados:', profilesData.length);
       
+      // Buscar posts
+      const postsData = await supabaseFetch('posts?select=*&order=timestamp.desc');
+      setPosts(postsData || []);
+      
+      // Contar registros de cada tabela
+      const [
+        totalPosts,
+        totalComments,
+        totalIntentions,
+        totalJournalEntries,
+        totalRoutines,
+        totalPrayerIntentions,
+        totalPrayerInteractions
+      ] = await Promise.all([
+        countRecords('posts'),
+        countRecords('comments'),
+        countRecords('intentions'),
+        countRecords('journal_entries'),
+        countRecords('routines'),
+        countRecords('prayer_intentions'),
+        countRecords('prayer_interactions')
+      ]);
+      
       const usersData: AdminUser[] = (profilesData || []).map((p: any) => ({
         id: p.id,
         name: p.name || 'Sem nome',
@@ -204,12 +263,32 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
         patron_saint: p.patron_saint,
         confession_frequency: p.confession_frequency,
         payment_provider: p.payment_provider,
-        premium_since: p.premium_since
+        premium_since: p.premium_since,
+        last_routine_update: p.last_routine_update,
+        last_confession_at: p.last_confession_at
       }));
 
       setUsers(usersData);
 
-      // Calcular estatísticas
+      // Calcular estatísticas de funcionalidades
+      const usersWithConfession = usersData.filter(u => u.last_confession_at).length;
+      const usersWithRoutineUpdate = usersData.filter(u => u.last_routine_update).length;
+      const usersWithStreak = usersData.filter(u => (u.streak_days || 0) > 0).length;
+
+      setFeatureStats({
+        totalPosts,
+        totalComments,
+        totalIntentions,
+        totalJournalEntries,
+        totalRoutines,
+        totalPrayerIntentions,
+        totalPrayerInteractions,
+        usersWithConfession,
+        usersWithRoutineUpdate,
+        usersWithStreak
+      });
+
+      // Calcular estatísticas gerais
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -798,6 +877,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       'gluttony': 'Gula',
       'greed': 'Avareza',
       'Paz': 'Paz',
+      'peace': 'Paz',
+      'truth': 'Verdade',
       'Não definido': 'Não definido'
     };
 
@@ -829,7 +910,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       <div className="space-y-6">
         <h2 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
           <BarChart3 size={24} className="text-brand-violet" />
-          Analytics Avançados
+          Analytics de Perfil Espiritual
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -942,6 +1023,258 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     );
   };
 
+  // Renderização de Features (Uso de Funcionalidades)
+  const renderFeatures = () => {
+    // Calcular uso de funcionalidades baseado nos dados disponíveis
+    const totalUsers = users.length || 1;
+    
+    const featuresList: FeatureUsage[] = [
+      {
+        feature: 'Comunidade (Posts)',
+        icon: MessageSquare,
+        count: featureStats.totalPosts,
+        percentage: Math.round((featureStats.totalPosts / totalUsers) * 100),
+        color: 'from-blue-400 to-blue-600',
+        description: `${featureStats.totalPosts} posts criados`
+      },
+      {
+        feature: 'Rotina Espiritual',
+        icon: Calendar,
+        count: featureStats.usersWithRoutineUpdate,
+        percentage: Math.round((featureStats.usersWithRoutineUpdate / totalUsers) * 100),
+        color: 'from-emerald-400 to-emerald-600',
+        description: `${featureStats.usersWithRoutineUpdate} usuários atualizaram rotina`
+      },
+      {
+        feature: 'Confissão',
+        icon: Church,
+        count: featureStats.usersWithConfession,
+        percentage: Math.round((featureStats.usersWithConfession / totalUsers) * 100),
+        color: 'from-purple-400 to-purple-600',
+        description: `${featureStats.usersWithConfession} usuários registraram confissão`
+      },
+      {
+        feature: 'Streak (Sequência)',
+        icon: Flame,
+        count: featureStats.usersWithStreak,
+        percentage: Math.round((featureStats.usersWithStreak / totalUsers) * 100),
+        color: 'from-orange-400 to-orange-600',
+        description: `${featureStats.usersWithStreak} usuários com streak ativo`
+      },
+      {
+        feature: 'Intenções de Oração',
+        icon: Heart,
+        count: featureStats.totalPrayerIntentions,
+        percentage: Math.round((featureStats.totalPrayerIntentions / totalUsers) * 100),
+        color: 'from-pink-400 to-pink-600',
+        description: `${featureStats.totalPrayerIntentions} intenções criadas`
+      },
+      {
+        feature: 'Diário Espiritual',
+        icon: BookOpen,
+        count: featureStats.totalJournalEntries,
+        percentage: Math.round((featureStats.totalJournalEntries / totalUsers) * 100),
+        color: 'from-indigo-400 to-indigo-600',
+        description: `${featureStats.totalJournalEntries} entradas no diário`
+      },
+      {
+        feature: 'Comentários',
+        icon: MessageSquare,
+        count: featureStats.totalComments,
+        percentage: Math.round((featureStats.totalComments / totalUsers) * 100),
+        color: 'from-cyan-400 to-cyan-600',
+        description: `${featureStats.totalComments} comentários feitos`
+      },
+      {
+        feature: 'Interações de Oração',
+        icon: Sparkles,
+        count: featureStats.totalPrayerInteractions,
+        percentage: Math.round((featureStats.totalPrayerInteractions / totalUsers) * 100),
+        color: 'from-amber-400 to-amber-600',
+        description: `${featureStats.totalPrayerInteractions} interações de oração`
+      }
+    ].sort((a, b) => b.count - a.count);
+
+    const mostUsed = featuresList.slice(0, 4);
+    const leastUsed = featuresList.slice(-4).reverse();
+
+    return (
+      <div className="space-y-8">
+        <h2 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
+          <Layers size={24} className="text-brand-violet" />
+          Uso de Funcionalidades do App
+        </h2>
+
+        {/* Resumo Geral */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard 
+            icon={MessageSquare} 
+            label="Posts na Comunidade" 
+            value={featureStats.totalPosts}
+            subValue="publicações"
+            color="bg-gradient-to-br from-blue-400 to-blue-600"
+            trend="neutral"
+          />
+          <StatCard 
+            icon={Calendar} 
+            label="Rotinas Atualizadas" 
+            value={featureStats.usersWithRoutineUpdate}
+            subValue={`${Math.round((featureStats.usersWithRoutineUpdate / totalUsers) * 100)}% dos usuários`}
+            color="bg-gradient-to-br from-emerald-400 to-emerald-600"
+            trend="neutral"
+          />
+          <StatCard 
+            icon={Church} 
+            label="Confissões Registradas" 
+            value={featureStats.usersWithConfession}
+            subValue={`${Math.round((featureStats.usersWithConfession / totalUsers) * 100)}% dos usuários`}
+            color="bg-gradient-to-br from-purple-400 to-purple-600"
+            trend="neutral"
+          />
+          <StatCard 
+            icon={Flame} 
+            label="Streaks Ativos" 
+            value={featureStats.usersWithStreak}
+            subValue={`${Math.round((featureStats.usersWithStreak / totalUsers) * 100)}% dos usuários`}
+            color="bg-gradient-to-br from-orange-400 to-orange-600"
+            trend="neutral"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Funcionalidades Mais Usadas */}
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
+            <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-6 flex items-center gap-2">
+              <TrendingUp size={20} className="text-emerald-500" />
+              Funcionalidades Mais Usadas
+            </h3>
+            <div className="space-y-4">
+              {mostUsed.map((feature, index) => (
+                <div key={feature.feature} className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center`}>
+                    <feature.icon size={22} className="text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-medium text-brand-dark dark:text-white">{feature.feature}</span>
+                      <span className="text-sm font-bold text-emerald-500">{feature.count}</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full bg-gradient-to-r ${feature.color} rounded-full transition-all duration-700`}
+                        style={{ width: `${Math.min(feature.percentage, 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">{feature.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Funcionalidades Menos Usadas */}
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
+            <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-6 flex items-center gap-2">
+              <TrendingDown size={20} className="text-red-500" />
+              Funcionalidades Menos Usadas
+            </h3>
+            <div className="space-y-4">
+              {leastUsed.map((feature, index) => (
+                <div key={feature.feature} className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center opacity-60`}>
+                    <feature.icon size={22} className="text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-medium text-brand-dark dark:text-white">{feature.feature}</span>
+                      <span className="text-sm font-bold text-red-500">{feature.count}</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full bg-gradient-to-r from-slate-300 to-slate-400 rounded-full transition-all duration-700`}
+                        style={{ width: `${Math.max(feature.percentage, 5)}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">{feature.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {leastUsed.every(f => f.count === 0) && (
+              <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-200 dark:border-amber-500/20">
+                <p className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                  <AlertTriangle size={16} />
+                  Estas funcionalidades ainda não foram utilizadas pelos usuários. Considere promovê-las!
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Ranking Completo de Funcionalidades */}
+        <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
+          <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-6 flex items-center gap-2">
+            <BarChart3 size={20} className="text-brand-violet" />
+            Ranking Completo de Uso
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 dark:bg-white/5">
+                <tr>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">#</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Funcionalidade</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Uso Total</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">% Usuários</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-white/10">
+                {featuresList.map((feature, index) => (
+                  <tr key={feature.feature} className="hover:bg-slate-50 dark:hover:bg-white/5">
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                        index < 3 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600' :
+                        index >= featuresList.length - 3 ? 'bg-red-100 dark:bg-red-500/20 text-red-600' :
+                        'bg-slate-100 dark:bg-white/10 text-slate-600'
+                      }`}>
+                        {index + 1}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center`}>
+                          <feature.icon size={18} className="text-white" />
+                        </div>
+                        <span className="font-medium text-brand-dark dark:text-white">{feature.feature}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="font-bold text-brand-dark dark:text-white">{feature.count}</span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="text-slate-600 dark:text-slate-400">{feature.percentage}%</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {feature.count > 0 ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-medium">
+                          <Check size={12} /> Ativo
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 rounded-full text-xs font-medium">
+                          Sem uso
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Renderização de Configurações
   const renderSettings = () => (
     <div className="space-y-6">
@@ -955,7 +1288,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
         <div className="space-y-4">
           <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
             <span className="text-slate-600 dark:text-slate-400">Versão do Painel</span>
-            <span className="font-medium text-brand-dark dark:text-white">v2.1.0</span>
+            <span className="font-medium text-brand-dark dark:text-white">v2.2.0</span>
           </div>
           <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
             <span className="text-slate-600 dark:text-slate-400">Última Atualização de Dados</span>
@@ -1009,25 +1342,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     </div>
   );
 
-  // Renderização de Conteúdo (Comunidade)
-  const renderContent = () => (
-    <div className="space-y-6">
-      <h2 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
-        <MessageSquare size={24} className="text-brand-violet" />
-        Moderação de Conteúdo
-      </h2>
-
-      <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
-        <p className="text-center text-slate-500 py-8">
-          <MessageSquare size={48} className="mx-auto mb-4 opacity-50" />
-          Nenhum conteúdo para moderar no momento.
-          <br />
-          <span className="text-sm">Os posts da comunidade aparecerão aqui quando houver conteúdo.</span>
-        </p>
-      </div>
-    </div>
-  );
-
   // Loading State
   if (loading) {
     return (
@@ -1060,10 +1374,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-brand-dark flex flex-col">
-      {/* Header */}
-      <header className="bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10 sticky top-0 z-50">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-brand-dark flex flex-col items-center">
+      {/* Header - Centralizado */}
+      <header className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10 sticky top-0 z-50">
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <BrandLogo size={32} variant="fill" className="text-brand-violet" />
@@ -1106,15 +1420,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
         </div>
       </header>
 
-      {/* Navegação */}
-      <nav className="bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 overflow-x-auto py-2">
+      {/* Navegação - Centralizada */}
+      <nav className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10">
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-1 overflow-x-auto py-2 justify-center">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
               { id: 'users', label: 'Usuários', icon: Users },
+              { id: 'features', label: 'Funcionalidades', icon: Layers },
               { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-              { id: 'content', label: 'Conteúdo', icon: MessageSquare },
               { id: 'settings', label: 'Configurações', icon: Settings }
             ].map(tab => (
               <button
@@ -1134,12 +1448,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
         </div>
       </nav>
 
-      {/* Conteúdo Principal */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Conteúdo Principal - Centralizado */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'users' && renderUsers()}
+        {activeTab === 'features' && renderFeatures()}
         {activeTab === 'analytics' && renderAnalytics()}
-        {activeTab === 'content' && renderContent()}
         {activeTab === 'settings' && renderSettings()}
       </main>
 
