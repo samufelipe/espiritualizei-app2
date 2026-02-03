@@ -1374,10 +1374,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-brand-dark flex flex-col items-center">
+    <div className="min-h-screen bg-slate-50 dark:bg-brand-dark overflow-y-auto">
       {/* Header - Centralizado */}
       <header className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10 sticky top-0 z-50">
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <BrandLogo size={32} variant="fill" className="text-brand-violet" />
@@ -1421,8 +1421,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       </header>
 
       {/* Navegação - Centralizada */}
-      <nav className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10">
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10 sticky top-16 z-40">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 overflow-x-auto py-2 justify-center">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -1449,7 +1449,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       </nav>
 
       {/* Conteúdo Principal - Centralizado */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20">
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'users' && renderUsers()}
         {activeTab === 'features' && renderFeatures()}
