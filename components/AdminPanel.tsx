@@ -138,8 +138,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   const loadData = async () => {
     setLoading(true);
     try {
-      if (!getConnectionStatus()) {
-        console.log('Sem conexão com Supabase');
+      console.log('[AdminPanel] Iniciando carregamento de dados...');
+      console.log('[AdminPanel] Status da conexão Supabase:', getConnectionStatus());
+      console.log('[AdminPanel] Supabase client:', supabase ? 'Conectado' : 'Não conectado');
+      
+      if (!getConnectionStatus() || !supabase) {
+        console.error('[AdminPanel] Sem conexão com Supabase - verifique as variáveis de ambiente');
         setLoading(false);
         return;
       }
@@ -150,7 +154,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[AdminPanel] Erro ao buscar profiles:', error);
+        throw error;
+      }
+      
+      console.log('[AdminPanel] Profiles encontrados:', profilesData?.length || 0);
+      console.log('[AdminPanel] Dados brutos:', profilesData);
 
       const usersData: AdminUser[] = (profilesData || []).map(p => ({
         id: p.id,
