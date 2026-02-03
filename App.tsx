@@ -498,7 +498,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
             </div>
           )}
           
-          {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} userName={user.name} onLogout={handleLogout} />}
+          {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} userName={user.name} userEmail={user.email} userId={user.id} onLogout={handleLogout} />}
           
           {viewState === 'welcome_premium' && (
             <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-gradient-to-b from-brand-violet via-purple-700 to-brand-dark relative overflow-hidden">

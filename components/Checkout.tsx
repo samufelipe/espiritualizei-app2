@@ -6,28 +6,37 @@ import BrandLogo from './BrandLogo';
 interface CheckoutProps {
   onSuccess: () => void;
   userName: string;
+  userEmail: string;
+  userId: string;
   onLogout: () => void;
 }
 
 /**
- * CONFIGURAÇÃO SIMPLES:
- * 1. Vá no Stripe ou Kiwify.
- * 2. Crie um produto do tipo "Assinatura" (Ex: R$ 37,90/mês).
- * 3. Ative o PIX como forma de pagamento.
- * 4. Configure a "URL de Redirecionamento/Sucesso" para: https://seu-app.com/?status=success
- * 5. Cole o link gerado abaixo:
+ * CONFIGURAÇÃO DO CHECKOUT:
+ * 1. Link base da Cakto para o produto Espiritualizei Premium
+ * 2. O userId e email são passados como parâmetros para o webhook identificar o usuário
+ * 3. A URL de redirecionamento após pagamento deve ser: https://www.espiritualizei.com/?status=success
  */
-const MEU_LINK_DE_PAGAMENTO = "https://pay.cakto.com.br/iwruwu8_691446"; // LINK OFICIAL CAKTO - ESPIRITUALIZEI PREMIUM
+const CAKTO_BASE_URL = "https://pay.cakto.com.br/iwruwu8_691446";
 
-const Checkout: React.FC<CheckoutProps> = ({ onSuccess, userName, onLogout }) => {
+const Checkout: React.FC<CheckoutProps> = ({ onSuccess, userName, userEmail, userId, onLogout }) => {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleGoToPayment = () => {
     setIsRedirecting(true);
     
-    // Abrimos o checkout em uma nova aba para o usuário não sair do PWA se ele estiver usando no navegador
-    // Se for PWA instalado, ele abrirá o navegador do sistema para o pagamento seguro.
-    window.location.href = MEU_LINK_DE_PAGAMENTO;
+    // Construir URL com parâmetros para identificação do usuário no webhook
+    // ref = userId (usado pelo webhook para ativar o premium)
+    // email = email do usuário (para pré-preencher no checkout)
+    // src = origem do checkout (para analytics)
+    const checkoutUrl = new URL(CAKTO_BASE_URL);
+    checkoutUrl.searchParams.set('ref', userId);
+    checkoutUrl.searchParams.set('email', userEmail);
+    checkoutUrl.searchParams.set('src', 'app');
+    
+    // Redireciona para o checkout da Cakto
+    // O webhook da Cakto receberá o 'ref' (userId) e ativará o premium automaticamente
+    window.location.href = checkoutUrl.toString();
   };
 
   return (
