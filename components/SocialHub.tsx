@@ -226,9 +226,9 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
            )}
 
            {activeSubTab === 'chat' && (
-              <div className="flex-1 flex flex-col h-full bg-slate-50/30 dark:bg-brand-dark relative animate-slide-up">
+              <div className="flex-1 flex flex-col bg-slate-50/30 dark:bg-brand-dark relative animate-slide-up overflow-hidden">
                  
-                 <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 pb-28 no-scrollbar">
+                 <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 pb-4 no-scrollbar">
                     {loadingChat ? (
                        <div className="flex flex-col justify-center items-center h-full gap-4">
                           <Loader2 className="animate-spin text-brand-violet" size={32} />
@@ -326,7 +326,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                     })}
                  </div>
 
-                 <div className="sticky bottom-0 left-0 right-0 px-4 py-4 bg-gradient-to-t from-slate-50 dark:from-brand-dark via-slate-50/95 dark:via-brand-dark/95 to-transparent z-40">
+                 <div className="shrink-0 px-4 py-4 bg-white dark:bg-brand-dark border-t border-slate-100 dark:border-white/10 z-40">
                     <form onSubmit={handleSendMessage} className="max-w-2xl mx-auto bg-white dark:bg-[#1A1F26] border border-slate-200 dark:border-white/10 rounded-2xl p-1.5 shadow-2xl flex gap-2 items-center ring-4 ring-black/5">
                        <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">
                           <Heart size={18} />

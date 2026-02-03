@@ -94,6 +94,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   const [broadcastTarget, setBroadcastTarget] = useState<'all' | 'premium' | 'free'>('all');
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   
+  // Estados para publicar como Espiritualizei
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishType, setPublishType] = useState<'post' | 'prayer'>('post');
+  const [publishContent, setPublishContent] = useState('');
+  const [publishLoading, setPublishLoading] = useState(false);
+  
+  // Estados para editar usuário
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [editUserData, setEditUserData] = useState({ name: '', email: '', phone: '', newPassword: '' });
+  
   // Contadores de funcionalidades
   const [featureStats, setFeatureStats] = useState({
     totalPosts: 0,
@@ -402,6 +412,131 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     } catch (e: any) {
       console.error('Erro ao excluir usuário:', e);
       alert('Erro ao excluir usuário: ' + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Função para publicar como Espiritualizei
+  const publishAsEspiritualizei = async () => {
+    if (!publishContent.trim()) return;
+    
+    setPublishLoading(true);
+    try {
+      const now = new Date().toISOString();
+      
+      if (publishType === 'post') {
+        // Criar post no feed da comunidade
+        await supabaseFetch('posts', {
+          method: 'POST',
+          body: JSON.stringify({
+            user_id: 'espiritualizei-official',
+            user_name: 'Espiritualizei',
+            user_avatar: 'https://www.espiritualizei.com/icon-512.png',
+            content: publishContent,
+            type: 'testimony',
+            timestamp: now,
+            likes: 0,
+            comments_count: 0,
+            is_official: true
+          })
+        });
+      } else {
+        // Criar pedido de oração
+        await supabaseFetch('prayer_intentions', {
+          method: 'POST',
+          body: JSON.stringify({
+            user_id: 'espiritualizei-official',
+            user_name: 'Espiritualizei',
+            content: publishContent,
+            created_at: now,
+            is_anonymous: false,
+            prayer_count: 0,
+            is_official: true
+          })
+        });
+      }
+      
+      // Criar notificação para todos os usuários
+      const notifications = users.map(user => ({
+        user_id: user.id,
+        type: publishType === 'post' ? 'new_post' : 'prayer_request',
+        title: publishType === 'post' ? 'Nova publicação do Espiritualizei' : 'Pedido de oração do Espiritualizei',
+        message: publishContent.substring(0, 100) + (publishContent.length > 100 ? '...' : ''),
+        created_at: now,
+        read: false
+      }));
+      
+      // Inserir notificações em lote (se a tabela existir)
+      try {
+        await supabaseFetch('notifications', {
+          method: 'POST',
+          body: JSON.stringify(notifications)
+        });
+      } catch (e) {
+        console.log('Tabela de notificações não existe, pulando...');
+      }
+      
+      setShowPublishModal(false);
+      setPublishContent('');
+      alert(`${publishType === 'post' ? 'Post' : 'Pedido de oração'} publicado com sucesso!`);
+      loadData(); // Recarregar dados
+    } catch (e: any) {
+      console.error('Erro ao publicar:', e);
+      alert('Erro ao publicar: ' + e.message);
+    } finally {
+      setPublishLoading(false);
+    }
+  };
+
+  // Função para abrir modal de edição de usuário
+  const openEditUserModal = (user: AdminUser) => {
+    setEditUserData({
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      newPassword: ''
+    });
+    setShowEditUserModal(true);
+  };
+
+  // Função para salvar edição de usuário
+  const saveUserEdit = async () => {
+    if (!selectedUser) return;
+    
+    setActionLoading(true);
+    try {
+      // Atualizar profile
+      await supabaseFetch(`profiles?id=eq.${selectedUser.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: editUserData.name,
+          email: editUserData.email,
+          phone: editUserData.phone
+        })
+      });
+      
+      // Se tiver nova senha, atualizar via Admin API do Supabase
+      if (editUserData.newPassword) {
+        // Nota: Atualização de senha requer service_role key
+        // Por segurança, apenas atualizamos os dados do profile
+        alert('Nota: A senha não pode ser alterada diretamente. O usuário deve usar "Esqueci minha senha".');
+      }
+      
+      // Atualizar lista local
+      setUsers(users.map(u => u.id === selectedUser.id ? {
+        ...u,
+        name: editUserData.name,
+        email: editUserData.email,
+        phone: editUserData.phone
+      } : u));
+      
+      setShowEditUserModal(false);
+      setShowUserModal(false);
+      alert('Dados do usuário atualizados com sucesso!');
+    } catch (e: any) {
+      console.error('Erro ao atualizar usuário:', e);
+      alert('Erro ao atualizar: ' + e.message);
     } finally {
       setActionLoading(false);
     }
@@ -1388,6 +1523,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setShowPublishModal(true)}
+                className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+                title="Publicar como Espiritualizei"
+              >
+                <Megaphone size={20} className="text-brand-violet" />
+              </button>
+              <button
                 onClick={() => setShowBroadcastModal(true)}
                 className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                 title="Enviar notificação"
@@ -1533,6 +1675,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
 
               <div className="flex flex-col gap-2">
                 <button
+                  onClick={() => openEditUserModal(selectedUser)}
+                  disabled={actionLoading}
+                  className="w-full py-3 bg-brand-violet text-white rounded-xl font-medium hover:bg-brand-violet/90 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Edit size={18} /> Editar Dados do Usuário
+                </button>
+                <button
                   onClick={() => togglePremium(selectedUser)}
                   disabled={actionLoading}
                   className={`w-full py-3 rounded-xl font-medium transition-colors ${
@@ -1622,6 +1771,189 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
               >
                 Enviar Notificação
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Publicar como Espiritualizei */}
+      {showPublishModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-brand-dark rounded-2xl max-w-lg w-full">
+            <div className="p-6 border-b border-slate-100 dark:border-white/10">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
+                  <Megaphone size={24} className="text-brand-violet" />
+                  Publicar como Espiritualizei
+                </h3>
+                <button onClick={() => setShowPublishModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg">
+                  <X size={20} className="text-slate-500" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-brand-violet/10 rounded-xl">
+                <img src="https://www.espiritualizei.com/icon-512.png" alt="Espiritualizei" className="w-12 h-12 rounded-full" />
+                <div>
+                  <p className="font-bold text-brand-dark dark:text-white">Espiritualizei</p>
+                  <p className="text-sm text-slate-500">Conta Oficial</p>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tipo de Publicação</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPublishType('post')}
+                    className={`flex-1 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
+                      publishType === 'post'
+                        ? 'bg-brand-violet text-white'
+                        : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    <MessageSquare size={18} /> Post no Feed
+                  </button>
+                  <button
+                    onClick={() => setPublishType('prayer')}
+                    className={`flex-1 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
+                      publishType === 'prayer'
+                        ? 'bg-brand-violet text-white'
+                        : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    <Heart size={18} /> Pedido de Oração
+                  </button>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  {publishType === 'post' ? 'Conteúdo do Post' : 'Pedido de Oração'}
+                </label>
+                <textarea
+                  value={publishContent}
+                  onChange={(e) => setPublishContent(e.target.value)}
+                  placeholder={publishType === 'post' ? 'Escreva sua mensagem para a comunidade...' : 'Escreva seu pedido de oração...'}
+                  rows={5}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white resize-none"
+                />
+              </div>
+              
+              <div className="p-4 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-200 dark:border-amber-500/20">
+                <p className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                  <Bell size={16} />
+                  Todos os {users.length} usuários serão notificados sobre esta publicação.
+                </p>
+              </div>
+              
+              <button
+                onClick={publishAsEspiritualizei}
+                disabled={!publishContent.trim() || publishLoading}
+                className="w-full py-3 bg-gradient-to-r from-brand-violet to-purple-600 text-white rounded-xl font-medium hover:from-brand-violet/90 hover:to-purple-600/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {publishLoading ? (
+                  <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Publicando...</>
+                ) : (
+                  <><Send size={18} /> Publicar como Espiritualizei</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Editar Usuário */}
+      {showEditUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-brand-dark rounded-2xl max-w-lg w-full">
+            <div className="p-6 border-b border-slate-100 dark:border-white/10">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
+                  <Edit size={24} className="text-brand-violet" />
+                  Editar Dados do Usuário
+                </h3>
+                <button onClick={() => setShowEditUserModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg">
+                  <X size={20} className="text-slate-500" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-4 mb-4">
+                {selectedUser.photo_url ? (
+                  <img src={selectedUser.photo_url} alt={selectedUser.name} className="w-16 h-16 rounded-full object-cover" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-violet to-purple-600 flex items-center justify-center text-white font-bold text-xl">
+                    {selectedUser.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <p className="font-bold text-brand-dark dark:text-white">{selectedUser.name}</p>
+                  <p className="text-sm text-slate-500">ID: {selectedUser.id.substring(0, 8)}...</p>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Nome</label>
+                <input
+                  type="text"
+                  value={editUserData.name}
+                  onChange={(e) => setEditUserData({ ...editUserData, name: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">E-mail</label>
+                <input
+                  type="email"
+                  value={editUserData.email}
+                  onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Telefone</label>
+                <input
+                  type="tel"
+                  value={editUserData.phone}
+                  onChange={(e) => setEditUserData({ ...editUserData, phone: e.target.value })}
+                  placeholder="(00) 00000-0000"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Nova Senha (opcional)</label>
+                <input
+                  type="password"
+                  value={editUserData.newPassword}
+                  onChange={(e) => setEditUserData({ ...editUserData, newPassword: e.target.value })}
+                  placeholder="Deixe em branco para manter a atual"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white"
+                />
+                <p className="text-xs text-slate-500 mt-1">Nota: Alteração de senha requer ação do usuário via "Esqueci minha senha"</p>
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <button
+                  onClick={() => setShowEditUserModal(false)}
+                  className="flex-1 py-3 bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-300 dark:hover:bg-white/20 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={saveUserEdit}
+                  disabled={actionLoading}
+                  className="flex-1 py-3 bg-brand-violet text-white rounded-xl font-medium hover:bg-brand-violet/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {actionLoading ? (
+                    <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Salvando...</>
+                  ) : (
+                    <><Check size={18} /> Salvar Alterações</>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
