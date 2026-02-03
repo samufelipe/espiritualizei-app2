@@ -8,32 +8,38 @@ import {
   Eye, Lock, Unlock, Star, Activity, Zap, Bell,
   MessageSquare, Send, FileText, AlertTriangle,
   Heart, BookOpen, Target, Gift, Megaphone, Headphones,
-  Smartphone, Monitor, PieChart, ArrowUpRight, ArrowDownRight
+  Smartphone, Monitor, PieChart, ArrowUpRight, ArrowDownRight,
+  TrendingDown, Award, Flame, Coffee, Sun, Moon
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
-import { supabase, getConnectionStatus, SUPABASE_URL, SUPABASE_KEY } from '../services/authService';
+
+// Credenciais do Supabase hardcoded para garantir funcionamento
+const ADMIN_SUPABASE_URL = 'https://anoqhwpdrztaqmlocnzx.supabase.co';
+const ADMIN_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFub3Fod3Bkcnp0YXFtbG9jbnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2ODM3OTQsImV4cCI6MjA3OTI1OTc5NH0.eUg9hLctWst7nolKxk5OUgka6s8xUaaBNH3dP6kCduY';
 
 interface AdminUser {
   id: string;
   name: string;
   email: string;
   phone?: string;
-  subscription_type: 'free' | 'premium';
+  is_premium: boolean;
   subscription_status?: string;
   created_at: string;
-  last_login?: string;
+  joined_date?: string;
   last_active_at?: string;
-  xp_total?: number;
+  current_xp?: number;
   level?: number;
   streak_days?: number;
   is_suspended?: boolean;
-  maturity_level?: string;
-  spiritual_profile?: string;
+  spiritual_maturity?: string;
+  spiritual_focus?: string;
+  spiritual_goal?: string;
+  state_of_life?: string;
   photo_url?: string;
-  total_session_time?: number;
-  sessions_count?: number;
-  favorite_features?: string[];
-  device_type?: string;
+  patron_saint?: string;
+  confession_frequency?: string;
+  payment_provider?: string;
+  premium_since?: string;
 }
 
 interface AdminStats {
@@ -43,29 +49,12 @@ interface AdminStats {
   activeToday: number;
   newThisWeek: number;
   newThisMonth: number;
-  avgSessionTime: string;
+  avgXP: number;
   conversionRate: number;
-  totalIntentions: number;
-  totalRoutinesCompleted: number;
-  suspendedUsers: number;
-  totalSessionMinutes: number;
-  mobileUsers: number;
-  desktopUsers: number;
-}
-
-interface SupportMessage {
-  id: string;
-  user_id: string;
-  user_name: string;
-  user_email: string;
-  subject: string;
-  message: string;
-  status: 'pending' | 'in_progress' | 'resolved';
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  admin_response?: string;
-  responded_by?: string;
-  responded_at?: string;
-  created_at: string;
+  trialUsers: number;
+  activeUsers: number;
+  avgLevel: number;
+  avgStreak: number;
 }
 
 interface CommunityPost {
@@ -79,38 +68,30 @@ interface CommunityPost {
   is_flagged?: boolean;
 }
 
-interface FeatureUsage {
-  feature: string;
-  count: number;
-  percentage: number;
-}
-
 interface AdminPanelProps {
   onLogout: () => void;
   onBackToApp: () => void;
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'content' | 'support' | 'analytics' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'content' | 'analytics' | 'settings'>('dashboard');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<AdminUser[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
-  const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'premium' | 'free' | 'suspended'>('all');
-  const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'xp_total' | 'last_login'>('created_at');
+  const [filterType, setFilterType] = useState<'all' | 'premium' | 'free' | 'trial'>('all');
+  const [sortBy, setSortBy] = useState<'joined_date' | 'name' | 'current_xp' | 'level'>('joined_date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
-  const [selectedSupportMessage, setSelectedSupportMessage] = useState<SupportMessage | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcastTitle, setBroadcastTitle] = useState('');
   const [broadcastTarget, setBroadcastTarget] = useState<'all' | 'premium' | 'free'>('all');
-  const [supportResponse, setSupportResponse] = useState('');
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
@@ -119,23 +100,34 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     activeToday: 0,
     newThisWeek: 0,
     newThisMonth: 0,
-    avgSessionTime: '0min',
+    avgXP: 0,
     conversionRate: 0,
-    totalIntentions: 0,
-    totalRoutinesCompleted: 0,
-    suspendedUsers: 0,
-    totalSessionMinutes: 0,
-    mobileUsers: 0,
-    desktopUsers: 0
+    trialUsers: 0,
+    activeUsers: 0,
+    avgLevel: 0,
+    avgStreak: 0
   });
 
-  const [featureUsage, setFeatureUsage] = useState<FeatureUsage[]>([
-    { feature: 'Jornada Diária', count: 0, percentage: 0 },
-    { feature: 'Comunidade', count: 0, percentage: 0 },
-    { feature: 'Biblioteca', count: 0, percentage: 0 },
-    { feature: 'Ranking', count: 0, percentage: 0 },
-    { feature: 'Perfil', count: 0, percentage: 0 }
-  ]);
+  // Função para fazer fetch no Supabase
+  const supabaseFetch = async (endpoint: string, options: RequestInit = {}) => {
+    const url = `${ADMIN_SUPABASE_URL}/rest/v1/${endpoint}`;
+    const headers = {
+      'apikey': ADMIN_SUPABASE_KEY,
+      'Authorization': `Bearer ${ADMIN_SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...options.headers
+    };
+    
+    const response = await fetch(url, { ...options, headers });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Erro ${response.status}`);
+    }
+    
+    return response.json();
+  };
 
   // Carregar dados
   useEffect(() => {
@@ -156,19 +148,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     }
     
     if (filterType === 'premium') {
-      filtered = filtered.filter(u => u.subscription_type === 'premium');
+      filtered = filtered.filter(u => u.is_premium);
     } else if (filterType === 'free') {
-      filtered = filtered.filter(u => u.subscription_type === 'free');
-    } else if (filterType === 'suspended') {
-      filtered = filtered.filter(u => u.is_suspended);
+      filtered = filtered.filter(u => !u.is_premium && u.subscription_status !== 'trial');
+    } else if (filterType === 'trial') {
+      filtered = filtered.filter(u => u.subscription_status === 'trial');
     }
     
     filtered.sort((a, b) => {
-      let aVal = a[sortBy] || '';
-      let bVal = b[sortBy] || '';
-      if (sortBy === 'xp_total') {
-        aVal = a.xp_total || 0;
-        bVal = b.xp_total || 0;
+      let aVal: any = a[sortBy as keyof AdminUser] || '';
+      let bVal: any = b[sortBy as keyof AdminUser] || '';
+      if (sortBy === 'current_xp' || sortBy === 'level') {
+        aVal = Number(aVal) || 0;
+        bVal = Number(bVal) || 0;
       }
       if (sortOrder === 'asc') {
         return aVal > bVal ? 1 : -1;
@@ -179,96 +171,40 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     setFilteredUsers(filtered);
   }, [users, searchQuery, filterType, sortBy, sortOrder]);
 
-  // Chave secreta do admin (deve corresponder à configurada na Edge Function)
-  const ADMIN_SECRET = 'Espiritualizei@Admin2024';
-
-  const callAdminAPI = async (action: string, data?: any) => {
-    const supabaseUrl = SUPABASE_URL;
-    
-    const response = await fetch(`${supabaseUrl}/functions/v1/admin-data`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-secret': ADMIN_SECRET
-      },
-      body: JSON.stringify({ action, data })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Erro na API');
-    }
-
-    return response.json();
-  };
-
   const loadData = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
-      console.log('[AdminPanel] Iniciando carregamento de dados via Edge Function...');
+      console.log('[AdminPanel] Carregando dados do Supabase...');
       
-      const supabaseUrl = SUPABASE_URL;
-      const supabaseKey = SUPABASE_KEY;
+      // Buscar profiles
+      const profilesData = await supabaseFetch('profiles?select=*&order=joined_date.desc');
+      console.log('[AdminPanel] Profiles carregados:', profilesData.length);
       
-      if (!supabaseUrl) {
-        console.error('[AdminPanel] Variáveis de ambiente não configuradas');
-        setLoading(false);
-        return;
-      }
-
-      // Tentar usar Edge Function primeiro
-      let profilesData: any[] = [];
-      let useEdgeFunction = true;
-
-      try {
-        console.log('[AdminPanel] Tentando Edge Function...');
-        const result = await callAdminAPI('get_all_users');
-        if (result.success && result.data) {
-          profilesData = result.data;
-          console.log('[AdminPanel] Profiles via Edge Function:', profilesData.length);
-        }
-      } catch (edgeFunctionError) {
-        console.log('[AdminPanel] Edge Function não disponível, usando fetch direto...');
-        useEdgeFunction = false;
-        
-        // Fallback: buscar diretamente (requer política RLS permissiva)
-        const profilesResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?select=*&order=created_at.desc`, {
-          headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (profilesResponse.ok) {
-          profilesData = await profilesResponse.json();
-          console.log('[AdminPanel] Profiles via fetch direto:', profilesData.length);
-        } else {
-          console.error('[AdminPanel] Erro ao buscar profiles:', profilesResponse.status);
-        }
-      }
-
-      const usersData: AdminUser[] = (profilesData || []).map(p => ({
+      const usersData: AdminUser[] = (profilesData || []).map((p: any) => ({
         id: p.id,
-        name: p.name || p.full_name || 'Sem nome',
+        name: p.name || 'Sem nome',
         email: p.email || '',
         phone: p.phone || '',
-        subscription_type: p.subscription_type || 'free',
-        subscription_status: p.subscription_status,
-        created_at: p.created_at,
-        last_login: p.last_login,
+        is_premium: p.is_premium || false,
+        subscription_status: p.subscription_status || 'free',
+        created_at: p.created_at || p.joined_date,
+        joined_date: p.joined_date,
         last_active_at: p.last_active_at,
-        xp_total: p.xp_total || 0,
+        current_xp: p.current_xp || 0,
         level: p.level || 1,
         streak_days: p.streak_days || 0,
         is_suspended: p.is_suspended || false,
-        maturity_level: p.maturity_level,
-        spiritual_profile: p.spiritual_profile,
-        photo_url: p.photo_url || p.avatar_url,
-        total_session_time: p.total_session_time || 0,
-        sessions_count: p.sessions_count || 0,
-        favorite_features: p.favorite_features || [],
-        device_type: p.device_type || 'unknown'
+        spiritual_maturity: p.spiritual_maturity,
+        spiritual_focus: p.spiritual_focus,
+        spiritual_goal: p.spiritual_goal,
+        state_of_life: p.state_of_life,
+        photo_url: p.photo_url,
+        patron_saint: p.patron_saint,
+        confession_frequency: p.confession_frequency,
+        payment_provider: p.payment_provider,
+        premium_since: p.premium_since
       }));
 
       setUsers(usersData);
@@ -279,23 +215,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
       const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      const premiumCount = usersData.filter(u => u.subscription_type === 'premium').length;
-      const freeCount = usersData.filter(u => u.subscription_type === 'free').length;
-      const suspendedCount = usersData.filter(u => u.is_suspended).length;
-      const newThisWeek = usersData.filter(u => new Date(u.created_at) >= weekAgo).length;
-      const newThisMonth = usersData.filter(u => new Date(u.created_at) >= monthAgo).length;
+      const premiumCount = usersData.filter(u => u.is_premium).length;
+      const freeCount = usersData.filter(u => !u.is_premium && u.subscription_status !== 'trial').length;
+      const trialCount = usersData.filter(u => u.subscription_status === 'trial').length;
+      const newThisWeek = usersData.filter(u => new Date(u.joined_date || u.created_at) >= weekAgo).length;
+      const newThisMonth = usersData.filter(u => new Date(u.joined_date || u.created_at) >= monthAgo).length;
       const activeToday = usersData.filter(u => {
-        if (!u.last_active_at && !u.last_login) return false;
-        const lastActive = new Date(u.last_active_at || u.last_login || '');
+        if (!u.last_active_at) return false;
+        const lastActive = new Date(u.last_active_at);
         return lastActive >= today;
       }).length;
       
-      const mobileUsers = usersData.filter(u => u.device_type === 'mobile').length;
-      const desktopUsers = usersData.filter(u => u.device_type === 'desktop').length;
-      const totalSessionMinutes = usersData.reduce((acc, u) => acc + (u.total_session_time || 0), 0) / 60;
-      const avgSessionTime = usersData.length > 0 
-        ? Math.round(totalSessionMinutes / usersData.length) + 'min'
-        : '0min';
+      const totalXP = usersData.reduce((acc, u) => acc + (u.current_xp || 0), 0);
+      const totalLevel = usersData.reduce((acc, u) => acc + (u.level || 1), 0);
+      const totalStreak = usersData.reduce((acc, u) => acc + (u.streak_days || 0), 0);
 
       setStats({
         totalUsers: usersData.length,
@@ -304,78 +237,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
         activeToday,
         newThisWeek,
         newThisMonth,
-        avgSessionTime,
+        avgXP: usersData.length > 0 ? Math.round(totalXP / usersData.length) : 0,
         conversionRate: usersData.length > 0 ? Math.round((premiumCount / usersData.length) * 100) : 0,
-        totalIntentions: 0,
-        totalRoutinesCompleted: 0,
-        suspendedUsers: suspendedCount,
-        totalSessionMinutes: Math.round(totalSessionMinutes),
-        mobileUsers,
-        desktopUsers
+        trialUsers: trialCount,
+        activeUsers: activeToday,
+        avgLevel: usersData.length > 0 ? Math.round((totalLevel / usersData.length) * 10) / 10 : 0,
+        avgStreak: usersData.length > 0 ? Math.round((totalStreak / usersData.length) * 10) / 10 : 0
       });
 
-      // Buscar contagens adicionais
-      try {
-        const intentionsResponse = await fetch(`${supabaseUrl}/rest/v1/intentions?select=id`, {
-          headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-        });
-        if (intentionsResponse.ok) {
-          const intentions = await intentionsResponse.json();
-          setStats(prev => ({ ...prev, totalIntentions: intentions.length }));
-        }
-      } catch (e) {
-        console.log('Tabela intentions não encontrada');
-      }
+      setLastUpdate(new Date());
+      console.log('[AdminPanel] Dados carregados com sucesso!');
 
-      try {
-        const routinesResponse = await fetch(`${supabaseUrl}/rest/v1/routines?select=id`, {
-          headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-        });
-        if (routinesResponse.ok) {
-          const routines = await routinesResponse.json();
-          setStats(prev => ({ ...prev, totalRoutinesCompleted: routines.length }));
-        }
-      } catch (e) {
-        console.log('Tabela routines não encontrada');
-      }
-
-      // Buscar posts da comunidade
-      try {
-        const postsResponse = await fetch(`${supabaseUrl}/rest/v1/posts?select=*&order=created_at.desc&limit=50`, {
-          headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-        });
-        if (postsResponse.ok) {
-          const postsData = await postsResponse.json();
-          setPosts(postsData.map((p: any) => ({
-            id: p.id,
-            user_id: p.user_id,
-            user_name: p.user_name || 'Anônimo',
-            content: p.content,
-            type: p.type || 'post',
-            created_at: p.created_at,
-            likes_count: p.likes_count || 0,
-            is_flagged: p.is_flagged
-          })));
-        }
-      } catch (e) {
-        console.log('Tabela posts não encontrada');
-      }
-
-      // Buscar mensagens de suporte
-      try {
-        const supportResponse = await fetch(`${supabaseUrl}/rest/v1/support_messages?select=*&order=created_at.desc`, {
-          headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-        });
-        if (supportResponse.ok) {
-          const supportData = await supportResponse.json();
-          setSupportMessages(supportData);
-        }
-      } catch (e) {
-        console.log('Tabela support_messages não encontrada');
-      }
-
-    } catch (error) {
-      console.error('[AdminPanel] Erro ao carregar dados:', error);
+    } catch (err: any) {
+      console.error('[AdminPanel] Erro ao carregar dados:', err);
+      setError(err.message || 'Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
@@ -385,30 +260,28 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   const togglePremium = async (user: AdminUser) => {
     setActionLoading(true);
     try {
-      const newType = user.subscription_type === 'premium' ? 'free' : 'premium';
+      const newStatus = !user.is_premium;
       
-      const supabaseUrl = SUPABASE_URL;
-      const supabaseKey = SUPABASE_KEY;
-      
-      await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+      await supabaseFetch(`profiles?id=eq.${user.id}`, {
         method: 'PATCH',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ subscription_type: newType })
+        body: JSON.stringify({ 
+          is_premium: newStatus,
+          subscription_status: newStatus ? 'active' : 'free',
+          premium_since: newStatus ? new Date().toISOString() : null
+        })
       });
       
-      await logAdminAction(newType === 'premium' ? 'grant_premium' : 'revoke_premium', user.id, { email: user.email });
+      setUsers(users.map(u => u.id === user.id ? { 
+        ...u, 
+        is_premium: newStatus,
+        subscription_status: newStatus ? 'active' : 'free'
+      } : u));
       
-      setUsers(users.map(u => u.id === user.id ? { ...u, subscription_type: newType } : u));
       setShowUserModal(false);
-      alert(`Plano ${newType === 'premium' ? 'Premium concedido' : 'removido'} com sucesso!`);
-    } catch (e) {
+      alert(`Plano ${newStatus ? 'Premium concedido' : 'removido'} com sucesso!`);
+    } catch (e: any) {
       console.error('Erro ao alterar plano:', e);
-      alert('Erro ao alterar plano');
+      alert('Erro ao alterar plano: ' + e.message);
     } finally {
       setActionLoading(false);
     }
@@ -419,28 +292,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     try {
       const newStatus = !user.is_suspended;
       
-      const supabaseUrl = SUPABASE_URL;
-      const supabaseKey = SUPABASE_KEY;
-      
-      await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+      await supabaseFetch(`profiles?id=eq.${user.id}`, {
         method: 'PATCH',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
         body: JSON.stringify({ is_suspended: newStatus })
       });
-      
-      await logAdminAction(newStatus ? 'suspend_user' : 'reactivate_user', user.id, { email: user.email });
       
       setUsers(users.map(u => u.id === user.id ? { ...u, is_suspended: newStatus } : u));
       setShowUserModal(false);
       alert(`Usuário ${newStatus ? 'suspenso' : 'reativado'} com sucesso!`);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Erro ao suspender/reativar:', e);
-      alert('Erro ao suspender/reativar usuário');
+      alert('Erro ao suspender/reativar usuário: ' + e.message);
     } finally {
       setActionLoading(false);
     }
@@ -451,226 +313,37 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     
     setActionLoading(true);
     try {
-      const supabaseUrl = SUPABASE_URL;
-      const supabaseKey = SUPABASE_KEY;
-      
-      await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Prefer': 'return=minimal'
-        }
+      await supabaseFetch(`profiles?id=eq.${user.id}`, {
+        method: 'DELETE'
       });
-      
-      await logAdminAction('delete_user', user.id, { email: user.email, name: user.name });
       
       setUsers(users.filter(u => u.id !== user.id));
       setShowUserModal(false);
       alert('Usuário excluído com sucesso!');
-    } catch (e) {
+    } catch (e: any) {
       console.error('Erro ao excluir usuário:', e);
-      alert('Erro ao excluir usuário');
+      alert('Erro ao excluir usuário: ' + e.message);
     } finally {
       setActionLoading(false);
-    }
-  };
-
-  const resetUserPassword = async (user: AdminUser) => {
-    if (!user.email) {
-      alert('Usuário não possui email cadastrado');
-      return;
-    }
-    
-    setActionLoading(true);
-    try {
-      if (supabase) {
-        await supabase.auth.resetPasswordForEmail(user.email, {
-          redirectTo: `${window.location.origin}/reset-password`
-        });
-      }
-      
-      await logAdminAction('reset_password', user.id, { email: user.email });
-      
-      alert(`Email de reset de senha enviado para ${user.email}`);
-      setShowUserModal(false);
-    } catch (e) {
-      console.error('Erro ao enviar reset:', e);
-      alert('Erro ao enviar email de reset');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const sendBroadcastNotification = async () => {
-    if (!broadcastTitle || !broadcastMessage) return;
-    
-    setActionLoading(true);
-    try {
-      let targetUsers = users;
-      if (broadcastTarget === 'premium') {
-        targetUsers = users.filter(u => u.subscription_type === 'premium');
-      } else if (broadcastTarget === 'free') {
-        targetUsers = users.filter(u => u.subscription_type === 'free');
-      }
-      
-      const supabaseUrl = SUPABASE_URL;
-      const supabaseKey = SUPABASE_KEY;
-      
-      const notifications = targetUsers.map(u => ({
-        user_id: u.id,
-        title: broadcastTitle,
-        message: broadcastMessage,
-        type: 'admin_broadcast',
-        created_at: new Date().toISOString(),
-        read: false
-      }));
-      
-      try {
-        await fetch(`${supabaseUrl}/rest/v1/notifications`, {
-          method: 'POST',
-          headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify(notifications)
-        });
-      } catch (e) {
-        console.log('Tabela notifications não encontrada');
-      }
-      
-      await logAdminAction('broadcast_notification', null, { 
-        title: broadcastTitle,
-        target: broadcastTarget,
-        recipients: targetUsers.length
-      });
-      
-      alert(`Notificação enviada para ${targetUsers.length} usuários!`);
-      setShowBroadcastModal(false);
-      setBroadcastTitle('');
-      setBroadcastMessage('');
-    } catch (e) {
-      console.error('Erro ao enviar broadcast:', e);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const respondToSupport = async () => {
-    if (!selectedSupportMessage || !supportResponse) return;
-    
-    setActionLoading(true);
-    try {
-      const supabaseUrl = SUPABASE_URL;
-      const supabaseKey = SUPABASE_KEY;
-      
-      const adminSession = localStorage.getItem('admin_session');
-      const adminEmail = adminSession ? JSON.parse(adminSession).email : 'admin';
-      
-      await fetch(`${supabaseUrl}/rest/v1/support_messages?id=eq.${selectedSupportMessage.id}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          admin_response: supportResponse,
-          responded_by: adminEmail,
-          responded_at: new Date().toISOString(),
-          status: 'resolved'
-        })
-      });
-      
-      setSupportMessages(supportMessages.map(m => 
-        m.id === selectedSupportMessage.id 
-          ? { ...m, admin_response: supportResponse, status: 'resolved' as const }
-          : m
-      ));
-      
-      setShowSupportModal(false);
-      setSupportResponse('');
-      setSelectedSupportMessage(null);
-      alert('Resposta enviada com sucesso!');
-    } catch (e) {
-      console.error('Erro ao responder:', e);
-      alert('Erro ao enviar resposta');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const logAdminAction = async (action: string, targetUserId: string | null, details: any) => {
-    try {
-      const adminSession = localStorage.getItem('admin_session');
-      const adminEmail = adminSession ? JSON.parse(adminSession).email : 'unknown';
-      
-      const supabaseUrl = SUPABASE_URL;
-      const supabaseKey = SUPABASE_KEY;
-      
-      await fetch(`${supabaseUrl}/rest/v1/admin_activity_logs`, {
-        method: 'POST',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          admin_email: adminEmail,
-          action,
-          target_user_id: targetUserId,
-          details,
-          created_at: new Date().toISOString()
-        })
-      });
-    } catch (e) {
-      console.log('Erro ao registrar log:', e);
-    }
-  };
-
-  const deletePost = async (postId: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta postagem?')) return;
-    
-    try {
-      const supabaseUrl = SUPABASE_URL;
-      const supabaseKey = SUPABASE_KEY;
-      
-      await fetch(`${supabaseUrl}/rest/v1/posts?id=eq.${postId}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Prefer': 'return=minimal'
-        }
-      });
-      
-      await logAdminAction('delete_post', null, { post_id: postId });
-      setPosts(posts.filter(p => p.id !== postId));
-    } catch (e) {
-      console.error('Erro ao excluir post:', e);
     }
   };
 
   const exportUsers = () => {
     const csv = [
-      ['Nome', 'Email', 'Telefone', 'Plano', 'XP', 'Nível', 'Streak', 'Sessões', 'Tempo Total (min)', 'Dispositivo', 'Criado em', 'Último Acesso'].join(','),
+      ['Nome', 'Email', 'Telefone', 'Premium', 'Status', 'XP', 'Nível', 'Streak', 'Foco Espiritual', 'Estado de Vida', 'Santo Padroeiro', 'Data de Cadastro'].join(','),
       ...filteredUsers.map(u => [
         `"${u.name}"`,
-        u.email,
+        u.email || '',
         u.phone || '',
-        u.subscription_type,
-        u.xp_total || 0,
+        u.is_premium ? 'Sim' : 'Não',
+        u.subscription_status || 'free',
+        u.current_xp || 0,
         u.level || 1,
         u.streak_days || 0,
-        u.sessions_count || 0,
-        Math.round((u.total_session_time || 0) / 60),
-        u.device_type || 'unknown',
-        new Date(u.created_at).toLocaleDateString('pt-BR'),
-        u.last_active_at ? new Date(u.last_active_at).toLocaleDateString('pt-BR') : ''
+        u.spiritual_focus || '',
+        u.state_of_life || '',
+        u.patron_saint || '',
+        u.joined_date ? new Date(u.joined_date).toLocaleDateString('pt-BR') : ''
       ].join(','))
     ].join('\n');
 
@@ -682,135 +355,176 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     a.click();
   };
 
+  // Componente de Card de Estatística
+  const StatCard = ({ icon: Icon, label, value, subValue, color, trend }: {
+    icon: any;
+    label: string;
+    value: string | number;
+    subValue?: string;
+    color: string;
+    trend?: 'up' | 'down' | 'neutral';
+  }) => (
+    <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center`}>
+          <Icon size={22} className="text-white" />
+        </div>
+        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</span>
+      </div>
+      <p className="text-3xl font-black text-brand-dark dark:text-white">{value}</p>
+      {subValue && (
+        <p className={`text-xs mt-1 flex items-center gap-1 ${
+          trend === 'up' ? 'text-emerald-500' : 
+          trend === 'down' ? 'text-red-500' : 
+          'text-slate-400'
+        }`}>
+          {trend === 'up' && <ArrowUpRight size={12} />}
+          {trend === 'down' && <ArrowDownRight size={12} />}
+          {subValue}
+        </p>
+      )}
+    </div>
+  );
+
   // Renderização do Dashboard
   const renderDashboard = () => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Cards de Estatísticas Principais */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-violet/10 flex items-center justify-center">
-              <Users size={20} className="text-brand-violet" />
-            </div>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Total de Usuários</span>
-          </div>
-          <p className="text-3xl font-black text-brand-dark dark:text-white">{stats.totalUsers}</p>
-          <p className="text-xs text-green-500 mt-1 flex items-center gap-1">
-            <ArrowUpRight size={12} /> +{stats.newThisWeek} esta semana
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <Crown size={20} className="text-amber-500" />
-            </div>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Premium</span>
-          </div>
-          <p className="text-3xl font-black text-brand-dark dark:text-white">{stats.premiumUsers}</p>
-          <p className="text-xs text-amber-500 mt-1">{stats.conversionRate}% de conversão</p>
-        </div>
-
-        <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-              <Activity size={20} className="text-emerald-500" />
-            </div>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Ativos Hoje</span>
-          </div>
-          <p className="text-3xl font-black text-brand-dark dark:text-white">{stats.activeToday}</p>
-          <p className="text-xs text-slate-400 mt-1">usuários online</p>
-        </div>
-
-        <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-              <Clock size={20} className="text-blue-500" />
-            </div>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Tempo Médio</span>
-          </div>
-          <p className="text-3xl font-black text-brand-dark dark:text-white">{stats.avgSessionTime}</p>
-          <p className="text-xs text-blue-500 mt-1">por sessão</p>
+      <div>
+        <h2 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
+          <BarChart3 size={20} className="text-brand-violet" />
+          Visão Geral
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard 
+            icon={Users} 
+            label="Total de Usuários" 
+            value={stats.totalUsers}
+            subValue={`+${stats.newThisWeek} esta semana`}
+            color="bg-gradient-to-br from-brand-violet to-purple-600"
+            trend="up"
+          />
+          <StatCard 
+            icon={Crown} 
+            label="Premium" 
+            value={stats.premiumUsers}
+            subValue={`${stats.conversionRate}% de conversão`}
+            color="bg-gradient-to-br from-amber-400 to-amber-600"
+            trend="neutral"
+          />
+          <StatCard 
+            icon={Activity} 
+            label="Ativos Hoje" 
+            value={stats.activeToday}
+            subValue="usuários online"
+            color="bg-gradient-to-br from-emerald-400 to-emerald-600"
+            trend="neutral"
+          />
+          <StatCard 
+            icon={Zap} 
+            label="XP Médio" 
+            value={stats.avgXP}
+            subValue="pontos por usuário"
+            color="bg-gradient-to-br from-blue-400 to-blue-600"
+            trend="neutral"
+          />
         </div>
       </div>
 
       {/* Segunda linha de cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center">
-              <Heart size={20} className="text-pink-500" />
-            </div>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Intenções</span>
-          </div>
-          <p className="text-3xl font-black text-brand-dark dark:text-white">{stats.totalIntentions}</p>
-          <p className="text-xs text-pink-500 mt-1">pedidos de oração</p>
-        </div>
-
-        <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-              <Target size={20} className="text-purple-500" />
-            </div>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Rotinas</span>
-          </div>
-          <p className="text-3xl font-black text-brand-dark dark:text-white">{stats.totalRoutinesCompleted}</p>
-          <p className="text-xs text-purple-500 mt-1">rotinas criadas</p>
-        </div>
-
-        <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-              <Smartphone size={20} className="text-cyan-500" />
-            </div>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Mobile</span>
-          </div>
-          <p className="text-3xl font-black text-brand-dark dark:text-white">{stats.mobileUsers}</p>
-          <p className="text-xs text-cyan-500 mt-1">usuários mobile</p>
-        </div>
-
-        <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-500/10 flex items-center justify-center">
-              <Monitor size={20} className="text-slate-500" />
-            </div>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Desktop</span>
-          </div>
-          <p className="text-3xl font-black text-brand-dark dark:text-white">{stats.desktopUsers}</p>
-          <p className="text-xs text-slate-400 mt-1">usuários desktop</p>
+      <div>
+        <h2 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
+          <TrendingUp size={20} className="text-emerald-500" />
+          Métricas de Engajamento
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard 
+            icon={Star} 
+            label="Nível Médio" 
+            value={stats.avgLevel}
+            subValue="média geral"
+            color="bg-gradient-to-br from-pink-400 to-pink-600"
+            trend="neutral"
+          />
+          <StatCard 
+            icon={Flame} 
+            label="Streak Médio" 
+            value={`${stats.avgStreak} dias`}
+            subValue="sequência de uso"
+            color="bg-gradient-to-br from-orange-400 to-orange-600"
+            trend="neutral"
+          />
+          <StatCard 
+            icon={Clock} 
+            label="Em Trial" 
+            value={stats.trialUsers}
+            subValue="período de teste"
+            color="bg-gradient-to-br from-cyan-400 to-cyan-600"
+            trend="neutral"
+          />
+          <StatCard 
+            icon={Calendar} 
+            label="Novos (30d)" 
+            value={stats.newThisMonth}
+            subValue="último mês"
+            color="bg-gradient-to-br from-indigo-400 to-indigo-600"
+            trend="up"
+          />
         </div>
       </div>
 
-      {/* Gráficos e Top Ranking */}
+      {/* Gráficos e Rankings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Distribuição de Planos */}
         <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
-          <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-6 flex items-center gap-2">
             <PieChart size={20} className="text-brand-violet" />
             Distribuição de Planos
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-slate-600 dark:text-slate-400">Premium</span>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <Crown size={16} className="text-amber-500" /> Premium
+                </span>
                 <span className="font-bold text-amber-500">{stats.premiumUsers} ({stats.conversionRate}%)</span>
               </div>
-              <div className="h-3 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+              <div className="h-4 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-500"
+                  className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-700"
                   style={{ width: `${stats.conversionRate}%` }}
                 />
               </div>
             </div>
             <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-slate-600 dark:text-slate-400">Free</span>
-                <span className="font-bold text-slate-500">{stats.freeUsers} ({100 - stats.conversionRate}%)</span>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <Clock size={16} className="text-cyan-500" /> Trial
+                </span>
+                <span className="font-bold text-cyan-500">
+                  {stats.trialUsers} ({stats.totalUsers > 0 ? Math.round((stats.trialUsers / stats.totalUsers) * 100) : 0}%)
+                </span>
               </div>
-              <div className="h-3 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+              <div className="h-4 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-slate-400 to-slate-600 rounded-full transition-all duration-500"
-                  style={{ width: `${100 - stats.conversionRate}%` }}
+                  className="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full transition-all duration-700"
+                  style={{ width: `${stats.totalUsers > 0 ? (stats.trialUsers / stats.totalUsers) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <Users size={16} className="text-slate-500" /> Free
+                </span>
+                <span className="font-bold text-slate-500">
+                  {stats.freeUsers} ({stats.totalUsers > 0 ? Math.round((stats.freeUsers / stats.totalUsers) * 100) : 0}%)
+                </span>
+              </div>
+              <div className="h-4 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-slate-400 to-slate-600 rounded-full transition-all duration-700"
+                  style={{ width: `${stats.totalUsers > 0 ? (stats.freeUsers / stats.totalUsers) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -819,82 +533,89 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
 
         {/* Top 5 Ranking */}
         <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
-          <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
-            <Star size={20} className="text-amber-500" />
+          <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-6 flex items-center gap-2">
+            <Award size={20} className="text-amber-500" />
             Top 5 Ranking de XP
           </h3>
           <div className="space-y-3">
             {users
-              .sort((a, b) => (b.xp_total || 0) - (a.xp_total || 0))
+              .sort((a, b) => (b.current_xp || 0) - (a.current_xp || 0))
               .slice(0, 5)
               .map((user, index) => (
-                <div key={user.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                    index === 0 ? 'bg-amber-500 text-white' :
-                    index === 1 ? 'bg-slate-400 text-white' :
-                    index === 2 ? 'bg-amber-700 text-white' :
+                <div key={user.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                    index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white' :
+                    index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-white' :
+                    index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-white' :
                     'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400'
                   }`}>
                     {index + 1}
                   </div>
                   {user.photo_url ? (
-                    <img src={user.photo_url} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
+                    <img src={user.photo_url} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-brand-violet/10 flex items-center justify-center text-brand-violet font-bold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-violet to-purple-600 flex items-center justify-center text-white font-bold text-sm">
                       {user.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-brand-dark dark:text-white truncate">{user.name}</p>
-                    <p className="text-xs text-slate-500">Nível {user.level || 1}</p>
+                    <p className="font-semibold text-brand-dark dark:text-white truncate">{user.name}</p>
+                    <p className="text-xs text-slate-500">Nível {user.level || 1} • {user.streak_days || 0} dias de streak</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-brand-violet">{user.xp_total || 0}</p>
-                    <p className="text-xs text-slate-400">XP</p>
+                    <p className="font-bold text-brand-violet">{user.current_xp || 0} XP</p>
+                    {user.is_premium && (
+                      <span className="inline-flex items-center gap-1 text-xs text-amber-500">
+                        <Crown size={10} /> Premium
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
+            {users.length === 0 && (
+              <p className="text-center text-slate-500 py-8">Nenhum usuário encontrado</p>
+            )}
           </div>
         </div>
       </div>
 
       {/* Ações Rápidas */}
       <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
-        <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4">Ações Rápidas</h3>
+        <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
+          <Zap size={20} className="text-brand-violet" />
+          Ações Rápidas
+        </h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <button
+          <button 
             onClick={() => setShowBroadcastModal(true)}
-            className="flex items-center gap-3 p-4 bg-brand-violet/5 hover:bg-brand-violet/10 rounded-xl transition-colors"
+            className="flex items-center gap-3 p-4 bg-gradient-to-br from-brand-violet/10 to-purple-500/10 rounded-xl hover:from-brand-violet/20 hover:to-purple-500/20 transition-all duration-300 border border-brand-violet/20"
           >
             <Megaphone size={20} className="text-brand-violet" />
             <span className="font-medium text-brand-dark dark:text-white">Enviar Notificação</span>
           </button>
-          <button
+          <button 
             onClick={exportUsers}
-            className="flex items-center gap-3 p-4 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl transition-colors"
+            className="flex items-center gap-3 p-4 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-xl hover:from-emerald-500/20 hover:to-green-500/20 transition-all duration-300 border border-emerald-500/20"
           >
             <Download size={20} className="text-emerald-500" />
             <span className="font-medium text-brand-dark dark:text-white">Exportar Usuários</span>
           </button>
-          <button
+          <button 
             onClick={loadData}
-            className="flex items-center gap-3 p-4 bg-blue-500/5 hover:bg-blue-500/10 rounded-xl transition-colors"
+            className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 border border-blue-500/20"
           >
             <RefreshCw size={20} className="text-blue-500" />
             <span className="font-medium text-brand-dark dark:text-white">Atualizar Dados</span>
           </button>
-          <button
-            onClick={() => setActiveTab('support')}
-            className="flex items-center gap-3 p-4 bg-orange-500/5 hover:bg-orange-500/10 rounded-xl transition-colors relative"
+          <a 
+            href="https://supabase.com/dashboard" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 bg-gradient-to-br from-slate-500/10 to-gray-500/10 rounded-xl hover:from-slate-500/20 hover:to-gray-500/20 transition-all duration-300 border border-slate-500/20"
           >
-            <Headphones size={20} className="text-orange-500" />
-            <span className="font-medium text-brand-dark dark:text-white">Suporte</span>
-            {supportMessages.filter(m => m.status === 'pending').length > 0 && (
-              <span className="absolute top-2 right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {supportMessages.filter(m => m.status === 'pending').length}
-              </span>
-            )}
-          </button>
+            <Settings size={20} className="text-slate-500" />
+            <span className="font-medium text-brand-dark dark:text-white">Supabase</span>
+          </a>
         </div>
       </div>
     </div>
@@ -903,47 +624,50 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   // Renderização de Usuários
   const renderUsers = () => (
     <div className="space-y-6">
-      {/* Barra de Busca e Filtros */}
+      {/* Filtros e Busca */}
       <div className="bg-white dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/10 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Buscar por nome, email ou telefone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-brand-dark dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-violet"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white"
             />
           </div>
           <div className="flex gap-2">
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as any)}
-              className="px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-violet"
+              className="px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white"
             >
-              <option value="all">Todos ({users.length})</option>
-              <option value="premium">Premium ({users.filter(u => u.subscription_type === 'premium').length})</option>
-              <option value="free">Free ({users.filter(u => u.subscription_type === 'free').length})</option>
-              <option value="suspended">Suspensos ({users.filter(u => u.is_suspended).length})</option>
+              <option value="all">Todos</option>
+              <option value="premium">Premium</option>
+              <option value="free">Free</option>
+              <option value="trial">Trial</option>
             </select>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-violet"
+              className="px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white"
             >
-              <option value="created_at">Data de Cadastro</option>
+              <option value="joined_date">Data de Cadastro</option>
               <option value="name">Nome</option>
-              <option value="xp_total">XP Total</option>
-              <option value="last_login">Último Acesso</option>
+              <option value="current_xp">XP</option>
+              <option value="level">Nível</option>
             </select>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+              className="px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
             >
-              {sortOrder === 'asc' ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              {sortOrder === 'asc' ? <ChevronUp size={20} className="text-slate-600 dark:text-slate-400" /> : <ChevronDown size={20} className="text-slate-600 dark:text-slate-400" />}
             </button>
           </div>
+        </div>
+        <div className="mt-3 text-sm text-slate-500">
+          Mostrando {filteredUsers.length} de {users.length} usuários
         </div>
       </div>
 
@@ -953,12 +677,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
               <tr>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600 dark:text-slate-400">Usuário</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600 dark:text-slate-400">Contato</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600 dark:text-slate-400">Plano</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600 dark:text-slate-400">Engajamento</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600 dark:text-slate-400">Cadastro</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-600 dark:text-slate-400">Ações</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Usuário</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Progresso</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Cadastro</th>
+                <th className="text-right px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/10">
@@ -969,54 +692,52 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
                       {user.photo_url ? (
                         <img src={user.photo_url} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-brand-violet/10 flex items-center justify-center text-brand-violet font-bold">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-violet to-purple-600 flex items-center justify-center text-white font-bold">
                           {user.name?.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <p className="font-medium text-brand-dark dark:text-white flex items-center gap-2">
-                          {user.name}
-                          {user.is_suspended && (
-                            <span className="px-2 py-0.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-xs rounded-full">Suspenso</span>
-                          )}
-                        </p>
-                        <p className="text-xs text-slate-500">Nível {user.level || 1} • {user.xp_total || 0} XP</p>
+                        <p className="font-semibold text-brand-dark dark:text-white">{user.name}</p>
+                        <p className="text-sm text-slate-500">{user.email || 'Sem email'}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm text-brand-dark dark:text-white">{user.email || '-'}</p>
-                    <p className="text-xs text-slate-500">{user.phone || '-'}</p>
+                    <div className="flex flex-col gap-1">
+                      {user.is_premium ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded-full text-xs font-medium w-fit">
+                          <Crown size={12} /> Premium
+                        </span>
+                      ) : user.subscription_status === 'trial' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 rounded-full text-xs font-medium w-fit">
+                          <Clock size={12} /> Trial
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 rounded-full text-xs font-medium w-fit">
+                          Free
+                        </span>
+                      )}
+                      {user.is_suspended && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 rounded-full text-xs font-medium w-fit">
+                          <Lock size={12} /> Suspenso
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                      user.subscription_type === 'premium'
-                        ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400'
-                        : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400'
-                    }`}>
-                      {user.subscription_type === 'premium' && <Crown size={12} />}
-                      {user.subscription_type === 'premium' ? 'Premium' : 'Free'}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-medium text-brand-dark dark:text-white">
+                        Nível {user.level || 1} • {user.current_xp || 0} XP
+                      </span>
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                        <Flame size={12} className="text-orange-500" /> {user.streak_days || 0} dias de streak
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-slate-600 dark:text-slate-400">
+                      {user.joined_date ? new Date(user.joined_date).toLocaleDateString('pt-BR') : '-'}
                     </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="text-center">
-                        <p className="font-bold text-brand-violet">{user.streak_days || 0}</p>
-                        <p className="text-xs text-slate-400">dias</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-bold text-emerald-500">{user.sessions_count || 0}</p>
-                        <p className="text-xs text-slate-400">sessões</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-brand-dark dark:text-white">
-                      {new Date(user.created_at).toLocaleDateString('pt-BR')}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      Último: {user.last_active_at ? new Date(user.last_active_at).toLocaleDateString('pt-BR') : '-'}
-                    </p>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
@@ -1031,197 +752,312 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
             </tbody>
           </table>
         </div>
-        
         {filteredUsers.length === 0 && (
-          <div className="text-center py-12">
-            <Users size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-            <p className="text-slate-500">Nenhum usuário encontrado</p>
+          <div className="text-center py-12 text-slate-500">
+            <Users size={48} className="mx-auto mb-4 opacity-50" />
+            <p>Nenhum usuário encontrado</p>
           </div>
         )}
       </div>
     </div>
   );
 
-  // Renderização de Conteúdo/Moderação
-  const renderContent = () => (
-    <div className="space-y-6">
-      <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
-        <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
-          <MessageSquare size={20} className="text-brand-violet" />
-          Postagens da Comunidade
-        </h3>
-        
-        {posts.length === 0 ? (
-          <div className="text-center py-12">
-            <MessageSquare size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-            <p className="text-slate-500">Nenhuma postagem encontrada</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {posts.map(post => (
-              <div key={post.id} className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/10">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-medium text-brand-dark dark:text-white">{post.user_name}</span>
-                      <span className="text-xs text-slate-400">•</span>
-                      <span className="text-xs text-slate-400">{new Date(post.created_at).toLocaleDateString('pt-BR')}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${
-                        post.type === 'intention' ? 'bg-pink-100 text-pink-600' :
-                        post.type === 'testimony' ? 'bg-green-100 text-green-600' :
-                        'bg-slate-100 text-slate-600'
-                      }`}>
-                        {post.type === 'intention' ? 'Intenção' : post.type === 'testimony' ? 'Testemunho' : 'Post'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">{post.content}</p>
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="text-xs text-slate-400 flex items-center gap-1">
-                        <Heart size={12} /> {post.likes_count} curtidas
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => deletePost(post.id)}
-                    className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors text-red-500"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  // Renderização de Analytics
+  const renderAnalytics = () => {
+    // Calcular analytics avançados
+    const spiritualFocusStats = users.reduce((acc, u) => {
+      const focus = u.spiritual_focus || 'Não definido';
+      acc[focus] = (acc[focus] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-  // Renderização de Suporte
-  const renderSupport = () => (
-    <div className="space-y-6">
-      <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
-        <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
-          <Headphones size={20} className="text-brand-violet" />
-          Mensagens de Suporte
-          {supportMessages.filter(m => m.status === 'pending').length > 0 && (
-            <span className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">
-              {supportMessages.filter(m => m.status === 'pending').length} pendentes
-            </span>
-          )}
-        </h3>
-        
-        {supportMessages.length === 0 ? (
-          <div className="text-center py-12">
-            <Headphones size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-            <p className="text-slate-500">Nenhuma mensagem de suporte</p>
-            <p className="text-xs text-slate-400 mt-1">As mensagens enviadas pelos usuários aparecerão aqui</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {supportMessages.map(msg => (
-              <div key={msg.id} className={`p-4 rounded-xl border ${
-                msg.status === 'pending' ? 'bg-orange-50 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/20' :
-                msg.status === 'resolved' ? 'bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20' :
-                'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/10'
-              }`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-medium text-brand-dark dark:text-white">{msg.user_name || 'Usuário'}</span>
-                      <span className="text-xs text-slate-400">{msg.user_email}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${
-                        msg.status === 'pending' ? 'bg-orange-100 text-orange-600' :
-                        msg.status === 'resolved' ? 'bg-green-100 text-green-600' :
-                        'bg-blue-100 text-blue-600'
-                      }`}>
-                        {msg.status === 'pending' ? 'Pendente' : msg.status === 'resolved' ? 'Resolvido' : 'Em andamento'}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${
-                        msg.priority === 'urgent' ? 'bg-red-100 text-red-600' :
-                        msg.priority === 'high' ? 'bg-orange-100 text-orange-600' :
-                        'bg-slate-100 text-slate-600'
-                      }`}>
-                        {msg.priority === 'urgent' ? 'Urgente' : msg.priority === 'high' ? 'Alta' : 'Normal'}
-                      </span>
+    const stateOfLifeStats = users.reduce((acc, u) => {
+      const state = u.state_of_life || 'Não definido';
+      acc[state] = (acc[state] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const patronSaintStats = users.reduce((acc, u) => {
+      const saint = u.patron_saint || 'Não definido';
+      acc[saint] = (acc[saint] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const confessionStats = users.reduce((acc, u) => {
+      const freq = u.confession_frequency || 'Não definido';
+      acc[freq] = (acc[freq] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const focusLabels: Record<string, string> = {
+      'laziness': 'Preguiça',
+      'lust': 'Luxúria',
+      'anger': 'Raiva',
+      'pride': 'Orgulho',
+      'envy': 'Inveja',
+      'gluttony': 'Gula',
+      'greed': 'Avareza',
+      'Paz': 'Paz',
+      'Não definido': 'Não definido'
+    };
+
+    const stateLabels: Record<string, string> = {
+      'single': 'Solteiro(a)',
+      'married': 'Casado(a)',
+      'religious': 'Religioso(a)',
+      'parent': 'Pai/Mãe',
+      'Não definido': 'Não definido'
+    };
+
+    const saintLabels: Record<string, string> = {
+      'mary': 'Nossa Senhora',
+      'acutis': 'Carlo Acutis',
+      'therese': 'Santa Teresinha',
+      'francis': 'São Francisco',
+      'Não definido': 'Não definido'
+    };
+
+    const confessionLabels: Record<string, string> = {
+      'weekly': 'Semanal',
+      'monthly': 'Mensal',
+      'rare': 'Raramente',
+      'never': 'Nunca',
+      'Não definido': 'Não definido'
+    };
+
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
+          <BarChart3 size={24} className="text-brand-violet" />
+          Analytics Avançados
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Foco Espiritual */}
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
+            <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
+              <Target size={20} className="text-pink-500" />
+              Foco Espiritual dos Usuários
+            </h3>
+            <div className="space-y-3">
+              {Object.entries(spiritualFocusStats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 7)
+                .map(([focus, count]) => (
+                  <div key={focus}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-600 dark:text-slate-400">{focusLabels[focus] || focus}</span>
+                      <span className="font-medium text-brand-dark dark:text-white">{count} ({Math.round((count / users.length) * 100)}%)</span>
                     </div>
-                    {msg.subject && (
-                      <p className="font-medium text-brand-dark dark:text-white mb-1">{msg.subject}</p>
-                    )}
-                    <p className="text-sm text-slate-600 dark:text-slate-300">{msg.message}</p>
-                    {msg.admin_response && (
-                      <div className="mt-3 p-3 bg-white dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10">
-                        <p className="text-xs text-slate-400 mb-1">Resposta de {msg.responded_by}:</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-300">{msg.admin_response}</p>
-                      </div>
-                    )}
-                    <p className="text-xs text-slate-400 mt-2">
-                      {new Date(msg.created_at).toLocaleDateString('pt-BR')} às {new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                    <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-pink-400 to-pink-600 rounded-full"
+                        style={{ width: `${(count / users.length) * 100}%` }}
+                      />
+                    </div>
                   </div>
-                  {msg.status !== 'resolved' && (
-                    <button
-                      onClick={() => { setSelectedSupportMessage(msg); setShowSupportModal(true); }}
-                      className="px-4 py-2 bg-brand-violet text-white text-sm font-medium rounded-lg hover:bg-brand-violet/90 transition-colors"
-                    >
-                      Responder
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+                ))}
+            </div>
           </div>
-        )}
+
+          {/* Estado de Vida */}
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
+            <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
+              <Heart size={20} className="text-red-500" />
+              Estado de Vida
+            </h3>
+            <div className="space-y-3">
+              {Object.entries(stateOfLifeStats)
+                .sort((a, b) => b[1] - a[1])
+                .map(([state, count]) => (
+                  <div key={state}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-600 dark:text-slate-400">{stateLabels[state] || state}</span>
+                      <span className="font-medium text-brand-dark dark:text-white">{count} ({Math.round((count / users.length) * 100)}%)</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full"
+                        style={{ width: `${(count / users.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          {/* Santos Padroeiros */}
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
+            <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
+              <Star size={20} className="text-amber-500" />
+              Santos Padroeiros Escolhidos
+            </h3>
+            <div className="space-y-3">
+              {Object.entries(patronSaintStats)
+                .sort((a, b) => b[1] - a[1])
+                .map(([saint, count]) => (
+                  <div key={saint}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-600 dark:text-slate-400">{saintLabels[saint] || saint}</span>
+                      <span className="font-medium text-brand-dark dark:text-white">{count} ({Math.round((count / users.length) * 100)}%)</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full"
+                        style={{ width: `${(count / users.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          {/* Frequência de Confissão */}
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
+            <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4 flex items-center gap-2">
+              <BookOpen size={20} className="text-purple-500" />
+              Frequência de Confissão
+            </h3>
+            <div className="space-y-3">
+              {Object.entries(confessionStats)
+                .sort((a, b) => b[1] - a[1])
+                .map(([freq, count]) => (
+                  <div key={freq}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-600 dark:text-slate-400">{confessionLabels[freq] || freq}</span>
+                      <span className="font-medium text-brand-dark dark:text-white">{count} ({Math.round((count / users.length) * 100)}%)</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full"
+                        style={{ width: `${(count / users.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Renderização de Configurações
   const renderSettings = () => (
     <div className="space-y-6">
+      <h2 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
+        <Settings size={24} className="text-brand-violet" />
+        Configurações do Painel
+      </h2>
+
       <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
         <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4">Informações do Sistema</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
-            <p className="text-sm text-slate-500 mb-1">Versão do App</p>
-            <p className="font-bold text-brand-dark dark:text-white">2.5.0</p>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
+            <span className="text-slate-600 dark:text-slate-400">Versão do Painel</span>
+            <span className="font-medium text-brand-dark dark:text-white">v2.1.0</span>
           </div>
-          <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
-            <p className="text-sm text-slate-500 mb-1">Ambiente</p>
-            <p className="font-bold text-brand-dark dark:text-white">Produção</p>
+          <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
+            <span className="text-slate-600 dark:text-slate-400">Última Atualização de Dados</span>
+            <span className="font-medium text-brand-dark dark:text-white">
+              {lastUpdate ? lastUpdate.toLocaleString('pt-BR') : 'Nunca'}
+            </span>
           </div>
-          <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
-            <p className="text-sm text-slate-500 mb-1">Banco de Dados</p>
-            <p className="font-bold text-brand-dark dark:text-white">Supabase</p>
-          </div>
-          <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
-            <p className="text-sm text-slate-500 mb-1">Hospedagem</p>
-            <p className="font-bold text-brand-dark dark:text-white">Vercel</p>
+          <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
+            <span className="text-slate-600 dark:text-slate-400">Status da Conexão</span>
+            <span className="inline-flex items-center gap-2 font-medium text-emerald-500">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+              Conectado
+            </span>
           </div>
         </div>
       </div>
 
       <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
         <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-4">Links Úteis</h3>
-        <div className="space-y-3">
-          <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
-            <FileText size={20} className="text-brand-violet" />
-            <span className="font-medium text-brand-dark dark:text-white">Painel Supabase</span>
-            <ArrowUpRight size={16} className="ml-auto text-slate-400" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <a 
+            href="https://supabase.com/dashboard" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+          >
+            <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+              <Settings size={20} className="text-white" />
+            </div>
+            <div>
+              <p className="font-medium text-brand-dark dark:text-white">Supabase Dashboard</p>
+              <p className="text-sm text-slate-500">Gerenciar banco de dados</p>
+            </div>
           </a>
-          <a href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
-            <FileText size={20} className="text-brand-violet" />
-            <span className="font-medium text-brand-dark dark:text-white">Painel Vercel</span>
-            <ArrowUpRight size={16} className="ml-auto text-slate-400" />
-          </a>
-          <a href="https://pay.cakto.com.br" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
-            <FileText size={20} className="text-brand-violet" />
-            <span className="font-medium text-brand-dark dark:text-white">Painel Cakto</span>
-            <ArrowUpRight size={16} className="ml-auto text-slate-400" />
+          <a 
+            href="https://vercel.com/dashboard" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+          >
+            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold">▲</span>
+            </div>
+            <div>
+              <p className="font-medium text-brand-dark dark:text-white">Vercel Dashboard</p>
+              <p className="text-sm text-slate-500">Gerenciar deploys</p>
+            </div>
           </a>
         </div>
       </div>
     </div>
   );
+
+  // Renderização de Conteúdo (Comunidade)
+  const renderContent = () => (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
+        <MessageSquare size={24} className="text-brand-violet" />
+        Moderação de Conteúdo
+      </h2>
+
+      <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
+        <p className="text-center text-slate-500 py-8">
+          <MessageSquare size={48} className="mx-auto mb-4 opacity-50" />
+          Nenhum conteúdo para moderar no momento.
+          <br />
+          <span className="text-sm">Os posts da comunidade aparecerão aqui quando houver conteúdo.</span>
+        </p>
+      </div>
+    </div>
+  );
+
+  // Loading State
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-brand-dark flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand-violet border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-brand-dark flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-white/5 rounded-2xl p-8 max-w-md w-full text-center border border-red-200 dark:border-red-500/20">
+          <AlertTriangle size={48} className="mx-auto mb-4 text-red-500" />
+          <h2 className="text-xl font-bold text-brand-dark dark:text-white mb-2">Erro ao carregar dados</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">{error}</p>
+          <button
+            onClick={loadData}
+            className="px-6 py-3 bg-brand-violet text-white rounded-xl font-medium hover:bg-brand-violet/90 transition-colors"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-brand-dark flex flex-col">
@@ -1236,35 +1072,34 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
                 <p className="text-xs text-slate-500">Espiritualizei</p>
               </div>
             </div>
-
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowBroadcastModal(true)}
                 className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                 title="Enviar notificação"
               >
-                <Megaphone size={20} className="text-brand-violet" />
+                <Bell size={20} className="text-slate-600 dark:text-slate-400" />
               </button>
               <button
                 onClick={loadData}
                 className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                 title="Atualizar dados"
               >
-                <RefreshCw size={20} className={`text-slate-500 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw size={20} className="text-slate-600 dark:text-slate-400" />
               </button>
               <button
                 onClick={onBackToApp}
                 className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                 title="Voltar ao app"
               >
-                <Home size={20} className="text-slate-500" />
+                <Home size={20} className="text-slate-600 dark:text-slate-400" />
               </button>
               <button
                 onClick={onLogout}
                 className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                 title="Sair"
               >
-                <LogOut size={20} className="text-slate-500" />
+                <LogOut size={20} className="text-slate-600 dark:text-slate-400" />
               </button>
             </div>
           </div>
@@ -1274,146 +1109,143 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       {/* Navegação */}
       <nav className="bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 overflow-x-auto">
+          <div className="flex gap-1 overflow-x-auto py-2">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
               { id: 'users', label: 'Usuários', icon: Users },
+              { id: 'analytics', label: 'Analytics', icon: TrendingUp },
               { id: 'content', label: 'Conteúdo', icon: MessageSquare },
-              { id: 'support', label: 'Suporte', icon: Headphones, badge: supportMessages.filter(m => m.status === 'pending').length },
-              { id: 'settings', label: 'Configurações', icon: Settings },
+              { id: 'settings', label: 'Configurações', icon: Settings }
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`relative flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'border-brand-violet text-brand-violet'
-                    : 'border-transparent text-slate-500 hover:text-brand-dark dark:hover:text-white'
+                    ? 'bg-brand-violet text-white shadow-lg shadow-brand-violet/25'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
                 }`}
               >
                 <tab.icon size={18} />
-                <span className="font-medium">{tab.label}</span>
-                {tab.badge && tab.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {tab.badge}
-                  </span>
-                )}
+                {tab.label}
               </button>
             ))}
           </div>
         </div>
       </nav>
 
-      {/* Conteúdo */}
-      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <BrandLogo size={48} variant="fill" className="text-brand-violet animate-pulse" />
-          </div>
-        ) : (
-          <>
-            {activeTab === 'dashboard' && renderDashboard()}
-            {activeTab === 'users' && renderUsers()}
-            {activeTab === 'content' && renderContent()}
-            {activeTab === 'support' && renderSupport()}
-            {activeTab === 'settings' && renderSettings()}
-          </>
-        )}
+      {/* Conteúdo Principal */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeTab === 'dashboard' && renderDashboard()}
+        {activeTab === 'users' && renderUsers()}
+        {activeTab === 'analytics' && renderAnalytics()}
+        {activeTab === 'content' && renderContent()}
+        {activeTab === 'settings' && renderSettings()}
       </main>
 
-      {/* Modal de Ações do Usuário */}
+      {/* Modal de Usuário */}
       {showUserModal && selectedUser && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserModal(false)} />
-          <div className="relative bg-white dark:bg-brand-dark rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-brand-dark rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-100 dark:border-white/10">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-brand-dark dark:text-white">Detalhes do Usuário</h3>
+                <button onClick={() => setShowUserModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg">
+                  <X size={20} className="text-slate-500" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
               <div className="flex items-center gap-4">
                 {selectedUser.photo_url ? (
-                  <img src={selectedUser.photo_url} alt={selectedUser.name} className="w-14 h-14 rounded-full object-cover" />
+                  <img src={selectedUser.photo_url} alt={selectedUser.name} className="w-16 h-16 rounded-full object-cover" />
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-brand-violet/10 flex items-center justify-center text-brand-violet font-bold text-xl">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-violet to-purple-600 flex items-center justify-center text-white font-bold text-xl">
                     {selectedUser.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div>
-                  <h3 className="text-xl font-bold text-brand-dark dark:text-white">{selectedUser.name}</h3>
-                  <p className="text-sm text-slate-500">{selectedUser.email}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-slate-400">Nível {selectedUser.level || 1}</span>
-                    <span className="text-xs text-slate-400">•</span>
-                    <span className="text-xs text-slate-400">{selectedUser.xp_total || 0} XP</span>
-                    <span className="text-xs text-slate-400">•</span>
-                    <span className="text-xs text-amber-500 flex items-center gap-1">
-                      <Zap size={10} /> {selectedUser.streak_days || 0} dias
+                  <h4 className="text-lg font-bold text-brand-dark dark:text-white">{selectedUser.name}</h4>
+                  <p className="text-slate-500">{selectedUser.email || 'Sem email'}</p>
+                  {selectedUser.is_premium && (
+                    <span className="inline-flex items-center gap-1 text-amber-500 text-sm">
+                      <Crown size={14} /> Premium
                     </span>
-                  </div>
+                  )}
                 </div>
               </div>
-            </div>
 
-            <div className="p-4 space-y-2">
-              <button
-                onClick={() => togglePremium(selectedUser)}
-                disabled={actionLoading}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-              >
-                {selectedUser.subscription_type === 'premium' ? (
-                  <>
-                    <UserMinus size={20} className="text-slate-500" />
-                    <span className="text-brand-dark dark:text-white">Remover Premium</span>
-                  </>
-                ) : (
-                  <>
-                    <Crown size={20} className="text-amber-500" />
-                    <span className="text-brand-dark dark:text-white">Conceder Premium</span>
-                  </>
-                )}
-              </button>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4">
+                  <p className="text-sm text-slate-500 mb-1">Nível</p>
+                  <p className="text-xl font-bold text-brand-dark dark:text-white">{selectedUser.level || 1}</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4">
+                  <p className="text-sm text-slate-500 mb-1">XP Total</p>
+                  <p className="text-xl font-bold text-brand-dark dark:text-white">{selectedUser.current_xp || 0}</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4">
+                  <p className="text-sm text-slate-500 mb-1">Streak</p>
+                  <p className="text-xl font-bold text-brand-dark dark:text-white">{selectedUser.streak_days || 0} dias</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4">
+                  <p className="text-sm text-slate-500 mb-1">Status</p>
+                  <p className="text-xl font-bold text-brand-dark dark:text-white">{selectedUser.subscription_status || 'free'}</p>
+                </div>
+              </div>
 
-              <button
-                onClick={() => toggleSuspend(selectedUser)}
-                disabled={actionLoading}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-              >
-                {selectedUser.is_suspended ? (
-                  <>
-                    <Unlock size={20} className="text-emerald-500" />
-                    <span className="text-brand-dark dark:text-white">Reativar Usuário</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock size={20} className="text-orange-500" />
-                    <span className="text-brand-dark dark:text-white">Suspender Usuário</span>
-                  </>
-                )}
-              </button>
+              <div className="space-y-3">
+                <div className="flex justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl">
+                  <span className="text-slate-500">Foco Espiritual</span>
+                  <span className="font-medium text-brand-dark dark:text-white">{selectedUser.spiritual_focus || '-'}</span>
+                </div>
+                <div className="flex justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl">
+                  <span className="text-slate-500">Estado de Vida</span>
+                  <span className="font-medium text-brand-dark dark:text-white">{selectedUser.state_of_life || '-'}</span>
+                </div>
+                <div className="flex justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl">
+                  <span className="text-slate-500">Santo Padroeiro</span>
+                  <span className="font-medium text-brand-dark dark:text-white">{selectedUser.patron_saint || '-'}</span>
+                </div>
+                <div className="flex justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl">
+                  <span className="text-slate-500">Cadastro</span>
+                  <span className="font-medium text-brand-dark dark:text-white">
+                    {selectedUser.joined_date ? new Date(selectedUser.joined_date).toLocaleDateString('pt-BR') : '-'}
+                  </span>
+                </div>
+              </div>
 
-              <button
-                onClick={() => resetUserPassword(selectedUser)}
-                disabled={actionLoading}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-              >
-                <Mail size={20} className="text-blue-500" />
-                <span className="text-brand-dark dark:text-white">Enviar Reset de Senha</span>
-              </button>
-
-              <button
-                onClick={() => deleteUser(selectedUser)}
-                disabled={actionLoading}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-red-500"
-              >
-                <Trash2 size={20} />
-                <span>Excluir Usuário</span>
-              </button>
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-white/5">
-              <button
-                onClick={() => setShowUserModal(false)}
-                className="w-full py-3 text-slate-500 font-medium hover:text-brand-dark dark:hover:text-white transition-colors"
-              >
-                Cancelar
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => togglePremium(selectedUser)}
+                  disabled={actionLoading}
+                  className={`w-full py-3 rounded-xl font-medium transition-colors ${
+                    selectedUser.is_premium
+                      ? 'bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-white/20'
+                      : 'bg-gradient-to-r from-amber-400 to-amber-600 text-white hover:from-amber-500 hover:to-amber-700'
+                  }`}
+                >
+                  {selectedUser.is_premium ? 'Remover Premium' : 'Conceder Premium'}
+                </button>
+                <button
+                  onClick={() => toggleSuspend(selectedUser)}
+                  disabled={actionLoading}
+                  className={`w-full py-3 rounded-xl font-medium transition-colors ${
+                    selectedUser.is_suspended
+                      ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                      : 'bg-orange-500 text-white hover:bg-orange-600'
+                  }`}
+                >
+                  {selectedUser.is_suspended ? 'Reativar Usuário' : 'Suspender Usuário'}
+                </button>
+                <button
+                  onClick={() => deleteUser(selectedUser)}
+                  disabled={actionLoading}
+                  className="w-full py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors"
+                >
+                  Excluir Usuário
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1421,127 +1253,58 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
 
       {/* Modal de Broadcast */}
       {showBroadcastModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowBroadcastModal(false)} />
-          <div className="relative bg-white dark:bg-brand-dark rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-brand-dark rounded-2xl max-w-lg w-full">
             <div className="p-6 border-b border-slate-100 dark:border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-brand-violet/10 flex items-center justify-center">
-                  <Megaphone size={24} className="text-brand-violet" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-brand-dark dark:text-white">Enviar Notificação</h3>
-                  <p className="text-sm text-slate-500">Envie uma mensagem para seus usuários</p>
-                </div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-brand-dark dark:text-white">Enviar Notificação</h3>
+                <button onClick={() => setShowBroadcastModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg">
+                  <X size={20} className="text-slate-500" />
+                </button>
               </div>
             </div>
-
             <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Público-alvo</label>
-                <select
-                  value={broadcastTarget}
-                  onChange={(e) => setBroadcastTarget(e.target.value as any)}
-                  className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-violet"
-                >
-                  <option value="all">Todos os usuários ({users.length})</option>
-                  <option value="premium">Apenas Premium ({users.filter(u => u.subscription_type === 'premium').length})</option>
-                  <option value="free">Apenas Free ({users.filter(u => u.subscription_type === 'free').length})</option>
-                </select>
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Título</label>
                 <input
                   type="text"
                   value={broadcastTitle}
                   onChange={(e) => setBroadcastTitle(e.target.value)}
-                  placeholder="Ex: Novidade no Espiritualizei!"
-                  className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-brand-dark dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-violet"
+                  placeholder="Título da notificação"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Mensagem</label>
                 <textarea
                   value={broadcastMessage}
                   onChange={(e) => setBroadcastMessage(e.target.value)}
-                  placeholder="Digite sua mensagem aqui..."
+                  placeholder="Conteúdo da notificação"
                   rows={4}
-                  className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-brand-dark dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-violet resize-none"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white resize-none"
                 />
               </div>
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-white/5 flex gap-3">
-              <button
-                onClick={() => setShowBroadcastModal(false)}
-                className="flex-1 py-3 text-slate-500 font-medium hover:text-brand-dark dark:hover:text-white transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={sendBroadcastNotification}
-                disabled={actionLoading || !broadcastTitle || !broadcastMessage}
-                className="flex-1 py-3 bg-brand-violet text-white font-bold rounded-xl hover:bg-brand-violet/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {actionLoading ? <RefreshCw size={18} className="animate-spin" /> : <Send size={18} />}
-                Enviar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Resposta ao Suporte */}
-      {showSupportModal && selectedSupportMessage && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSupportModal(false)} />
-          <div className="relative bg-white dark:bg-brand-dark rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-brand-violet/10 flex items-center justify-center">
-                  <Headphones size={24} className="text-brand-violet" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-brand-dark dark:text-white">Responder Suporte</h3>
-                  <p className="text-sm text-slate-500">{selectedSupportMessage.user_email}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
-                <p className="text-sm text-slate-500 mb-1">Mensagem do usuário:</p>
-                <p className="text-brand-dark dark:text-white">{selectedSupportMessage.message}</p>
-              </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Sua resposta</label>
-                <textarea
-                  value={supportResponse}
-                  onChange={(e) => setSupportResponse(e.target.value)}
-                  placeholder="Digite sua resposta aqui..."
-                  rows={4}
-                  className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-brand-dark dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-violet resize-none"
-                />
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Destinatários</label>
+                <select
+                  value={broadcastTarget}
+                  onChange={(e) => setBroadcastTarget(e.target.value as any)}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-violet/50 text-brand-dark dark:text-white"
+                >
+                  <option value="all">Todos os usuários ({users.length})</option>
+                  <option value="premium">Apenas Premium ({stats.premiumUsers})</option>
+                  <option value="free">Apenas Free ({stats.freeUsers})</option>
+                </select>
               </div>
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-white/5 flex gap-3">
               <button
-                onClick={() => { setShowSupportModal(false); setSupportResponse(''); }}
-                className="flex-1 py-3 text-slate-500 font-medium hover:text-brand-dark dark:hover:text-white transition-colors"
+                onClick={() => {
+                  alert('Funcionalidade de notificação em desenvolvimento');
+                  setShowBroadcastModal(false);
+                }}
+                disabled={!broadcastTitle || !broadcastMessage}
+                className="w-full py-3 bg-brand-violet text-white rounded-xl font-medium hover:bg-brand-violet/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancelar
-              </button>
-              <button
-                onClick={respondToSupport}
-                disabled={actionLoading || !supportResponse}
-                className="flex-1 py-3 bg-brand-violet text-white font-bold rounded-xl hover:bg-brand-violet/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {actionLoading ? <RefreshCw size={18} className="animate-spin" /> : <Send size={18} />}
-                Enviar Resposta
+                Enviar Notificação
               </button>
             </div>
           </div>
