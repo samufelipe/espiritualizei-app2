@@ -16,34 +16,31 @@ const baseTemplate = (content: string, previewText: string) => `
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Espiritualizei</title>
     <style>
-        body { margin: 0; padding: 0; background-color: ${DARK_BG}; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: ${TEXT_COLOR}; }
+        body { margin: 0; padding: 0; background-color: #F8FAFC; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1E293B; }
         .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
-        .header { text-align: center; padding-bottom: 40px; }
-        .card { background-color: #1E252B; border-radius: 24px; padding: 40px; border: 1px solid rgba(167, 139, 250, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .logo { width: 80px; height: 80px; margin-bottom: 20px; }
-        h1 { color: #FFFFFF; font-size: 28px; font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
-        p { font-size: 16px; line-height: 1.6; color: #94A3B8; margin-bottom: 24px; }
-        .button { display: inline-block; background-color: ${BRAND_COLOR}; color: #FFFFFF !important; padding: 16px 32px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(167, 139, 250, 0.3); transition: transform 0.2s; }
-        .footer { text-align: center; padding-top: 40px; font-size: 12px; color: #475569; }
+        .card { background-color: #FFFFFF; border-radius: 24px; padding: 40px; border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .logo-container { text-align: center; margin-bottom: 32px; }
+        .logo { width: 64px; height: 64px; border-radius: 16px; }
+        h1 { color: #1E293B; font-size: 26px; font-weight: 800; margin-bottom: 16px; line-height: 1.3; text-align: center; }
+        p { font-size: 16px; line-height: 1.7; color: #64748B; margin-bottom: 20px; }
+        .button { display: inline-block; background-color: ${BRAND_COLOR}; color: #FFFFFF !important; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 8px 16px rgba(167, 139, 250, 0.25); }
+        .footer { text-align: center; padding-top: 32px; font-size: 12px; color: #94A3B8; }
         .highlight { color: ${BRAND_COLOR}; font-weight: 700; }
-        .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.2), transparent); margin: 32px 0; }
+        .divider { height: 1px; background: linear-gradient(90deg, transparent, #E2E8F0, transparent); margin: 28px 0; }
     </style>
 </head>
 <body>
     <div style="display: none; max-height: 0px; overflow: hidden;">${previewText}</div>
     <div class="container">
-        <div class="header">
-            <img src="https://raw.githubusercontent.com/samufelipe/espiritualizei-app2/main/public/icon-512.png" alt="Espiritualizei" class="logo">
-        </div>
         <div class="card">
+            <div class="logo-container">
+                <img src="https://www.espiritualizei.com/icon-512.png" alt="Espiritualizei" class="logo">
+            </div>
             ${content}
         </div>
         <div class="footer">
             <p style="margin-bottom: 8px;">Enviado com amor pela equipe Espiritualizei</p>
             <p>espiritualizeiapp@gmail.com • <a href="https://www.espiritualizei.com" style="color: #64748B; text-decoration: underline;">espiritualizei.com</a></p>
-            <div style="margin-top: 20px;">
-                <a href="#" style="color: #475569; text-decoration: none; margin: 0 10px;">Unsubscribe</a>
-            </div>
         </div>
     </div>
 </body>
@@ -59,7 +56,7 @@ export const getWelcomeEmail = (userName: string) => {
         <div class="divider"></div>
         <p style="font-style: italic; color: #64748B;">"A santidade consiste em fazer a vontade de Deus com alegria, nas pequenas coisas de cada dia."</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Iniciar minha Jornada</a>
+            <a href="https://www.espiritualizei.com" class="button">Iniciar minha Jornada</a>
         </div>
     `;
     return baseTemplate(content, `Sua jornada espiritual começa agora, ${firstName}.`);
@@ -79,7 +76,7 @@ export const getAchievementEmail = (userName: string, achievement: string) => {
         </div>
         <p>Continue firme. O Céu celebra cada pequeno sim que você dá hoje.</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Ver minhas conquistas</a>
+            <a href="https://www.espiritualizei.com" class="button">Ver minhas conquistas</a>
         </div>
     `;
     return baseTemplate(content, `Parabéns pela sua nova conquista no Espiritualizei!`);
@@ -94,7 +91,7 @@ export const getLiturgyEmail = (userName: string, seasonName: string, seasonColo
         <div class="divider"></div>
         <p>Preparamos conteúdos exclusivos na sua <span class="highlight">Biblioteca da Fé</span> para ajudar você a viver este período com intensidade e propósito.</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Ver minha rotina de ${seasonName}</a>
+            <a href="https://www.espiritualizei.com" class="button">Ver minha rotina de ${seasonName}</a>
         </div>
     `;
     return baseTemplate(content, `A Igreja inicia o tempo de ${seasonName}. Veja o que mudou no seu app.`);
@@ -111,7 +108,7 @@ export const getIntercessionEmail = (userName: string) => {
         </div>
         <p>Que tal retribuir esse gesto? Entre no Mural agora e veja quem também precisa de uma prece hoje.</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Rezar pela Comunidade</a>
+            <a href="https://www.espiritualizei.com" class="button">Rezar pela Comunidade</a>
         </div>
     `;
     return baseTemplate(content, `Você recebeu uma intercessão! A comunidade está rezando por você.`);
@@ -127,7 +124,7 @@ export const getInactivityEmail = (userName: string) => {
         <div class="divider"></div>
         <p style="text-align: center; color: #64748B;">"Não é o muito saber que sacia a alma, mas o sentir e o gostar das coisas internamente."</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Retomar minha Jornada</a>
+            <a href="https://www.espiritualizei.com" class="button">Retomar minha Jornada</a>
         </div>
     `;
     return baseTemplate(content, `Sentimos sua falta, ${firstName}. Vamos retomar?`);
@@ -147,7 +144,7 @@ export const getDailyInspirationEmail = (userName: string, title: string, body: 
         </div>
         <p>Que esta palavra ilumine o seu dia e guie seus passos. Lembre-se: cada momento é uma oportunidade de encontro com Deus.</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Começar minha Rotina</a>
+            <a href="https://www.espiritualizei.com" class="button">Começar minha Rotina</a>
         </div>
     `;
     return baseTemplate(content, `${title} - Sua inspiração de hoje no Espiritualizei`);
@@ -186,7 +183,7 @@ export const getRoutineReminderEmail = (userName: string, period: 'morning' | 'a
         <div class="divider"></div>
         <p style="text-align: center; color: #64748B; font-style: italic;">"Em paz me deito e logo adormeço, pois só tu, Senhor, me fazes repousar seguro." (Sl 4,9)</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">${cta}</a>
+            <a href="https://www.espiritualizei.com" class="button">${cta}</a>
         </div>
     `;
     return baseTemplate(content, `${title} - Hora da sua rotina espiritual`);
@@ -206,7 +203,7 @@ export const getChallengeEmail = (userName: string, challengeTitle: string, chal
         </div>
         <p>Participe junto com seus irmãos e fortaleça sua fé. Ao completar o desafio, você pode compartilhar sua conquista e inspirar outros!</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Aceitar o Desafio</a>
+            <a href="https://www.espiritualizei.com" class="button">Aceitar o Desafio</a>
         </div>
     `;
     return baseTemplate(content, `Novo desafio: ${challengeTitle} - Participe agora!`);
@@ -228,7 +225,7 @@ export const getLevelUpEmail = (userName: string, newLevel: number) => {
         <p>Cada nível representa sua jornada de crescimento espiritual. Continue firme na oração, nos desafios e na comunidade.</p>
         <p style="color: #64748B; font-style: italic;">O Céu celebra cada pequeno passo que você dá em direção à santidade.</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Ver meu Progresso</a>
+            <a href="https://www.espiritualizei.com" class="button">Ver meu Progresso</a>
         </div>
     `;
     return baseTemplate(content, `Parabéns! Você alcançou o nível ${newLevel} no Espiritualizei!`);
@@ -266,7 +263,7 @@ export const getStreakEmail = (userName: string, streakDays: number) => {
         <div class="divider"></div>
         <p style="color: #64748B; font-style: italic;">"A perseverança produz caráter aprovado, e o caráter aprovado, esperança." (Rm 5,4)</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Manter minha Sequência</a>
+            <a href="https://www.espiritualizei.com" class="button">Manter minha Sequência</a>
         </div>
     `;
     return baseTemplate(content, `${streakDays} dias consecutivos de oração! Continue firme!`);
@@ -292,7 +289,7 @@ export const getLibrarySuggestionEmail = (userName: string) => {
         </div>
         <p style="color: #64748B; font-style: italic;">"Se algum de vós tem falta de sabedoria, peça-a a Deus, que a todos dá liberalmente." (Tg 1,5)</p>
         <div style="text-align: center; margin-top: 32px;">
-            <a href="https://app.espiritualizei.com" class="button">Explorar a Biblioteca</a>
+            <a href="https://www.espiritualizei.com" class="button">Explorar a Biblioteca</a>
         </div>
     `;
     return baseTemplate(content, `Novos conteúdos na Biblioteca da Fé te esperam!`);
