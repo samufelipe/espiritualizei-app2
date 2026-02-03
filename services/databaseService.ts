@@ -195,22 +195,36 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
 export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
   try {
     if (getConnectionStatus()) {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Buscar desafio ativo da tabela community_challenges baseado na data atual
         const { data, error } = await supabase!
-            .from('challenges')
+            .from('community_challenges')
             .select('*')
-            .eq('status', 'active')
+            .lte('start_date', today)
+            .gte('end_date', today)
+            .eq('is_active', true)
+            .order('start_date', { ascending: false })
+            .limit(1)
             .maybeSingle();
         
         if (data && !error) {
             return {
-                ...data,
+                id: data.id,
+                title: data.title,
+                description: data.description,
+                category: data.liturgical_season === 'quaresma' ? 'FASTING' : 'RELATIONAL',
+                xpReward: data.xp_reward,
+                participants: data.participants_count,
+                isUserParticipating: false,
                 startDate: new Date(data.start_date),
-                endDate: new Date(data.end_date)
+                endDate: new Date(data.end_date),
+                liturgicalSeason: data.liturgical_season
             };
         }
     }
   } catch (e) {
-    console.warn("Gerando desafio litúrgico automático.");
+    console.warn("Gerando desafio litúrgico automático:", e);
   }
   return generateDeterministicChallenge(new Date());
 };
@@ -384,10 +398,17 @@ export const togglePostLike = async (postId: string) => {
   }
 };
 
-export const toggleRoutineItemStatus = async (id: string, completed: boolean) => {
+export const toggleRoutineItemStatus = async (id: string, completed: boolean, userId?: string, xpReward?: number): Promise<{ newXP?: number; newLevel?: number; leveledUp?: boolean }> => {
   if (getConnectionStatus()) {
     await supabase!.from('routines').update({ completed }).eq('id', id);
+    
+    // Se completou a tarefa e temos userId e xpReward, adicionar XP
+    if (completed && userId && xpReward && xpReward > 0) {
+      const result = await addUserXP(userId, xpReward);
+      return result;
+    }
   }
+  return {};
 };
 
 export const createIntention = async (userId: string, author: string, avatar: string | undefined, content: string, category: string, tags: string[]): Promise<PrayerIntention> => {

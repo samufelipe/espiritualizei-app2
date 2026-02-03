@@ -292,7 +292,11 @@ const App: React.FC = () => {
                 if (item) { 
                   const newStatus = !item.completed; 
                   setRoutineItems(prev => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i)); 
-                  await toggleRoutineItemStatus(id, newStatus); 
+                  const xpResult = await toggleRoutineItemStatus(id, newStatus, user.id, item.xpReward);
+                  // Atualizar XP do usuário localmente se ganhou XP
+                  if (xpResult.newXP !== undefined) {
+                    setUser(prev => ({ ...prev, currentXP: xpResult.newXP!, level: xpResult.newLevel! }));
+                  }
                   try { await Haptics.impact({ style: ImpactStyle.Light }); } catch(e) {}
                 } 
               }} 
