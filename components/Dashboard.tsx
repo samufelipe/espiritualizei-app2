@@ -210,42 +210,50 @@ const Dashboard: React.FC<DashboardProps> = ({
   );
 
   const renderCommunityPreview = () => (
-    <div className="bg-white dark:bg-[#1A1F26] rounded-[2.5rem] p-6 sm:p-8 border border-slate-100 dark:border-white/5 shadow-card mb-8">
-        <div className="flex justify-between items-center mb-6">
-            <div>
-                <h3 className="text-lg font-bold text-brand-dark dark:text-white flex items-center gap-2"><Users size={20} className="text-brand-violet" /> Vida em Fraternidade</h3>
-                <p className="text-xs text-slate-500">Veja as graças e partilhas da nossa família de fé</p>
+    <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2.5rem] p-6 sm:p-8 shadow-xl shadow-brand-violet/20 mb-8 relative overflow-hidden">
+        <div className="absolute top-[-20%] right-[-10%] opacity-10"><MessageCircle size={160} /></div>
+        
+        <div className="relative z-10">
+            <div className="flex justify-between items-start mb-6">
+                <div>
+                    <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-3 border border-white/10 text-white">
+                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" /> Chat ao Vivo
+                    </div>
+                    <h3 className="text-xl font-black text-white flex items-center gap-2 mb-1">Chat da Comunidade</h3>
+                    <p className="text-xs text-purple-100 opacity-90">Converse em tempo real com irmãos de fé</p>
+                </div>
             </div>
-            <button onClick={() => onNavigateToCommunity('feed')} className="text-xs font-bold text-brand-violet hover:underline flex items-center gap-1">Ver tudo <ArrowRight size={14} /></button>
-        </div>
 
-        {loadingPosts ? (
-            <div className="space-y-4 animate-pulse">
-                {[1,2,3].map(i => <div key={i} className="h-20 bg-slate-50 dark:bg-white/5 rounded-2xl" />)}
-            </div>
-        ) : recentPosts.length === 0 ? (
-            <div className="text-center py-10 opacity-60">
-                <MessageCircle size={32} className="mx-auto mb-3 text-slate-300" />
-                <p className="text-sm text-slate-500">Seja o primeiro a postar um testemunho!</p>
-            </div>
-        ) : (
-            <div className="space-y-4">
-                {recentPosts.map((post) => (
-                    <div key={post.id} onClick={() => onNavigateToCommunity('feed')} className="flex gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-[1.5rem] cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-transparent hover:border-slate-200 dark:hover:border-white/10 group">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-white/10 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden shadow-sm">
-                            {post.userAvatar ? <img src={post.userAvatar} className="w-full h-full object-cover" /> : post.userName.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-1">
-                                <h4 className="text-sm font-bold text-brand-dark dark:text-white truncate">{post.userName}</h4>
-                                <span className="text-[9px] text-slate-400 font-medium">{new Date(post.timestamp).toLocaleDateString()}</span>
-                            </div>
-                            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{post.content}</p>
+            {loadingPosts ? (
+                <div className="space-y-3 animate-pulse">
+                    {[1,2].map(i => <div key={i} className="h-14 bg-white/10 rounded-2xl" />)}
+                </div>
+            ) : (
+                <div className="space-y-3 mb-6">
+                    <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center text-white text-xs font-bold shrink-0">M</div>
+                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl rounded-bl-none px-4 py-3 max-w-[85%]">
+                            <p className="text-xs text-white/90 leading-relaxed">Boa noite, irmãos! Que a paz de Cristo esteja com todos...</p>
+                            <span className="text-[9px] text-white/50 mt-1 block">Maria Clara • Lvl 5</span>
                         </div>
                     </div>
-                ))}
-            </div>
-        )}
+                    <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center text-white text-xs font-bold shrink-0">J</div>
+                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl rounded-bl-none px-4 py-3 max-w-[85%]">
+                            <p className="text-xs text-white/90 leading-relaxed">Amém! Que Deus abençoe todos nós nesta caminhada 🙏</p>
+                            <span className="text-[9px] text-white/50 mt-1 block">João Paulo • Lvl 3</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <button 
+                onClick={() => onNavigateToCommunity('social')} 
+                className="w-full bg-white text-brand-violet px-6 py-4 rounded-2xl font-black text-sm shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+                <MessageCircle size={18} /> Entrar no Chat
+            </button>
+        </div>
     </div>
   );
 
