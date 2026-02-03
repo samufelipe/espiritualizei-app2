@@ -209,17 +209,28 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
             .maybeSingle();
         
         if (data && !error) {
+            const startDate = new Date(data.start_date);
+            const endDate = new Date(data.end_date);
+            const now = new Date();
+            const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+            
             return {
                 id: data.id,
                 title: data.title,
                 description: data.description,
-                category: data.liturgical_season === 'quaresma' ? 'FASTING' : 'RELATIONAL',
-                xpReward: data.xp_reward,
-                participants: data.participants_count,
+                currentAmount: 0,
+                targetAmount: 100,
+                unit: 'participantes',
+                daysLeft: daysLeft,
+                seasonColor: data.liturgical_season === 'quaresma' ? 'purple' : 'green',
+                icon: 'cross' as const,
+                type: 'season' as const,
+                startDate: startDate,
+                endDate: endDate,
+                status: 'active' as const,
+                participants: data.participants_count || 0,
                 isUserParticipating: false,
-                startDate: new Date(data.start_date),
-                endDate: new Date(data.end_date),
-                liturgicalSeason: data.liturgical_season
+                userContribution: 0
             };
         }
     }
