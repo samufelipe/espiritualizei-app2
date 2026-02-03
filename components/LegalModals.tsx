@@ -81,7 +81,7 @@ export const AboutModal: React.FC<ModalProps> = ({ onClose }) => (
         <p>O Espiritualizei nasceu do desejo de colocar a tecnologia a serviço da vida espiritual. Acreditamos que, em um mundo cada vez mais barulhento e distraído, as ferramentas digitais podem ser aliadas fundamentais para recuperar o silêncio, a ordem e a constância na oração.</p>
         
         <h3>Fidelidade e Profundidade</h3>
-        <p>Nossa plataforma é desenvolvida por leigos comprometidos com o Magistério da Igreja Católica. Buscamos traduzir os tesouros da nossa fé para uma linguagem moderna e acessível, sem nunca perder a profundidade teológica necessária para o verdadeiro crescimento da alma.</p>
+        <p>Nossa plataforma é desenvolvida por fiéis comprometidos com o Magistério da Igreja Católica. Buscamos traduzir os tesouros da nossa fé para uma linguagem moderna e acessível, sem nunca perder a profundidade teológica necessária para o verdadeiro crescimento da alma.</p>
         
         <h3>Comunidade e Fraternidade</h3>
         <p>A santidade não é um caminho solitário. No Espiritualizei, você caminha ao lado de milhares de outros peregrinos, intercedendo uns pelos outros e partilhando as graças que Deus realiza no cotidiano através da comunidade.</p>

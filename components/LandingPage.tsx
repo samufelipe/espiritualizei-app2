@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Moon, Brain, Coffee, CloudRain, Quote, Sun, Heart, Users, Flame, BookOpen, Star, Clock, MessageCircle, Instagram, Youtube, Twitter, Sparkles, Calendar, Lock, ShieldCheck, Zap, Trophy, Check, Home, RefreshCw, Smartphone, Cross, Anchor, Target } from 'lucide-react';
+import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Moon, Brain, Coffee, CloudRain, Quote, Sun, Heart, Users, Flame, BookOpen, Star, Clock, MessageCircle, Instagram, Facebook, Sparkles, Calendar, Lock, ShieldCheck, Zap, Trophy, Check, Home, RefreshCw, Smartphone, Cross, Anchor, Target } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { TermsModal, PrivacyModal, AboutModal, ContactModal } from './LegalModals';
 
@@ -96,7 +96,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
           </div>
           <div className="flex items-center justify-center gap-6 pt-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
              <div className="flex items-center gap-2"><ShieldCheck size={16} className="text-green-500" /> Doutrina 100% Católica</div>
-             <div className="flex items-center gap-2"><Heart size={16} className="text-rose-500" /> Feito por leigos para leigos</div>
+             <div className="flex items-center gap-2"><Heart size={16} className="text-rose-500" /> Feito com amor para sua alma</div>
           </div>
         </div>
 
@@ -329,7 +329,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
          <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-20">
                <h2 className="text-4xl sm:text-6xl font-black tracking-tighter mb-6">Sua jornada começa aqui</h2>
-               <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium text-lg">O Espiritualizei é um projeto mantido por leigos para ajudar você a manter a chama da fé acesa todos os dias.</p>
+               <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium text-lg">O Espiritualizei é um projeto feito com amor para ajudar você a manter a chama da fé acesa todos os dias.</p>
             </div>
             <div className="max-w-2xl mx-auto">
                <div className="bg-brand-dark p-10 rounded-[3rem] border-2 border-brand-violet relative flex flex-col shadow-2xl shadow-brand-violet/20">
@@ -473,7 +473,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                      <BrandLogo size={32} variant="fill" className="text-brand-violet" />
                      <span className="font-bold text-2xl tracking-tighter">Espiritualizei</span>
                   </div>
-                  <p className="text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed font-medium">Ajudando leigos a encontrarem a santidade no meio do mundo, através de uma jornada diária constante e equilibrada.</p>
+                  <p className="text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed font-medium">Ajudando corações a encontrarem um caminho para a presença de Deus, transformando a rotina diária em uma jornada de fé e santificação.</p>
                </div>
                <div>
                   <h5 className="font-black uppercase text-[10px] tracking-widest text-slate-400 mb-6">Links Úteis</h5>
@@ -487,9 +487,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                <div>
                   <h5 className="font-black uppercase text-[10px] tracking-widest text-slate-400 mb-6">Redes Sociais</h5>
                   <div className="flex gap-4">
-                     <a href="#" className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center hover:text-brand-violet transition-all shadow-sm"><Instagram size={20} /></a>
-                     <a href="#" className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center hover:text-brand-violet transition-all shadow-sm"><Youtube size={20} /></a>
-                     <a href="#" className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center hover:text-brand-violet transition-all shadow-sm"><Twitter size={20} /></a>
+                     <a href="https://www.instagram.com/espiritualizeiapp/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center hover:text-brand-violet transition-all shadow-sm"><Instagram size={20} /></a>
+                     <a href="https://www.facebook.com/espiritualizeiapp/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center hover:text-brand-violet transition-all shadow-sm"><Facebook size={20} /></a>
                   </div>
                </div>
             </div>
