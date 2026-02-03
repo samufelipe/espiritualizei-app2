@@ -163,6 +163,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                   <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Menos é mais. Nosso foco é te ajudar a rezar 15 minutos todos os dias com qualidade, em vez de tentar grandes metas que acabam sendo abandonadas.</p>
                </div>
             </div>
+            
+            {/* CTA após O Método */}
+            <div className="mt-16 text-center">
+               <button onClick={onStart} className="px-10 py-5 bg-brand-violet text-white rounded-[2rem] font-black text-lg shadow-xl shadow-brand-violet/30 hover:scale-105 transition-all inline-flex items-center gap-3">
+                  Descobrir Minha Jornada <ArrowRight size={20} />
+               </button>
+               <p className="mt-4 text-sm text-slate-400 font-medium">Responda o questionário e receba sua jornada personalizada</p>
+            </div>
          </div>
       </section>
 
@@ -321,6 +329,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             </div>
 
           </div>
+          
+          {/* CTA após Funcionalidades */}
+          <div className="mt-20 text-center">
+             <div className="bg-gradient-to-r from-brand-violet/10 to-purple-500/10 rounded-[2rem] p-10 border border-brand-violet/20">
+                <h3 className="text-2xl sm:text-3xl font-black mb-4">Pronto para transformar sua vida espiritual?</h3>
+                <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xl mx-auto">Responda algumas perguntas simples e receba uma jornada diária feita especialmente para você.</p>
+                <button onClick={onStart} className="px-10 py-5 bg-brand-violet text-white rounded-[2rem] font-black text-lg shadow-xl shadow-brand-violet/30 hover:scale-105 transition-all inline-flex items-center gap-3">
+                   Fazer o Questionário <ArrowRight size={20} />
+                </button>
+             </div>
+          </div>
         </div>
       </section>
 
@@ -438,6 +457,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                   <CheckCircle2 size={18} /> Funciona offline • Acesso instantâneo • Sem ocupar espaço
                </div>
             </div>
+         </div>
+      </section>
+
+      {/* --- CTA FINAL --- */}
+      <section className="py-20 bg-brand-violet">
+         <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">Não deixe para amanhã</h2>
+            <p className="text-white/80 mb-8 text-lg">Sua alma merece paz hoje. Comece sua jornada espiritual agora mesmo.</p>
+            <button onClick={onStart} className="px-10 py-5 bg-white text-brand-violet rounded-[2rem] font-black text-lg shadow-xl hover:scale-105 transition-all inline-flex items-center gap-3">
+               Iniciar Minha Jornada <ArrowRight size={20} />
+            </button>
          </div>
       </section>
 

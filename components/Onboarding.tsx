@@ -86,6 +86,25 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
 
   const TOTAL_STEPS = 9;
 
+  // Atualizar URL conforme a etapa do onboarding para rastreamento via analytics
+  useEffect(() => {
+    const stepNames = [
+      'welcome',           // step 0
+      'name',              // step 1
+      'routine-type',      // step 2
+      'primary-struggle',  // step 3
+      'confession',        // step 4
+      'best-moment',       // step 5
+      'spiritual-goal',    // step 6
+      'state-of-life',     // step 7
+      'patron-saint',      // step 8
+      'create-account'     // step 9
+    ];
+    const stepName = stepNames[step] || `step-${step}`;
+    const newUrl = `/onboarding/${stepName}`;
+    window.history.replaceState({}, '', newUrl);
+  }, [step]);
+
   const handleCaptureLead = () => {
     const isEmailValid = /\S+@\S+\.\S+/.test(formData.email);
     if (isEmailValid && formData.name.trim()) {
