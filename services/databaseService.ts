@@ -247,9 +247,15 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
 };
 
 export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {
+  console.log('[saveUserRoutine] Iniciando salvamento para userId:', userId, 'items:', items.length);
   if (getConnectionStatus()) {
     try {
-        await supabase!.from('routines').delete().eq('user_id', userId);
+        // Primeiro deletar rotinas existentes
+        const { error: deleteError } = await supabase!.from('routines').delete().eq('user_id', userId);
+        if (deleteError) {
+          console.warn('[saveUserRoutine] Aviso ao deletar rotinas antigas:', deleteError);
+        }
+        
         const payload = items.map(item => ({ 
             id: item.id,
             user_id: userId,
@@ -257,18 +263,28 @@ export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {
             description: item.description,
             detailed_content: item.detailedContent || '',
             xp_reward: item.xpReward,
-            completed: item.completed,
+            completed: item.completed || false,
             icon: item.icon,
             time_of_day: item.timeOfDay,
             day_of_week: item.dayOfWeek,
             action_link: item.actionLink || 'NONE'
         }));
-        const { error } = await supabase!.from('routines').insert(payload);
-        if (error) throw error;
+        
+        console.log('[saveUserRoutine] Payload preparado:', payload.length, 'itens');
+        
+        const { data, error } = await supabase!.from('routines').insert(payload).select();
+        if (error) {
+          console.error('[saveUserRoutine] Erro ao inserir rotina:', error);
+          throw error;
+        }
+        
+        console.log('[saveUserRoutine] Rotina salva com sucesso:', data?.length, 'itens');
     } catch (e) {
-        console.error("Erro ao salvar rotina:", e);
+        console.error('[saveUserRoutine] Erro ao salvar rotina:', e);
     }
-  } 
+  } else {
+    console.warn('[saveUserRoutine] Sem conexão com Supabase');
+  }
 };
 
 export const fetchUserRoutine = async (userId: string): Promise<RoutineItem[]> => {
