@@ -59,9 +59,14 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
     setLoadingChat(true);
     try {
         const dbMessages = await fetchChatMessages();
-        setMessages(dbMessages);
+        if (Array.isArray(dbMessages)) {
+          setMessages(dbMessages);
+        } else {
+          setMessages([]);
+        }
     } catch (e) {
-        console.error(e);
+        console.error('Erro ao carregar mensagens:', e);
+        setMessages([]);
     } finally {
         setLoadingChat(false);
     }
@@ -235,7 +240,8 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                           <p className="font-bold text-slate-500 text-sm">A praça está em silêncio...</p>
                        </div>
                     ) : messages.map((msg, idx) => {
-                       const isMe = msg.userId === user.id;
+                       if (!msg || !msg.id) return null;
+                       const isMe = msg.userId === user?.id;
                        const isSystem = msg.type === 'achievement';
 
                        if (isSystem) {
