@@ -167,6 +167,7 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
   const profilePayload: Record<string, any> = {
     id: authData.user.id,
     name: data.name.trim(),
+    email: email, // IMPORTANTE: Salvar email na tabela profiles
     phone: data.phone,
     spiritual_maturity: 'Iniciante',
     spiritual_focus: data.primaryStruggle,
