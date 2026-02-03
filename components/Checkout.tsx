@@ -17,7 +17,7 @@ interface CheckoutProps {
  * 4. Configure a "URL de Redirecionamento/Sucesso" para: https://seu-app.com/?status=success
  * 5. Cole o link gerado abaixo:
  */
-const MEU_LINK_DE_PAGAMENTO = "https://pay.cakto.com.br/7tvrCaJ"; // LINK OFICIAL CAKTO - ESPIRITUALIZEI PREMIUM
+const MEU_LINK_DE_PAGAMENTO = "https://pay.cakto.com.br/iwruwu8_691446"; // LINK OFICIAL CAKTO - ESPIRITUALIZEI PREMIUM
 
 const Checkout: React.FC<CheckoutProps> = ({ onSuccess, userName, onLogout }) => {
   const [isRedirecting, setIsRedirecting] = useState(false);
