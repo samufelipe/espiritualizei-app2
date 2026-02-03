@@ -4,7 +4,8 @@ import Navigation from './components/Navigation';
 import Sidebar from './components/Sidebar';
 import BrandLogo from './components/BrandLogo';
 import Tutorial from './components/Tutorial';
-import Login from './components/Login'; 
+import Login from './components/Login';
+import ResetPassword from './components/ResetPassword'; 
 import Checkout from './components/Checkout'; 
 import CreateIntentionModal from './components/CreateIntentionModal';
 import DailyInspiration from './components/DailyInspiration';
@@ -42,7 +43,7 @@ const TabLoader = () => (
 );
 
 const App: React.FC = () => {
-  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'checkout' | 'welcome_premium' | 'app' | 'admin_login' | 'admin'>('landing');
+  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'checkout' | 'welcome_premium' | 'app' | 'admin_login' | 'admin' | 'reset_password'>('landing');
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.DASHBOARD);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showDailyInspiration, setShowDailyInspiration] = useState(false);
@@ -69,10 +70,19 @@ const App: React.FC = () => {
     }
   }, [viewState]);
 
-  // Verificação de acesso ao painel admin via URL - PRIORIDADE MÁXIMA
+  // Verificação de acesso ao painel admin e reset-password via URL - PRIORIDADE MÁXIMA
   useEffect(() => {
     const path = window.location.pathname;
-    console.log('🔍 Verificando path:', path);
+    const hash = window.location.hash;
+    console.log('🔍 Verificando path:', path, 'hash:', hash);
+    
+    // Verificar se é rota de reset-password (Supabase envia token no hash)
+    if (path === '/reset-password' || path === '/reset-password/' || hash.includes('type=recovery')) {
+      console.log('🔑 Rota de reset-password detectada!');
+      setViewState('reset_password');
+      return;
+    }
+    
     if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
       console.log('✅ Rota admin detectada!');
       // Verificar se já tem sessão admin válida
@@ -567,6 +577,19 @@ const App: React.FC = () => {
           onBackToApp={() => {
             window.history.pushState({}, '', '/');
             setViewState('landing');
+          }}
+        />
+      )}
+      
+      {viewState === 'reset_password' && (
+        <ResetPassword 
+          onSuccess={() => {
+            window.history.pushState({}, '', '/');
+            setViewState('login');
+          }}
+          onCancel={() => {
+            window.history.pushState({}, '', '/');
+            setViewState('login');
           }}
         />
       )}

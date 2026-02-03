@@ -301,7 +301,9 @@ export const updateUserProfile = async (u: UserProfile): Promise<boolean> => {
 
 export const sendPasswordResetEmail = async (email: string) => {
   if (supabase) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: 'https://www.espiritualizei.com/reset-password'
+    });
     if (error) throw error;
     return true;
   }
