@@ -228,13 +228,23 @@ const App: React.FC = () => {
           // Sessão expirada
           console.log("⏰ Sessão expirada, redirecionando para login.");
           setViewState('login');
+          window.history.replaceState({}, document.title, '/login');
         }
       } else {
         // Sem sessão, verificar URL
         const path = window.location.pathname;
-        if (path === '/login') setViewState('login');
-        else if (path === '/onboarding') setViewState('onboarding');
-        else setViewState('landing');
+        if (path === '/login' || path === '/login/') {
+          setViewState('login');
+        } else if (path === '/onboarding' || path.startsWith('/onboarding/')) {
+          setViewState('onboarding');
+        } else {
+          // URL raiz (/) ou qualquer outra = Landing Page
+          setViewState('landing');
+          // Garantir que a URL seja a raiz
+          if (path !== '/' && path !== '') {
+            window.history.replaceState({}, document.title, '/');
+          }
+        }
       }
     };
     
@@ -243,6 +253,7 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
      await logoutUser();
+     window.history.pushState({}, '', '/');
      setViewState('landing');
      setUser({ id: 'guest', name: 'Visitante', email: '', level: 1, currentXP: 0, nextLevelXP: 100, streakDays: 0, joinedDate: new Date() });
      setRoutineItems([]);
@@ -403,7 +414,7 @@ const App: React.FC = () => {
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark no-scrollbar">
           {viewState === 'landing' && (
             <Suspense fallback={<TabLoader />}>
-              <LandingPage onStart={() => setViewState('onboarding')} onLogin={() => setViewState('login')} />
+              <LandingPage onStart={() => { window.history.pushState({}, '', '/onboarding/inicio'); setViewState('onboarding'); }} onLogin={() => { window.history.pushState({}, '', '/login'); setViewState('login'); }} />
             </Suspense>
           )}
           
@@ -421,8 +432,8 @@ const App: React.FC = () => {
                   if (global) setChallenges([global]);
                 });
               }} 
-              onRegister={() => setViewState('onboarding')} 
-              onBack={() => setViewState('landing')} 
+onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setViewState('onboarding'); }} 
+               onBack={() => { window.history.pushState({}, '', '/'); setViewState('landing'); }}
             />
           )}
           
@@ -469,7 +480,7 @@ const App: React.FC = () => {
                     alert(errorMessage);
                   }
                 }} 
-                onBack={() => setViewState('landing')} 
+                onBack={() => { window.history.pushState({}, '', '/'); setViewState('landing'); }} 
               />
             </Suspense>
           )}
@@ -584,11 +595,11 @@ const App: React.FC = () => {
       {viewState === 'reset_password' && (
         <ResetPassword 
           onSuccess={() => {
-            window.history.pushState({}, '', '/');
+            window.history.pushState({}, '', '/login');
             setViewState('login');
           }}
           onCancel={() => {
-            window.history.pushState({}, '', '/');
+            window.history.pushState({}, '', '/login');
             setViewState('login');
           }}
         />
