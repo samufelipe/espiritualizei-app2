@@ -11,7 +11,7 @@ import {
   Smartphone, Monitor, PieChart, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
-import { supabase, getConnectionStatus } from '../services/authService';
+import { supabase, getConnectionStatus, SUPABASE_URL, SUPABASE_KEY } from '../services/authService';
 
 interface AdminUser {
   id: string;
@@ -183,7 +183,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   const ADMIN_SECRET = 'Espiritualizei@Admin2024';
 
   const callAdminAPI = async (action: string, data?: any) => {
-    const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
+    const supabaseUrl = SUPABASE_URL;
     
     const response = await fetch(`${supabaseUrl}/functions/v1/admin-data`, {
       method: 'POST',
@@ -207,8 +207,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     try {
       console.log('[AdminPanel] Iniciando carregamento de dados via Edge Function...');
       
-      const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-      const supabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+      const supabaseUrl = SUPABASE_URL;
+      const supabaseKey = SUPABASE_KEY;
       
       if (!supabaseUrl) {
         console.error('[AdminPanel] Variáveis de ambiente não configuradas');
@@ -387,8 +387,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     try {
       const newType = user.subscription_type === 'premium' ? 'free' : 'premium';
       
-      const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-      const supabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+      const supabaseUrl = SUPABASE_URL;
+      const supabaseKey = SUPABASE_KEY;
       
       await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
         method: 'PATCH',
@@ -419,8 +419,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     try {
       const newStatus = !user.is_suspended;
       
-      const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-      const supabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+      const supabaseUrl = SUPABASE_URL;
+      const supabaseKey = SUPABASE_KEY;
       
       await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
         method: 'PATCH',
@@ -451,8 +451,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     
     setActionLoading(true);
     try {
-      const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-      const supabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+      const supabaseUrl = SUPABASE_URL;
+      const supabaseKey = SUPABASE_KEY;
       
       await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
         method: 'DELETE',
@@ -514,8 +514,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
         targetUsers = users.filter(u => u.subscription_type === 'free');
       }
       
-      const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-      const supabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+      const supabaseUrl = SUPABASE_URL;
+      const supabaseKey = SUPABASE_KEY;
       
       const notifications = targetUsers.map(u => ({
         user_id: u.id,
@@ -563,8 +563,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     
     setActionLoading(true);
     try {
-      const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-      const supabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+      const supabaseUrl = SUPABASE_URL;
+      const supabaseKey = SUPABASE_KEY;
       
       const adminSession = localStorage.getItem('admin_session');
       const adminEmail = adminSession ? JSON.parse(adminSession).email : 'admin';
@@ -608,8 +608,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       const adminSession = localStorage.getItem('admin_session');
       const adminEmail = adminSession ? JSON.parse(adminSession).email : 'unknown';
       
-      const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-      const supabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+      const supabaseUrl = SUPABASE_URL;
+      const supabaseKey = SUPABASE_KEY;
       
       await fetch(`${supabaseUrl}/rest/v1/admin_activity_logs`, {
         method: 'POST',
@@ -636,8 +636,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     if (!confirm('Tem certeza que deseja excluir esta postagem?')) return;
     
     try {
-      const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-      const supabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+      const supabaseUrl = SUPABASE_URL;
+      const supabaseKey = SUPABASE_KEY;
       
       await fetch(`${supabaseUrl}/rest/v1/posts?id=eq.${postId}`, {
         method: 'DELETE',
