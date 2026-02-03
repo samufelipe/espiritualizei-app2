@@ -1374,7 +1374,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-brand-dark overflow-y-auto">
+    <div className="min-h-screen h-screen bg-slate-50 dark:bg-brand-dark overflow-y-auto flex flex-col">
       {/* Header - Centralizado */}
       <header className="w-full bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/10 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1449,12 +1449,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
       </nav>
 
       {/* Conteúdo Principal - Centralizado */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20">
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20">
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'users' && renderUsers()}
         {activeTab === 'features' && renderFeatures()}
         {activeTab === 'analytics' && renderAnalytics()}
         {activeTab === 'settings' && renderSettings()}
+        </div>
       </main>
 
       {/* Modal de Usuário */}
