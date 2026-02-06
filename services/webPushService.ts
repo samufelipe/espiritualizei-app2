@@ -3,7 +3,7 @@
  * Gerencia notificações push para PWA usando Web Push API
  */
 
-import { supabase } from '../lib/supabase';
+import { supabase } from './authService';
 
 // VAPID Public Key (será gerada e configurada)
 // Para gerar: npx web-push generate-vapid-keys
@@ -111,7 +111,7 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
       
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: applicationServerKey
+        applicationServerKey: applicationServerKey as BufferSource
       });
 
       console.log('✅ Inscrição push criada:', subscription);
