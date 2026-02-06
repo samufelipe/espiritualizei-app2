@@ -8,6 +8,7 @@ import { fetchChatMessages, createChatMessage, updateChatMessageReaction } from 
 
 interface SocialHubProps {
   user: UserProfile;
+  initialTab?: 'ranking' | 'chat';
 }
 
 interface QuickMessage {
@@ -31,8 +32,8 @@ interface QuickMessage {
   };
 }
 
-const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'ranking' | 'chat'>('ranking');
+const SocialHub: React.FC<SocialHubProps> = ({ user, initialTab = 'ranking' }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'ranking' | 'chat'>(initialTab);
   const [messages, setMessages] = useState<QuickMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -228,7 +229,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
            {activeSubTab === 'chat' && (
               <div className="flex-1 flex flex-col bg-slate-50/30 dark:bg-brand-dark relative animate-slide-up overflow-hidden">
                  
-                 <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 pb-4 no-scrollbar">
+                 <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 pb-24 no-scrollbar">
                     {loadingChat ? (
                        <div className="flex flex-col justify-center items-center h-full gap-4">
                           <Loader2 className="animate-spin text-brand-violet" size={32} />
@@ -326,7 +327,7 @@ const SocialHub: React.FC<SocialHubProps> = ({ user }) => {
                     })}
                  </div>
 
-                 <div className="shrink-0 px-4 py-4 bg-white dark:bg-brand-dark border-t border-slate-100 dark:border-white/10 z-40">
+                 <div className="shrink-0 px-4 py-4 bg-white dark:bg-brand-dark border-t border-slate-100 dark:border-white/10 z-40 sticky bottom-0 safe-bottom">
                     <form onSubmit={handleSendMessage} className="max-w-2xl mx-auto bg-white dark:bg-[#1A1F26] border border-slate-200 dark:border-white/10 rounded-2xl p-1.5 shadow-2xl flex gap-2 items-center ring-4 ring-black/5">
                        <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">
                           <Heart size={18} />

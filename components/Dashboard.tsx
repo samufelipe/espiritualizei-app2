@@ -18,7 +18,7 @@ interface DashboardProps {
   onNavigateToRoutine: () => void; 
   onNavigateToKnowledge: () => void;
   onNavigateToProfile: () => void;
-  onNavigateToSocial: () => void;
+  onNavigateToSocial: (initialTab?: 'ranking' | 'chat') => void;
   onSaveJournal: (mood: string, content: string, reflection?: string, verse?: string) => void;
   showLiturgyModal: boolean;
   setShowLiturgyModal: (show: boolean) => void;
@@ -146,10 +146,18 @@ const Dashboard: React.FC<DashboardProps> = ({
   const confession = getConfessionStatus();
 
   const handleUpdateConfession = async () => {
-      const today = new Date();
-      const updatedUser = { ...user, lastConfessionAt: today };
-      onUpdateUser(updatedUser);
-      await updateLastConfessionDate(user.id, today);
+      try {
+        const today = new Date();
+        const updatedUser = { ...user, lastConfessionAt: today };
+        onUpdateUser(updatedUser);
+        await updateLastConfessionDate(user.id, today);
+        
+        // Feedback visual
+        alert('✅ Data da confissão atualizada com sucesso! Que Deus abençoe sua jornada espiritual.');
+      } catch (error) {
+        console.error('Erro ao atualizar confissão:', error);
+        alert('❌ Erro ao atualizar. Tente novamente.');
+      }
   };
 
   const style = (() => {
@@ -248,7 +256,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             )}
 
             <button 
-                onClick={() => onNavigateToSocial()} 
+                onClick={() => onNavigateToSocial('chat')} 
                 className="w-full bg-white text-brand-violet px-6 py-4 rounded-2xl font-black text-sm shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
             >
                 <MessageCircle size={18} /> Entrar no Chat

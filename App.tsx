@@ -51,6 +51,7 @@ const App: React.FC = () => {
   const [showLiturgyModal, setShowLiturgyModal] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [socialInitialTab, setSocialInitialTab] = useState<'ranking' | 'chat'>('ranking');
   const initializationRef = useRef(false);
 
   const [user, setUser] = useState<UserProfile>({
@@ -291,7 +292,7 @@ const App: React.FC = () => {
               onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} 
               onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} 
               onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} 
-              onNavigateToSocial={() => setCurrentTab(Tab.SOCIAL)} 
+              onNavigateToSocial={(tab) => { setSocialInitialTab(tab || 'ranking'); setCurrentTab(Tab.SOCIAL); }} 
               onSaveJournal={() => {}} 
               showLiturgyModal={showLiturgyModal} 
               setShowLiturgyModal={setShowLiturgyModal} 
@@ -339,7 +340,19 @@ const App: React.FC = () => {
                 setRoutineItems(prev => prev.filter(i => i.id !== id)); 
                 await deleteRoutineItem(id); 
               }} 
-              onNavigate={setCurrentTab} 
+              onNavigate={setCurrentTab}
+              onCompleteTask={async (taskId, xpReward) => {
+                // Registrar conclusão da tarefa no banco para o painel admin
+                await checkAndLogActivity(user.id, 'routine_task_completed', { taskId, xpReward });
+                
+                // Adicionar XP ao usuário
+                const newXP = user.currentXP + xpReward;
+                const newLevel = Math.floor(newXP / 100) + 1;
+                setUser(prev => ({ ...prev, currentXP: newXP, level: newLevel }));
+                
+                // Atualizar no banco de dados
+                await updateUserProfile(user.id, { currentXP: newXP, level: newLevel });
+              }}
             />
           </Suspense>
         );
@@ -371,7 +384,7 @@ const App: React.FC = () => {
         );
         
       case Tab.SOCIAL: 
-        return <Suspense fallback={<TabLoader />}><SocialHub user={user} /></Suspense>;
+        return <Suspense fallback={<TabLoader />}><SocialHub user={user} initialTab={socialInitialTab} /></Suspense>;
         
       case Tab.PROFILE: 
         return (

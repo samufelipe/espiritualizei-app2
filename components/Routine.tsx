@@ -13,6 +13,7 @@ interface RoutineProps {
   onOpenSocial?: () => void;
   onOpenPlayer?: () => void;
   onOpenLiturgy?: () => void;
+  onCompleteTask?: (taskId: string, xpReward: number) => Promise<void>;
 }
 
 const DAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
@@ -28,7 +29,7 @@ const DAY_THEMES = [
     { title: "Virgem Maria", subtitle: "Devocional & Mãe", color: "text-blue-400", bg: "bg-blue-400/10", icon: Heart },
 ];
 
-const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onAdd, onDelete, onNavigate, onOpenSocial, onOpenPlayer, onOpenLiturgy }) => {
+const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onAdd, onDelete, onNavigate, onOpenSocial, onOpenPlayer, onOpenLiturgy, onCompleteTask }) => {
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -112,11 +113,26 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onA
                              <div className="h-px w-full bg-slate-100 dark:bg-white/5 mb-4" />
                              {item.detailedContent && <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium mb-6">{item.detailedContent}</p>}
                              <div className="flex items-center justify-between gap-4">
-                                {actionLabel && !item.completed ? (
-                                   <button onClick={() => handleActionClick(item.actionLink!)} className="flex-1 bg-brand-violet text-white font-bold py-3 rounded-xl text-xs uppercase transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-violet/20">
-                                      {getIcon(item.icon)} {actionLabel}
-                                   </button>
-                                ) : <div />}
+                                {!item.completed ? (
+                                  <div className="flex-1 flex gap-2">
+                                    {actionLabel && (
+                                      <button onClick={() => handleActionClick(item.actionLink!)} className="flex-1 bg-slate-100 dark:bg-white/5 text-brand-violet font-bold py-3 rounded-xl text-xs uppercase transition-all flex items-center justify-center gap-2">
+                                        {getIcon(item.icon)} {actionLabel}
+                                      </button>
+                                    )}
+                                    <button 
+                                      onClick={async () => {
+                                        onToggle(item.id);
+                                        if (onCompleteTask) {
+                                          await onCompleteTask(item.id, item.xpReward);
+                                        }
+                                      }} 
+                                      className="flex-1 bg-brand-violet text-white font-bold py-3 rounded-xl text-xs uppercase transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-violet/20 hover:scale-105 active:scale-95"
+                                    >
+                                      <Check size={16} strokeWidth={3} /> Concluir
+                                    </button>
+                                  </div>
+                                ) : <div className="flex-1" />}
                                 <button onClick={() => onDelete(item.id)} className="text-red-400 p-2"><Trash2 size={18} /></button>
                              </div>
                           </div>
