@@ -11,7 +11,16 @@
  * 4. Fallback automático
  */
 
-import { CommunityChallenge, RoutineItem, PrayerIntention, UserProfile } from '../types';
+import { CommunityChallenge, RoutineItem, PrayerIntention, UserProfile, LiturgyDay, CommunityPost } from '../types';
+
+interface ChatMessage {
+  id: string;
+  userId: string;
+  userName: string;
+  text: string;
+  timestamp: Date;
+  reactions: any;
+}
 
 // Chaves de cache
 const CACHE_KEYS = {
@@ -19,6 +28,9 @@ const CACHE_KEYS = {
   ROUTINE: 'espiritualizei_routine_cache',
   INTENTIONS: 'espiritualizei_intentions_cache',
   USER: 'espiritualizei_user_cache',
+  LITURGY: 'espiritualizei_liturgy_cache',
+  CHAT_MESSAGES: 'espiritualizei_chat_messages_cache',
+  COMMUNITY_POSTS: 'espiritualizei_community_posts_cache',
   LAST_SYNC: 'espiritualizei_last_sync'
 };
 
@@ -27,7 +39,10 @@ const CACHE_TTL = {
   CHALLENGE: 3 * 24 * 60 * 60 * 1000, // 3 dias
   ROUTINE: 24 * 60 * 60 * 1000, // 1 dia
   INTENTIONS: 60 * 60 * 1000, // 1 hora
-  USER: 7 * 24 * 60 * 60 * 1000 // 7 dias
+  USER: 7 * 24 * 60 * 60 * 1000, // 7 dias
+  LITURGY: 24 * 60 * 60 * 1000, // 1 dia
+  CHAT_MESSAGES: 30 * 60 * 1000, // 30 minutos
+  COMMUNITY_POSTS: 30 * 60 * 1000 // 30 minutos
 };
 
 interface CacheEntry<T> {
@@ -222,4 +237,52 @@ export function getDataWithFallback<T>(
   cached: T | null
 ): T | null {
   return fresh || cached || null;
+}
+
+// ============================================
+// LITURGIA
+// ============================================
+
+export function cacheLiturgy(liturgy: LiturgyDay): void {
+  setCache(CACHE_KEYS.LITURGY, liturgy);
+}
+
+export function getCachedLiturgy(): LiturgyDay | null {
+  return getCache<LiturgyDay>(CACHE_KEYS.LITURGY, CACHE_TTL.LITURGY);
+}
+
+export function clearLiturgyCache(): void {
+  clearCache(CACHE_KEYS.LITURGY);
+}
+
+// ============================================
+// MENSAGENS DO CHAT
+// ============================================
+
+export function cacheChatMessages(messages: ChatMessage[]): void {
+  setCache(CACHE_KEYS.CHAT_MESSAGES, messages);
+}
+
+export function getCachedChatMessages(): ChatMessage[] | null {
+  return getCache<ChatMessage[]>(CACHE_KEYS.CHAT_MESSAGES, CACHE_TTL.CHAT_MESSAGES);
+}
+
+export function clearChatMessagesCache(): void {
+  clearCache(CACHE_KEYS.CHAT_MESSAGES);
+}
+
+// ============================================
+// POSTS DA COMUNIDADE
+// ============================================
+
+export function cacheCommunityPosts(posts: CommunityPost[]): void {
+  setCache(CACHE_KEYS.COMMUNITY_POSTS, posts);
+}
+
+export function getCachedCommunityPosts(): CommunityPost[] | null {
+  return getCache<CommunityPost[]>(CACHE_KEYS.COMMUNITY_POSTS, CACHE_TTL.COMMUNITY_POSTS);
+}
+
+export function clearCommunityPostsCache(): void {
+  clearCache(CACHE_KEYS.COMMUNITY_POSTS);
 }

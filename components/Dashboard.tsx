@@ -4,6 +4,7 @@ import { UserProfile, LiturgyDay, PrayerIntention, RoutineItem, CommunityPost } 
 import { Flame, Sun, BookOpen, Heart, Sunrise, Moon, X, CheckCircle2, Compass, ArrowRight, Settings2, Eye, EyeOff, Calendar, Bell, MapPin, Check, ChevronDown, RefreshCw, Sparkles, LayoutGrid, Share2, Send, LogOut, MessageSquare, Shield, Users, MessageCircle, HeartHandshake, GraduationCap, Quote, Loader2, Crown, Trophy } from 'lucide-react';
 import { generateDailyTheme, cleanAIOutput } from '../services/geminiService';
 import { fetchRealDailyLiturgy } from '../services/liturgyService';
+import { cacheLiturgy, getCachedLiturgy } from '../services/cacheService';
 	import { fetchCommunityPosts, updateLastConfessionDate } from '../services/databaseService';
 import NotificationCenter from './NotificationCenter';
 import { ContactModal } from './LegalModals';
@@ -84,19 +85,43 @@ const Dashboard: React.FC<DashboardProps> = ({
     let isMounted = true;
     const loadData = async () => {
         setIsLiturgyLoading(true);
+        
+        // 1. Tentar carregar do cache primeiro (instantâneo)
+        const cachedLiturgy = getCachedLiturgy();
+        if (cachedLiturgy && isMounted) {
+            console.log('📦 Liturgia carregada do cache');
+            setLiturgyData(cachedLiturgy);
+            setActiveLiturgyTab('gospel');
+            setIsLiturgyLoading(false);
+            
+            // Gerar tema do cache
+            const theme = await generateDailyTheme(cachedLiturgy.readings.gospel.text);
+            if (isMounted && theme) setDailyTheme(cleanAIOutput(theme));
+        }
+        
+        // 2. Buscar dados frescos em background
         try {
             const realLiturgy = await fetchRealDailyLiturgy();
-            if (isMounted) {
+            if (isMounted && realLiturgy) {
+                console.log('✅ Liturgia atualizada do servidor');
                 setLiturgyData(realLiturgy);
                 setActiveLiturgyTab('gospel');
                 setIsLiturgyLoading(false);
+                
+                // Salvar no cache
+                cacheLiturgy(realLiturgy);
                 
                 const theme = await generateDailyTheme(realLiturgy.readings.gospel.text);
                 if (isMounted && theme) setDailyTheme(cleanAIOutput(theme));
             }
         } catch (e) {
             console.error("Erro ao carregar liturgia:", e);
-            if (isMounted) setIsLiturgyLoading(false);
+            if (isMounted) {
+                // Se temos cache, continuar usando ele
+                if (!cachedLiturgy) {
+                    setIsLiturgyLoading(false);
+                }
+            }
         }
         
         try {
