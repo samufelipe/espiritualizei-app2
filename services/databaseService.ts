@@ -818,6 +818,24 @@ export const checkAndLogActivity = async (userId: string) => {
 };
 
 /**
+ * REGISTRAR CONCLUSÃO DE TAREFA DA ROTINA (Para painel admin)
+ */
+export const logRoutineTaskCompletion = async (userId: string, taskId: string, xpReward: number) => {
+  if (getConnectionStatus()) {
+    try {
+      await supabase!.from('activity_logs').insert({
+        user_id: userId,
+        activity_type: 'routine_task_completed',
+        metadata: { taskId, xpReward },
+        created_at: new Date().toISOString()
+      });
+    } catch (e) {
+      console.error("Erro ao registrar conclusão de tarefa:", e);
+    }
+  }
+};
+
+/**
  * VERIFICAÇÃO E RENOVAÇÃO DO CICLO ESPIRITUAL DE 30 DIAS
  * Chamado ao iniciar o app para verificar se o ciclo do usuário precisa ser renovado
  */

@@ -23,7 +23,7 @@ import { registerUser, getSession, logoutUser, updateUserProfile, supabase, mapP
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
-import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost, checkAndLogActivity, queueEngagementEmail } from './services/databaseService';
+import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost, checkAndLogActivity, logRoutineTaskCompletion, queueEngagementEmail } from './services/databaseService';
 import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -343,15 +343,16 @@ const App: React.FC = () => {
               onNavigate={setCurrentTab}
               onCompleteTask={async (taskId, xpReward) => {
                 // Registrar conclusão da tarefa no banco para o painel admin
-                await checkAndLogActivity(user.id, 'routine_task_completed', { taskId, xpReward });
+                await logRoutineTaskCompletion(user.id, taskId, xpReward);
                 
                 // Adicionar XP ao usuário
                 const newXP = user.currentXP + xpReward;
                 const newLevel = Math.floor(newXP / 100) + 1;
-                setUser(prev => ({ ...prev, currentXP: newXP, level: newLevel }));
+                const updatedUser = { ...user, currentXP: newXP, level: newLevel };
+                setUser(updatedUser);
                 
                 // Atualizar no banco de dados
-                await updateUserProfile(user.id, { currentXP: newXP, level: newLevel });
+                await updateUserProfile(updatedUser);
               }}
             />
           </Suspense>

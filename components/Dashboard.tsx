@@ -349,7 +349,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {[
             { label: 'Biblioteca', icon: GraduationCap, color: 'text-blue-500', bg: 'bg-blue-500/10', action: onNavigateToKnowledge },
-            { label: 'Ranking', icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10', action: onNavigateToSocial },
+            { label: 'Ranking', icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10', action: () => onNavigateToSocial() },
             { label: 'Confissão', icon: Shield, color: confession.color, bg: confession.bg, action: handleUpdateConfession },
             { label: 'Suporte', icon: MessageSquare, color: 'text-slate-500', bg: 'bg-slate-500/10', action: () => setShowContactModal(true) }
         ].map((item, i) => (
@@ -466,7 +466,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             </button>
 
             <button 
-                onClick={onNavigateToSocial}
+                onClick={() => onNavigateToSocial()}
                 className="bg-white dark:bg-[#1A1F26] p-6 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm text-left group hover:border-amber-500/30 transition-all"
             >
                 <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
