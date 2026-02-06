@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Moon, Brain, Coffee, CloudRain, Quote, Sun, Heart, Users, Flame, BookOpen, Star, Clock, MessageCircle, Instagram, Facebook, Sparkles, Calendar, Lock, ShieldCheck, Zap, Trophy, Check, Home, RefreshCw, Smartphone, Cross, Anchor, Target } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { TermsModal, PrivacyModal, AboutModal, ContactModal } from './LegalModals';
+import { getContextualHeroContent } from '../lib/landingPageHelpers';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -12,6 +13,9 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [activeModal, setActiveModal] = useState<'terms' | 'privacy' | 'about' | 'contact' | null>(null);
+  
+  // Conteúdo contextual da hero baseado no período litúrgico
+  const heroContent = useMemo(() => getContextualHeroContent(), []);
   
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -80,18 +84,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
         
         <div className="max-w-4xl relative z-10 space-y-8 animate-fade-in">
           <div className="text-brand-violet text-[10px] font-black uppercase tracking-[0.2em] mx-auto opacity-80">
-            Sua alma merece paz, não mais cansaço
+            {heroContent.eyebrow}
           </div>
           <h1 className="text-[2.75rem] sm:text-7xl md:text-8xl font-black tracking-tighter leading-[1.1] sm:leading-[0.95] max-w-[15ch] mx-auto">
-            Pare de recomeçar <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-violet to-purple-400">toda segunda-feira.</span>
+            {heroContent.title} <br className="hidden sm:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-violet to-purple-400">{heroContent.titleHighlight}</span>
           </h1>
           <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
-            A vida espiritual não precisa ser um fardo pesado. O Espiritualizei ajuda você a organizar sua jornada diária com humildade e constância, adaptando-se à sua realidade para que a oração seja seu verdadeiro porto seguro.
+            {heroContent.subtitle}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
              <button onClick={onStart} className="w-full sm:w-auto px-10 py-5 bg-brand-violet text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-brand-violet/30 hover:scale-105 transition-all flex items-center justify-center gap-3">
-                Organizar Minha Vida <ArrowRight size={24} />
+                {heroContent.cta} <ArrowRight size={24} />
              </button>
           </div>
           <div className="flex items-center justify-center gap-6 pt-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -149,8 +153,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             <div className="grid md:grid-cols-3 gap-8">
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-brand-violet/40 transition-all">
                   <div className="w-16 h-16 flex items-center justify-center text-brand-violet mb-8 group-hover:scale-110 transition-transform"><RefreshCw size={40} /></div>
-                  <h3 className="text-2xl font-bold mb-4">Jornada Diária Real</h3>
-                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">O Espiritualizei entende sua rotina e sugere práticas que cabem no seu tempo. Com humildade, caminhamos um passo de cada vez, ajustando o plano conforme sua vida muda.</p>
+                  <h3 className="text-2xl font-bold mb-4">Ciclos de 30 Dias</h3>
+                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Jornadas que se renovam automaticamente a cada ciclo, adaptando-se à sua realidade. O Espiritualizei entende sua rotina e sugere práticas que cabem no seu tempo, ajustando o plano conforme sua vida muda.</p>
                </div>
                <div className="bg-white dark:bg-[#1A1F26] p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 group hover:border-blue-500/40 transition-all">
                   <div className="w-16 h-16 flex items-center justify-center text-blue-600 mb-8 group-hover:scale-110 transition-transform"><BookOpen size={40} /></div>
@@ -237,9 +241,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose-100 dark:bg-rose-900/20 rounded-full text-rose-600 text-[10px] font-black uppercase tracking-widest">
                   União e Intercessão
                 </div>
-                <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-tight">Você nunca mais rezará sozinho.</h2>
+                <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-tight">Uma comunidade que caminha com você.</h2>
                 <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">
-                  A vida espiritual no mundo pode ser solitária. No Espiritualizei, você faz parte de uma comunidade viva. Peça orações em momentos de dificuldade e sinta o conforto de saber que outros irmãos estão intercedendo por você naquele exato momento.
+                  A vida espiritual no mundo pode ser solitária. No Espiritualizei, você faz parte de uma comunidade viva que reza junto, participa de ciclos de 30 dias e se renova a cada jornada. Peça orações, compartilhe vitórias e sinta o conforto de saber que milhares de irmãos estão caminhando ao seu lado.
                 </p>
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10">
@@ -247,8 +251,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                     <p className="text-xs text-slate-500">Poste suas intenções e receba o apoio da comunidade.</p>
                   </div>
                   <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10">
-                    <h4 className="font-bold text-brand-violet mb-2">Desafios Coletivos</h4>
-                    <p className="text-xs text-slate-500">Participe de novenas e jornadas com milhares de pessoas.</p>
+                    <h4 className="font-bold text-brand-violet mb-2">Ciclos de 30 Dias</h4>
+                    <p className="text-xs text-slate-500">Jornadas que se renovam automaticamente e se adaptam à sua realidade.</p>
                   </div>
                 </div>
               </div>
