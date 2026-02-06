@@ -24,6 +24,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
 import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost, checkAndLogActivity, logRoutineTaskCompletion, queueEngagementEmail } from './services/databaseService';
+import { cacheChallenge, getCachedChallenge, cacheRoutine, getCachedRoutine, cacheIntentions, getCachedIntentions, loadWithCacheFirst, getDataWithFallback, markSyncComplete } from './services/cacheService';
 import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -177,7 +178,27 @@ const App: React.FC = () => {
           setViewState('app');
           requestNotificationPermission();
 
-          // Carregar dados complementares com tratamento robusto
+          // CARREGAMENTO OTIMISTA COM CACHE-FIRST
+          // 1. Carregar cache imediatamente para UI instantânea
+          const cachedChallenge = getCachedChallenge();
+          const cachedRoutine = getCachedRoutine();
+          const cachedIntentions = getCachedIntentions();
+          
+          // Aplicar cache imediatamente
+          if (cachedChallenge) {
+            setChallenges([cachedChallenge]);
+            console.log("📦 Desafio carregado do cache:", cachedChallenge.title);
+          }
+          if (cachedRoutine && cachedRoutine.length > 0) {
+            setRoutineItems(cachedRoutine);
+            console.log("📦 Rotina carregada do cache:", cachedRoutine.length, "itens");
+          }
+          if (cachedIntentions && cachedIntentions.length > 0) {
+            setIntentions(cachedIntentions);
+            console.log("📦 Intenções carregadas do cache:", cachedIntentions.length, "itens");
+          }
+          
+          // 2. Buscar dados frescos em background e atualizar
           try {
             const [dbIntentions, globalChallenge, dbRoutine] = await Promise.all([
               fetchCommunityIntentions(session.user.id),
@@ -185,26 +206,33 @@ const App: React.FC = () => {
               fetchUserRoutine(session.user.id)
             ]);
             
-            setIntentions(dbIntentions || []);
+            // Atualizar com dados frescos e salvar no cache
+            if (dbIntentions) {
+              setIntentions(dbIntentions);
+              cacheIntentions(dbIntentions);
+              console.log("✅ Intenções atualizadas do servidor:", dbIntentions.length, "itens");
+            }
             
-            // GARANTIR que o desafio comunitário SEMPRE apareça
             if (globalChallenge) {
               setChallenges([globalChallenge]);
-              console.log("🏆 Desafio comunitário carregado:", globalChallenge.title);
-            } else {
-              // Fallback: gerar desafio local se servidor falhar
-              console.warn("⚠️ Gerando desafio local como fallback.");
+              cacheChallenge(globalChallenge);
+              console.log("🏆 Desafio atualizado do servidor:", globalChallenge.title);
+            } else if (!cachedChallenge) {
+              // Só mostrar warning se não tiver cache
+              console.warn("⚠️ Nenhum desafio disponível no servidor.");
             }
             
             if (dbRoutine && dbRoutine.length > 0) {
               setRoutineItems(dbRoutine);
-              console.log("✅ Rotina carregada do servidor:", dbRoutine.length, "itens");
+              cacheRoutine(dbRoutine);
+              console.log("✅ Rotina atualizada do servidor:", dbRoutine.length, "itens");
             }
+            
+            markSyncComplete();
           } catch (e) {
-            console.error("Erro ao carregar dados complementares:", e);
-            // Garantir que o desafio apareça mesmo em caso de erro
-            const fallbackChallenge = await fetchGlobalChallenge();
-            if (fallbackChallenge) setChallenges([fallbackChallenge]);
+            console.error("❌ Erro ao buscar dados frescos:", e);
+            // Cache já foi aplicado, então usuário vê dados mesmo com erro
+            console.log("🛡️ Usando dados em cache (modo offline)");
           }
 
           // Registrar atividade
@@ -313,7 +341,9 @@ const App: React.FC = () => {
                 const item = routineItems.find(i => i.id === id); 
                 if (item) { 
                   const newStatus = !item.completed; 
-                  setRoutineItems(prev => prev.map(i => i.id === id ? { ...i, completed: newStatus } : i)); 
+                  const updatedRoutine = routineItems.map(i => i.id === id ? { ...i, completed: newStatus } : i);
+                  setRoutineItems(updatedRoutine); 
+                  cacheRoutine(updatedRoutine); // Atualizar cache
                   const xpResult = await toggleRoutineItemStatus(id, newStatus, user.id, item.xpReward);
                   // Atualizar XP do usuário localmente se ganhou XP
                   if (xpResult.newXP !== undefined) {
@@ -333,11 +363,15 @@ const App: React.FC = () => {
                   timeOfDay: 'any', 
                   dayOfWeek: [0,1,2,3,4,5,6] 
                 }; 
-                setRoutineItems(prev => [...prev, newItem]); 
+                const updatedRoutine = [...routineItems, newItem];
+                setRoutineItems(updatedRoutine); 
+                cacheRoutine(updatedRoutine); // Atualizar cache
                 await addRoutineItem(user.id, newItem); 
               }} 
               onDelete={async (id) => { 
-                setRoutineItems(prev => prev.filter(i => i.id !== id)); 
+                const updatedRoutine = routineItems.filter(i => i.id !== id);
+                setRoutineItems(updatedRoutine); 
+                cacheRoutine(updatedRoutine); // Atualizar cache
                 await deleteRoutineItem(id); 
               }} 
               onNavigate={setCurrentTab}
@@ -372,7 +406,12 @@ const App: React.FC = () => {
                 fetchCommunityIntentions(user.id).then(setIntentions); 
               }} 
               onJoinChallenge={async (id, amount) => { 
-                setChallenges(prev => prev.map(c => c.id === id ? { ...c, isUserParticipating: true, participants: c.participants + 1 } : c));
+                const updatedChallenges = challenges.map(c => c.id === id ? { ...c, isUserParticipating: true, participants: c.participants + 1 } : c);
+                setChallenges(updatedChallenges);
+                // Atualizar cache
+                if (updatedChallenges.length > 0) {
+                  cacheChallenge(updatedChallenges[0]);
+                }
                 await toggleRoutineItemStatus(id, true); 
               }} 
               onOpenCreateModal={() => setShowIntentionModal(true)} 
