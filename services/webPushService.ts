@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 
 // VAPID Public Key (será gerada e configurada)
 // Para gerar: npx web-push generate-vapid-keys
-const VAPID_PUBLIC_KEY = 'BNxzC8qFZ8YJ5kR3mW2pL4vN6tQ9sH1jK7fG3dA5cB2eW8xY4zT6uI9oP0lM3nV5bC7dE1fG2hJ4kL6mN8pQ0rS2';
+const VAPID_PUBLIC_KEY = '_n8jAjYQe7d2xIWsINKXDLjRPr36mRADf6L2dRT959Q_d8CAolUIA6JBs901ppKEl0ACJYvmfWoFs3RJxLpYBWA';
 
 interface PushSubscriptionData {
   endpoint: string;
