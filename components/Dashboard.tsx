@@ -161,6 +161,11 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const style = (() => {
+     // Se ainda está carregando, retornar um gradiente neutro para evitar flash
+     if (isLiturgyLoading || !liturgyData) {
+       return { gradient: 'bg-gradient-to-br from-slate-400 to-slate-600', meaning: 'Carregando...', text: 'text-slate-100' };
+     }
+     
      // Primeiro verificar a cor da API
      const apiColor = liturgyData?.liturgicalColor?.toLowerCase() || '';
      const season = liturgyData?.season?.toLowerCase() || '';
