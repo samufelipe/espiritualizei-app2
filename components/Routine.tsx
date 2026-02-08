@@ -6,6 +6,7 @@ import { Check, Book, Sun, Moon, Cross, Heart, Shield, Plus, Trash2, Info, Chevr
 interface RoutineProps {
   items: RoutineItem[];
   activeChallenge?: CommunityChallenge;
+  completedToday?: Set<string>;
   onToggle: (id: string) => void;
   onAdd: (title: string, description: string) => void;
   onDelete: (id: string) => void;
@@ -29,7 +30,7 @@ const DAY_THEMES = [
     { title: "Virgem Maria", subtitle: "Devocional & Mãe", color: "text-blue-400", bg: "bg-blue-400/10", icon: Heart },
 ];
 
-const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onAdd, onDelete, onNavigate, onOpenSocial, onOpenPlayer, onOpenLiturgy, onCompleteTask }) => {
+const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, completedToday = new Set(), onToggle, onAdd, onDelete, onNavigate, onOpenSocial, onOpenPlayer, onOpenLiturgy, onCompleteTask }) => {
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -41,7 +42,7 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onA
   const afternoonItems = dailyItems.filter(i => i.timeOfDay === 'afternoon');
   const nightItems = dailyItems.filter(i => i.timeOfDay === 'night' || i.timeOfDay === 'any');
 
-  const dayCompletedCount = dailyItems.filter(i => i.completed).length;
+  const dayCompletedCount = dailyItems.filter(i => completedToday.has(i.id)).length;
   const dayTotalCount = dailyItems.length;
   const dayProgress = dayTotalCount > 0 ? (dayCompletedCount / dayTotalCount) * 100 : 0;
   
@@ -97,23 +98,23 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, onToggle, onA
                  const isMainAction = item.actionLink && item.actionLink !== 'NONE';
 
                  return (
-                    <div key={item.id} className={`rounded-3xl transition-all border ${item.completed ? 'bg-transparent border-transparent opacity-50' : 'bg-white dark:bg-white/5 border-slate-100 dark:border-white/5 shadow-sm'} ${isExpanded ? 'ring-1 ring-brand-violet/30' : ''}`}>
+                    <div key={item.id} className={`rounded-3xl transition-all border ${completedToday.has(item.id) ? 'bg-transparent border-transparent opacity-50' : 'bg-white dark:bg-white/5 border-slate-100 dark:border-white/5 shadow-sm'} ${isExpanded ? 'ring-1 ring-brand-violet/30' : ''}`}>
                        <div className="p-5 flex items-center gap-4 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : item.id)}>
-                          <button onClick={(e) => { e.stopPropagation(); onToggle(item.id); }} className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shrink-0 border-2 ${item.completed ? 'bg-brand-violet border-brand-violet text-white' : 'bg-transparent border-slate-200 dark:border-white/20 text-brand-violet'}`}>
-                             {item.completed ? <Check size={20} strokeWidth={3} /> : getIcon(item.icon)}
+                          <button onClick={(e) => { e.stopPropagation(); onToggle(item.id); }} className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shrink-0 border-2 ${completedToday.has(item.id) ? 'bg-brand-violet border-brand-violet text-white' : 'bg-transparent border-slate-200 dark:border-white/20 text-brand-violet'}`}>
+                             {completedToday.has(item.id) ? <Check size={20} strokeWidth={3} /> : getIcon(item.icon)}
                           </button>
                           <div className="flex-1 min-w-0">
-                             <h4 className={`font-bold text-base ${item.completed ? 'text-slate-400 line-through' : 'text-brand-dark dark:text-white'}`}>{item.title}</h4>
+                             <h4 className={`font-bold text-base ${completedToday.has(item.id) ? 'text-slate-400 line-through' : 'text-brand-dark dark:text-white'}`}>{item.title}</h4>
                              <p className="text-xs text-slate-500 truncate">{item.description}</p>
                           </div>
-                          {isMainAction && !item.completed && <div className="bg-brand-violet/10 p-2 rounded-lg text-brand-violet animate-pulse"><Zap size={14} fill="currentColor" /></div>}
+                          {isMainAction && !completedToday.has(item.id) && <div className="bg-brand-violet/10 p-2 rounded-lg text-brand-violet animate-pulse"><Zap size={14} fill="currentColor" /></div>}
                        </div>
                        {isExpanded && (
                           <div className="px-5 pb-5 pt-0 animate-fade-in">
                              <div className="h-px w-full bg-slate-100 dark:bg-white/5 mb-4" />
                              {item.detailedContent && <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium mb-6">{item.detailedContent}</p>}
                              <div className="flex items-center justify-between gap-4">
-                                {!item.completed ? (
+                                {!completedToday.has(item.id) ? (
                                   <div className="flex-1 flex gap-2">
                                     {actionLabel && (
                                       <button onClick={() => handleActionClick(item.actionLink!)} className="flex-1 bg-slate-100 dark:bg-white/5 text-brand-violet font-bold py-3 rounded-xl text-xs uppercase transition-all flex items-center justify-center gap-2">

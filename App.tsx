@@ -24,6 +24,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
 import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost, checkAndLogActivity, logRoutineTaskCompletion, queueEngagementEmail } from './services/databaseService';
+import { getTodayCompletions, completeRoutineToday, uncompleteRoutineToday } from './services/routineCompletionService';
 import { cacheChallenge, getCachedChallenge, cacheRoutine, getCachedRoutine, cacheIntentions, getCachedIntentions, loadWithCacheFirst, getDataWithFallback, markSyncComplete } from './services/cacheService';
 import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
 
@@ -62,6 +63,8 @@ const App: React.FC = () => {
   const [routineItems, setRoutineItems] = useState<RoutineItem[]>([]);
   const [intentions, setIntentions] = useState<PrayerIntention[]>([]);
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
+  const [completedToday, setCompletedToday] = useState<Set<string>>(new Set());
+  const [xpToast, setXpToast] = useState<{show: boolean, xp: number}>({show: false, xp: 0});
 
   // Controlar classe do body para scroll na LP vs app
   useEffect(() => {
@@ -228,6 +231,11 @@ const App: React.FC = () => {
               console.log("✅ Rotina atualizada do servidor:", dbRoutine.length, "itens");
             }
             
+            // Carregar conclusões de hoje
+            const todayCompletions = await getTodayCompletions(session.user.id);
+            setCompletedToday(new Set(todayCompletions));
+            console.log("✅ Conclusões de hoje carregadas:", todayCompletions.length, "itens");
+            
             markSyncComplete();
           } catch (e) {
             console.error("❌ Erro ao buscar dados frescos:", e);
@@ -336,20 +344,36 @@ const App: React.FC = () => {
           <Suspense fallback={<TabLoader />}>
             <Routine 
               items={routineItems} 
-              activeChallenge={activeChallenge} 
-              onToggle={async (id) => { 
+              activeChallenge={activeChallenge}
+              completedToday={completedToday} 
+                            onToggle={async (id) => { 
                 const item = routineItems.find(i => i.id === id); 
                 if (item) { 
-                  const newStatus = !item.completed; 
-                  const updatedRoutine = routineItems.map(i => i.id === id ? { ...i, completed: newStatus } : i);
-                  setRoutineItems(updatedRoutine); 
-                  cacheRoutine(updatedRoutine); // Atualizar cache
-                  const xpResult = await toggleRoutineItemStatus(id, newStatus, user.id, item.xpReward);
-                  // Atualizar XP do usuário localmente se ganhou XP
-                  if (xpResult.newXP !== undefined) {
-                    setUser(prev => ({ ...prev, currentXP: xpResult.newXP!, level: xpResult.newLevel! }));
+                  const isCompletedToday = completedToday.has(id);
+                  
+                  if (isCompletedToday) {
+                    await uncompleteRoutineToday(user.id, id);
+                    setCompletedToday(prev => {
+                      const newSet = new Set(prev);
+                      newSet.delete(id);
+                      return newSet;
+                    });
+                  } else {
+                    const xpGained = await completeRoutineToday(user.id, id, item.xpReward);
+                    setCompletedToday(prev => new Set([...prev, id]));
+                    
+                    setUser(prev => ({
+                      ...prev,
+                      currentXP: prev.currentXP + xpGained,
+                      level: Math.floor((prev.currentXP + xpGained) / 100) + 1
+                    }));
+                    
+                    setXpToast({show: true, xp: xpGained});
+                    setTimeout(() => setXpToast({show: false, xp: 0}), 3000);
                   }
+                  
                   try { await Haptics.impact({ style: ImpactStyle.Light }); } catch(e) {}
+
                 } 
               }} 
               onAdd={async (title, desc) => { 
@@ -656,6 +680,15 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
             setViewState('login');
           }}
         />
+      )}
+      
+      {xpToast.show && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[90] animate-fade-in">
+          <div className="bg-gradient-to-r from-brand-violet to-purple-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2">
+            <Sparkles size={20} className="animate-pulse" />
+            <span className="font-semibold">Parabéns! +{xpToast.xp} XP conquistados</span>
+          </div>
+        </div>
       )}
     </div>
   );
