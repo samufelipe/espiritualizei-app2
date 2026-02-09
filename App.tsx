@@ -359,16 +359,16 @@ const App: React.FC = () => {
                       return newSet;
                     });
                   } else {
-                    const xpGained = await completeRoutineToday(user.id, id, item.xpReward);
+                    const result = await completeRoutineToday(user.id, id, item.xpReward);
                     setCompletedToday(prev => new Set([...prev, id]));
                     
                     setUser(prev => ({
                       ...prev,
-                      currentXP: prev.currentXP + xpGained,
-                      level: Math.floor((prev.currentXP + xpGained) / 100) + 1
+                      currentXP: prev.currentXP + result.xp,
+                      level: Math.floor((prev.currentXP + result.xp) / 100) + 1
                     }));
                     
-                    setXpToast({show: true, xp: xpGained});
+                    setXpToast({show: true, xp: result.xp});
                     setTimeout(() => setXpToast({show: false, xp: 0}), 3000);
                   }
                   
