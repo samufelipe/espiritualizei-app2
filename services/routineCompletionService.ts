@@ -5,10 +5,6 @@
 
 import { supabase } from './authService';
 
-if (!supabase) {
-  throw new Error('Supabase client not initialized');
-}
-
 export interface RoutineCompletion {
   id: string;
   user_id: string;
