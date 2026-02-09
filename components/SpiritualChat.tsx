@@ -114,7 +114,7 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="fixed bottom-20 left-0 right-0 px-6 z-30 max-w-md mx-auto">
+      <div className="fixed bottom-24 left-0 right-0 px-6 z-30 max-w-md mx-auto">
         <div className="bg-white/80 dark:bg-brand-dark/80 backdrop-blur-xl rounded-3xl p-1.5 shadow-float border border-white/40 dark:border-white/10 flex items-center gap-2 transition-all focus-within:shadow-glow focus-within:border-brand-violet/30">
           <input
             type="text"

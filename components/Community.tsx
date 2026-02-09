@@ -89,18 +89,6 @@ const Community: React.FC<CommunityProps> = ({
                
                {activeTab === 'comunidade' && (
                   <div className="space-y-6 animate-slide-up">
-                     <button 
-                        onClick={onOpenCreateModal}
-                        className="w-full bg-white dark:bg-[#1A1F26] p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 flex items-center gap-4 hover:border-brand-violet/30 transition-all group text-left"
-                     >
-                        <div className="w-10 h-10 rounded-full bg-brand-violet/10 flex items-center justify-center text-brand-violet group-hover:scale-110 transition-transform">
-                           <Plus size={20} />
-                        </div>
-                        <div className="flex-1">
-                           <p className="text-sm font-bold text-brand-dark dark:text-white">Peça uma oração</p>
-                           <p className="text-xs text-slate-400">Sua intenção será levada por esta comunidade.</p>
-                        </div>
-                     </button>
 
                      {/* Desafios Comunitários em Destaque (Mobile/PWA) */}
                      <div className="space-y-4 mb-8">
