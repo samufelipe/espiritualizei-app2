@@ -22,6 +22,7 @@ export async function isRoutineCompletedToday(
   routineItemId: string
 ): Promise<boolean> {
   try {
+    if (!supabase) return false;
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     const { data, error } = await supabase
@@ -53,6 +54,7 @@ export async function completeRoutineToday(
   xpEarned: number
 ): Promise<{ success: boolean; xp: number }> {
   try {
+    if (!supabase) return { success: false, xp: 0 };
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     const { data, error } = await supabase
@@ -90,6 +92,7 @@ export async function uncompleteRoutineToday(
   routineItemId: string
 ): Promise<{ success: boolean; xp: number }> {
   try {
+    if (!supabase) return { success: false, xp: 0 };
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     const { data, error } = await supabase
@@ -120,6 +123,7 @@ export async function getTodayCompletions(
   userId: string
 ): Promise<string[]> {
   try {
+    if (!supabase) return [];
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     const { data, error } = await supabase
@@ -145,6 +149,7 @@ export async function getTodayCompletions(
  */
 export async function getTodayXP(userId: string): Promise<number> {
   try {
+    if (!supabase) return 0;
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     const { data, error } = await supabase
@@ -173,6 +178,7 @@ export async function getCompletionStreak(
   routineItemId: string
 ): Promise<number> {
   try {
+    if (!supabase) return 0;
     const { data, error } = await supabase
       .from('routine_completions')
       .select('completion_date')
