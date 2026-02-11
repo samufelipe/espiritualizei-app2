@@ -14,7 +14,7 @@ interface CommunityProps {
   onOpenCreateModal: () => void;
   onTestify: (content: string) => void;
   feedInitialContent?: string;
-  initialTab?: 'comunidade' | 'feed' | 'ranking';
+  initialTab?: 'comunidade' | 'feed';
   user: UserProfile;
 }
 
@@ -29,7 +29,7 @@ const Community: React.FC<CommunityProps> = ({
   initialTab,
   user
 }) => {
-  const [activeTab, setActiveTab] = useState<'comunidade' | 'feed' | 'ranking'>('comunidade');
+  const [activeTab, setActiveTab] = useState<'comunidade' | 'feed'>('comunidade');
 
   // Este efeito é crucial para que o redirecionamento via App.tsx funcione
   useEffect(() => {
@@ -72,12 +72,7 @@ const Community: React.FC<CommunityProps> = ({
               >
                 <Image size={16} /> Feed da Comunidade
               </button>
-              <button 
-                onClick={() => setActiveTab('ranking')} 
-                className={`flex-1 py-3 px-2 text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all relative z-10 whitespace-nowrap lg:hidden ${activeTab === 'ranking' ? 'bg-white dark:bg-[#2A2E35] text-brand-violet shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-              >
-                <Trophy size={16} /> Ranking
-              </button>
+
           </div>
       </div>
 
@@ -202,11 +197,7 @@ const Community: React.FC<CommunityProps> = ({
                   </div>
                )}
 
-               {activeTab === 'ranking' && (
-                  <div className="lg:hidden animate-slide-up pb-24">
-                     <LeaderboardWidget user={user} />
-                  </div>
-               )}
+
 
             </div>
 

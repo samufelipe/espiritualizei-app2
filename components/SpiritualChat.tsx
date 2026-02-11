@@ -72,7 +72,7 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
       <div className="absolute inset-0 bg-gradient-to-b from-white via-white to-slate-50 dark:from-brand-dark dark:via-brand-dark dark:to-black/20 pointer-events-none" />
 
       <div 
-        className="flex-1 overflow-y-auto pt-12 pb-[180px] px-6 space-y-8 smooth-scroll relative z-10"
+        className="flex-1 overflow-y-auto pt-12 pb-[220px] px-6 space-y-8 smooth-scroll relative z-10"
         role="log" 
         aria-live="polite" 
         aria-relevant="additions"
@@ -114,7 +114,7 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="fixed bottom-20 left-0 right-0 px-6 z-30 max-w-md mx-auto pb-safe">
+      <div className="fixed bottom-[88px] left-0 right-0 px-6 z-30 max-w-md mx-auto pb-safe">
         <div className="bg-white/90 dark:bg-brand-dark/90 backdrop-blur-xl rounded-2xl p-2 shadow-2xl border-2 border-slate-200 dark:border-slate-700 flex items-center gap-2 transition-all focus-within:shadow-glow focus-within:border-brand-violet/50 dark:focus-within:border-brand-violet/70">
           <input
             type="text"
