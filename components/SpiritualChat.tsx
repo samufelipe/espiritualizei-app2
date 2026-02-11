@@ -68,11 +68,11 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white dark:bg-brand-dark relative animate-fade-in transition-colors">
+    <div className="flex flex-col h-[100dvh] bg-white dark:bg-brand-dark relative animate-fade-in transition-colors overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-white via-white to-slate-50 dark:from-brand-dark dark:via-brand-dark dark:to-black/20 pointer-events-none" />
 
       <div 
-        className="flex-1 overflow-y-auto pt-12 pb-40 px-6 space-y-8 smooth-scroll relative z-10"
+        className="flex-1 overflow-y-auto pt-12 pb-[180px] px-6 space-y-8 smooth-scroll relative z-10"
         role="log" 
         aria-live="polite" 
         aria-relevant="additions"
@@ -86,14 +86,14 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
               style={{ animationDelay: `${idx * 50}ms` }}
             >
               <div className={`max-w-[90%] ${isUser ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-                <span className={`text-[10px] tracking-widest uppercase font-bold text-stone-300 dark:text-slate-600 ${isUser ? 'text-right' : 'text-left'}`}>
+                <span className={`text-[10px] tracking-widest uppercase font-bold text-stone-400 dark:text-slate-500 ${isUser ? 'text-right' : 'text-left'}`}>
                    {isUser ? 'Você' : 'Assistente'}
                 </span>
                 <div
                   className={`text-base leading-relaxed ${
                     isUser
                       ? 'text-brand-dark dark:text-white font-sans font-light'
-                      : 'text-slate-700 dark:text-slate-300 font-serif italic'
+                      : 'text-slate-800 dark:text-slate-200 font-serif italic'
                   }`}
                 >
                   {msg.text}
@@ -114,8 +114,8 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="fixed bottom-24 left-0 right-0 px-6 z-30 max-w-md mx-auto">
-        <div className="bg-white/80 dark:bg-brand-dark/80 backdrop-blur-xl rounded-3xl p-1.5 shadow-float border border-white/40 dark:border-white/10 flex items-center gap-2 transition-all focus-within:shadow-glow focus-within:border-brand-violet/30">
+      <div className="fixed bottom-20 left-0 right-0 px-6 z-30 max-w-md mx-auto pb-safe">
+        <div className="bg-white/90 dark:bg-brand-dark/90 backdrop-blur-xl rounded-2xl p-2 shadow-2xl border-2 border-slate-200 dark:border-slate-700 flex items-center gap-2 transition-all focus-within:shadow-glow focus-within:border-brand-violet/50 dark:focus-within:border-brand-violet/70">
           <input
             type="text"
             value={input}
@@ -123,20 +123,20 @@ const SpiritualChat: React.FC<SpiritualChatProps> = ({ user }) => {
             onKeyDown={handleKeyPress}
             placeholder="Conte-me o que está no seu coração..."
             aria-label="Mensagem para o assistente"
-            className="flex-1 bg-transparent pl-4 py-3 outline-none text-base text-brand-dark dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 font-sans font-light"
+            className="flex-1 bg-transparent pl-4 py-3.5 outline-none text-base text-brand-dark dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-500 font-sans font-light"
             disabled={isLoading}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
             aria-label="Enviar mensagem"
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-500 mr-1 ${
               input.trim() && !isLoading
-                ? 'bg-brand-violet text-white scale-100'
-                : 'bg-slate-100 dark:bg-white/10 text-slate-300 dark:text-slate-600 scale-90'
+                ? 'bg-brand-violet text-white scale-100 shadow-lg'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 scale-90'
             }`}
           >
-            <ArrowUp size={18} strokeWidth={2.5} aria-hidden="true" />
+            <ArrowUp size={20} strokeWidth={2.5} aria-hidden="true" />
           </button>
         </div>
       </div>
