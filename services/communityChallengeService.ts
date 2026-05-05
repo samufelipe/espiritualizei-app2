@@ -5,7 +5,7 @@
  * com lógica de 3 dias e persistência no banco de dados
  */
 
-import { supabase } from './supabaseClient';
+import { supabase } from './authService';
 
 export interface Challenge {
   id: string;

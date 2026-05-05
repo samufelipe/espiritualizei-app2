@@ -1,35 +1,30 @@
+import { SUPABASE_URL, SUPABASE_KEY } from './authService';
 
-// O SDK do Resend é voltado para ambiente de servidor (Node.js).
-// Para evitar erros de "tela branca" no navegador (PWA), usamos a API REST direta via fetch.
+export const sendEmail = async (
+  to: string,
+  subject: string,
+  html: string
+): Promise<{ success: boolean; error?: any }> => {
+  if (!SUPABASE_URL) {
+    console.warn('Supabase não configurado — email não enviado');
+    return { success: false, error: 'Supabase not configured' };
+  }
 
-const RESEND_API_KEY = 're_GeQaP7ie_DBq2jMNrPhmh1B448WErYigA';
-
-export const sendEmail = async (to: string, subject: string, html: string) => {
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'apikey': SUPABASE_KEY,
       },
-      body: JSON.stringify({
-        from: 'Espiritualizei <contato@espiritualizei.com>',
-        to: [to],
-        subject: subject,
-        html: html,
-      }),
+      body: JSON.stringify({ to, subject, html }),
     });
 
     const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Erro ao enviar e-mail via Resend API:', data);
-      return { success: false, error: data };
-    }
-
-    return { success: true, data };
+    return data;
   } catch (error) {
-    console.error('Erro inesperado no serviço de e-mail (Fetch):', error);
+    console.error('Erro ao enviar e-mail:', error);
     return { success: false, error };
   }
 };
