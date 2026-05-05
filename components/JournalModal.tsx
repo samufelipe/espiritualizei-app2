@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { X, PenLine, Save, BookOpen } from 'lucide-react';
+import { X, PenLine, Save } from 'lucide-react';
 import { JournalEntry } from '../types';
-import { sendMessageToGuide } from '../services/geminiService';
+import { generateJournalReflection } from '../services/geminiService';
 import BrandLogo from './BrandLogo';
 
 interface JournalModalProps {
@@ -17,49 +17,20 @@ const JournalModal: React.FC<JournalModalProps> = ({ mood, onClose, onSave }) =>
 
   const handleSave = async () => {
     if (!content.trim()) return;
-    
     setIsAnalyzing(true);
-    
-    // Simple Analysis for Reflection
-    let reflection = undefined;
-    let verse = undefined;
-
     try {
-        // We reuse the chat service but frame it as a reflection request
-        const prompt = `
-          O usuário está sentindo: ${mood === 'peace' ? 'Paz/Consolação' : 'Desolação/Luta'}.
-          Relato dele: "${content}".
-          
-          Responda em formato JSON:
-          {
-             "reflection": "Uma frase curta de conselho espiritual (max 15 palavras).",
-             "verse": "Uma referência bíblica (ex: Salmo 23, 1) que conforte ou ilumine."
-          }
-        `;
-        const response = await sendMessageToGuide(prompt);
-        
-        const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
-        
-        try {
-           const parsed = JSON.parse(jsonStr);
-           reflection = parsed.reflection;
-           verse = parsed.verse;
-        } catch (e) {
-           reflection = "Entregue este momento a Deus. Ele te ouve.";
-        }
-
-    } catch (e) {
-        console.error("Journal Error", e);
+      const { reflection, verse } = await generateJournalReflection(mood, content);
+      onSave(content, reflection, verse);
+    } catch {
+      onSave(content, 'Entregue este momento a Deus. Ele te ouve.', 'Salmo 23, 1');
     }
-
-    onSave(content, reflection, verse);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-brand-dark/80 backdrop-blur-sm animate-fade-in" onClick={onClose} />
-      
+
       <div className="relative w-full max-w-lg bg-white dark:bg-brand-dark rounded-[2rem] shadow-2xl p-6 animate-slide-up border border-white/10 flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">

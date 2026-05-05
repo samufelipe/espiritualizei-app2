@@ -79,6 +79,21 @@ const FALLBACK_ROUTINE: RoutineItem[] = [
   { id: 'f9', title: 'Exame de Consciência', description: 'Revisão da noite', xpReward: 20, completed: false, icon: 'moon', timeOfDay: 'night', dayOfWeek: [0,1,2,3,4,5,6], actionLink: 'NONE' },
 ];
 
+export const generateJournalReflection = async (
+  mood: 'peace' | 'struggle',
+  content: string
+): Promise<{ reflection: string; verse: string }> => {
+  try {
+    const data = await callAiProxy('generateJournalReflection', { mood, content });
+    return {
+      reflection: data.reflection || 'Deus te vê e te ama nesse momento.',
+      verse: data.verse || 'Salmo 139, 1',
+    };
+  } catch {
+    return { reflection: 'Entregue este momento a Deus. Ele te ouve.', verse: 'Salmo 23, 1' };
+  }
+};
+
 export const generateSpiritualRoutine = async (
   data: OnboardingData,
   reviewData?: MonthlyReviewData
