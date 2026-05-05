@@ -53,7 +53,9 @@ const App: React.FC = () => {
   const [showLiturgyModal, setShowLiturgyModal] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showMonthlyReview, setShowMonthlyReview] = useState(false);
   const [socialInitialTab, setSocialInitialTab] = useState<'ranking' | 'chat'>('ranking');
+  const [errorToast, setErrorToast] = useState('');
   const initializationRef = useRef(false);
 
   const [user, setUser] = useState<UserProfile>({
@@ -181,6 +183,15 @@ const App: React.FC = () => {
           setViewState('app');
           requestNotificationPermission();
 
+          // Verificar se deve mostrar revisão mensal (a cada 30 dias)
+          const lastReviewStr = localStorage.getItem('espiritualizei_monthly_review_date');
+          const daysSinceReview = lastReviewStr
+            ? (Date.now() - parseInt(lastReviewStr)) / (1000 * 60 * 60 * 24)
+            : Infinity;
+          if (daysSinceReview >= 30) {
+            setTimeout(() => setShowMonthlyReview(true), 4000);
+          }
+
           // CARREGAMENTO OTIMISTA COM CACHE-FIRST
           // 1. Carregar cache imediatamente para UI instantânea
           const cachedChallenge = getCachedChallenge();
@@ -304,6 +315,26 @@ const App: React.FC = () => {
     await updateUserProfile(updatedUser);
   };
 
+  const handleMonthlyReviewComplete = async (reviewData: MonthlyReviewData) => {
+    setShowMonthlyReview(false);
+    localStorage.setItem('espiritualizei_monthly_review_date', Date.now().toString());
+    try {
+      const partialData: OnboardingData = {
+        name: user.name, email: user.email, phone: '',
+        primaryStruggle: (user.spiritualFocus as any) || 'anxiety',
+        spiritualGoal: 'peace', routineType: 'flexible',
+        bestMoment: 'morning', confessionFrequency: 'rare',
+        patronSaint: (user.patronSaint as any) || 'mary', stateOfLife: 'single',
+      };
+      const result = await generateSpiritualRoutine(partialData, reviewData);
+      await saveUserRoutine(user.id, result.routine);
+      setRoutineItems(result.routine);
+      cacheRoutine(result.routine);
+    } catch (e) {
+      console.error('Erro ao atualizar rotina mensal:', e);
+    }
+  };
+
   const renderContent = () => {
     const activeChallenge = challenges.find(c => c.status === 'active');
     const needsPremium = (currentTab === Tab.KNOWLEDGE || currentTab === Tab.SOCIAL);
@@ -400,17 +431,9 @@ const App: React.FC = () => {
               }} 
               onNavigate={setCurrentTab}
               onCompleteTask={async (taskId, xpReward) => {
-                // Registrar conclusão da tarefa no banco para o painel admin
+                // Registrar conclusão no banco para analytics do painel admin
+                // XP já é somado pelo onToggle via completeRoutineToday
                 await logRoutineTaskCompletion(user.id, taskId, xpReward);
-                
-                // Adicionar XP ao usuário
-                const newXP = user.currentXP + xpReward;
-                const newLevel = Math.floor(newXP / 100) + 1;
-                const updatedUser = { ...user, currentXP: newXP, level: newLevel };
-                setUser(updatedUser);
-                
-                // Atualizar no banco de dados
-                await updateUserProfile(updatedUser);
               }}
             />
           </Suspense>
@@ -544,17 +567,18 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                   } catch (e: any) {
                     console.error("Erro no onboarding:", e);
                     setViewState('onboarding');
-                    
+
                     let errorMessage = "Erro ao criar conta. Tente novamente.";
                     if (e.message?.includes("User already registered")) {
                       errorMessage = "Este e-mail já está cadastrado. Tente fazer login.";
                     } else if (e.message?.includes("Password should be at least 6 characters")) {
                       errorMessage = "A senha deve ter no mínimo 6 caracteres.";
                     } else if (e.message) {
-                      errorMessage = `Erro: ${e.message}`;
+                      errorMessage = e.message;
                     }
-                    
-                    alert(errorMessage);
+
+                    setErrorToast(errorMessage);
+                    setTimeout(() => setErrorToast(''), 5000);
                   }
                 }} 
                 onBack={() => { window.history.pushState({}, '', '/'); setViewState('landing'); }} 
@@ -629,6 +653,23 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
         }
       }} />}
       {showDailyInspiration && <DailyInspiration userName={user.name} onClose={() => setShowDailyInspiration(false)} />}
+      {showMonthlyReview && (
+        <MonthlyReviewModal
+          onClose={() => {
+            setShowMonthlyReview(false);
+            localStorage.setItem('espiritualizei_monthly_review_date', Date.now().toString());
+          }}
+          onComplete={handleMonthlyReviewComplete}
+          currentStruggle={user.spiritualFocus}
+        />
+      )}
+      {errorToast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-fade-in">
+          <div className="bg-red-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 max-w-sm text-center">
+            <span className="font-semibold text-sm">{errorToast}</span>
+          </div>
+        </div>
+      )}
       {showIntentionModal && (
         <CreateIntentionModal 
           onClose={() => setShowIntentionModal(false)} 

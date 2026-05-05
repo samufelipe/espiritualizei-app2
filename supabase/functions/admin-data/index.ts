@@ -7,9 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-// Chave secreta para autenticação do admin (configure no Supabase Dashboard > Edge Functions > Secrets)
-const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET') || 'Espiritualizei@Admin2024'
-
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -17,6 +14,14 @@ serve(async (req) => {
   }
 
   try {
+    const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
+    if (!ADMIN_SECRET) {
+      return new Response(
+        JSON.stringify({ error: 'Servidor não configurado: ADMIN_SECRET ausente' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Verificar autenticação do admin
     const adminSecret = req.headers.get('x-admin-secret')
     if (adminSecret !== ADMIN_SECRET) {

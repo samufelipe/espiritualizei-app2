@@ -20,15 +20,16 @@ serve(async (req) => {
     const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const caktoSecret = Deno.env.get('CAKTO_CLIENT_SECRET') ?? ''
 
-    // SEGURANÇA: Verificar assinatura do webhook (se a Cakto fornecer)
+    // SEGURANÇA: Verificar assinatura do webhook
     const signature = req.headers.get('x-cakto-signature') || req.headers.get('x-webhook-signature');
-    
-    // Se tiver secret configurado e assinatura presente, validar
-    if (caktoSecret && signature) {
-      const expectedSignature = caktoSecret;
-      if (signature !== expectedSignature && !signature.includes(caktoSecret)) {
-        console.warn('⚠️ Assinatura de webhook inválida - possível tentativa de fraude');
-        // Logar mas não bloquear (para não quebrar se a Cakto mudar o formato)
+
+    if (caktoSecret) {
+      if (!signature || (signature !== caktoSecret && !signature.includes(caktoSecret))) {
+        console.error('❌ Assinatura de webhook inválida - acesso bloqueado');
+        return new Response(JSON.stringify({ error: 'Assinatura inválida' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        });
       }
     }
 

@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
 import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import { SUPABASE_URL, SUPABASE_KEY } from '../services/authService';
 
 interface AdminLoginProps {
   onLogin: (success: boolean) => void;
   onBack: () => void;
 }
 
-// Lista de emails autorizados como administradores
 const ADMIN_EMAILS = [
   'samucafe01@gmail.com',
   'admin@espiritualizei.com',
   'espiritualizeiapp@gmail.com'
 ];
-
-// Senha mestra do painel admin (em produção, isso deveria estar no servidor)
-const ADMIN_PASSWORD = 'Samuel@2022';
 
 const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
   const [email, setEmail] = useState('');
@@ -29,25 +26,40 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
     setError('');
     setLoading(true);
 
-    // Simular delay de autenticação
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Verificar credenciais
     const emailLower = email.toLowerCase().trim();
-    const isAuthorizedEmail = ADMIN_EMAILS.some(admin => admin.toLowerCase() === emailLower);
-    const isCorrectPassword = password === ADMIN_PASSWORD;
+    const isAuthorizedEmail = ADMIN_EMAILS.some(a => a.toLowerCase() === emailLower);
 
-    if (isAuthorizedEmail && isCorrectPassword) {
-      // Salvar sessão admin
-      localStorage.setItem('admin_session', JSON.stringify({
-        email: emailLower,
-        timestamp: Date.now(),
-        expires: Date.now() + (24 * 60 * 60 * 1000) // 24 horas
-      }));
-      onLogin(true);
-    } else {
+    if (!isAuthorizedEmail) {
       setError('Credenciais inválidas. Acesso restrito a administradores.');
-      onLogin(false);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'apikey': SUPABASE_KEY,
+          'x-admin-secret': password,
+        },
+        body: JSON.stringify({ action: 'get_stats', data: {} }),
+      });
+
+      if (res.ok) {
+        localStorage.setItem('admin_session', JSON.stringify({
+          email: emailLower,
+          secret: password,
+          timestamp: Date.now(),
+          expires: Date.now() + (24 * 60 * 60 * 1000),
+        }));
+        onLogin(true);
+      } else {
+        setError('Credenciais inválidas. Acesso restrito a administradores.');
+      }
+    } catch {
+      setError('Erro de conexão. Verifique sua internet e tente novamente.');
     }
 
     setLoading(false);

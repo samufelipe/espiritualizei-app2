@@ -5,8 +5,8 @@
  */
 
 const CACHE_NAME = 'espiritualizei-v2.1.0';
-const APP_ICON = '/icons/icon-192x192.png';
-const BADGE_ICON = '/icons/icon-72x72.png';
+const APP_ICON = '/icon-192.png';
+const BADGE_ICON = '/icon-64.png';
 
 // Recursos para pré-cache (carregamento offline)
 const PRECACHE_ASSETS = [
