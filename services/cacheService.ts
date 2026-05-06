@@ -36,7 +36,7 @@ const CACHE_KEYS = {
 
 // TTL (Time To Live) para cada tipo de dado
 const CACHE_TTL = {
-  CHALLENGE: 3 * 24 * 60 * 60 * 1000, // 3 dias
+  CHALLENGE: 12 * 60 * 60 * 1000, // 12h — ciclo de 3 dias, topic muda diariamente
   ROUTINE: 24 * 60 * 60 * 1000, // 1 dia
   INTENTIONS: 60 * 60 * 1000, // 1 hora
   USER: 7 * 24 * 60 * 60 * 1000, // 7 dias

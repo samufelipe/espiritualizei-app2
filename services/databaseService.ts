@@ -100,65 +100,101 @@ export const updateChatMessageReaction = async (messageId: string, reactions: an
 };
 
 /**
- * GERAÇÃO DE DESAFIOS INTERATIVOS SINCRONIZADOS (3 DIAS)
+ * PERSISTÊNCIA LOCAL DE CONCLUSÃO DE DESAFIOS
+ * Armazena por challenge_id + day para evitar reset ao recarregar
+ */
+const CHALLENGE_COMPLETIONS_KEY = 'espiritualizei_challenge_completions';
+
+const getChallengeCompletion = (challengeId: string, day: number): boolean => {
+  try {
+    const stored = localStorage.getItem(CHALLENGE_COMPLETIONS_KEY);
+    if (!stored) return false;
+    const completions: Record<string, boolean> = JSON.parse(stored);
+    return !!completions[`${challengeId}_${day}`];
+  } catch { return false; }
+};
+
+export const markChallengeCompleted = (challengeId: string, day: number): void => {
+  try {
+    const stored = localStorage.getItem(CHALLENGE_COMPLETIONS_KEY);
+    const completions: Record<string, boolean> = stored ? JSON.parse(stored) : {};
+    completions[`${challengeId}_${day}`] = true;
+    localStorage.setItem(CHALLENGE_COMPLETIONS_KEY, JSON.stringify(completions));
+  } catch (e) {
+    console.error('Erro ao salvar conclusão do desafio:', e);
+  }
+};
+
+/**
+ * GERAÇÃO DE DESAFIOS LITÚRGICOS SINCRONIZADOS (3 DIAS)
+ * Pool enriquecido com mandamentos de Cristo, Santos padroeiros e vida cotidiana
  */
 const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
   const season = getSeasonDetailedInfo(date);
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
-  // Sincronização absoluta baseada em dias desde a época Unix para garantir 3 dias exatos
   const daysSinceEpoch = Math.floor(date.getTime() / MS_PER_DAY);
   const cycleId = Math.floor(daysSinceEpoch / 3);
   const isPreLent = date.getMonth() === 1 && date.getDate() < 18 && date.getFullYear() === 2026;
-  const isLent = (date.getMonth() === 1 && date.getDate() >= 18 && date.getFullYear() === 2026) || season.id === 'lent';
 
   const taskPool = {
     ORDINARY: {
         RELATIONAL: [
-            { title: "Caridade no Olhar", desc: "Procure uma qualidade em alguém que você costuma criticar e elogie essa pessoa hoje.", action: "Mude o ambiente com um elogio sincero.", script: "Acima de tudo, cultivai o amor, que é o laço da perfeição. (Col 3, 14)" },
-            { title: "Escuta Fraterna", desc: "Dedique 10 minutos para ouvir alguém sem interromper ou dar conselhos não pedidos.", action: "Seja o ouvido de Cristo para um irmão.", script: "Todo homem deve ser pronto para ouvir, tardio para falar. (Tg 1, 19)" },
-            { title: "Pequeno Gesto", desc: "Faça uma tarefa doméstica ou de trabalho que ninguém gosta de fazer, sem que ninguém perceba.", action: "Sirva com humildade no escondido.", script: "O maior entre vós seja como o menor. (Lc 22, 26)" }
+            { title: "Caridade no Olhar", desc: "Procure uma qualidade em alguém que você costuma criticar e elogie essa pessoa hoje, de forma sincera e específica.", action: "Mude o ambiente ao seu redor com um elogio concreto — cite o que você admirou.", script: "Acima de tudo, cultivai o amor, que é o laço da perfeição. (Col 3, 14)" },
+            { title: "Escuta Fraterna", desc: "Dedique 10 minutos ininterruptos para ouvir alguém sem interromper, sem dar conselhos não pedidos, sem olhar o celular.", action: "Seja o ouvido de Cristo para um irmão. Olhe nos olhos e ouça com o coração.", script: "Todo homem deve ser pronto para ouvir, tardio para falar. (Tg 1, 19)" },
+            { title: "Gesto Escondido de São José", desc: "Faça uma tarefa doméstica ou profissional que ninguém gosta de fazer, sem que ninguém perceba — como José trabalhava na sombra.", action: "Sirva em silêncio. A santidade escondida de José edificou o lar de Cristo.", script: "O maior entre vós seja como o menor, e quem governa como quem serve. (Lc 22, 26)" }
         ],
         SACRIFICE: [
-            { title: "Pontualidade Sagrada", desc: "Cumpra rigorosamente seu horário de trabalho ou compromisso como oferta a Deus.", action: "Deus habita na ordem. Seja pontual.", script: "O que fizerdes, fazei-o de bom coração, como para o Senhor. (Col 3, 23)" },
-            { title: "Doce Renúncia", desc: "Abstenha-se de reclamar do clima, do trânsito ou do cansaço durante todo o dia.", action: "Transforme reclamação em oração silenciosa.", script: "Fazei tudo sem murmurações nem críticas. (Fl 2, 14)" },
-            { title: "Jejum de Curiosidade", desc: "Não procure saber de fofocas ou notícias irrelevantes hoje. Guarde seus sentidos.", action: "Proteja a paz da sua alma.", script: "Guarda a tua língua do mal. (Sl 34, 13)" }
+            { title: "Pontualidade como Oferta", desc: "Cumpra rigorosamente seus compromissos de hoje como uma oferta a Deus — o tempo do próximo é sagrado.", action: "Chegue antes. Seja fiel no pequeno. Deus habita na ordem e na confiabilidade.", script: "O que fizerdes, fazei-o de bom coração, como para o Senhor e não para os homens. (Col 3, 23)" },
+            { title: "Doce Renúncia", desc: "Abstenha-se de reclamar do clima, do trânsito ou do cansaço durante todo o dia. Cada situação difícil é uma oportunidade de oferta.", action: "Transforme cada reclamação que surgir em uma oração silenciosa por alguém que sofre mais.", script: "Fazei tudo sem murmurações nem críticas. (Fl 2, 14)" },
+            { title: "Jejum Digital de Santa Teresinha", desc: "Não abra redes sociais por prazer hoje. Use o tempo recuperado para uma leitura espiritual, mesmo que sejam só 10 minutos.", action: "As 'pequenas flores' de Teresinha são gestos simples feitos com grande amor. Guarde sua atenção.", script: "Guarda a tua língua do mal e teus lábios de falar enganosamente. (Sl 34, 13)" }
+        ],
+        MERCY: [
+            { title: "Obra de Misericórdia Corporal", desc: "Escolha uma obra: dar de comer a quem tem fome, visitar um doente ou preso, acolher um estrangeiro — ou seu equivalente moderno.", action: "Doe alimento a uma instituição, visite um parente doente ou ajude um imigrante hoje.", script: "Tudo o que fizestes a um destes meus irmãos mais pequeninos, a mim o fizestes. (Mt 25, 40)" },
+            { title: "Obra de Misericórdia Espiritual", desc: "Corrija com amor quem erra, instrua quem não sabe, console os tristes ou perdoe quem te ofendeu.", action: "Escreva uma mensagem de reconciliação, ou perdoe em silêncio alguém que te magoou.", script: "Sede misericordiosos como o vosso Pai é misericordioso. (Lc 6, 36)" },
+            { title: "Paz no Coração por São Miguel", desc: "São Miguel venceu o diabo com humildade e fé. Identifique onde você está cedendo ao orgulho ou à raiva hoje e ofereça isso a Deus.", action: "Se sentir raiva ou orgulho, diga internamente: 'São Miguel, defende-me nesta batalha.'", script: "Sede sóbrios e vigilantes. O diabo, como leão rugindo, anda em derredor. (1Pd 5, 8)" }
+        ],
+        JOSEPH: [
+            { title: "Santificação do Trabalho", desc: "São José santificou o trabalho cotidiano. Hoje, ofereça cada tarefa do seu trabalho ou estudos como oração — faça com cuidado o que seria fácil fazer de qualquer jeito.", action: "Antes de começar o trabalho, diga: 'São José, ensina-me a trabalhar com amor e perfeição.'", script: "O Senhor, teu Deus, está contigo em tudo o que empreendes. (Js 1, 9)" },
+            { title: "Proteção da Família", desc: "José protegeu Maria e Jesus com prudência, sem hesitar. Ore hoje pela proteção de sua família e da família da sua comunidade.", action: "Reze um Pai-Nosso e uma Ave-Maria pelas famílias em crise que você conhece.", script: "Levantai-vos, tomai o menino e sua mãe, e fugi para o Egito. (Mt 2, 13)" },
+            { title: "Silêncio Fecundo de José", desc: "José não disse uma única palavra nos Evangelhos — agiu. Hoje, substitua palavras desnecessárias por ações concretas de amor.", action: "Identifique algo que você prometeu e não fez. Faça hoje, sem anunciar.", script: "Não sejamos amantes de palavras e de língua, mas da obra e da verdade. (1Jo 3, 18)" }
         ]
     },
     LENT: {
         PRAYER: [
-            { title: "Deserto Interior", desc: "Passe 15 minutos em silêncio absoluto, sem celular ou distrações, apenas ouvindo Deus.", action: "Abra espaço para a voz do Espírito Santo.", script: "Conduzi-la-ei ao deserto e falarei ao seu coração. (Os 2, 16)" },
-            { title: "Via Sacra Viva", desc: "Ao sentir qualquer dor ou cansaço hoje, una esse sofrimento à Paixão de Cristo.", action: "Sua cruz diária é o caminho da glória.", script: "Quem quiser vir após mim, negue-se a si mesmo e tome sua cruz. (Mt 16, 24)" },
-            { title: "Intercessão Fervorosa", desc: "Reze um mistério do Rosário por alguém que te ofendeu ou que você tem dificuldade de conviver.", action: "Ame seus inimigos através da oração.", script: "Rezai pelos que vos perseguem. (Mt 5, 44)" }
+            { title: "Deserto Interior", desc: "Passe 15 minutos em silêncio absoluto — sem celular, música ou distrações. Apenas fique quieto diante de Deus.", action: "Abra espaço para a voz do Espírito Santo. Se vier distração, ofereça-a como oração.", script: "Conduzi-la-ei ao deserto e falarei ao seu coração. (Os 2, 16)" },
+            { title: "Via Sacra Viva", desc: "Ao sentir qualquer dor física ou emocional hoje, una conscientemente esse sofrimento à Paixão de Cristo pelas almas do mundo.", action: "Diga ao sentir dor: 'Jesus, ofereço isto por [intenção]. Que minha cruz tenha fruto eterno.'", script: "Quem quiser vir após mim, negue-se a si mesmo, tome sua cruz cada dia e siga-me. (Lc 9, 23)" },
+            { title: "Intercessão pelo Inimigo", desc: "Reze um mistério do Rosário por alguém que te ofendeu, que te irrita ou que você tem dificuldade de amar.", action: "Ame seus inimigos com a oração. Maria intercede por nós — interceda você por quem não merece.", script: "Rezai pelos que vos perseguem e vos maltratam. (Mt 5, 44)" }
         ],
         FASTING: [
-            { title: "Jejum de Telas", desc: "Desligue todas as notificações não essenciais e só use redes sociais para o necessário.", action: "Recupere o controle da sua atenção para o Céu.", script: "Vigiai e orai, para que não entreis em tentação. (Mt 26, 41)" },
-            { title: "Mesa Humilde", desc: "Faça uma refeição mais simples hoje e ofereça a diferença em esmola ou oração.", action: "Alimente a alma mortificando o corpo.", script: "Nem só de pão vive o homem. (Mt 4, 4)" },
-            { title: "Silêncio de Ouro", desc: "Evite falar palavras desnecessárias hoje. Fale apenas o que for bom para edificar.", action: "O silêncio é a linguagem do amor.", script: "No muito falar não falta pecado. (Pr 10, 19)" }
+            { title: "Jejum de Telas", desc: "Desligue todas as notificações não essenciais. Use redes sociais apenas para o estritamente necessário. Cada impulso de checar é uma oportunidade de orar.", action: "A cada vez que for checar o celular por hábito, reze uma Ave-Maria antes de abrir qualquer app.", script: "Vigiai e orai para que não entreis em tentação. O espírito está pronto, mas a carne é fraca. (Mt 26, 41)" },
+            { title: "Mesa Simples como Cristo", desc: "Faça uma refeição mais simples hoje. Coma menos do que quisera, e ofereça essa pequena mortificação por almas do purgatório.", action: "Coma sem sobremesa, ou sem um item que gosta, e diga: 'Ofereço por aquelas almas que mais precisam.'", script: "Nem só de pão vive o homem, mas de toda palavra que sai da boca de Deus. (Mt 4, 4)" },
+            { title: "Silêncio da Quaresma", desc: "Evite falar palavras desnecessárias. Antes de falar, pergunte: 'Isso edifica? É verdadeiro? É necessário?'", action: "O silêncio é a linguagem do amor. Pratique o filtro das 3 perguntas em cada conversa hoje.", script: "No muito falar não falta pecado; quem modera os lábios é sábio. (Pr 10, 19)" }
         ]
     },
     EASTER: {
         WITNESS: [
-            { title: "Luz do Mundo", desc: "Compartilhe uma palavra de esperança ou um versículo bíblico com alguém que está passando por dificuldades.", action: "Seja um sinal da Ressurreição para o próximo.", script: "Vós sois a luz do mundo. (Mt 5, 14)" },
-            { title: "Alegria Pascal", desc: "Faça um esforço consciente para sorrir e ser gentil com todos, mesmo nos momentos de estresse.", action: "A alegria do Senhor é a nossa força.", script: "Alegrai-vos sempre no Senhor. (Fl 4, 4)" },
-            { title: "Visita de Caridade", desc: "Ligue ou visite um parente idoso ou doente para levar uma palavra de conforto.", action: "Cristo ressuscitado visita através de você.", script: "Estive doente e me visitastes. (Mt 25, 36)" }
+            { title: "Testemunho da Ressurreição", desc: "A Ressurreição não é só dogma — é estilo de vida. Compartilhe uma palavra de esperança concreta com alguém em dificuldade.", action: "Envie uma mensagem específica de encorajamento, citando o que você admira nessa pessoa e que Deus a ama.", script: "Vós sois a luz do mundo. Assim brilhe a vossa luz diante dos homens. (Mt 5, 14-16)" },
+            { title: "Alegria Pascal no Cotidiano", desc: "Cristo ressuscitou — e isso muda tudo. Faça um esforço consciente para sorrir e ser gentil com todos, especialmente nos momentos de estresse.", action: "A alegria do Senhor é nossa força. Seja o sinal da Páscoa para sua família ou colegas hoje.", script: "Alegrai-vos sempre no Senhor. Outra vez vos digo: Alegrai-vos! (Fl 4, 4)" },
+            { title: "Visita de Carlos Acutis", desc: "Bl. Carlos Acutis, o 'influencer de Deus', usou a internet para evangelizar. Compartilhe hoje algo belo sobre a fé nas suas redes.", action: "Poste um versículo, uma imagem de um santo, ou um testemunho simples da sua fé. Seja digital e autêntico.", script: "Ide por todo o mundo e pregai o Evangelho a toda criatura. (Mc 16, 15)" }
         ]
     },
     ADVENT: {
         VIGILANCE: [
-            { title: "Coração em Espera", desc: "Prepare um pequeno altar ou espaço de oração em casa para meditar sobre a vinda de Jesus.", action: "Prepare o caminho para o Senhor.", script: "Vigiai, pois não sabeis o dia nem a hora. (Mt 25, 13)" },
-            { title: "Paciência Cristã", desc: "Pratique a paciência em filas, no trânsito ou em conversas difíceis hoje.", action: "A espera do Senhor nos ensina a paciência.", script: "Sede pacientes até a vinda do Senhor. (Tg 5, 7)" }
+            { title: "Coração em Espera", desc: "O Advento nos convida a preparar o coração para Cristo. Organize um pequeno espaço de oração em casa com uma vela e a Bíblia.", action: "Prepare o caminho do Senhor. Acenda a vela e leia uma profecia do Advento antes de dormir.", script: "Vigiai, pois não sabeis o dia nem a hora em que o Filho do Homem há de vir. (Mt 25, 13)" },
+            { title: "Paciência da Esperança", desc: "A espera de Israel por milênios nos ensina: Deus cumpre suas promessas no tempo certo. Pratique a paciência hoje.", action: "Em filas, trânsito ou conversas difíceis, ofereça a espera como preparação para o Natal.", script: "Sede pacientes, irmãos, até a vinda do Senhor. (Tg 5, 7)" },
+            { title: "Esmola do Advento", desc: "João Batista preparou o caminho com conversão e partilha. Faça uma doação concreta — dinheiro, alimento ou tempo.", action: "Quem tiver duas túnicas, dê uma. Doe algo concreto a alguém que precisa antes do Natal.", script: "Quem tiver duas túnicas, reparta com quem não tem; e quem tiver alimentos, faça o mesmo. (Lc 3, 11)" }
         ]
     }
   };
 
-  const activePool = (season.id === 'lent' || isPreLent) ? taskPool.LENT : 
-                   (season.id === 'easter' ? taskPool.EASTER : 
+  const activePool = (season.id === 'lent' || isPreLent) ? taskPool.LENT :
+                   (season.id === 'easter' ? taskPool.EASTER :
                    (season.id === 'advent' ? taskPool.ADVENT : taskPool.ORDINARY));
-  
+
   const poolKeys = Object.keys(activePool);
   const typeKey = poolKeys[cycleId % poolKeys.length];
   const list = (activePool as any)[typeKey];
-  
+
   const dailyTopics: DailyTopic[] = list.map((t: any, idx: number) => ({
     day: idx + 1,
     title: t.title,
@@ -167,19 +203,22 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
     scripture: t.script,
     isCompleted: false,
     isLocked: false,
-    actionType: typeKey === 'RELATIONAL' || typeKey === 'WITNESS' ? 'RELATIONSHIP' : 
+    actionType: typeKey === 'RELATIONAL' || typeKey === 'WITNESS' || typeKey === 'MERCY' ? 'RELATIONSHIP' :
                (typeKey === 'FASTING' || typeKey === 'SACRIFICE' ? 'SACRIFICE' : 'PRAYER')
   }));
 
-  const themeName = season.id === 'lent' ? "Caminho do Calvário" : 
-                   season.id === 'easter' ? "Luz da Ressurreição" :
-                   season.id === 'advent' ? "Vigília da Esperança" :
-                   isPreLent ? "Vigília do Deserto" : "Fé no Cotidiano";
+  const themeNames: Record<string, string> = {
+    lent: "Caminho do Calvário",
+    easter: "Luz da Ressurreição",
+    advent: "Vigília da Esperança",
+    christmas: "Alegria do Natal",
+  };
+  const themeName = themeNames[season.id] || (isPreLent ? "Vigília do Deserto" : "Fé no Cotidiano");
 
   return {
     id: `liturgical-cycle-${cycleId}`,
     title: `Jornada: ${themeName}`,
-    description: `Um ciclo de 3 dias para fortalecer sua ${season.theme.toLowerCase()} através de gestos concretos.`,
+    description: `Um ciclo de 3 dias para fortalecer sua ${season.theme.toLowerCase()} através de gestos concretos no cotidiano.`,
     currentAmount: 0,
     targetAmount: 5000,
     unit: 'atos de amor',
@@ -199,51 +238,36 @@ const generateDeterministicChallenge = (date: Date): CommunityChallenge => {
 };
 
 export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null> => {
+  // Sempre gera o desafio determinístico (garante dailyTopics e currentDay)
+  const challenge = generateDeterministicChallenge(new Date());
+
+  // Patch isCompleted a partir do localStorage (persiste entre sessões)
+  if (challenge.dailyTopics) {
+    challenge.dailyTopics = challenge.dailyTopics.map(topic => ({
+      ...topic,
+      isCompleted: getChallengeCompletion(challenge.id, topic.day)
+    }));
+  }
+
+  // Enriquece com contagem real de participantes do DB (melhor esforço)
   try {
     if (getConnectionStatus()) {
-        const today = new Date().toISOString().split('T')[0];
-        
-        // Buscar desafio ativo da tabela community_challenges baseado na data atual
-        const { data, error } = await supabase!
-            .from('community_challenges')
-            .select('*')
-            .lte('start_date', today)
-            .gte('end_date', today)
-            .eq('is_active', true)
-            .order('start_date', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-        
-        if (data && !error) {
-            const startDate = new Date(data.start_date);
-            const endDate = new Date(data.end_date);
-            const now = new Date();
-            const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-            
-            return {
-                id: data.id,
-                title: data.title,
-                description: data.description,
-                currentAmount: 0,
-                targetAmount: 100,
-                unit: 'participantes',
-                daysLeft: daysLeft,
-                seasonColor: data.liturgical_season === 'quaresma' ? 'purple' : 'green',
-                icon: 'cross' as const,
-                type: 'season' as const,
-                startDate: startDate,
-                endDate: endDate,
-                status: 'active' as const,
-                participants: data.participants_count || 0,
-                isUserParticipating: false,
-                userContribution: 0
-            };
-        }
+      const { data } = await supabase!
+        .from('community_challenges')
+        .select('participants_count')
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+
+      if (data?.participants_count) {
+        challenge.participants = data.participants_count;
+      }
     }
-  } catch (e) {
-    console.warn("Gerando desafio litúrgico automático:", e);
+  } catch (_e) {
+    // Usa contagem local do gerador determinístico
   }
-  return generateDeterministicChallenge(new Date());
+
+  return challenge;
 };
 
 export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {

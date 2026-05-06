@@ -48,11 +48,11 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
       });
 
       if (res.ok) {
-        localStorage.setItem('admin_session', JSON.stringify({
+        // Armazena apenas metadados da sessão — senha nunca persiste no storage
+        sessionStorage.setItem('admin_session', JSON.stringify({
           email: emailLower,
-          secret: password,
           timestamp: Date.now(),
-          expires: Date.now() + (24 * 60 * 60 * 1000),
+          expires: Date.now() + (8 * 60 * 60 * 1000), // 8h (expira ao fechar aba)
         }));
         onLogin(true);
       } else {
@@ -176,9 +176,9 @@ export default AdminLogin;
 // Função para verificar se há sessão admin válida
 export const checkAdminSession = (): boolean => {
   try {
-    const session = localStorage.getItem('admin_session');
+    const session = sessionStorage.getItem('admin_session');
     if (!session) return false;
-    
+
     const { expires } = JSON.parse(session);
     return Date.now() < expires;
   } catch {
@@ -188,5 +188,5 @@ export const checkAdminSession = (): boolean => {
 
 // Função para limpar sessão admin
 export const clearAdminSession = () => {
-  localStorage.removeItem('admin_session');
+  sessionStorage.removeItem('admin_session');
 };

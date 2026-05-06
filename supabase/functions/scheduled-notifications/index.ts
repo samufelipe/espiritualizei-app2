@@ -30,6 +30,20 @@ const ROUTINE_REMINDERS = {
   evening: { title: "Boa Noite 🌙", body: "Encerre o dia em paz com sua rotina espiritual." }
 };
 
+// Títulos temáticos para notificação de novo ciclo de desafio
+const CHALLENGE_CYCLE_MESSAGES = [
+  { title: "Novo Desafio Comunitário 🕊️", body: "Um novo ciclo de 3 dias começou! A comunidade inteira está unida neste gesto de amor. Venha participar!" },
+  { title: "Jornada Litúrgica Renovada ✨", body: "Novo desafio disponível! Santos e irmãos de fé caminham com você nestes próximos 3 dias." },
+  { title: "A Comunidade Te Espera 🙏", body: "Começa hoje um novo ciclo de gestos concretos de santidade. Unidos na mesma jornada!" },
+  { title: "Missão de 3 Dias 🔥", body: "Novo desafio litúrgico disponível. Junte-se à comunidade e transforme seu cotidiano em oração." },
+];
+
+/** Verifica se hoje é o 1º dia de um novo ciclo de 3 dias */
+const isNewChallengeCycle = (): boolean => {
+  const daysSinceEpoch = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+  return daysSinceEpoch % 3 === 0;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -47,7 +61,12 @@ serve(async (req) => {
     let notificationType: 'inspiration' | 'morning' | 'afternoon' | 'evening';
     let notification: { title: string; body: string };
 
-    if (hour >= 6 && hour < 8) {
+    if (hour >= 7 && hour < 8 && isNewChallengeCycle()) {
+      // Notificação de novo ciclo de desafio (7h, apenas no 1º dia do ciclo)
+      notificationType = 'inspiration';
+      const daysSinceEpoch = Math.floor(now.getTime() / (24 * 60 * 60 * 1000));
+      notification = CHALLENGE_CYCLE_MESSAGES[Math.floor(daysSinceEpoch / 3) % CHALLENGE_CYCLE_MESSAGES.length];
+    } else if (hour >= 6 && hour < 8) {
       // Inspiração diária (6h-8h)
       notificationType = 'inspiration';
       const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);

@@ -9,8 +9,7 @@ import ResetPassword from './components/ResetPassword';
 import Checkout from './components/Checkout'; 
 import CreateIntentionModal from './components/CreateIntentionModal';
 import DailyInspiration from './components/DailyInspiration';
-import UpdatePasswordModal from './components/UpdatePasswordModal'; 
-import MonthlyReviewModal from './components/MonthlyReviewModal'; 
+import MonthlyReviewModal from './components/MonthlyReviewModal';
 import InstallPWAGuide from './components/InstallPWAGuide';
 import NotificationPermissionModal from './components/NotificationPermissionModal';
 import Paywall from './components/Paywall';
@@ -18,15 +17,15 @@ import AdminPanel from './components/AdminPanel';
 import AdminLogin, { checkAdminSession, clearAdminSession } from './components/AdminLogin';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
-import { requestNotificationPermission, scheduleRoutineNotifications } from './services/notificationService';
-import { registerUser, getSession, logoutUser, updateUserProfile, supabase, mapProfileFromDB, syncUserFromServer } from './services/authService';
+import { requestNotificationPermission } from './services/notificationService';
+import { registerUser, getSession, logoutUser, updateUserProfile, syncUserFromServer } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
 import { saveUserRoutine, fetchUserRoutine, toggleRoutineItemStatus, fetchCommunityIntentions, createIntention, togglePrayerInteraction, addRoutineItem, deleteRoutineItem, upgradeUserToPremium, fetchGlobalChallenge, createCommunityPost, checkAndLogActivity, logRoutineTaskCompletion, queueEngagementEmail } from './services/databaseService';
 import { getTodayCompletions, completeRoutineToday, uncompleteRoutineToday } from './services/routineCompletionService';
-import { cacheChallenge, getCachedChallenge, cacheRoutine, getCachedRoutine, cacheIntentions, getCachedIntentions, loadWithCacheFirst, getDataWithFallback, markSyncComplete } from './services/cacheService';
-import { Sparkles, ArrowRight, Loader2, Shield, Heart, User as UserIcon, CheckCircle2, Flame, Footprints, Crown, PartyPopper } from 'lucide-react';
+import { cacheChallenge, getCachedChallenge, cacheRoutine, getCachedRoutine, cacheIntentions, getCachedIntentions, markSyncComplete } from './services/cacheService';
+import { Sparkles, Loader2, CheckCircle2, Crown, PartyPopper } from 'lucide-react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const Routine = lazy(() => import('./components/Routine'));
@@ -358,7 +357,7 @@ const App: React.FC = () => {
               user={user} 
               myIntentions={intentions.filter(i => i.author === user.name)} 
               routineItems={routineItems} 
-              onNavigateToCommunity={(tab) => { setCurrentTab(Tab.COMMUNITY); }} 
+              onNavigateToCommunity={() => { setCurrentTab(Tab.COMMUNITY); }} 
               onNavigateToRoutine={() => setCurrentTab(Tab.ROUTINE)} 
               onNavigateToKnowledge={() => setCurrentTab(Tab.KNOWLEDGE)} 
               onNavigateToProfile={() => setCurrentTab(Tab.PROFILE)} 
@@ -394,21 +393,24 @@ const App: React.FC = () => {
                     });
                   } else {
                     const result = await completeRoutineToday(user.id, id, item.xpReward);
-                    setCompletedToday(prev => new Set([...prev, id]));
 
-                    setUser(prev => {
-                      const newXP = prev.currentXP + result.xp;
-                      const newLevel = Math.floor(newXP / 100) + 1;
-                      return {
-                        ...prev,
-                        currentXP: newXP,
-                        level: newLevel,
-                        nextLevelXP: newLevel * 100,
-                      };
-                    });
-                    
-                    setXpToast({show: true, xp: result.xp});
-                    setTimeout(() => setXpToast({show: false, xp: 0}), 3000);
+                    if (result.success) {
+                      setCompletedToday(prev => new Set([...prev, id]));
+                      setUser(prev => {
+                        const newXP = prev.currentXP + result.xp;
+                        const newLevel = Math.floor(newXP / 100) + 1;
+                        return {
+                          ...prev,
+                          currentXP: newXP,
+                          level: newLevel,
+                          nextLevelXP: newLevel * 100,
+                        };
+                      });
+                      if (result.xp > 0) {
+                        setXpToast({show: true, xp: result.xp});
+                        setTimeout(() => setXpToast({show: false, xp: 0}), 3000);
+                      }
+                    }
                   }
                   
                   try { await Haptics.impact({ style: ImpactStyle.Light }); } catch(e) {}
@@ -460,7 +462,7 @@ const App: React.FC = () => {
                 await togglePrayerInteraction(id); 
                 fetchCommunityIntentions(user.id).then(setIntentions); 
               }} 
-              onJoinChallenge={async (id, amount) => { 
+              onJoinChallenge={async (id) => { 
                 const updatedChallenges = challenges.map(c => c.id === id ? { ...c, isUserParticipating: true, participants: c.participants + 1 } : c);
                 setChallenges(updatedChallenges);
                 // Atualizar cache

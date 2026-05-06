@@ -13,10 +13,7 @@ import {
   Compass, Church, Cross, Sparkles, Layers
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
-
-// Credenciais do Supabase hardcoded para garantir funcionamento
-const ADMIN_SUPABASE_URL = 'https://anoqhwpdrztaqmlocnzx.supabase.co';
-const ADMIN_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFub3Fod3Bkcnp0YXFtbG9jbnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2ODM3OTQsImV4cCI6MjA3OTI1OTc5NH0.eUg9hLctWst7nolKxk5OUgka6s8xUaaBNH3dP6kCduY';
+import { SUPABASE_URL as ADMIN_SUPABASE_URL, SUPABASE_KEY as ADMIN_SUPABASE_KEY } from '../services/authService';
 
 interface AdminUser {
   id: string;

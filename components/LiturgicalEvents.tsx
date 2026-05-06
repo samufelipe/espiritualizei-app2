@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { CommunityChallenge } from '../types';
 import { CheckCircle2, Play, X, Trophy, Heart, Users, Flame, MessageCircle, ChevronLeft, ChevronRight, ShieldCheck, Quote, Lightbulb, ListChecks, Share2 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import { markChallengeCompleted } from '../services/databaseService';
 
 interface LiturgicalEventsProps {
   challenges: CommunityChallenge[];
@@ -48,16 +49,14 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
       e.preventDefault();
       e.stopPropagation();
     }
-    if (currentDayTopic.isCompleted) {
-        alert("Você já concluiu este desafio! Sua oferta já foi contabilizada em seu perfil. A constância é o segredo da santidade. 🙏");
-        return;
-    }
+    if (currentDayTopic.isCompleted) return;
     setShowSession(true);
   };
 
   const handleComplete = () => {
     if (currentDayTopic.isCompleted) return;
-    onJoin(activeChallenge.id, 1); 
+    markChallengeCompleted(activeChallenge.id, currentDayTopic.day);
+    onJoin(activeChallenge.id, 1);
     setShowSession(false);
     setShowCompletion(true);
   };
@@ -234,7 +233,6 @@ const LiturgicalEvents: React.FC<LiturgicalEventsProps> = ({ challenges, onJoin,
         link.download = `desafio-espiritualizei.png`;
         link.href = dataUrl;
         link.click();
-        alert("Imagem premium gerada! ✨ Salve-a e compartilhe no seu Story para inspirar outros. Não esqueça de marcar o @espiritualizei.");
       }
     } catch (err) {
       console.error('Erro ao compartilhar:', err);
