@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import Navigation from './components/Navigation';
 import Sidebar from './components/Sidebar';
@@ -183,6 +183,13 @@ const App: React.FC = () => {
           setViewState('app');
           requestNotificationPermission();
 
+          // Resume tutorial if started but not completed (reload-safe)
+          const tutorialStarted = localStorage.getItem('espiritualizei_tutorial_started');
+          const tutorialCompleted = localStorage.getItem('espiritualizei_tutorial_completed');
+          if (tutorialStarted && !tutorialCompleted) {
+            setShowTutorial(true);
+          }
+
           // Verificar se deve mostrar revisão mensal (a cada 30 dias)
           const lastReviewStr = localStorage.getItem('espiritualizei_monthly_review_date');
           const daysSinceReview = lastReviewStr
@@ -257,10 +264,11 @@ const App: React.FC = () => {
           // Registrar atividade
           checkAndLogActivity(session.user.id);
           
-          // Verificar se deve mostrar Inspiração Diária
+          // Verificar se deve mostrar Inspiração Diária (não durante tutorial pendente)
           const lastSeen = localStorage.getItem('espiritualizei_daily_inspiration_date');
           const today = new Date().toDateString();
-          if (lastSeen !== today) {
+          const tutPending = !!localStorage.getItem('espiritualizei_tutorial_started') && !localStorage.getItem('espiritualizei_tutorial_completed');
+          if (lastSeen !== today && !tutPending) {
             setShowDailyInspiration(true);
             localStorage.setItem('espiritualizei_daily_inspiration_date', today);
           }
@@ -656,6 +664,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
       {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} /></div>}
       
       {showTutorial && <Tutorial user={user} onComplete={() => {
+        localStorage.setItem('espiritualizei_tutorial_completed', 'true');
         setShowTutorial(false);
         // Verificar se já pediu permissão de notificação
         const notificationAsked = localStorage.getItem(`notification_asked_${user.id}`);
@@ -663,7 +672,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
           setTimeout(() => setShowNotificationModal(true), 1000);
         }
       }} />}
-      {showDailyInspiration && <DailyInspiration userName={user.name} onClose={() => setShowDailyInspiration(false)} />}
+      {showDailyInspiration && !showTutorial && <DailyInspiration userName={user.name} onClose={() => setShowDailyInspiration(false)} />}
       {showMonthlyReview && (
         <MonthlyReviewModal
           onClose={() => {

@@ -1,7 +1,7 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { OnboardingData } from '../types';
-import { ArrowRight, Check, User, Clock, Zap, CloudRain, Heart, Coffee, Car, Moon, Sun, Anchor, Shield, Brain, Lightbulb, Mail, Phone, Lock, Eye, EyeOff, BookOpen, Users, Sword, Flower, Hammer, Crown, Wifi, AlertCircle, ArrowLeft, MessageSquare } from 'lucide-react';
+import { ArrowRight, Check, User, Clock, Zap, CloudRain, Heart, Coffee, Car, Moon, Sun, Anchor, Shield, Brain, Lightbulb, Mail, Phone, Lock, Eye, EyeOff, BookOpen, Users, Sword, Flower, Hammer, Crown, Wifi, AlertCircle, ArrowLeft, MessageSquare, Sparkles } from 'lucide-react';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import BrandLogo from './BrandLogo';
 import { savePartialLead } from '../services/databaseService';
@@ -76,6 +76,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string, phone?: string }>({});
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [formData, setFormData] = useState<OnboardingData>({
     name: '', email: '', phone: '', password: '',
@@ -119,9 +122,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
       await Haptics.impact({ style: ImpactStyle.Light });
     } catch (e) {}
 
-    if (step === 8) {
-       handleCaptureLead();
-    }
 
     if (step === 9) {
        const cleanEmail = formData.email.trim();
@@ -132,10 +132,14 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
           return;
        }
        if (cleanPassword.length < 6) {
-          alert('A senha deve ter no mínimo 6 caracteres.');
+          setPasswordError('A senha deve ter no mínimo 6 caracteres.');
           return;
        }
-       
+       if (cleanPassword !== confirmPassword.trim()) {
+          setPasswordError('As senhas não coincidem.');
+          return;
+       }
+       setPasswordError('');
        setIsSubmitting(true);
        setFieldErrors({});
 
@@ -289,18 +293,39 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
              <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-slate-400 ml-1">Criar Senha</label>
                 <div className="relative group">
-                   <Lock className="absolute left-4 top-3.5 text-slate-400" size={20} />
+                   <Lock className={`absolute left-4 top-3.5 ${passwordError ? 'text-red-500' : 'text-slate-400'}`} size={20} />
                    <input
                      type={showPassword ? "text" : "password"}
                      value={formData.password}
-                     onChange={(e) => updateField('password', e.target.value)}
-                     className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-12 pr-12 text-brand-dark dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-violet transition-all font-medium"
+                     onChange={(e) => { setFormData(prev => ({ ...prev, password: e.target.value })); if (passwordError) setPasswordError(''); }}
+                     className={`w-full bg-slate-50 dark:bg-black/20 border rounded-xl py-3.5 pl-12 pr-12 text-brand-dark dark:text-white placeholder:text-slate-400 outline-none transition-all font-medium ${passwordError ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-white/10 focus:border-brand-violet'}`}
                      placeholder="Mínimo 6 caracteres"
                    />
-                   <button onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-3.5 text-slate-400 hover:text-brand-violet transition-colors">
+                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-3.5 text-slate-400 hover:text-brand-violet transition-colors">
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                    </button>
                 </div>
+             </div>
+             <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-400 ml-1">Confirmar Senha</label>
+                <div className="relative group">
+                   <Lock className={`absolute left-4 top-3.5 ${passwordError ? 'text-red-500' : 'text-slate-400'}`} size={20} />
+                   <input
+                     type={showConfirmPassword ? "text" : "password"}
+                     value={confirmPassword}
+                     onChange={(e) => { setConfirmPassword(e.target.value); if (passwordError) setPasswordError(''); }}
+                     className={`w-full bg-slate-50 dark:bg-black/20 border rounded-xl py-3.5 pl-12 pr-12 text-brand-dark dark:text-white placeholder:text-slate-400 outline-none transition-all font-medium ${passwordError ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-white/10 focus:border-brand-violet'}`}
+                     placeholder="Repita a senha"
+                   />
+                   <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-3.5 text-slate-400 hover:text-brand-violet transition-colors">
+                      {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                   </button>
+                </div>
+                {passwordError && (
+                  <p className="flex items-center gap-1 text-xs text-red-500 ml-1">
+                    <AlertCircle size={12} /> {passwordError}
+                  </p>
+                )}
              </div>
           </div>
           <div className="mt-8">
@@ -347,13 +372,15 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
             { val: 'morning', label: 'Ao acordar', desc: 'Primícias do dia.', icon: Sun },
             { val: 'commute', label: 'No trajeto', desc: 'Tempo de trânsito.', icon: Car },
             { val: 'breaks', label: 'Pausas', desc: 'Intervalos de trabalho.', icon: Coffee },
-            { val: 'night', label: 'Antes de dormir', desc: 'No silêncio da noite.', icon: Moon }
+            { val: 'night', label: 'Antes de dormir', desc: 'No silêncio da noite.', icon: Moon },
+            { val: 'random', label: 'Qualquer momento', desc: 'Orações espalhadas pelo dia.', icon: Sparkles }
         ])}
         {step === 6 && renderSelectionStep('Seu objetivo espiritual?', 'Para alinhar o propósito.', 'spiritualGoal', [
             { val: 'peace', label: 'Paz Interior', desc: 'Quietude e confiança.', icon: Brain },
             { val: 'truth', label: 'Conhecimento', desc: 'Entender melhor a fé.', icon: BookOpen },
             { val: 'discipline', label: 'Fortaleza', desc: 'Vencer a si mesmo.', icon: Shield },
-            { val: 'love', label: 'Caridade', desc: 'Amar a Deus e ao próximo.', icon: Heart }
+            { val: 'love', label: 'Caridade', desc: 'Amar a Deus e ao próximo.', icon: Heart },
+            { val: 'healing', label: 'Cura Interior', desc: 'Libertar-se de feridas antigas.', icon: Flower }
         ])}
         {step === 7 && renderSelectionStep('Qual seu estado de vida?', 'Define seus deveres.', 'stateOfLife', [
             { val: 'student', label: 'Estudante', icon: BookOpen, desc: 'Foco em estudos e futuro.' },

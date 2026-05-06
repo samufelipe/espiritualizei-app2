@@ -1,4 +1,4 @@
-
+﻿
 export enum Tab {
   DASHBOARD = 'DASHBOARD',
   ROUTINE = 'ROUTINE',
@@ -80,7 +80,7 @@ export interface RoutineItem {
 export interface OnboardingData {
   name: string;
   email: string; 
-  phone: string; 
+  phone?: string; 
   password?: string;
   stateOfLife: 'student' | 'single' | 'married' | 'parent' | 'retired'; 
   routineType: 'chaotic' | 'structured' | 'flexible' | 'overwhelmed'; 

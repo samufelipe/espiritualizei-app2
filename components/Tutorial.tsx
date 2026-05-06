@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Book, Heart, ArrowRight, User, Trophy, Mail, Sparkles, Crown, Lock, Flame, Target, Gift } from 'lucide-react';
 import BrandLogo from './BrandLogo';
@@ -15,6 +15,7 @@ const Tutorial: React.FC<TutorialProps> = ({ onComplete, user }) => {
 
   useEffect(() => {
     setIsVisible(true);
+    localStorage.setItem('espiritualizei_tutorial_started', 'true');
   }, []);
 
   const handleNext = () => {
