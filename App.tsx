@@ -322,9 +322,12 @@ const App: React.FC = () => {
       const partialData: OnboardingData = {
         name: user.name, email: user.email, phone: '',
         primaryStruggle: (user.spiritualFocus as any) || 'anxiety',
-        spiritualGoal: 'peace', routineType: 'flexible',
-        bestMoment: 'morning', confessionFrequency: 'rare',
-        patronSaint: (user.patronSaint as any) || 'mary', stateOfLife: 'single',
+        spiritualGoal: user.spiritualGoal || 'peace',
+        routineType: user.routineType || 'flexible',
+        bestMoment: user.bestMoment || 'morning',
+        confessionFrequency: user.confessionFrequency || 'rare',
+        patronSaint: (user.patronSaint as any) || 'mary',
+        stateOfLife: (user.stateOfLife as any) || 'single',
       };
       const result = await generateSpiritualRoutine(partialData, reviewData);
       await saveUserRoutine(user.id, result.routine);
@@ -392,12 +395,17 @@ const App: React.FC = () => {
                   } else {
                     const result = await completeRoutineToday(user.id, id, item.xpReward);
                     setCompletedToday(prev => new Set([...prev, id]));
-                    
-                    setUser(prev => ({
-                      ...prev,
-                      currentXP: prev.currentXP + result.xp,
-                      level: Math.floor((prev.currentXP + result.xp) / 100) + 1
-                    }));
+
+                    setUser(prev => {
+                      const newXP = prev.currentXP + result.xp;
+                      const newLevel = Math.floor(newXP / 100) + 1;
+                      return {
+                        ...prev,
+                        currentXP: newXP,
+                        level: newLevel,
+                        nextLevelXP: newLevel * 100,
+                      };
+                    });
                     
                     setXpToast({show: true, xp: result.xp});
                     setTimeout(() => setXpToast({show: false, xp: 0}), 3000);

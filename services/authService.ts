@@ -65,6 +65,8 @@ export const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => 
   subscriptionStatus: dbProfile.subscription_status || 'canceled',
   subscriptionRenewalAt: dbProfile.subscription_renewal_at ? new Date(dbProfile.subscription_renewal_at) : undefined,
   patronSaint: dbProfile.patron_saint,
+  routineType: dbProfile.routine_type,
+  bestMoment: dbProfile.best_moment,
   lastConfessionAt: dbProfile.last_confession_at ? new Date(dbProfile.last_confession_at) : undefined,
   confessionFrequency: dbProfile.confession_frequency
 });
@@ -175,6 +177,8 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     state_of_life: data.stateOfLife,
     patron_saint: data.patronSaint,
     confession_frequency: data.confessionFrequency,
+    routine_type: data.routineType,
+    best_moment: data.bestMoment,
     level: 1,
     current_xp: 0,
     streak_days: 0,
@@ -275,6 +279,8 @@ export const updateUserProfile = async (u: UserProfile): Promise<boolean> => {
         spiritual_goal: u.spiritualGoal,
         state_of_life: u.stateOfLife,
         patron_saint: u.patronSaint,
+        routine_type: u.routineType,
+        best_moment: u.bestMoment,
         last_routine_update: u.lastRoutineUpdate?.toISOString(),
         spiritual_cycle_start: u.spiritualCycleStart?.toISOString(),
         last_confession_at: u.lastConfessionAt?.toISOString(),

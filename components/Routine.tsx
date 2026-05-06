@@ -63,8 +63,11 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, completedToda
     const props = { size: 20, strokeWidth: 1.5 };
     switch (type) {
       case 'rosary': return <Cross {...props} />;
+      case 'cross': return <Cross {...props} />;
+      case 'church': return <Cross {...props} />;
       case 'book': return <Book {...props} />;
       case 'sun': return <Sun {...props} />;
+      case 'candle': return <Sun {...props} />;
       case 'moon': return <Moon {...props} />;
       case 'heart': return <Heart {...props} />;
       case 'shield': return <Shield {...props} />;
@@ -121,13 +124,13 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, completedToda
                                         {getIcon(item.icon)} {actionLabel}
                                       </button>
                                     )}
-                                    <button 
+                                    <button
                                       onClick={async () => {
-                                        onToggle(item.id);
+                                        await onToggle(item.id);
                                         if (onCompleteTask) {
                                           await onCompleteTask(item.id, item.xpReward);
                                         }
-                                      }} 
+                                      }}
                                       className="flex-1 bg-brand-violet text-white font-bold py-3 rounded-xl text-xs uppercase transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-violet/20 hover:scale-105 active:scale-95"
                                     >
                                       <Check size={16} strokeWidth={3} /> Concluir

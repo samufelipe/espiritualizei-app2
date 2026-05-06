@@ -247,50 +247,51 @@ export const fetchGlobalChallenge = async (): Promise<CommunityChallenge | null>
 };
 
 export const saveUserRoutine = async (userId: string, items: RoutineItem[]) => {
-  console.log('[saveUserRoutine] Iniciando salvamento para userId:', userId, 'items:', items.length);
-  if (getConnectionStatus()) {
-    try {
-        // Primeiro deletar rotinas existentes
-        const { error: deleteError } = await supabase!.from('routines').delete().eq('user_id', userId);
-        if (deleteError) {
-          console.warn('[saveUserRoutine] Aviso ao deletar rotinas antigas:', deleteError);
-        }
-        
-        const payload = items.map(item => ({ 
-            id: item.id,
-            user_id: userId,
-            title: item.title,
-            description: item.description,
-            detailed_content: item.detailedContent || '',
-            xp_reward: item.xpReward,
-            completed: item.completed || false,
-            icon: item.icon,
-            time_of_day: item.timeOfDay,
-            day_of_week: item.dayOfWeek,
-            action_link: item.actionLink || 'NONE'
-        }));
-        
-        console.log('[saveUserRoutine] Payload preparado:', payload.length, 'itens');
-        
-        const { data, error } = await supabase!.from('routines').insert(payload).select();
-        if (error) {
-          console.error('[saveUserRoutine] Erro ao inserir rotina:', error);
-          throw error;
-        }
-        
-        console.log('[saveUserRoutine] Rotina salva com sucesso:', data?.length, 'itens');
-    } catch (e) {
-        console.error('[saveUserRoutine] Erro ao salvar rotina:', e);
-    }
-  } else {
+  if (!getConnectionStatus()) {
     console.warn('[saveUserRoutine] Sem conexão com Supabase');
+    return;
+  }
+  try {
+    // 1. Capturar IDs antigos ANTES de qualquer alteração
+    const { data: existing } = await supabase!
+      .from('routines')
+      .select('id')
+      .eq('user_id', userId);
+    const oldIds = (existing || []).map((r: any) => r.id);
+
+    // 2. Inserir novos itens — se falhar, os antigos permanecem intactos
+    const payload = items.map(item => ({
+      id: item.id,
+      user_id: userId,
+      title: item.title,
+      description: item.description,
+      detailed_content: item.detailedContent || '',
+      xp_reward: item.xpReward,
+      completed: item.completed || false,
+      icon: item.icon,
+      time_of_day: item.timeOfDay,
+      day_of_week: item.dayOfWeek,
+      action_link: item.actionLink || 'NONE',
+    }));
+
+    const { error: insertError } = await supabase!.from('routines').insert(payload);
+    if (insertError) throw insertError;
+
+    // 3. Remover itens antigos SOMENTE após insert bem-sucedido
+    if (oldIds.length > 0) {
+      await supabase!.from('routines').delete().in('id', oldIds);
+    }
+
+    console.log('[saveUserRoutine] Rotina salva com sucesso:', payload.length, 'itens');
+  } catch (e) {
+    console.error('[saveUserRoutine] Erro ao salvar rotina:', e);
   }
 };
 
 export const fetchUserRoutine = async (userId: string): Promise<RoutineItem[]> => {
   if (getConnectionStatus()) {
     try {
-        const { data, error } = await supabase!.from('routines').select('*').eq('user_id', userId);
+        const { data, error } = await supabase!.from('routines').select('*').eq('user_id', userId).order('created_at', { ascending: true });
         if (error) throw error;
         return (data || []).map((item: any) => ({
             id: item.id,

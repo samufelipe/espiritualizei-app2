@@ -50,6 +50,8 @@ export interface UserProfile {
   subscriptionRenewalAt?: Date;
   activityHistory?: { date: string; count: number }[];
   patronSaint?: string;
+  routineType?: 'chaotic' | 'structured' | 'flexible' | 'overwhelmed';
+  bestMoment?: 'morning' | 'commute' | 'breaks' | 'night' | 'random';
   lastActiveAt?: Date;
   settings?: UserSettings;
 }
