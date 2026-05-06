@@ -13,6 +13,20 @@ export default defineConfig(({ mode }) => {
       'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseKey),
     },
     server: { port: 3000 },
-    build: { outDir: 'dist', sourcemap: false, emptyOutDir: true },
+    build: {
+      outDir: 'dist',
+      sourcemap: false,
+      emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react':    ['react', 'react-dom'],
+            'vendor-supabase': ['@supabase/supabase-js'],
+            'vendor-recharts': ['recharts'],
+            'vendor-lucide':   ['lucide-react'],
+          },
+        },
+      },
+    },
   };
 });

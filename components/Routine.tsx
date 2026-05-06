@@ -184,7 +184,25 @@ const Routine: React.FC<RoutineProps> = ({ items, activeChallenge, completedToda
        </div>
 
        <div className="px-6">
-          {dailyItems.length === 0 ? (
+          {items.length === 0 ? (
+             <div className="text-center py-16 animate-fade-in">
+                <div className="w-24 h-24 bg-brand-violet/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                   <Sparkles size={40} className="text-brand-violet" />
+                </div>
+                <h2 className="text-xl font-black text-brand-dark dark:text-white mb-3">Sua jornada começa aqui</h2>
+                <p className="text-slate-500 text-sm leading-relaxed max-w-xs mx-auto mb-8">
+                   Você ainda não tem uma rotina espiritual personalizada. Acesse seu perfil para criar uma agora.
+                </p>
+                {onNavigate && (
+                   <button
+                      onClick={() => onNavigate(Tab.PROFILE)}
+                      className="inline-flex items-center gap-2 bg-brand-violet text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-brand-violet/20 hover:scale-105 active:scale-95 transition-all"
+                   >
+                      <Sparkles size={16} /> Criar Minha Rotina
+                   </button>
+                )}
+             </div>
+          ) : dailyItems.length === 0 ? (
              <div className="text-center py-20 opacity-40">
                 <Calendar size={48} className="mx-auto mb-4 text-slate-300" />
                 <p className="font-bold">Nenhuma prática para hoje.</p>

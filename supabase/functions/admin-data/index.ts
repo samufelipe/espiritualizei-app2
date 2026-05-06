@@ -41,6 +41,17 @@ serve(async (req) => {
 
     const { action, data } = await req.json()
 
+    const logAdminAction = async (actionName: string, targetId?: string, details?: object) => {
+      try {
+        await supabase.from('admin_audit_log').insert({
+          action: actionName,
+          target_id: targetId || null,
+          details: details || null,
+          created_at: new Date().toISOString(),
+        });
+      } catch (_) { /* silently skip if table not yet created */ }
+    };
+
     switch (action) {
       case 'get_all_users': {
         const { data: profiles, error } = await supabase
@@ -180,6 +191,8 @@ serve(async (req) => {
 
         if (error) throw error
 
+        await logAdminAction('update_user', userId, { fields: Object.keys(updates) });
+
         return new Response(
           JSON.stringify({ success: true }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -188,7 +201,7 @@ serve(async (req) => {
 
       case 'delete_user': {
         const { userId } = data
-        
+
         // Deletar do auth
         const { error: authError } = await supabase.auth.admin.deleteUser(userId)
         if (authError) console.error('Erro ao deletar do auth:', authError)
@@ -200,6 +213,8 @@ serve(async (req) => {
           .eq('id', userId)
 
         if (error) throw error
+
+        await logAdminAction('delete_user', userId);
 
         return new Response(
           JSON.stringify({ success: true }),
@@ -215,6 +230,8 @@ serve(async (req) => {
           .eq('id', postId)
 
         if (error) throw error
+
+        await logAdminAction('delete_post', postId);
 
         return new Response(
           JSON.stringify({ success: true }),
@@ -236,6 +253,8 @@ serve(async (req) => {
 
         if (error) throw error
 
+        await logAdminAction('respond_support', messageId, { adminEmail });
+
         return new Response(
           JSON.stringify({ success: true }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -244,7 +263,7 @@ serve(async (req) => {
 
       case 'send_broadcast': {
         const { title, message, target } = data
-        
+
         // Buscar usuários alvo
         let query = supabase.from('profiles').select('id, email, name')
         if (target === 'premium') {
@@ -252,17 +271,16 @@ serve(async (req) => {
         } else if (target === 'free') {
           query = query.eq('subscription_type', 'free')
         }
-        
+
         const { data: users, error } = await query
 
         if (error) throw error
 
-        // Aqui você pode integrar com um serviço de email ou notificações push
-        // Por enquanto, apenas retornamos a contagem de usuários que receberiam
-        
+        await logAdminAction('send_broadcast', undefined, { title, target, recipients: users?.length || 0 });
+
         return new Response(
-          JSON.stringify({ 
-            success: true, 
+          JSON.stringify({
+            success: true,
             message: `Broadcast enviado para ${users?.length || 0} usuários`,
             recipients: users?.length || 0
           }),
