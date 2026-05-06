@@ -1,6 +1,7 @@
 ﻿import React, { useState, useMemo } from 'react';
-import { BookOpen, ChevronRight, Clock, GraduationCap, Search, Bookmark, Youtube, Music, X, Heart, CloudRain, Shield, Users, Flame, Cross, Mic2, Headphones, Wifi, Footprints, Sparkles, Church, MessageSquare, Moon, Star, Sunrise, Wind } from 'lucide-react';
+import { BookOpen, ChevronRight, Clock, GraduationCap, Search, Bookmark, Youtube, Music, X, Heart, CloudRain, Shield, Anchor, Users, Flame, Cross, Mic2, Headphones, Wifi, Footprints, Sparkles, Church, MessageSquare, Moon, Star, Sunrise, Wind } from 'lucide-react';
 import { useLiturgicalSeason } from '../hooks/useLiturgicalSeason';
+import { supabase } from '../services/authService';
 
 // --- TIPOS ---
 interface KnowledgeItem {
@@ -375,23 +376,79 @@ const SEASON_BTN: Record<string, string> = {
   ordinary: 'bg-emerald-600 text-white shadow-emerald-500/20',
 };
 
+// Mapa string → componente lucide para ícones vindos do banco
+const ICON_MAP: Record<string, React.ElementType> = {
+  Sunrise, Star, Wind, Moon, Heart, Flame, Cross, Church,
+  Sparkles, Shield, Anchor, CloudRain, Footprints, Mic2,
+  Headphones, Wifi, BookOpen, Users, MessageSquare,
+};
+
+// Converte linhas do Supabase para o formato KnowledgeTrack interno
+const dbRowsToKnowledgeTrack = (rows: any[]): KnowledgeTrack => {
+  const first = rows[0];
+  return {
+    id:          first.track_id,
+    title:       first.track_title,
+    description: `Conteúdo gerado para ${first.season} ${first.year}`,
+    seasons:     [first.season as any],
+    items: rows.map(row => ({
+      id:          row.item_id,
+      title:       row.title,
+      description: row.description,
+      content:     row.content,
+      category:    row.category as 'doctrine' | 'prayer' | 'mass',
+      duration:    row.duration,
+      icon:        ICON_MAP[row.icon_name] ?? BookOpen,
+      videoSuggestion: {
+        title:       row.video_title   ?? 'Vídeo sugerido',
+        url:         row.video_url     ?? '',
+        channelName: row.video_channel ?? '',
+      },
+      musicSuggestion: {
+        title:  row.music_title  ?? 'Música sugerida',
+        url:    row.music_url    ?? '',
+        artist: row.music_artist ?? '',
+      },
+    })),
+  };
+};
+
 const KnowledgeBase: React.FC = () => {
   const season = useLiturgicalSeason();
   const [selectedItem, setSelectedItem] = useState<KnowledgeItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<'all' | 'doctrine' | 'prayer' | 'mass'>('all');
+  const [dbSeasonalTrack, setDbSeasonalTrack] = useState<KnowledgeTrack | null>(null);
+
+  // Busca track sazonal do Supabase — fallback para hardcoded se vazio
+  React.useEffect(() => {
+    if (!supabase) return;
+    const currentYear = new Date().getFullYear();
+    supabase
+      .from('knowledge_seasonal_items')
+      .select('*')
+      .eq('season', season.id)
+      .eq('year', currentYear)
+      .eq('is_active', true)
+      .order('item_order', { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length > 0) setDbSeasonalTrack(dbRowsToKnowledgeTrack(data));
+        else setDbSeasonalTrack(null);
+      });
+  }, [season.id]);
 
   const accentText  = SEASON_ACCENT[season.id] ?? 'text-brand-violet';
   const accentBg    = SEASON_BG[season.id]     ?? 'bg-brand-violet/10 border-brand-violet/20';
   const accentBtn   = SEASON_BTN[season.id]    ?? 'bg-brand-violet text-white shadow-brand-violet/20';
 
-  // Separar track sazonal do restante
+  // Track sazonal: DB tem prioridade; fallback para hardcoded
   const { featuredTrack, otherTracks } = useMemo(() => {
-    const seasonal = STATIC_DATA.filter(t => t.seasons.includes(season.id));
     const always   = STATIC_DATA.filter(t => t.seasons.includes('all'));
-    const featured = seasonal[0] ?? null;
+    const featured = dbSeasonalTrack
+      ?? STATIC_DATA.filter(t => t.seasons.includes(season.id))[0]
+      ?? null;
     return { featuredTrack: featured, otherTracks: always };
-  }, [season.id]);
+  }, [season.id, dbSeasonalTrack]);
 
   const filteredOther = useMemo(() => {
     return otherTracks.map(track => ({

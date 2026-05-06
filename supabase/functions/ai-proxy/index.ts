@@ -67,6 +67,62 @@ const JOURNAL_TOOL = {
   },
 };
 
+const KNOWLEDGE_TOOL = {
+  name: 'generate_knowledge_track',
+  description: 'Gera um track de formação espiritual sazonal com múltiplos itens de alta qualidade.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      track_id:    { type: 'string', description: 'Ex: track-easter-2026' },
+      track_title: { type: 'string', description: 'Ex: Preparação para Pentecostes 2026' },
+      items: {
+        type: 'array',
+        minItems: 3,
+        maxItems: 4,
+        items: {
+          type: 'object',
+          properties: {
+            item_id:       { type: 'string', description: 'slug, ex: pentecostes-novena' },
+            title:         { type: 'string' },
+            description:   { type: 'string', description: 'Frase de gancho — máx 120 caracteres' },
+            content:       { type: 'string', description: 'Parágrafos separados por \\n\\n — 400-600 palavras no total' },
+            category:      { type: 'string', enum: ['doctrine', 'prayer', 'mass'] },
+            duration:      { type: 'string', description: 'Ex: 12 min' },
+            icon_name:     { type: 'string', description: 'Nome exato do ícone lucide: Sunrise, Star, Wind, Moon, Heart, Flame, Cross, Church, Sparkles, Shield, Anchor, CloudRain, Footprints, Mic2, BookOpen, Users, MessageSquare' },
+            video_title:   { type: 'string' },
+            video_url:     { type: 'string', description: 'URL de busca do YouTube' },
+            video_channel: { type: 'string' },
+            music_title:   { type: 'string' },
+            music_url:     { type: 'string', description: 'URL de busca do YouTube' },
+            music_artist:  { type: 'string' },
+          },
+          required: ['item_id', 'title', 'description', 'content', 'category', 'duration', 'icon_name'],
+        },
+      },
+    },
+    required: ['track_id', 'track_title', 'items'],
+  },
+};
+
+const KNOWLEDGE_SYSTEM = `Você é um teólogo católico brasileiro com 20 anos de experiência em formação espiritual para leigos.
+Seu trabalho é criar conteúdo de formação profundo, específico e jamais genérico.
+
+REGRAS RÍGIDAS — QUALQUER VIOLAÇÃO TORNA O CONTEÚDO INACEITÁVEL:
+1. ZERO frases genéricas. Proibido: "fortaleça sua fé", "busque Deus", "caminhe com Jesus", "aprofunde sua espiritualidade".
+   Use: fatos históricos concretos, paradoxos teológicos, perguntas que incomodam produtivamente, citações com fonte real.
+2. Cada item DEVE ser ancorado em UMA fonte real e citada explicitamente:
+   - Encíclica ou documento papal (nome + parágrafo, ex: Gaudium et Spes 22)
+   - Escrito de um santo com a obra citada (ex: "Confissões, VIII, 7" de Santo Agostinho)
+   - Texto litúrgico concreto deste tempo (prefácio, coleta, antífona — com referência litúrgica)
+3. Vídeos: use SOMENTE canais católicos brasileiros reais: Padre Paulo Ricardo, Shalom, Canção Nova, Instituto Hesed, Padre Leonardo Holtz, Minuto com Deus, Italo Marsili.
+4. Música: peças sacras reais com compositor real. Ex: "Veni Creator Spiritus — Gregoriano", "Aleluia — Handel (Messias)", "Tantum Ergo — Tomás Luis de Victoria".
+5. Títulos: formule como pergunta ou afirmação surpreendente. Nada óbvio.
+   BOM: "Por que a Igreja ficou 40 dias sem Aleluia?" | "A oração que Pedro rezou antes do discurso de Pentecostes"
+   RUIM: "Significado do Aleluia" | "A importância da oração"
+6. content: exatamente 3-4 parágrafos densos de 100-150 palavras cada, separados por \\n\\n.
+   O ÚLTIMO parágrafo termina com UMA prática concreta para o dia — simples o suficiente para fazer agora.
+7. Não use asteriscos, negrito, markdown, hífens decorativos ou qualquer formatação. Só texto puro.`;
+
 const FRIEND_SYSTEM = `Voce e o melhor amigo do usuario: jovem, divertido, cheio de empatia e com um conhecimento profundo da fe catolica.
 Nao e padre, nao e professor, nao e chato. Fala em portugues do Brasil, naturalmente, com calor humano.
 NUNCA usa negritos, hifens longos, listas roboticas ou linguagem de sermao.
@@ -232,6 +288,63 @@ serve(async (req: Request) => {
           profileReasoning: json.profileReasoning ?? 'Cada passo, por menor que seja, e um sim a Deus.',
           routine: (json.routine ?? []).map((i: any) => ({ ...i, id: crypto.randomUUID(), completed: false })),
         };
+        break;
+      }
+
+      case 'generateKnowledge': {
+        const { season, year, seasonName, daysIntoSeason, totalDays, nextSeasonName, daysUntilNext } = payload;
+        const userText = `Gere um track de formação espiritual para: ${seasonName} ${year}\nContexto litúrgico: dia ${daysIntoSeason} de ${totalDays} — próxima fronteira: ${nextSeasonName} em ${daysUntilNext} dias.\ntrack_id sugerido: track-${season}-${year}\nGere 3-4 itens de alta qualidade.`;
+        const text = await callClaude(userText, API_KEY, {
+          system: KNOWLEDGE_SYSTEM,
+          maxTokens: 8000,
+          tools: [KNOWLEDGE_TOOL],
+        });
+        const json = JSON.parse(text || '{}');
+        if (!json.track_id) json.track_id = `track-${season}-${year}`;
+        result = { track: json };
+        break;
+      }
+
+      case 'saveKnowledge': {
+        const { season: saveSeason, year: saveYear, track } = payload;
+        const SUPA_URL = Deno.env.get('SUPABASE_URL')!;
+        const SUPA_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const rows = (track.items || []).map((item: any, idx: number) => ({
+          track_id:      track.track_id || `track-${saveSeason}-${saveYear}`,
+          track_title:   track.track_title,
+          season:        saveSeason,
+          year:          saveYear,
+          item_order:    idx,
+          item_id:       item.item_id,
+          title:         item.title,
+          description:   item.description,
+          content:       item.content,
+          category:      item.category,
+          duration:      item.duration || '10 min',
+          icon_name:     item.icon_name || 'BookOpen',
+          video_title:   item.video_title   || null,
+          video_url:     item.video_url     || null,
+          video_channel: item.video_channel || null,
+          music_title:   item.music_title   || null,
+          music_url:     item.music_url     || null,
+          music_artist:  item.music_artist  || null,
+          is_active:     true,
+        }));
+        const saveRes = await fetch(`${SUPA_URL}/rest/v1/knowledge_seasonal_items`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPA_KEY,
+            'Authorization': `Bearer ${SUPA_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify(rows),
+        });
+        if (!saveRes.ok) {
+          const errText = await saveRes.text();
+          throw new Error(`Erro ao salvar no banco: ${errText}`);
+        }
+        result = { saved: rows.length };
         break;
       }
 

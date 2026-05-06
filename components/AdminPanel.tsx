@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, Crown, UserX, Shield, Search, Filter, 
   TrendingUp, Calendar, Clock, Mail, Phone, 
@@ -73,7 +73,7 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSecret }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'analytics' | 'features' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'analytics' | 'features' | 'settings' | 'biblioteca'>('dashboard');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<AdminUser[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
@@ -102,6 +102,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSec
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editUserData, setEditUserData] = useState({ name: '', email: '', phone: '', newPassword: '' });
   
+  // Estados da aba Biblioteca
+  const [biblioLoading, setBiblioLoading] = useState(false);
+  const [biblioSaving, setBiblioSaving] = useState(false);
+  const [biblioError, setBiblioError] = useState<string | null>(null);
+  const [biblioSuccess, setBiblioSuccess] = useState(false);
+  const [generatedTrack, setGeneratedTrack] = useState<any>(null);
+  const [existingTracks, setExistingTracks] = useState<any[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<string>('easter');
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+
   // Contadores de funcionalidades
   const [featureStats, setFeatureStats] = useState({
     totalPosts: 0,
@@ -1444,6 +1454,248 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSec
     </div>
   );
 
+  // Chamar ai-proxy
+  const aiProxyFetch = async (action: string, payload: object) => {
+    const res = await fetch(`${ADMIN_SUPABASE_URL}/functions/v1/ai-proxy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${ADMIN_SUPABASE_KEY}`,
+        'apikey': ADMIN_SUPABASE_KEY,
+      },
+      body: JSON.stringify({ action, payload }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) throw new Error(json.error || 'Erro na chamada AI');
+    return json;
+  };
+
+  const SEASON_LABELS: Record<string, string> = {
+    easter:   'Tempo Pascal',
+    lent:     'Quaresma',
+    advent:   'Advento',
+    christmas:'Tempo do Natal',
+    ordinary: 'Tempo Comum',
+  };
+  const SEASON_COLORS: Record<string, string> = {
+    easter:   'text-amber-500',
+    lent:     'text-purple-500',
+    advent:   'text-violet-500',
+    christmas:'text-amber-400',
+    ordinary: 'text-emerald-500',
+  };
+
+  const loadExistingTracks = async () => {
+    try {
+      const data = await supabaseFetch(
+        'knowledge_seasonal_items?select=track_id,track_title,season,year,is_active&order=created_at.desc',
+        { headers: { 'Prefer': '' } }
+      );
+      const grouped: Record<string, any> = {};
+      (data || []).forEach((row: any) => {
+        if (!grouped[row.track_id]) grouped[row.track_id] = { ...row, count: 0 };
+        grouped[row.track_id].count++;
+      });
+      setExistingTracks(Object.values(grouped));
+    } catch {
+      // silencia — tabela pode não existir ainda
+    }
+  };
+
+  const generateKnowledgeTrack = async () => {
+    setBiblioLoading(true);
+    setBiblioError(null);
+    setBiblioSuccess(false);
+    setGeneratedTrack(null);
+    try {
+      const res = await aiProxyFetch('generateKnowledge', {
+        season: selectedSeason,
+        year: selectedYear,
+        seasonName: SEASON_LABELS[selectedSeason] ?? selectedSeason,
+        daysIntoSeason: 1,
+        totalDays: selectedSeason === 'easter' ? 50 : selectedSeason === 'lent' ? 40 : 28,
+        nextSeasonName: 'próxima época',
+        daysUntilNext: 30,
+      });
+      setGeneratedTrack(res.track);
+    } catch (e: any) {
+      setBiblioError(e.message);
+    } finally {
+      setBiblioLoading(false);
+    }
+  };
+
+  const saveKnowledgeTrack = async () => {
+    if (!generatedTrack) return;
+    setBiblioSaving(true);
+    setBiblioError(null);
+    try {
+      await aiProxyFetch('saveKnowledge', {
+        season: selectedSeason,
+        year: selectedYear,
+        track: generatedTrack,
+      });
+      setBiblioSuccess(true);
+      setGeneratedTrack(null);
+      await loadExistingTracks();
+    } catch (e: any) {
+      setBiblioError(e.message);
+    } finally {
+      setBiblioSaving(false);
+    }
+  };
+
+  const renderBiblioteca = () => (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
+        <BookOpen size={24} className="text-brand-violet" />
+        Biblioteca — Conteúdo Sazonal com IA
+      </h2>
+
+      {/* Gerador */}
+      <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm space-y-4">
+        <h3 className="text-base font-bold text-brand-dark dark:text-white">Gerar novo track</h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Selecione o tempo litúrgico e o ano, clique em Gerar — a IA cria 3-4 itens de formação espiritual profundos e específicos. Revise e salve no banco sem precisar de redeploy.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <select
+            value={selectedSeason}
+            onChange={e => setSelectedSeason(e.target.value)}
+            className="px-4 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-violet/50"
+          >
+            <option value="easter">Tempo Pascal</option>
+            <option value="lent">Quaresma</option>
+            <option value="advent">Advento</option>
+            <option value="christmas">Tempo do Natal</option>
+            <option value="ordinary">Tempo Comum</option>
+          </select>
+          <input
+            type="number"
+            value={selectedYear}
+            onChange={e => setSelectedYear(Number(e.target.value))}
+            min={2026}
+            max={2035}
+            className="w-24 px-4 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-violet/50"
+          />
+          <button
+            onClick={generateKnowledgeTrack}
+            disabled={biblioLoading}
+            className="flex items-center gap-2 px-5 py-2.5 bg-brand-violet text-white rounded-xl text-sm font-bold hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-brand-violet/25"
+          >
+            {biblioLoading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Gerando...
+              </>
+            ) : (
+              <>
+                <Sparkles size={16} />
+                Gerar com IA
+              </>
+            )}
+          </button>
+        </div>
+
+        {biblioError && (
+          <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-500/10 rounded-xl border border-red-200 dark:border-red-500/20">
+            <AlertTriangle size={18} className="text-red-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-red-700 dark:text-red-400">{biblioError}</p>
+          </div>
+        )}
+
+        {biblioSuccess && (
+          <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200 dark:border-emerald-500/20">
+            <Check size={18} className="text-emerald-500" />
+            <p className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">Track salvo com sucesso! Já está disponível na Biblioteca do app.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Preview do track gerado */}
+      {generatedTrack && (
+        <div className="bg-white dark:bg-white/5 rounded-2xl border border-brand-violet/20 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-white/10 flex items-start justify-between gap-4">
+            <div>
+              <span className="text-xs font-black text-brand-violet uppercase tracking-widest">Preview — Revisar antes de salvar</span>
+              <h3 className="text-lg font-bold text-brand-dark dark:text-white mt-1">{generatedTrack.track_title}</h3>
+              <p className="text-sm text-slate-500 mt-0.5">{generatedTrack.items?.length ?? 0} itens · {SEASON_LABELS[selectedSeason]} {selectedYear}</p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => setGeneratedTrack(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors"
+              >
+                Descartar
+              </button>
+              <button
+                onClick={saveKnowledgeTrack}
+                disabled={biblioSaving}
+                className="flex items-center gap-2 px-5 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-600 disabled:opacity-50 transition-all"
+              >
+                {biblioSaving ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Check size={16} />}
+                Salvar no banco
+              </button>
+            </div>
+          </div>
+          <div className="divide-y divide-slate-100 dark:divide-white/10">
+            {(generatedTrack.items || []).map((item: any, idx: number) => (
+              <div key={idx} className="p-6 space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="w-7 h-7 bg-brand-violet/10 text-brand-violet rounded-lg flex items-center justify-center text-xs font-bold">{idx + 1}</span>
+                  <span className={`text-xs font-black uppercase tracking-widest ${item.category === 'doctrine' ? 'text-blue-500' : item.category === 'prayer' ? 'text-purple-500' : 'text-amber-500'}`}>
+                    {item.category === 'doctrine' ? 'Doutrina' : item.category === 'prayer' ? 'Oração' : 'Missa'} · {item.duration}
+                  </span>
+                </div>
+                <p className="font-bold text-brand-dark dark:text-white">{item.title}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{item.description}</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 line-clamp-3 mt-1">{item.content?.split('\n\n')[0]}</p>
+                {(item.video_channel || item.music_artist) && (
+                  <div className="flex gap-4 mt-2 text-xs text-slate-500">
+                    {item.video_channel && <span>📺 {item.video_channel}</span>}
+                    {item.music_artist && <span>🎵 {item.music_artist}</span>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tracks existentes no banco */}
+      <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-brand-dark dark:text-white">Tracks no banco</h3>
+          <button onClick={loadExistingTracks} className="text-xs text-brand-violet hover:underline font-medium">Atualizar</button>
+        </div>
+        {existingTracks.length === 0 ? (
+          <div className="text-center py-8 text-slate-400">
+            <BookOpen size={32} className="mx-auto mb-2 opacity-30" />
+            <p className="text-sm">Nenhum track gerado ainda. Clique em "Gerar com IA" acima.</p>
+            <button onClick={loadExistingTracks} className="mt-3 text-xs text-brand-violet hover:underline">Verificar banco</button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {existingTracks.map((track: any) => (
+              <div key={track.track_id} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg ${SEASON_COLORS[track.season] ?? 'text-brand-violet'} bg-current/10`}>
+                  {track.season === 'easter' ? '✨' : track.season === 'lent' ? '🕯️' : track.season === 'advent' ? '🕯️' : track.season === 'christmas' ? '🌟' : '🌿'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-brand-dark dark:text-white truncate">{track.track_title}</p>
+                  <p className="text-xs text-slate-500">{SEASON_LABELS[track.season]} {track.year} · {track.count} itens</p>
+                </div>
+                <span className={`text-xs font-bold px-2 py-1 rounded-full ${track.is_active ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-white/10 text-slate-500'}`}>
+                  {track.is_active ? 'ativo' : 'inativo'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   // Loading State
   if (loading) {
     return (
@@ -1538,7 +1790,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSec
               { id: 'users', label: 'Usuários', icon: Users },
               { id: 'features', label: 'Funcionalidades', icon: Layers },
               { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-              { id: 'settings', label: 'Configurações', icon: Settings }
+              { id: 'settings', label: 'Configurações', icon: Settings },
+              { id: 'biblioteca', label: 'Biblioteca', icon: BookOpen }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -1565,6 +1818,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSec
         {activeTab === 'features' && renderFeatures()}
         {activeTab === 'analytics' && renderAnalytics()}
         {activeTab === 'settings' && renderSettings()}
+        {activeTab === 'biblioteca' && renderBiblioteca()}
         </div>
       </main>
 
