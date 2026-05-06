@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useMemo } from 'react';
 import { Shield, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Moon, Brain, Coffee, CloudRain, Quote, Sun, Heart, Users, Flame, BookOpen, Star, Clock, MessageCircle, Instagram, Facebook, Sparkles, Calendar, Lock, ShieldCheck, Zap, Trophy, Check, Home, RefreshCw, Smartphone, Cross, Anchor, Target } from 'lucide-react';
 import BrandLogo from './BrandLogo';
@@ -81,8 +81,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
       {/* --- HERO SECTION --- */}
       <section id="top" className="pt-44 pb-24 px-6 relative overflow-hidden flex flex-col items-center text-center">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150vw] h-[100vh] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-violet/20 via-transparent to-transparent pointer-events-none" />
+        <div className={`absolute inset-0 bg-gradient-to-b opacity-20 pointer-events-none ${heroContent.colorGradient}`} />
         
         <div className="max-w-4xl relative z-10 space-y-8 animate-fade-in">
+          {heroContent.seasonBadge && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-sm text-xs font-bold text-slate-600 dark:text-white/80 mx-auto">
+              {heroContent.seasonBadge}
+            </div>
+          )}
           <div className="text-brand-violet text-[10px] font-black uppercase tracking-[0.2em] mx-auto opacity-80">
             {heroContent.eyebrow}
           </div>
