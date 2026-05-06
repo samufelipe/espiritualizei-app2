@@ -4,7 +4,7 @@ import BrandLogo from './BrandLogo';
 import { SUPABASE_URL, SUPABASE_KEY } from '../services/authService';
 
 interface AdminLoginProps {
-  onLogin: (success: boolean) => void;
+  onLogin: (success: boolean, secret: string) => void;
   onBack: () => void;
 }
 
@@ -52,9 +52,9 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
         sessionStorage.setItem('admin_session', JSON.stringify({
           email: emailLower,
           timestamp: Date.now(),
-          expires: Date.now() + (8 * 60 * 60 * 1000), // 8h (expira ao fechar aba)
+          expires: Date.now() + (8 * 60 * 60 * 1000),
         }));
-        onLogin(true);
+        onLogin(true, password);
       } else {
         setError('Credenciais inválidas. Acesso restrito a administradores.');
       }

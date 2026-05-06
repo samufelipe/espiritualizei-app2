@@ -273,8 +273,23 @@ serve(async (req) => {
         }
 
         const { data: users, error } = await query
-
         if (error) throw error
+
+        // Disparar push notification via send-push-notification Edge Function
+        try {
+          const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+          await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${serviceKey}`,
+            },
+            body: JSON.stringify({ title, body: message, send_to_all: target === 'all', data: { type: 'broadcast' } }),
+          })
+        } catch (pushErr) {
+          console.warn('Push broadcast falhou (não bloqueia):', pushErr)
+        }
 
         await logAdminAction('send_broadcast', undefined, { title, target, recipients: users?.length || 0 });
 
@@ -284,6 +299,44 @@ serve(async (req) => {
             message: `Broadcast enviado para ${users?.length || 0} usuários`,
             recipients: users?.length || 0
           }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      case 'publish_content': {
+        const { contentType, content } = data
+        const now = new Date().toISOString()
+
+        if (contentType === 'post') {
+          const { error } = await supabase.from('posts').insert({
+            user_id: 'espiritualizei-official',
+            user_name: 'Espiritualizei',
+            user_avatar: 'https://www.espiritualizei.com/icon-512.png',
+            content,
+            type: 'testimony',
+            timestamp: now,
+            likes: 0,
+            comments_count: 0,
+            is_official: true,
+          })
+          if (error) throw error
+        } else {
+          const { error } = await supabase.from('prayer_intentions').insert({
+            user_id: 'espiritualizei-official',
+            user_name: 'Espiritualizei',
+            content,
+            created_at: now,
+            is_anonymous: false,
+            prayer_count: 0,
+            is_official: true,
+          })
+          if (error) throw error
+        }
+
+        await logAdminAction('publish_content', undefined, { contentType, preview: content.substring(0, 100) })
+
+        return new Response(
+          JSON.stringify({ success: true }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }

@@ -196,9 +196,10 @@ async function sendEmailNotifications(
       return;
     }
 
-    // Enviar e-mail para cada usuário (limitado a 10 por execução)
-    const batch = users.slice(0, 10);
-    
+    // Processar em lotes de 50 para não exceder timeout da Edge Function (60s)
+    const BATCH_SIZE = 50;
+    const batch = users.slice(0, BATCH_SIZE);
+
     for (const user of batch) {
       if (!user.email) continue;
 

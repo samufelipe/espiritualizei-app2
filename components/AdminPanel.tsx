@@ -69,9 +69,10 @@ interface FeatureUsage {
 interface AdminPanelProps {
   onLogout: () => void;
   onBackToApp: () => void;
+  adminSecret: string;
 }
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSecret }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'analytics' | 'features' | 'settings'>('dashboard');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<AdminUser[]>([]);
@@ -149,6 +150,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     }
     
     return response.json();
+  };
+
+  // Todas as operações de escrita/destrutivas passam pela Edge Function (service_role + audit log)
+  const adminApiFetch = async (body: { action: string; data?: object }) => {
+    const res = await fetch(`${ADMIN_SUPABASE_URL}/functions/v1/admin-data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${ADMIN_SUPABASE_KEY}`,
+        'apikey': ADMIN_SUPABASE_KEY,
+        'x-admin-secret': adminSecret,
+      },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || `Erro ${res.status}`);
+    return json;
   };
 
   // Função para contar registros
@@ -347,14 +365,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     setActionLoading(true);
     try {
       const newStatus = !user.is_premium;
-      
-      await supabaseFetch(`profiles?id=eq.${user.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ 
-          is_premium: newStatus,
-          subscription_status: newStatus ? 'active' : 'free',
-          premium_since: newStatus ? new Date().toISOString() : null
-        })
+
+      await adminApiFetch({
+        action: 'update_user',
+        data: {
+          userId: user.id,
+          updates: {
+            is_premium: newStatus,
+            subscription_status: newStatus ? 'active' : 'free',
+            premium_since: newStatus ? new Date().toISOString() : null,
+          },
+        },
       });
       
       setUsers(users.map(u => u.id === user.id ? { 
@@ -377,10 +398,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     setActionLoading(true);
     try {
       const newStatus = !user.is_suspended;
-      
-      await supabaseFetch(`profiles?id=eq.${user.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ is_suspended: newStatus })
+
+      await adminApiFetch({
+        action: 'update_user',
+        data: { userId: user.id, updates: { is_suspended: newStatus } },
       });
       
       setUsers(users.map(u => u.id === user.id ? { ...u, is_suspended: newStatus } : u));
@@ -399,10 +420,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     
     setActionLoading(true);
     try {
-      await supabaseFetch(`profiles?id=eq.${user.id}`, {
-        method: 'DELETE'
-      });
-      
+      await adminApiFetch({ action: 'delete_user', data: { userId: user.id } });
+
       setUsers(users.filter(u => u.id !== user.id));
       setShowUserModal(false);
       alert('Usuário excluído com sucesso!');
@@ -422,57 +441,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     try {
       const now = new Date().toISOString();
       
-      if (publishType === 'post') {
-        // Criar post no feed da comunidade
-        await supabaseFetch('posts', {
-          method: 'POST',
-          body: JSON.stringify({
-            user_id: 'espiritualizei-official',
-            user_name: 'Espiritualizei',
-            user_avatar: 'https://www.espiritualizei.com/icon-512.png',
-            content: publishContent,
-            type: 'testimony',
-            timestamp: now,
-            likes: 0,
-            comments_count: 0,
-            is_official: true
-          })
-        });
-      } else {
-        // Criar pedido de oração
-        await supabaseFetch('prayer_intentions', {
-          method: 'POST',
-          body: JSON.stringify({
-            user_id: 'espiritualizei-official',
-            user_name: 'Espiritualizei',
-            content: publishContent,
-            created_at: now,
-            is_anonymous: false,
-            prayer_count: 0,
-            is_official: true
-          })
-        });
-      }
-      
-      // Criar notificação para todos os usuários
-      const notifications = users.map(user => ({
-        user_id: user.id,
-        type: publishType === 'post' ? 'new_post' : 'prayer_request',
-        title: publishType === 'post' ? 'Nova publicação do Espiritualizei' : 'Pedido de oração do Espiritualizei',
-        message: publishContent.substring(0, 100) + (publishContent.length > 100 ? '...' : ''),
-        created_at: now,
-        read: false
-      }));
-      
-      // Inserir notificações em lote (se a tabela existir)
-      try {
-        await supabaseFetch('notifications', {
-          method: 'POST',
-          body: JSON.stringify(notifications)
-        });
-      } catch (e) {
-        console.log('Tabela de notificações não existe, pulando...');
-      }
+      await adminApiFetch({
+        action: 'publish_content',
+        data: { contentType: publishType, content: publishContent },
+      });
       
       setShowPublishModal(false);
       setPublishContent('');
@@ -503,14 +475,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
     
     setActionLoading(true);
     try {
-      // Atualizar profile
-      await supabaseFetch(`profiles?id=eq.${selectedUser.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          name: editUserData.name,
-          email: editUserData.email,
-          phone: editUserData.phone
-        })
+      await adminApiFetch({
+        action: 'update_user',
+        data: {
+          userId: selectedUser.id,
+          updates: { name: editUserData.name, email: editUserData.email, phone: editUserData.phone },
+        },
       });
       
       // Se tiver nova senha, atualizar via Admin API do Supabase
@@ -1759,14 +1729,27 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp }) => {
                 </select>
               </div>
               <button
-                onClick={() => {
-                  alert('Funcionalidade de notificação em desenvolvimento');
-                  setShowBroadcastModal(false);
+                onClick={async () => {
+                  setActionLoading(true);
+                  try {
+                    const result = await adminApiFetch({
+                      action: 'send_broadcast',
+                      data: { title: broadcastTitle, message: broadcastMessage, target: broadcastTarget },
+                    });
+                    setShowBroadcastModal(false);
+                    setBroadcastTitle('');
+                    setBroadcastMessage('');
+                    alert(`Broadcast enviado para ${result.recipients || 0} usuários.`);
+                  } catch (e: any) {
+                    alert('Erro ao enviar broadcast: ' + e.message);
+                  } finally {
+                    setActionLoading(false);
+                  }
                 }}
-                disabled={!broadcastTitle || !broadcastMessage}
+                disabled={!broadcastTitle || !broadcastMessage || actionLoading}
                 className="w-full py-3 bg-brand-violet text-white rounded-xl font-medium hover:bg-brand-violet/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Enviar Notificação
+                {actionLoading ? 'Enviando...' : 'Enviar Notificação'}
               </button>
             </div>
           </div>

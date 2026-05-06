@@ -45,6 +45,7 @@ const TabLoader = () => (
 
 const App: React.FC = () => {
   const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'checkout' | 'welcome_premium' | 'app' | 'admin_login' | 'admin' | 'reset_password'>('landing');
+  const [adminSecret, setAdminSecret] = useState('');
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.DASHBOARD);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showDailyInspiration, setShowDailyInspiration] = useState(false);
@@ -693,9 +694,10 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
       
       {/* Painel Administrativo */}
       {viewState === 'admin_login' && (
-        <AdminLogin 
-          onLogin={(success) => {
+        <AdminLogin
+          onLogin={(success, secret) => {
             if (success) {
+              setAdminSecret(secret);
               setViewState('admin');
             }
           }}
@@ -705,11 +707,13 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
           }}
         />
       )}
-      
+
       {viewState === 'admin' && (
-        <AdminPanel 
+        <AdminPanel
+          adminSecret={adminSecret}
           onLogout={() => {
             clearAdminSession();
+            setAdminSecret('');
             window.history.pushState({}, '', '/');
             setViewState('landing');
           }}
