@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, Crown, UserX, Shield, Search, Filter, 
   TrendingUp, Calendar, Clock, Mail, Phone, 
@@ -1559,17 +1559,22 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSec
           Selecione o tempo litúrgico e o ano, clique em Gerar — a IA cria 3-4 itens de formação espiritual profundos e específicos. Revise e salve no banco sem precisar de redeploy.
         </p>
         <div className="flex flex-wrap gap-3">
-          <select
-            value={selectedSeason}
-            onChange={e => setSelectedSeason(e.target.value)}
-            className="px-4 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-violet/50"
-          >
-            <option value="easter">Tempo Pascal</option>
-            <option value="lent">Quaresma</option>
-            <option value="advent">Advento</option>
-            <option value="christmas">Tempo do Natal</option>
-            <option value="ordinary">Tempo Comum</option>
-          </select>
+          <div className="flex flex-wrap gap-2">
+            {(['easter','lent','advent','christmas','ordinary'] as const).map(s => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSelectedSeason(s)}
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                  selectedSeason === s
+                    ? 'bg-brand-violet text-white border-brand-violet shadow-lg shadow-brand-violet/25'
+                    : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-brand-violet/50'
+                }`}
+              >
+                {SEASON_LABELS[s]}
+              </button>
+            ))}
+          </div>
           <input
             type="number"
             value={selectedYear}
