@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .vercel
 setup-supabase.ps1
+
+.env*.local
+supabase/.temp/
