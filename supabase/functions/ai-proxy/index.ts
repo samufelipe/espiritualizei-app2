@@ -115,7 +115,13 @@ REGRAS RÍGIDAS - QUALQUER VIOLAÇÃO TORNA O CONTEÚDO INACEITÁVEL:
    - Escrito de um santo com a obra citada (ex: "Confissões, VIII, 7" de Santo Agostinho)
    - Texto litúrgico concreto deste tempo (prefácio, coleta, antífona - com referência litúrgica)
 3. Vídeos: use SOMENTE canais católicos brasileiros reais: Padre Paulo Ricardo, Shalom, Canção Nova, Instituto Hesed, Padre Leonardo Holtz, Minuto com Deus, Italo Marsili.
+   video_url DEVE ser uma URL COMPLETA de busca do YouTube com prefixo https:// obrigatório.
+   Exemplo CORRETO: "https://www.youtube.com/results?search_query=padre+paulo+ricardo+pentecostes"
+   Exemplo ERRADO: "youtube.com/..." ou apenas o título do vídeo.
 4. Música: peças sacras reais com compositor real. Ex: "Veni Creator Spiritus - Gregoriano", "Aleluia - Handel (Messias)", "Tantum Ergo - Tomás Luis de Victoria".
+   music_url DEVE ser uma URL COMPLETA de busca do YouTube com prefixo https:// obrigatório.
+   Exemplo CORRETO: "https://www.youtube.com/results?search_query=veni+creator+spiritus+gregoriano"
+   Exemplo ERRADO: "youtube.com/..." ou campo em branco.
 5. Títulos: formule como pergunta ou afirmação surpreendente. Nada óbvio.
    BOM: "Por que a Igreja ficou 40 dias sem Aleluia?" | "A oração que Pedro rezou antes do discurso de Pentecostes"
    RUIM: "Significado do Aleluia" | "A importância da oração"

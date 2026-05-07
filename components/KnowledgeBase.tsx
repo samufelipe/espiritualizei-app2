@@ -496,6 +496,15 @@ const KnowledgeBase: React.FC = () => {
     </div>
   );
 
+  const openUrl = (url: string) => {
+    if (!url) return;
+    // Garantir protocolo absoluto — IA pode gerar URLs sem https://
+    const absolute = url.startsWith('http') ? url : `https://${url}`;
+    // _system abre no browser externo (Safari/Chrome) no Capacitor nativo;
+    // em browsers web é tratado como janela nomeada (similar a _blank)
+    window.open(absolute, '_system');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black/20 pb-32 animate-fade-in">
       {/* Header */}
@@ -636,7 +645,7 @@ const KnowledgeBase: React.FC = () => {
               <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => selectedItem.videoSuggestion.url && window.open(selectedItem.videoSuggestion.url, '_blank')}
+                  onClick={(e) => { e.stopPropagation(); openUrl(selectedItem.videoSuggestion.url); }}
                   disabled={!selectedItem.videoSuggestion.url}
                   className="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-500/20 hover:scale-[1.02] transition-all text-left disabled:opacity-40 disabled:cursor-default w-full">
                   <div className="w-12 h-12 bg-red-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 shrink-0">
@@ -649,7 +658,7 @@ const KnowledgeBase: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => selectedItem.musicSuggestion.url && window.open(selectedItem.musicSuggestion.url, '_blank')}
+                  onClick={(e) => { e.stopPropagation(); openUrl(selectedItem.musicSuggestion.url); }}
                   disabled={!selectedItem.musicSuggestion.url}
                   className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-500/20 hover:scale-[1.02] transition-all text-left disabled:opacity-40 disabled:cursor-default w-full">
                   <div className="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
