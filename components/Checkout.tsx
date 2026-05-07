@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check, Shield, Zap, Lock, ArrowRight, LogOut, RefreshCw, BookOpen, Users, Star, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
@@ -12,33 +12,33 @@ interface CheckoutProps {
   onLogout: () => void;
 }
 
-/**
- * CONFIGURAÇÃO DO CHECKOUT:
- * 1. Link base da Cakto para o produto Espiritualizei Premium
- * 2. O userId e email são passados como parâmetros para o webhook identificar o usuário
- * 3. A URL de redirecionamento após pagamento deve ser: https://www.espiritualizei.com/?status=success
- */
-const CAKTO_BASE_URL = "https://pay.cakto.com.br/iwruwu8_691446";
+import { SUPABASE_URL, SUPABASE_KEY } from '../services/authService';
 
 const Checkout: React.FC<CheckoutProps> = ({ onSuccess, onVerifyPayment, userName, userEmail, userId, onLogout }) => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
 
-  const handleGoToPayment = () => {
+  const handleGoToPayment = async () => {
     setIsRedirecting(true);
-    
-    // Construir URL com parâmetros para identificação do usuário no webhook
-    // ref = userId (usado pelo webhook para ativar o premium)
-    // email = email do usuário (para pré-preencher no checkout)
-    // src = origem do checkout (para analytics)
-    const checkoutUrl = new URL(CAKTO_BASE_URL);
-    checkoutUrl.searchParams.set('ref', userId);
-    checkoutUrl.searchParams.set('email', userEmail);
-    checkoutUrl.searchParams.set('src', 'app');
-    
-    // Redireciona para o checkout da Cakto
-    // O webhook da Cakto receberá o 'ref' (userId) e ativará o premium automaticamente
-    window.location.href = checkoutUrl.toString();
+    setCheckoutError('');
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+        },
+        body: JSON.stringify({ userId, email: userEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error || 'Erro ao criar sessão de pagamento');
+      window.location.href = data.url;
+    } catch (err: any) {
+      setCheckoutError('Não foi possível abrir o checkout. Tente novamente.');
+      setIsRedirecting(false);
+    }
   };
 
   return (
@@ -92,6 +92,9 @@ const Checkout: React.FC<CheckoutProps> = ({ onSuccess, onVerifyPayment, userNam
               ))}
            </div>
 
+           {checkoutError && (
+             <p className="text-red-400 text-xs text-center mb-3 font-medium">{checkoutError}</p>
+           )}
            <button
              onClick={handleGoToPayment}
              disabled={isRedirecting}

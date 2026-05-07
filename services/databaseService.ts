@@ -548,7 +548,7 @@ export const upgradeUserToPremium = async (userId: string) => {
       // Registrar log de pagamento para auditoria
       await supabase!.from('payment_logs').insert([{
         user_id: userId,
-        provider: 'cakto',
+        provider: 'stripe',
         status: 'completed',
         payload: { amount: 37.90, date: new Date().toISOString() }
       }]);

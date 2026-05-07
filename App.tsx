@@ -105,13 +105,12 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Verificação de pagamento bem-sucedido via URL
+  // Verificação de retorno do Stripe Checkout
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const status = params.get('status');
-    const isSuccess = status === 'success' || status === 'paid' || status === 'approved';
+    const stripeSession = params.get('stripe_session');
 
-    if (!isSuccess) return;
+    if (!stripeSession) return;
 
     const session = getSession();
     if (!session?.user?.id) return;
