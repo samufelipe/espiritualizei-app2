@@ -48,11 +48,11 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
       });
 
       if (res.ok) {
-        // Armazena apenas metadados da sessão - senha nunca persiste no storage
         sessionStorage.setItem('admin_session', JSON.stringify({
           email: emailLower,
           timestamp: Date.now(),
           expires: Date.now() + (8 * 60 * 60 * 1000),
+          secret: password,
         }));
         onLogin(true, password);
       } else {
@@ -189,4 +189,17 @@ export const checkAdminSession = (): boolean => {
 // Função para limpar sessão admin
 export const clearAdminSession = () => {
   sessionStorage.removeItem('admin_session');
+};
+
+// Recupera o segredo admin da sessão ativa (para restaurar após refresh)
+export const getAdminSecret = (): string => {
+  try {
+    const session = sessionStorage.getItem('admin_session');
+    if (!session) return '';
+    const { secret, expires } = JSON.parse(session);
+    if (Date.now() >= expires) return '';
+    return secret || '';
+  } catch {
+    return '';
+  }
 };

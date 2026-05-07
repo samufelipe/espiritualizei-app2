@@ -14,7 +14,7 @@ import InstallPWAGuide from './components/InstallPWAGuide';
 import NotificationPermissionModal from './components/NotificationPermissionModal';
 import Paywall from './components/Paywall';
 import AdminPanel from './components/AdminPanel';
-import AdminLogin, { checkAdminSession, clearAdminSession } from './components/AdminLogin';
+import AdminLogin, { checkAdminSession, clearAdminSession, getAdminSecret } from './components/AdminLogin';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { requestNotificationPermission } from './services/notificationService';
@@ -95,6 +95,7 @@ const App: React.FC = () => {
       // Verificar se já tem sessão admin válida
       if (checkAdminSession()) {
         console.log('🔐 Sessão admin válida, redirecionando para painel');
+        setAdminSecret(getAdminSecret());
         setViewState('admin');
       } else {
         console.log('🔑 Sem sessão admin, mostrando login');
