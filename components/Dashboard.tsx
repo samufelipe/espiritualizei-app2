@@ -202,8 +202,8 @@ const Dashboard: React.FC<DashboardProps> = ({
      // ❤️ Vermelho - Espírito Santo, Amor e Martírio
      if (color.includes('vermelho')) return { gradient: 'bg-gradient-to-br from-[#DC2626] to-[#7F1D1D]', meaning: 'Fogo do Espírito Santo.', text: 'text-red-100' };
      
-     // 🤍 Branco - Alegria, Glória e Ressurreição
-     if (color.includes('branco')) return { gradient: 'bg-gradient-to-br from-[#F8FAFC] via-[#E2E8F0] to-[#CBD5E1]', meaning: 'Glória e Ressurreição.', text: 'text-slate-700' };
+     // 🤍 Branco - Alegria, Glória e Ressurreição (ouro litúrgico — vestes brancas = glória)
+     if (color.includes('branco')) return { gradient: 'bg-gradient-to-br from-[#D4AF37] via-[#B8860B] to-[#6B4C00]', meaning: 'Glória e Ressurreição.', text: 'text-amber-100' };
      
      // 💜 Roxo - Conversão, Silêncio e Preparação
      if (color.includes('roxo') || color.includes('violeta') || color.includes('purple')) return { gradient: 'bg-gradient-to-br from-[#7C3AED] to-[#4C1D95]', meaning: 'Conversão e Preparação.', text: 'text-purple-100' };
