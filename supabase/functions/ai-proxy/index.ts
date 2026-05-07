@@ -118,9 +118,13 @@ REGRAS RÍGIDAS - QUALQUER VIOLAÇÃO TORNA O CONTEÚDO INACEITÁVEL:
    video_url DEVE ser uma URL COMPLETA de busca do YouTube com prefixo https:// obrigatório.
    Exemplo CORRETO: "https://www.youtube.com/results?search_query=padre+paulo+ricardo+pentecostes"
    Exemplo ERRADO: "youtube.com/..." ou apenas o título do vídeo.
-4. Música: peças sacras reais com compositor real. Ex: "Veni Creator Spiritus - Gregoriano", "Aleluia - Handel (Messias)", "Tantum Ergo - Tomás Luis de Victoria".
+4. Música: escolha uma música católica CONHECIDA e coerente com o TEMA ESPECÍFICO do item.
+   Pode ser: hino litúrgico, canto de missa famoso, música de adoração popular, MPB sacra, coral.
+   Exemplos: "Veni Creator Spiritus - Gregoriano", "Aleluia - Handel", "Ubi Caritas - Taizé",
+   "Senhor Piedade - Pe. Zezinho", "Pão da Vida - Comunidade Shalom", "Ave Maria - Schubert".
+   Não precisa ser erudito - pode ser qualquer música católica reconhecida que combine com o tema.
    music_url DEVE ser uma URL COMPLETA de busca do YouTube com prefixo https:// obrigatório.
-   Exemplo CORRETO: "https://www.youtube.com/results?search_query=veni+creator+spiritus+gregoriano"
+   Exemplo CORRETO: "https://www.youtube.com/results?search_query=senhor+piedade+pe+zezinho"
    Exemplo ERRADO: "youtube.com/..." ou campo em branco.
 5. Títulos: formule como pergunta ou afirmação surpreendente. Nada óbvio.
    BOM: "Por que a Igreja ficou 40 dias sem Aleluia?" | "A oração que Pedro rezou antes do discurso de Pentecostes"
@@ -336,13 +340,13 @@ serve(async (req: Request) => {
           music_artist:  item.music_artist  || null,
           is_active:     true,
         }));
-        const saveRes = await fetch(`${SUPA_URL}/rest/v1/knowledge_seasonal_items`, {
+        const saveRes = await fetch(`${SUPA_URL}/rest/v1/knowledge_seasonal_items?on_conflict=track_id,item_id`, {
           method: 'POST',
           headers: {
             'apikey': SUPA_KEY,
             'Authorization': `Bearer ${SUPA_KEY}`,
             'Content-Type': 'application/json',
-            'Prefer': 'return=minimal',
+            'Prefer': 'resolution=merge-duplicates,return=minimal',
           },
           body: JSON.stringify(rows),
         });

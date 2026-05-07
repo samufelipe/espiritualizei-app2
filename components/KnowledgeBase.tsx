@@ -665,7 +665,7 @@ const KnowledgeBase: React.FC = () => {
                     <Music size={24} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Música para Orar</p>
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Música Sugerida</p>
                     <p className="text-sm font-bold text-brand-dark dark:text-white truncate max-w-[180px]">{selectedItem.musicSuggestion.title}</p>
                   </div>
                 </button>
