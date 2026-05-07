@@ -202,17 +202,29 @@ serve(async (req) => {
       case 'delete_user': {
         const { userId } = data
 
-        // Deletar do auth
-        const { error: authError } = await supabase.auth.admin.deleteUser(userId)
-        if (authError) console.error('Erro ao deletar do auth:', authError)
+        // 1. Limpar tabelas sem FK declarada para evitar dados orphaos
+        const tablesToClean = [
+          'push_tokens', 'push_subscriptions', 'challenge_participants',
+          'routine_completions', 'posts', 'routines', 'intentions',
+          'prayer_intercessions', 'notification_preferences',
+        ]
+        for (const table of tablesToClean) {
+          await supabase.from(table).delete().eq('user_id', userId)
+        }
 
-        // Deletar do profiles
-        const { error } = await supabase
+        // 2. Deletar do profiles — o CASCADE cuida automaticamente de:
+        //    journal_entries, notifications, payment_logs,
+        //    prayer_intentions, prayer_interactions, user_routines
+        const { error: profileError } = await supabase
           .from('profiles')
           .delete()
           .eq('id', userId)
 
-        if (error) throw error
+        if (profileError) throw profileError
+
+        // 3. Deletar do auth (apos o profile para evitar race condition com triggers)
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId)
+        if (authError) console.error('Aviso: erro ao deletar do auth:', authError)
 
         await logAdminAction('delete_user', userId);
 
