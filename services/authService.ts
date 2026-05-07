@@ -70,6 +70,7 @@ export const mapProfileFromDB = (dbProfile: any, email: string): UserProfile => 
   lastConfessionAt: dbProfile.last_confession_at ? new Date(dbProfile.last_confession_at) : undefined,
   confessionFrequency: dbProfile.confession_frequency,
   bio: dbProfile.bio,
+  activityHistory: dbProfile.activity_history || [],
 });
 
 /**
@@ -290,6 +291,7 @@ export const updateUserProfile = async (u: UserProfile): Promise<boolean> => {
         subscription_status: u.subscriptionStatus,
         subscription_renewal_at: u.subscriptionRenewalAt?.toISOString(),
         bio: u.bio,
+        activity_history: u.activityHistory ?? [],
       }).eq('id', u.id);
       
       if (error) {
