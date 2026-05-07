@@ -18,7 +18,7 @@ import AdminLogin, { checkAdminSession, clearAdminSession, getAdminSecret } from
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { requestNotificationPermission } from './services/notificationService';
-import { registerUser, getSession, logoutUser, updateUserProfile, syncUserFromServer } from './services/authService';
+import { registerUser, getSession, logoutUser, updateUserProfile, syncUserFromServer, SUPABASE_URL, SUPABASE_KEY } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
@@ -57,6 +57,7 @@ const App: React.FC = () => {
   const [socialInitialTab, setSocialInitialTab] = useState<'ranking' | 'chat'>('ranking');
   const [errorToast, setErrorToast] = useState('');
   const initializationRef = useRef(false);
+  const paymentVerificationRef = useRef(false);
 
   const [user, setUser] = useState<UserProfile>({
     id: 'guest', name: 'Visitante', email: '', level: 1, currentXP: 0, nextLevelXP: 100, streakDays: 0, joinedDate: new Date()
@@ -115,29 +116,43 @@ const App: React.FC = () => {
     const session = getSession();
     if (!session?.user?.id) return;
 
+    // Sinaliza para initSession não sobrescrever o viewState de pagamento
+    paymentVerificationRef.current = true;
     window.history.replaceState({}, document.title, '/');
     setViewState('verifying_payment');
 
     (async () => {
+      // 1. Tentar sincronizar — webhook pode já ter disparado
       const serverUser = await syncUserFromServer(session.user.id, session.user.email);
-
       if (serverUser?.isPremium) {
         setUser(serverUser);
         setViewState('welcome_premium');
         return;
       }
 
+      // 2. Fallback seguro: verificar sessão no Stripe via Edge Function (server-side)
+      //    Valida que o sessionId pertence a este usuário e que o pagamento foi confirmado
       try {
-        await upgradeUserToPremium(session.user.id);
-        const freshUser = await syncUserFromServer(session.user.id, session.user.email);
-        if (freshUser) setUser(freshUser);
-        if (freshUser?.isPremium) {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-stripe-session`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+          },
+          body: JSON.stringify({ sessionId: stripeSession, userId: session.user.id }),
+        });
+        const result = await res.json();
+
+        if (result.isPremium) {
+          const freshUser = await syncUserFromServer(session.user.id, session.user.email);
+          if (freshUser) setUser(freshUser);
           setViewState('welcome_premium');
         } else {
           setViewState('checkout');
         }
       } catch (err) {
-        console.error('❌ Erro ao ativar premium:', err);
+        console.error('Erro ao verificar sessao:', err);
         setViewState('checkout');
       }
     })();
@@ -159,10 +174,14 @@ const App: React.FC = () => {
     initNative();
 
     const initSession = async () => {
-      // NÃO inicializar se estiver na rota admin
+      // NÃO inicializar se estiver na rota admin ou em verificação de pagamento
       const path = window.location.pathname;
       if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
-        console.log('🚫 Pulando initSession - rota admin detectada');
+        console.log('Pulando initSession - rota admin detectada');
+        return;
+      }
+      if (paymentVerificationRef.current) {
+        console.log('Pulando initSession - verificacao de pagamento em andamento');
         return;
       }
       
