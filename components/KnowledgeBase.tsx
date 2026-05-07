@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { BookOpen, ChevronRight, Clock, GraduationCap, Search, Bookmark, Youtube, Music, X, Heart, CloudRain, Shield, Anchor, Users, Flame, Cross, Mic2, Headphones, Wifi, Footprints, Sparkles, Church, MessageSquare, Moon, Star, Sunrise, Wind } from 'lucide-react';
 import { useLiturgicalSeason } from '../hooks/useLiturgicalSeason';
 import { supabase } from '../services/authService';
@@ -634,26 +634,32 @@ const KnowledgeBase: React.FC = () => {
               </div>
               {/* Suggestions */}
               <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <a href={selectedItem.videoSuggestion.url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-500/20 hover:scale-[1.02] transition-all">
-                  <div className="w-12 h-12 bg-red-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20">
+                <button
+                  type="button"
+                  onClick={() => selectedItem.videoSuggestion.url && window.open(selectedItem.videoSuggestion.url, '_blank')}
+                  disabled={!selectedItem.videoSuggestion.url}
+                  className="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-500/20 hover:scale-[1.02] transition-all text-left disabled:opacity-40 disabled:cursor-default w-full">
+                  <div className="w-12 h-12 bg-red-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 shrink-0">
                     <Youtube size={24} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Vídeo Sugerido</p>
                     <p className="text-sm font-bold text-brand-dark dark:text-white truncate max-w-[180px]">{selectedItem.videoSuggestion.title}</p>
                   </div>
-                </a>
-                <a href={selectedItem.musicSuggestion.url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-500/20 hover:scale-[1.02] transition-all">
-                  <div className="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectedItem.musicSuggestion.url && window.open(selectedItem.musicSuggestion.url, '_blank')}
+                  disabled={!selectedItem.musicSuggestion.url}
+                  className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-500/20 hover:scale-[1.02] transition-all text-left disabled:opacity-40 disabled:cursor-default w-full">
+                  <div className="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
                     <Music size={24} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Música para Orar</p>
                     <p className="text-sm font-bold text-brand-dark dark:text-white truncate max-w-[180px]">{selectedItem.musicSuggestion.title}</p>
                   </div>
-                </a>
+                </button>
               </div>
             </div>
             {/* Modal Footer */}
