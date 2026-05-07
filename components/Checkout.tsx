@@ -5,6 +5,7 @@ import BrandLogo from './BrandLogo';
 
 interface CheckoutProps {
   onSuccess: () => void;
+  onVerifyPayment?: () => Promise<void>;
   userName: string;
   userEmail: string;
   userId: string;
@@ -19,8 +20,9 @@ interface CheckoutProps {
  */
 const CAKTO_BASE_URL = "https://pay.cakto.com.br/iwruwu8_691446";
 
-const Checkout: React.FC<CheckoutProps> = ({ onSuccess, userName, userEmail, userId, onLogout }) => {
+const Checkout: React.FC<CheckoutProps> = ({ onSuccess, onVerifyPayment, userName, userEmail, userId, onLogout }) => {
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const handleGoToPayment = () => {
     setIsRedirecting(true);
@@ -108,29 +110,43 @@ const Checkout: React.FC<CheckoutProps> = ({ onSuccess, userName, userEmail, use
                   <Shield size={18} className="text-white" />
                 </div>
                 <div>
-                  <h4 className="font-black text-brand-dark dark:text-white text-sm mb-1">Importante: Como funciona o pagamento</h4>
+                  <h4 className="font-black text-brand-dark dark:text-white text-sm mb-1">Como funciona o pagamento</h4>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Você será redirecionado para o ambiente seguro da <strong>Cakto</strong> para concluir o pagamento.
                   </p>
                 </div>
               </div>
-              
+
               <div className="bg-white dark:bg-white/5 rounded-xl p-4 border border-blue-200 dark:border-blue-800/30">
                 <p className="text-xs font-bold text-brand-dark dark:text-white mb-2 flex items-center gap-2">
                   <ArrowRight size={14} className="text-blue-500" />
                   Após concluir o pagamento:
                 </p>
                 <ol className="text-xs text-slate-600 dark:text-slate-300 space-y-2 ml-5 list-decimal">
-                  <li>Volte para o <strong>Espiritualizei</strong> (você pode fechar a aba da Cakto)</li>
-                  <li>Faça <strong>login novamente</strong> com seu e-mail e senha</li>
-                  <li>Seu <strong>acesso Premium estará liberado</strong> automaticamente! 🎉</li>
+                  <li>Você será <strong>redirecionado automaticamente</strong> para o Espiritualizei</li>
+                  <li>Seu <strong>acesso Premium será liberado</strong> em segundos</li>
                 </ol>
               </div>
-              
+
               <p className="text-[10px] text-center text-slate-500 dark:text-slate-400 mt-3 font-medium italic">
                 A ativação é automática e leva apenas alguns segundos.
               </p>
            </div>
+
+           {onVerifyPayment && (
+             <button
+               type="button"
+               onClick={async () => {
+                 setIsVerifying(true);
+                 await onVerifyPayment();
+                 setIsVerifying(false);
+               }}
+               disabled={isVerifying}
+               className="w-full mt-4 py-3 rounded-xl border border-brand-violet/30 text-brand-violet font-bold text-sm hover:bg-brand-violet/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+             >
+               {isVerifying ? <><Loader2 size={16} className="animate-spin" /> Verificando...</> : <><RefreshCw size={16} /> Já paguei — Verificar meu acesso</>}
+             </button>
+           )}
         </div>
         
         <div className="flex flex-col items-center gap-6 mb-10">

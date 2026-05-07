@@ -536,9 +536,10 @@ export const upgradeUserToPremium = async (userId: string) => {
     try {
       const { error } = await supabase!
         .from('profiles')
-        .update({ 
-          is_premium: true, 
-          subscription_status: 'active' 
+        .update({
+          is_premium: true,
+          subscription_status: 'active',
+          subscription_renewal_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         })
         .eq('id', userId);
       

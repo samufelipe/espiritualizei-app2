@@ -20,36 +20,43 @@ serve(async (req) => {
     const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const caktoSecret = Deno.env.get('CAKTO_CLIENT_SECRET') ?? ''
 
+    // Fail-closed: secret obrigatório em produção
+    if (!caktoSecret) {
+      console.error('❌ CAKTO_CLIENT_SECRET não configurado — bloqueando por segurança');
+      return new Response(JSON.stringify({ error: 'Servidor mal configurado' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      });
+    }
+
     // SEGURANÇA: Verificar assinatura do webhook com comparação em tempo constante
     const signature = req.headers.get('x-cakto-signature') || req.headers.get('x-webhook-signature');
 
-    if (caktoSecret) {
-      if (!signature) {
-        console.error('❌ Header de assinatura ausente - acesso bloqueado');
-        return new Response(JSON.stringify({ error: 'Assinatura ausente' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401,
-        });
-      }
+    if (!signature) {
+      console.error('❌ Header de assinatura ausente - acesso bloqueado');
+      return new Response(JSON.stringify({ error: 'Assinatura ausente' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      });
+    }
 
-      // Comparação em tempo constante para prevenir timing attacks
-      const enc = new TextEncoder();
-      const sigBytes = enc.encode(signature);
-      const secretBytes = enc.encode(caktoSecret);
-      let valid = sigBytes.length === secretBytes.length;
-      if (valid) {
-        for (let i = 0; i < sigBytes.length; i++) {
-          if (sigBytes[i] !== secretBytes[i]) valid = false;
-        }
+    // Comparação em tempo constante para prevenir timing attacks
+    const enc = new TextEncoder();
+    const sigBytes = enc.encode(signature);
+    const secretBytes = enc.encode(caktoSecret);
+    let valid = sigBytes.length === secretBytes.length;
+    if (valid) {
+      for (let i = 0; i < sigBytes.length; i++) {
+        if (sigBytes[i] !== secretBytes[i]) valid = false;
       }
+    }
 
-      if (!valid) {
-        console.error('❌ Assinatura de webhook inválida - acesso bloqueado');
-        return new Response(JSON.stringify({ error: 'Assinatura inválida' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401,
-        });
-      }
+    if (!valid) {
+      console.error('❌ Assinatura de webhook inválida - acesso bloqueado');
+      return new Response(JSON.stringify({ error: 'Assinatura inválida' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      });
     }
 
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole)

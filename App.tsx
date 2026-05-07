@@ -44,7 +44,7 @@ const TabLoader = () => (
 );
 
 const App: React.FC = () => {
-  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'checkout' | 'welcome_premium' | 'app' | 'admin_login' | 'admin' | 'reset_password'>('landing');
+  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'checkout' | 'verifying_payment' | 'welcome_premium' | 'app' | 'admin_login' | 'admin' | 'reset_password'>('landing');
   const [adminSecret, setAdminSecret] = useState('');
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.DASHBOARD);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -109,35 +109,39 @@ const App: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
-    const urlUserId = params.get('userId');
     const isSuccess = status === 'success' || status === 'paid' || status === 'approved';
-    
-    if (isSuccess) {
-       const session = getSession();
-       const targetUserId = urlUserId || session?.user?.id;
-       
-       if (targetUserId) {
-          window.history.replaceState({}, document.title, "/");
-          
-          if (session?.user && session.user.id === targetUserId) {
-            const updatedUser: UserProfile = { 
-              ...session.user, 
-              isPremium: true, 
-              subscriptionStatus: 'active' 
-            };
-            setUser(updatedUser);
-            updateUserProfile(updatedUser);
-          }
-          
+
+    if (!isSuccess) return;
+
+    const session = getSession();
+    if (!session?.user?.id) return;
+
+    window.history.replaceState({}, document.title, '/');
+    setViewState('verifying_payment');
+
+    (async () => {
+      const serverUser = await syncUserFromServer(session.user.id, session.user.email);
+
+      if (serverUser?.isPremium) {
+        setUser(serverUser);
+        setViewState('welcome_premium');
+        return;
+      }
+
+      try {
+        await upgradeUserToPremium(session.user.id);
+        const freshUser = await syncUserFromServer(session.user.id, session.user.email);
+        if (freshUser) setUser(freshUser);
+        if (freshUser?.isPremium) {
           setViewState('welcome_premium');
-          
-          upgradeUserToPremium(targetUserId).then(() => {
-             console.log("💎 Premium ativado com sucesso no servidor.");
-          }).catch(err => {
-             console.error("❌ Erro ao ativar premium no servidor:", err);
-          });
-       }
-    }
+        } else {
+          setViewState('checkout');
+        }
+      } catch (err) {
+        console.error('❌ Erro ao ativar premium:', err);
+        setViewState('checkout');
+      }
+    })();
   }, []);
 
   // Inicialização principal do app
@@ -619,7 +623,26 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
             </div>
           )}
           
-          {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} userName={user.name} userEmail={user.email} userId={user.id} onLogout={handleLogout} />}
+          {viewState === 'verifying_payment' && (
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-brand-dark">
+              <Loader2 className="w-16 h-16 animate-spin text-brand-violet mx-auto mb-6" />
+              <p className="text-white font-bold text-xl">Verificando seu acesso...</p>
+              <p className="text-slate-400 text-sm mt-2">Confirmando pagamento com nosso servidor</p>
+            </div>
+          )}
+
+          {viewState === 'checkout' && <Checkout onSuccess={() => setViewState('welcome_premium')} onVerifyPayment={async () => {
+            const session = getSession();
+            if (!session?.user?.id) return;
+            setViewState('verifying_payment');
+            const serverUser = await syncUserFromServer(session.user.id, session.user.email);
+            if (serverUser?.isPremium) {
+              setUser(serverUser);
+              setViewState('welcome_premium');
+            } else {
+              setViewState('checkout');
+            }
+          }} userName={user.name} userEmail={user.email} userId={user.id} onLogout={handleLogout} />}
           
           {viewState === 'welcome_premium' && (
             <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in bg-gradient-to-b from-brand-violet via-purple-700 to-brand-dark relative overflow-hidden">

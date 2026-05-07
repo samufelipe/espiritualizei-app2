@@ -89,14 +89,25 @@ export const syncUserFromServer = async (userId: string, email: string): Promise
     
     if (profile && !error) {
       const updatedUser = mapProfileFromDB(profile, email);
-      
+
+      // Enforcement de expiração: se renovação já passou, revogar premium localmente
+      if (updatedUser.isPremium && updatedUser.subscriptionRenewalAt) {
+        if (updatedUser.subscriptionRenewalAt < new Date()) {
+          updatedUser.isPremium = false;
+          updatedUser.subscriptionStatus = 'expired';
+          supabase!.from('profiles')
+            .update({ is_premium: false, subscription_status: 'expired' })
+            .eq('id', userId);
+        }
+      }
+
       // Atualiza o cache local com os dados do servidor
       const session = getSession();
       if (session) {
         session.user = updatedUser;
         localStorage.setItem(SESSION_KEY, safeStringify(session));
       }
-      
+
       console.log("🛡️ Sincronização Mestre: Perfil restaurado do servidor com sucesso.");
       return updatedUser;
     }
