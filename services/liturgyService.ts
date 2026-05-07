@@ -29,7 +29,7 @@ export interface SeasonInfo {
   id: 'lent' | 'easter' | 'advent' | 'christmas' | 'ordinary';
   name: string;
   theme: string;
-  // Cor principal (hex) — usada pelo Dashboard e comunidade
+  // Cor principal (hex) - usada pelo Dashboard e comunidade
   color: string;
   startDate: Date;
   totalDays: number;
@@ -40,7 +40,7 @@ export interface SeasonInfo {
   colorTailwind: string;   // nome da cor Tailwind (amber, violet, emerald…)
   seasonLabel: string;     // ex: "Tempo Pascal • Dia 31/50"
   nextSeasonName: string;  // ex: "Pentecostes"
-  seasonBadge: string;     // texto curto para pill no hero — ex: "Aleluia! Tempo Pascal"
+  seasonBadge: string;     // texto curto para pill no hero - ex: "Aleluia! Tempo Pascal"
 }
 
 const diffDays = (a: Date, b: Date): number =>
@@ -63,7 +63,7 @@ export const getSeasonDetailedInfo = (date: Date = new Date()): SeasonInfo => {
   const pentecost = new Date(easter);
   pentecost.setDate(easter.getDate() + 49);
 
-  // Batismo do Senhor (domingo após 6 de janeiro — simplificado para 13 jan)
+  // Batismo do Senhor (domingo após 6 de janeiro - simplificado para 13 jan)
   const baptismOfLord = new Date(year, 0, 13);
 
   const buildSeason = (
@@ -131,11 +131,11 @@ export const getSeasonDetailedInfo = (date: Date = new Date()): SeasonInfo => {
       'advent', 'Advento', 'Espera e Vigilância', '#6D28D9',
       'from-violet-950 via-[#1A1625] to-brand-dark', 'violet',
       adventStart, adventEnd, 'Natal',
-      '🕯️ Advento — Maranatha!',
+      '🕯️ Advento - Maranatha!',
     );
   }
 
-  // Tempo Comum — calcula próxima fronteira litúrgica
+  // Tempo Comum - calcula próxima fronteira litúrgica
   const nextEaster = getEasterDate(now.getMonth() <= 1 ? year : year + 1);
   const nextAshWed = new Date(nextEaster);
   nextAshWed.setDate(nextEaster.getDate() - 46);

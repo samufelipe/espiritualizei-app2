@@ -56,7 +56,7 @@ async function makeVapidToken(audience: string, pubKeyB64: string, privKeyB64: s
   return `${header}.${payload}.${b64urlEncode(new Uint8Array(sig))}`;
 }
 
-// ─── Content Encryption (RFC 8291 — aes128gcm) ───────────────────────────────
+// ─── Content Encryption (RFC 8291 - aes128gcm) ───────────────────────────────
 
 async function encryptPayload(plaintext: Uint8Array, p256dh: string, authB64: string): Promise<Uint8Array> {
   const receiverPub = b64urlDecode(p256dh);   // 65 bytes, uncompressed EC point
@@ -70,14 +70,14 @@ async function encryptPayload(plaintext: Uint8Array, p256dh: string, authB64: st
   const receiverKey = await crypto.subtle.importKey('raw', receiverPub, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
   const sharedSecret = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: receiverKey }, senderKP.privateKey, 256));
 
-  // Step 1: derive IKM — HKDF(salt=auth, ikm=sharedSecret, info="WebPush: info\0" + ua_pub + as_pub, L=32)
+  // Step 1: derive IKM - HKDF(salt=auth, ikm=sharedSecret, info="WebPush: info\0" + ua_pub + as_pub, L=32)
   const keyInfo = concat(new TextEncoder().encode('WebPush: info\x00'), receiverPub, senderPub);
   const ikm = await hkdf(authSecret, sharedSecret, keyInfo, 32);
 
   // Random salt (16 bytes)
   const salt = crypto.getRandomValues(new Uint8Array(16));
 
-  // Step 2: CEK and NONCE — HKDF(salt=random, ikm=IKM, info=..., L)
+  // Step 2: CEK and NONCE - HKDF(salt=random, ikm=IKM, info=..., L)
   const cek = await hkdf(salt, ikm, new TextEncoder().encode('Content-Encoding: aes128gcm\x00'), 16);
   const nonce = await hkdf(salt, ikm, new TextEncoder().encode('Content-Encoding: nonce\x00'), 12);
 

@@ -48,7 +48,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
       });
 
       if (res.ok) {
-        // Armazena apenas metadados da sessão — senha nunca persiste no storage
+        // Armazena apenas metadados da sessão - senha nunca persiste no storage
         sessionStorage.setItem('admin_session', JSON.stringify({
           email: emailLower,
           timestamp: Date.now(),

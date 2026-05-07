@@ -1,7 +1,7 @@
 /**
  * HELPERS PARA GATILHOS CONTEXTUAIS DA LANDING PAGE
  * Usa o algoritmo canônico da liturgyService (Computus) em vez de datas hardcoded.
- * Funciona corretamente para qualquer ano — sem manutenção manual.
+ * Funciona corretamente para qualquer ano - sem manutenção manual.
  */
 
 import { getSeasonDetailedInfo } from '../services/liturgyService';
@@ -31,7 +31,7 @@ export const getContextualHeroContent = (): HeroContent => {
   const isNewYear = isNewYearPeriod();
   const isMonthBeginning = isMonthStart();
 
-  // QUARESMA — Penitência, profundidade e renovação
+  // QUARESMA - Penitência, profundidade e renovação
   if (season.id === 'lent') {
     return {
       eyebrow: 'Viva uma Quaresma transformadora',
@@ -44,7 +44,7 @@ export const getContextualHeroContent = (): HeroContent => {
     };
   }
 
-  // TEMPO PASCAL — Alegria da Ressurreição (50 dias)
+  // TEMPO PASCAL - Alegria da Ressurreição (50 dias)
   if (season.id === 'easter') {
     return {
       eyebrow: 'Viva a alegria da Ressurreição',
@@ -57,7 +57,7 @@ export const getContextualHeroContent = (): HeroContent => {
     };
   }
 
-  // ADVENTO — Preparação e expectativa
+  // ADVENTO - Preparação e expectativa
   if (season.id === 'advent') {
     return {
       eyebrow: 'Prepare seu coração para o Natal',
@@ -70,7 +70,7 @@ export const getContextualHeroContent = (): HeroContent => {
     };
   }
 
-  // TEMPO DO NATAL — Intimidade e contemplação
+  // TEMPO DO NATAL - Intimidade e contemplação
   if (season.id === 'christmas') {
     return {
       eyebrow: 'Celebre o Natal com intimidade',
@@ -83,7 +83,7 @@ export const getContextualHeroContent = (): HeroContent => {
     };
   }
 
-  // ANO NOVO (Janeiro/Fevereiro) — Recomeço
+  // ANO NOVO (Janeiro/Fevereiro) - Recomeço
   if (isNewYear) {
     return {
       eyebrow: 'Ano novo, vida espiritual renovada',
@@ -96,7 +96,7 @@ export const getContextualHeroContent = (): HeroContent => {
     };
   }
 
-  // INÍCIO DE MÊS — Novo ciclo
+  // INÍCIO DE MÊS - Novo ciclo
   if (isMonthBeginning) {
     return {
       eyebrow: 'Novo ciclo, nova oportunidade',
@@ -109,7 +109,7 @@ export const getContextualHeroContent = (): HeroContent => {
     };
   }
 
-  // TEMPO COMUM — Constância no ordinário
+  // TEMPO COMUM - Constância no ordinário
   return {
     eyebrow: 'Sua alma merece paz, não mais cansaço',
     title: 'Pare de recomeçar',

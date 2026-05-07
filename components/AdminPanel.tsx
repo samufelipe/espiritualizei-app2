@@ -1498,7 +1498,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSec
       });
       setExistingTracks(Object.values(grouped));
     } catch {
-      // silencia — tabela pode não existir ainda
+      // silencia - tabela pode não existir ainda
     }
   };
 
@@ -1549,14 +1549,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSec
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-brand-dark dark:text-white flex items-center gap-2">
         <BookOpen size={24} className="text-brand-violet" />
-        Biblioteca — Conteúdo Sazonal com IA
+        Biblioteca - Conteúdo Sazonal com IA
       </h2>
 
       {/* Gerador */}
       <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm space-y-4">
         <h3 className="text-base font-bold text-brand-dark dark:text-white">Gerar novo track</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Selecione o tempo litúrgico e o ano, clique em Gerar — a IA cria 3-4 itens de formação espiritual profundos e específicos. Revise e salve no banco sem precisar de redeploy.
+          Selecione o tempo litúrgico e o ano, clique em Gerar - a IA cria 3-4 itens de formação espiritual profundos e específicos. Revise e salve no banco sem precisar de redeploy.
         </p>
         <div className="flex flex-wrap gap-3">
           <div className="flex flex-wrap gap-2">
@@ -1622,7 +1622,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSec
         <div className="bg-white dark:bg-white/5 rounded-2xl border border-brand-violet/20 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 dark:border-white/10 flex items-start justify-between gap-4">
             <div>
-              <span className="text-xs font-black text-brand-violet uppercase tracking-widest">Preview — Revisar antes de salvar</span>
+              <span className="text-xs font-black text-brand-violet uppercase tracking-widest">Preview - Revisar antes de salvar</span>
               <h3 className="text-lg font-bold text-brand-dark dark:text-white mt-1">{generatedTrack.track_title}</h3>
               <p className="text-sm text-slate-500 mt-0.5">{generatedTrack.items?.length ?? 0} itens · {SEASON_LABELS[selectedSeason]} {selectedYear}</p>
             </div>

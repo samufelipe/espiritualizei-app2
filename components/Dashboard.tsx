@@ -196,16 +196,16 @@ const Dashboard: React.FC<DashboardProps> = ({
      const season = liturgyData?.season?.toLowerCase() || '';
      const color = apiColor;
      
-     // 💚 Verde — Esperança, Crescimento e Caminhada
+     // 💚 Verde - Esperança, Crescimento e Caminhada
      if (color.includes('verde')) return { gradient: 'bg-gradient-to-br from-[#059669] to-[#022C22]', meaning: 'Esperança e Crescimento.', text: 'text-emerald-100' };
      
-     // ❤️ Vermelho — Espírito Santo, Amor e Martírio
+     // ❤️ Vermelho - Espírito Santo, Amor e Martírio
      if (color.includes('vermelho')) return { gradient: 'bg-gradient-to-br from-[#DC2626] to-[#7F1D1D]', meaning: 'Fogo do Espírito Santo.', text: 'text-red-100' };
      
-     // 🤍 Branco — Alegria, Glória e Ressurreição
+     // 🤍 Branco - Alegria, Glória e Ressurreição
      if (color.includes('branco')) return { gradient: 'bg-gradient-to-br from-[#F8FAFC] via-[#E2E8F0] to-[#CBD5E1]', meaning: 'Glória e Ressurreição.', text: 'text-slate-700' };
      
-     // 💜 Roxo — Conversão, Silêncio e Preparação
+     // 💜 Roxo - Conversão, Silêncio e Preparação
      if (color.includes('roxo') || color.includes('violeta') || color.includes('purple')) return { gradient: 'bg-gradient-to-br from-[#7C3AED] to-[#4C1D95]', meaning: 'Conversão e Preparação.', text: 'text-purple-100' };
      // Fallback baseado no tempo litúrgico se a cor da API não for reconhecida
      if (season.includes('comum') || season.includes('ordinary') || season.includes('semana')) {

@@ -6,7 +6,7 @@ export const sendEmail = async (
   html: string
 ): Promise<{ success: boolean; error?: any }> => {
   if (!SUPABASE_URL) {
-    console.warn('Supabase não configurado — email não enviado');
+    console.warn('Supabase não configurado - email não enviado');
     return { success: false, error: 'Supabase not configured' };
   }
 

@@ -84,8 +84,8 @@ const KNOWLEDGE_TOOL = {
           properties: {
             item_id:       { type: 'string', description: 'slug, ex: pentecostes-novena' },
             title:         { type: 'string' },
-            description:   { type: 'string', description: 'Frase de gancho — máx 120 caracteres' },
-            content:       { type: 'string', description: 'Parágrafos separados por \\n\\n — 400-600 palavras no total' },
+            description:   { type: 'string', description: 'Frase de gancho - máx 120 caracteres' },
+            content:       { type: 'string', description: 'Parágrafos separados por \\n\\n - 400-600 palavras no total' },
             category:      { type: 'string', enum: ['doctrine', 'prayer', 'mass'] },
             duration:      { type: 'string', description: 'Ex: 12 min' },
             icon_name:     { type: 'string', description: 'Nome exato do ícone lucide: Sunrise, Star, Wind, Moon, Heart, Flame, Cross, Church, Sparkles, Shield, Anchor, CloudRain, Footprints, Mic2, BookOpen, Users, MessageSquare' },
@@ -107,20 +107,20 @@ const KNOWLEDGE_TOOL = {
 const KNOWLEDGE_SYSTEM = `Você é um teólogo católico brasileiro com 20 anos de experiência em formação espiritual para leigos.
 Seu trabalho é criar conteúdo de formação profundo, específico e jamais genérico.
 
-REGRAS RÍGIDAS — QUALQUER VIOLAÇÃO TORNA O CONTEÚDO INACEITÁVEL:
+REGRAS RÍGIDAS - QUALQUER VIOLAÇÃO TORNA O CONTEÚDO INACEITÁVEL:
 1. ZERO frases genéricas. Proibido: "fortaleça sua fé", "busque Deus", "caminhe com Jesus", "aprofunde sua espiritualidade".
    Use: fatos históricos concretos, paradoxos teológicos, perguntas que incomodam produtivamente, citações com fonte real.
 2. Cada item DEVE ser ancorado em UMA fonte real e citada explicitamente:
    - Encíclica ou documento papal (nome + parágrafo, ex: Gaudium et Spes 22)
    - Escrito de um santo com a obra citada (ex: "Confissões, VIII, 7" de Santo Agostinho)
-   - Texto litúrgico concreto deste tempo (prefácio, coleta, antífona — com referência litúrgica)
+   - Texto litúrgico concreto deste tempo (prefácio, coleta, antífona - com referência litúrgica)
 3. Vídeos: use SOMENTE canais católicos brasileiros reais: Padre Paulo Ricardo, Shalom, Canção Nova, Instituto Hesed, Padre Leonardo Holtz, Minuto com Deus, Italo Marsili.
-4. Música: peças sacras reais com compositor real. Ex: "Veni Creator Spiritus — Gregoriano", "Aleluia — Handel (Messias)", "Tantum Ergo — Tomás Luis de Victoria".
+4. Música: peças sacras reais com compositor real. Ex: "Veni Creator Spiritus - Gregoriano", "Aleluia - Handel (Messias)", "Tantum Ergo - Tomás Luis de Victoria".
 5. Títulos: formule como pergunta ou afirmação surpreendente. Nada óbvio.
    BOM: "Por que a Igreja ficou 40 dias sem Aleluia?" | "A oração que Pedro rezou antes do discurso de Pentecostes"
    RUIM: "Significado do Aleluia" | "A importância da oração"
 6. content: exatamente 3-4 parágrafos densos de 100-150 palavras cada, separados por \\n\\n.
-   O ÚLTIMO parágrafo termina com UMA prática concreta para o dia — simples o suficiente para fazer agora.
+   O ÚLTIMO parágrafo termina com UMA prática concreta para o dia - simples o suficiente para fazer agora.
 7. Não use asteriscos, negrito, markdown, hífens decorativos ou qualquer formatação. Só texto puro.`;
 
 const FRIEND_SYSTEM = `Voce e o melhor amigo do usuario: jovem, divertido, cheio de empatia e com um conhecimento profundo da fe catolica.
@@ -293,7 +293,7 @@ serve(async (req: Request) => {
 
       case 'generateKnowledge': {
         const { season, year, seasonName, daysIntoSeason, totalDays, nextSeasonName, daysUntilNext } = payload;
-        const userText = `Gere um track de formação espiritual para: ${seasonName} ${year}\nContexto litúrgico: dia ${daysIntoSeason} de ${totalDays} — próxima fronteira: ${nextSeasonName} em ${daysUntilNext} dias.\ntrack_id sugerido: track-${season}-${year}\nGere 3-4 itens de alta qualidade.`;
+        const userText = `Gere um track de formação espiritual para: ${seasonName} ${year}\nContexto litúrgico: dia ${daysIntoSeason} de ${totalDays} - próxima fronteira: ${nextSeasonName} em ${daysUntilNext} dias.\ntrack_id sugerido: track-${season}-${year}\nGere 3-4 itens de alta qualidade.`;
         const text = await callClaude(userText, API_KEY, {
           system: KNOWLEDGE_SYSTEM,
           maxTokens: 8000,
