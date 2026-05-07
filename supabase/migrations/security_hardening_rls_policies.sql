@@ -163,3 +163,13 @@ DROP POLICY IF EXISTS "Public routines access" ON user_routines;
 -- DROP POLICY IF EXISTS "prayer_interactions_insert_own"   ON prayer_interactions;
 -- DROP POLICY IF EXISTS "prayer_interactions_delete_own"   ON prayer_interactions;
 -- ============================================================
+-- ============================================================
+-- ADDENDUM: policy de SELECT para role anon em profiles
+-- Necessária para leaderboard, community features e admin panel
+-- (admin panel usa anon key, não passa por Supabase Auth)
+-- Escrita (INSERT/UPDATE/DELETE) permanece bloqueada para anon
+-- ============================================================
+CREATE POLICY IF NOT EXISTS "profiles_select_anon"
+  ON profiles FOR SELECT
+  TO anon
+  USING (true);

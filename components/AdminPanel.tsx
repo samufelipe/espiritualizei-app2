@@ -13,7 +13,7 @@ import {
   Compass, Church, Cross, Sparkles, Layers
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
-import { SUPABASE_URL as ADMIN_SUPABASE_URL, SUPABASE_KEY as ADMIN_SUPABASE_KEY, supabase as supabaseClient } from '../services/authService';
+import { SUPABASE_URL as ADMIN_SUPABASE_URL, SUPABASE_KEY as ADMIN_SUPABASE_KEY } from '../services/authService';
 
 interface AdminUser {
   id: string;
@@ -141,15 +141,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, onBackToApp, adminSec
     avgStreak: 0
   });
 
-  // Funcao para fazer fetch no Supabase
-  // Usa o JWT real do usuario logado para respeitar as RLS policies (role: authenticated)
+  // Funcao para fazer fetch direto na REST API do Supabase (leituras publicas)
   const supabaseFetch = async (endpoint: string, options: RequestInit = {}) => {
     const url = `${ADMIN_SUPABASE_URL}/rest/v1/${endpoint}`;
-    const session = supabaseClient ? (await supabaseClient.auth.getSession()).data.session : null;
-    const token = session?.access_token || ADMIN_SUPABASE_KEY;
     const headers = {
       'apikey': ADMIN_SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${ADMIN_SUPABASE_KEY}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation',
       ...options.headers
