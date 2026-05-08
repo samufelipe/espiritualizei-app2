@@ -31,5 +31,7 @@ npx supabase functions deploy cakto-webhook --project-ref $PROJECT_REF
 npx supabase functions deploy send-push-notification --project-ref $PROJECT_REF
 npx supabase functions deploy scheduled-notifications --project-ref $PROJECT_REF
 npx supabase functions deploy admin-data --project-ref $PROJECT_REF
+npx supabase functions deploy create-quiz-checkout --project-ref $PROJECT_REF
+npx supabase functions deploy generate-quiz-plan --project-ref $PROJECT_REF
 
 echo "Concluído!"

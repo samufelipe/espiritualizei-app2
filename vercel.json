@@ -11,6 +11,8 @@
     { "source": "/sw.js", "destination": "/sw.js" },
     { "source": "/manifest.json", "destination": "/manifest.json" },
     { "source": "/favicon.ico", "destination": "/favicon.ico" },
+    { "source": "/quiz", "destination": "/quiz/index.html" },
+    { "source": "/quiz/resultado", "destination": "/quiz/resultado.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
