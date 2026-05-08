@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Qual é o seu Nível de Maturidade Espiritual? — Espiritualizei</title>
+  <title>Qual é o seu Nível de Maturidade Espiritual? | Espiritualizei</title>
   <meta name="description" content="Descubra em 2 minutos onde você está na sua jornada espiritual e receba um Plano de 21 Dias criado especialmente para você." />
-  <meta property="og:title" content="Diagnóstico Espiritual Gratuito — Espiritualizei" />
+  <meta property="og:title" content="Diagnóstico Espiritual Gratuito | Espiritualizei" />
   <meta property="og:description" content="Descubra seu nível de maturidade espiritual e receba um plano personalizado de 21 dias." />
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/png" href="/favicon-32x32.png" />
@@ -22,6 +22,7 @@
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,7 +37,6 @@
     @keyframes slideRight { from { opacity:0; transform:translateX(28px); } to { opacity:1; transform:translateX(0); } }
     @keyframes dot { 0%,80%,100% { opacity:.25; transform:scale(.75); } 40% { opacity:1; transform:scale(1); } }
     @keyframes spin { to { transform:rotate(360deg); } }
-    @keyframes glow { 0%,100% { box-shadow: 0 0 20px rgba(167,139,250,.2); } 50% { box-shadow: 0 0 40px rgba(167,139,250,.5); } }
 
     .anim-fade-up { animation: fadeUp .5s cubic-bezier(.22,1,.36,1) forwards; }
     .anim-fade-in { animation: fadeIn .4s ease forwards; }
@@ -64,6 +64,9 @@
     .answer-card:hover { border-color: #A78BFA !important; background: rgba(167,139,250,.09); transform: translateY(-1px); }
     .answer-card:active { transform: scale(.98); }
     .answer-card.selected { border-color: #A78BFA !important; background: rgba(167,139,250,.16); }
+    .answer-card .icon-wrap { transition: background .18s ease; }
+    .answer-card.selected .icon-wrap { background: rgba(167,139,250,.3) !important; }
+    .answer-card .icon-wrap i { color: #A78BFA; }
 
     .btn-primary {
       background: #A78BFA;
@@ -71,6 +74,7 @@
       transition: all .2s ease;
       cursor: pointer;
       border: none;
+      font-family: 'Inter', sans-serif;
     }
     .btn-primary:hover { background: #9370f5; box-shadow: 0 8px 40px rgba(167,139,250,.45); transform: translateY(-1px); }
     .btn-primary:active { transform: translateY(0) scale(.99); }
@@ -93,7 +97,12 @@
 
     .progress-fill { transition: width .5s cubic-bezier(.22,1,.36,1); }
 
-    .locked { filter: blur(5px); user-select: none; pointer-events: none; }
+    .censored-bar {
+      height: 12px;
+      background: rgba(255,255,255,.12);
+      border-radius: 6px;
+      margin: 4px 0;
+    }
 
     input[type=text], input[type=email] {
       width: 100%;
@@ -133,7 +142,7 @@
     <!-- Logo -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:40px;">
       <div style="width:36px;height:36px;background:#A78BFA;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 2l1.09 6.26L19 7l-4.26 4.74L20 14l-6.26.91L14 21l-4-4.5L5 20l2.26-6.26L2 12l6.26-1.91L7 4l4.26 5.26L12 2z"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
       </div>
       <span style="font-size:18px;font-weight:800;letter-spacing:-.3px;color:#A78BFA;">Espiritualizei</span>
     </div>
@@ -150,7 +159,7 @@
 
     <!-- Sub -->
     <p style="font-size:15px;color:rgba(255,255,255,.5);text-align:center;line-height:1.65;margin-bottom:36px;max-width:320px;">
-      Responda 7 perguntas e descubra onde você está na sua jornada — e receba um <strong style="color:rgba(255,255,255,.8);">Plano de 21 Dias</strong> criado especialmente para você.
+      Responda 7 perguntas e descubra onde você está na sua jornada espiritual. Receba um <strong style="color:rgba(255,255,255,.8);">Plano de 21 Dias</strong> criado especialmente para você.
     </p>
 
     <!-- 5 Levels card -->
@@ -161,7 +170,7 @@
 
     <!-- CTA -->
     <button class="btn-primary" onclick="toName()" style="width:100%;border-radius:18px;padding:20px;font-size:17px;font-weight:900;color:#fff;margin-bottom:16px;">
-      Descobrir Meu Nível →
+      Descobrir Meu Nível
     </button>
 
     <!-- Trust -->
@@ -185,7 +194,7 @@
       <!-- Icon -->
       <div style="display:flex;justify-content:center;margin-bottom:32px;">
         <div class="anim-pulse" style="width:64px;height:64px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.3);border-radius:20px;display:flex;align-items:center;justify-content:center;">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="#A78BFA"><path d="M12 2l1.09 6.26L19 7l-4.26 4.74L20 14l-6.26.91L14 21l-4-4.5L5 20l2.26-6.26L2 12l6.26-1.91L7 4l4.26 5.26L12 2z"/></svg>
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="#A78BFA"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         </div>
       </div>
 
@@ -196,7 +205,7 @@
         onkeydown="if(event.key==='Enter')submitName()" style="margin-bottom:16px;" />
 
       <button class="btn-primary" onclick="submitName()" style="width:100%;border-radius:16px;padding:18px;font-size:16px;font-weight:800;color:#fff;">
-        Continuar →
+        Continuar
       </button>
 
       <p style="text-align:center;font-size:12px;color:rgba(255,255,255,.22);margin-top:16px;font-weight:500;">
@@ -245,7 +254,7 @@
         onkeydown="if(event.key==='Enter')submitEmail()" style="margin-bottom:16px;" />
 
       <button class="btn-primary" onclick="submitEmail()" style="width:100%;border-radius:16px;padding:18px;font-size:16px;font-weight:800;color:#fff;">
-        Ver Meu Diagnóstico →
+        Ver Meu Diagnóstico
       </button>
 
       <p style="text-align:center;font-size:11px;color:rgba(255,255,255,.2);margin-top:14px;line-height:1.5;">
@@ -262,7 +271,7 @@
   <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;text-align:center;max-width:340px;margin:0 auto;">
 
     <div class="anim-pulse" style="width:88px;height:88px;background:rgba(167,139,250,.12);border:2px solid rgba(167,139,250,.35);border-radius:26px;display:flex;align-items:center;justify-content:center;margin-bottom:32px;">
-      <svg width="50" height="50" viewBox="0 0 24 24" fill="#A78BFA"><path d="M12 2l1.09 6.26L19 7l-4.26 4.74L20 14l-6.26.91L14 21l-4-4.5L5 20l2.26-6.26L2 12l6.26-1.91L7 4l4.26 5.26L12 2z"/></svg>
+      <svg width="50" height="50" viewBox="0 0 24 24" fill="#A78BFA"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
     </div>
 
     <p id="load-msg" style="font-size:18px;font-weight:700;margin-bottom:10px;transition:opacity .3s;line-height:1.4;"></p>
@@ -277,87 +286,95 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════
-     TELA 5 — PAYWALL / PREVIEW
+     TELA 5 — PAYWALL
 ════════════════════════════════════════════════ -->
 <div id="s-paywall" class="screen">
   <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:32px 20px 56px;max-width:440px;margin:0 auto;width:100%;">
 
     <!-- Badge -->
     <div class="glass-violet" style="border-radius:100px;padding:5px 16px;font-size:11px;font-weight:800;color:#A78BFA;letter-spacing:1px;text-transform:uppercase;margin-bottom:20px;">
-      Diagnóstico Pronto
+      Perfil Pronto
     </div>
 
-    <!-- Level reveal -->
-    <h2 id="pw-title" style="font-size:22px;font-weight:900;text-align:center;line-height:1.35;margin-bottom:6px;"></h2>
-    <p id="pw-sub" style="font-size:14px;color:rgba(255,255,255,.5);text-align:center;margin-bottom:24px;line-height:1.6;max-width:300px;"></p>
+    <!-- Header -->
+    <h2 id="pw-title" style="font-size:22px;font-weight:900;text-align:center;line-height:1.35;margin-bottom:20px;"></h2>
 
-    <!-- Radar preview (blurred) -->
-    <div style="position:relative;width:220px;height:220px;margin-bottom:20px;">
-      <canvas id="radar-canvas" width="220" height="220" style="filter:blur(3px);opacity:.5;"></canvas>
-      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-        <div class="glass-violet" style="border-radius:50%;width:72px;height:72px;display:flex;align-items:center;justify-content:center;">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <!-- ZONA 1: Conteúdo gratuito visível -->
+    <div class="glass" style="border-radius:22px;padding:20px;width:100%;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        <div id="pw-level-badge" style="width:48px;height:48px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" id="pw-badge-icon"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        <div>
+          <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;">Seu Nível</p>
+          <p id="pw-level-name" style="font-size:22px;font-weight:900;line-height:1;"></p>
+          <p id="pw-level-sub" style="font-size:12px;color:rgba(255,255,255,.45);margin-top:2px;"></p>
+        </div>
+      </div>
+      <p id="pw-level-desc" style="font-size:14px;color:rgba(255,255,255,.6);line-height:1.65;border-top:1px solid rgba(255,255,255,.06);padding-top:14px;"></p>
+
+      <!-- 2 insights gratuitos -->
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:26px;height:26px;background:rgba(110,231,183,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2.5"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          </div>
+          <p id="pw-insight-1" style="font-size:13px;font-weight:600;color:rgba(255,255,255,.7);"></p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:26px;height:26px;background:rgba(110,231,183,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2.5"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          </div>
+          <p id="pw-insight-2" style="font-size:13px;font-weight:600;color:rgba(255,255,255,.7);"></p>
         </div>
       </div>
     </div>
 
-    <!-- Locked stats -->
-    <div class="glass" style="border-radius:22px;padding:20px;width:100%;margin-bottom:20px;">
-      <div style="display:flex;flex-direction:column;gap:14px;">
-
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:38px;height:38px;background:rgba(167,139,250,.12);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.38);margin-bottom:3px;">Seu principal bloqueio espiritual</p>
-            <p id="pw-block" class="locked" style="font-size:14px;font-weight:700;">Aridez contemplativa profunda</p>
-          </div>
+    <!-- ZONA 2: Conteúdo bloqueado -->
+    <div style="position:relative;width:100%;margin-bottom:16px;">
+      <!-- Conteúdo borrado -->
+      <div style="filter:blur(4px);opacity:.6;pointer-events:none;user-select:none;">
+        <!-- Radar -->
+        <div style="display:flex;justify-content:center;margin-bottom:12px;">
+          <canvas id="radar-canvas" width="200" height="200"></canvas>
         </div>
-
-        <div style="height:1px;background:rgba(255,255,255,.06);"></div>
-
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:38px;height:38px;background:rgba(167,139,250,.12);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.38);margin-bottom:3px;">Seus dons espirituais revelados</p>
-            <p class="locked" style="font-size:14px;font-weight:700;">Perseverança · Compaixão</p>
-          </div>
+        <!-- Gifts preview -->
+        <div class="glass" style="border-radius:20px;padding:18px;">
+          <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;">Seus Dons Espirituais</p>
+          <div class="censored-bar" style="width:72%;"></div>
+          <div class="censored-bar" style="width:55%;"></div>
+          <div class="censored-bar" style="width:64%;"></div>
+          <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-top:14px;margin-bottom:10px;">Caminho para superar seu bloqueio</p>
+          <div class="censored-bar" style="width:90%;"></div>
+          <div class="censored-bar" style="width:76%;"></div>
         </div>
+      </div>
 
-        <div style="height:1px;background:rgba(255,255,255,.06);"></div>
-
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:38px;height:38px;background:rgba(167,139,250,.12);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </div>
-          <div>
-            <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.38);margin-bottom:3px;">Seu Plano de 21 Dias</p>
-            <p style="font-size:14px;font-weight:700;" id="pw-plan">21 práticas feitas para a sua vida</p>
-          </div>
+      <!-- Overlay de bloqueio -->
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+        <div class="glass-violet" style="border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
+        <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.5);text-align:center;">Diagnóstico completo bloqueado</p>
       </div>
     </div>
 
-    <!-- Divine timing -->
-    <p id="pw-msg" style="font-size:14px;color:rgba(255,255,255,.5);text-align:center;font-style:italic;line-height:1.65;margin-bottom:24px;max-width:310px;"></p>
-
-    <!-- Price card -->
+    <!-- ZONA 3: CTA -->
     <div class="glass" style="border-radius:26px;padding:24px;width:100%;text-align:center;border-color:rgba(167,139,250,.2);">
-      <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.38);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Diagnóstico Completo + Plano 21 Dias</p>
-      <div style="display:flex;align-items:baseline;justify-content:center;gap:2px;margin-bottom:20px;">
-        <span style="font-size:22px;font-weight:700;color:rgba(255,255,255,.5);margin-top:8px;">R$</span>
-        <span style="font-size:58px;font-weight:900;letter-spacing:-3px;line-height:1;">19</span>
-        <span style="font-size:26px;font-weight:700;">,90</span>
+      <p id="pw-plan-label" style="font-size:15px;font-weight:800;margin-bottom:4px;">Seu Plano de 21 Dias está pronto</p>
+      <p id="pw-plan-desc" style="font-size:13px;color:rgba(255,255,255,.45);margin-bottom:18px;"></p>
+
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:2px;margin-bottom:18px;">
+        <span style="font-size:20px;font-weight:700;color:rgba(255,255,255,.5);margin-top:8px;">R$</span>
+        <span style="font-size:52px;font-weight:900;letter-spacing:-3px;line-height:1;">19</span>
+        <span style="font-size:24px;font-weight:700;">,90</span>
       </div>
 
       <button id="cta-btn" class="btn-primary" onclick="goToCheckout()" style="width:100%;border-radius:16px;padding:19px;font-size:16px;font-weight:900;color:#fff;margin-bottom:12px;">
-        Ver Meu Diagnóstico Completo →
+        Ver Meu Diagnóstico Completo
       </button>
 
-      <p style="font-size:11px;color:rgba(255,255,255,.28);">Menos que um café por semana · Acesso imediato</p>
+      <p style="font-size:11px;color:rgba(255,255,255,.28);">Menos que um café · Acesso imediato</p>
     </div>
 
     <!-- Security -->
@@ -375,19 +392,33 @@
 const SUPABASE_URL = 'https://anoqhwpdrztaqmlocnzx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFub3Fod3Bkcnp0YXFtbG9jbnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2ODM3OTQsImV4cCI6MjA3OTI1OTc5NH0.eUg9hLctWst7nolKxk5OUgka6s8xUaaBNH3dP6kCduY';
 
-// ── State ──────────────────────────────────────
 const S = { name:'', email:'', qIdx:0, answers:{}, score:null, chart:null };
 
-// ── Levels ─────────────────────────────────────
 const LEVELS = [
-  { n:'Semente',      d:'O início de toda grande jornada',           c:'#6EE7B7', desc:'Você está dando os primeiros passos da sua jornada espiritual, e isso já é um ato de coragem.' },
-  { n:'Peregrino',    d:'Em busca de constância e direção',          c:'#93C5FD', desc:'Você busca a fé com o coração, mas ainda luta para manter uma rotina espiritual consistente.' },
-  { n:'Discípulo',    d:'Crescendo no conhecimento e na prática',    c:'#A78BFA', desc:'Sua vida de oração está ganhando forma. Você já sente a diferença que a constância faz.' },
-  { n:'Servo',        d:'Vida sacramental ativa e missão viva',      c:'#FCD34D', desc:'Sua vida espiritual é fundamentada nos sacramentos e você busca missão e comunidade.' },
-  { n:'Contemplativo',d:'Oração profunda e direção espiritual madura',c:'#F9A8D4', desc:'Sua vida de oração é madura e você busca aprofundar a contemplação e o serviço.' },
+  { n:'Semente',       d:'O início de toda grande jornada',             c:'#6EE7B7', desc:'Você está dando os primeiros passos da sua caminhada espiritual, e isso já é um ato de coragem. Muitos querem, poucos começam.' },
+  { n:'Peregrino',     d:'Em busca de constância e direção',            c:'#93C5FD', desc:'Você busca a fé com o coração, mas ainda luta para manter uma rotina consistente. Você não está sozinho nessa batalha.' },
+  { n:'Discípulo',     d:'Crescendo no conhecimento e na prática',      c:'#A78BFA', desc:'Sua vida espiritual está ganhando forma. Você já sente a diferença que a constância faz no seu dia a dia.' },
+  { n:'Servo',         d:'Vida sacramental ativa e missão viva',        c:'#FCD34D', desc:'Sua fé é fundamentada e você busca missão e comunidade. Você tem muito a oferecer a quem está começando.' },
+  { n:'Contemplativo', d:'Oração profunda e caminhada madura',          c:'#F9A8D4', desc:'Sua vida de oração é profunda e consistente. Você busca aprofundar a contemplação e o serviço ao próximo.' },
 ];
 
-// ── Render Landing Levels ──────────────────────
+const CHALLENGE_LABELS = {
+  anxiety:   'Ansiedade e inquietação interior',
+  laziness:  'Falta de constância e motivação',
+  dryness:   'A oração parece vazia ou distante',
+  ignorance: 'Dúvidas e questionamentos sobre a fé',
+  pride:     'Orgulho e dificuldade de se abrir',
+  lust:      'Lutas com hábitos e vícios',
+};
+
+const GOAL_LABELS = {
+  peace:      'Paz interior e serenidade',
+  truth:      'Conhecer mais profundamente a fé',
+  discipline: 'Disciplina e constância espiritual',
+  love:       'Amor ao próximo e à família',
+  healing:    'Cura emocional e libertação',
+};
+
 (function(){
   document.getElementById('levels-list').innerHTML = LEVELS.map((l,i)=>`
     <div style="display:flex;align-items:center;gap:10px;">
@@ -396,77 +427,75 @@ const LEVELS = [
       </div>
       <div>
         <span style="font-size:13px;font-weight:700;color:${l.c};">${l.n}</span>
-        <span style="font-size:12px;color:rgba(255,255,255,.32);margin-left:6px;">— ${l.d}</span>
+        <span style="font-size:12px;color:rgba(255,255,255,.32);margin-left:6px;">${l.d}</span>
       </div>
     </div>`).join('');
 })();
 
-// ── Questions ──────────────────────────────────
 const QS = [
   { id:'challenge', sub:'Escolha o que mais ressoa com o que você vive.',
     t: n=>`${n}, qual é o seu maior desafio espiritual hoje?`,
     opts:[
-      {e:'😰',l:'Ansiedade e inquietação interior',v:'anxiety'},
-      {e:'😔',l:'Preguiça e falta de vontade',v:'laziness'},
-      {e:'🌵',l:'Aridez na oração — Deus parece distante',v:'dryness'},
-      {e:'❓',l:'Dúvidas e confusão sobre a fé',v:'ignorance'},
-      {e:'😤',l:'Orgulho, ira ou julgamento',v:'pride'},
-      {e:'💔',l:'Lutas com paixões e vícios',v:'lust'},
+      {i:'brain',     l:'Ansiedade e inquietação interior',      v:'anxiety'},
+      {i:'clock',     l:'Falta de constância e motivação',       v:'laziness'},
+      {i:'cloud-rain',l:'A oração parece vazia ou distante',     v:'dryness'},
+      {i:'help-circle',l:'Dúvidas e questionamentos sobre a fé', v:'ignorance'},
+      {i:'shield',    l:'Orgulho, impaciência ou julgamento',    v:'pride'},
+      {i:'eye-off',   l:'Lutas com hábitos e vícios',            v:'lust'},
     ]},
-  { id:'frequency', sub:'Seja honesto(a) — não há resposta errada aqui.',
+  { id:'frequency', sub:'Seja honesto, não há resposta errada aqui.',
     t: n=>`Com que frequência você consegue orar ou rezar, ${n}?`,
     opts:[
-      {e:'🌅',l:'Todo dia, mesmo que brevemente',v:'daily'},
-      {e:'📅',l:'Algumas vezes por semana',v:'few_times'},
-      {e:'🙏',l:'Só em momentos difíceis',v:'hard_times'},
-      {e:'😶',l:'Raramente ou quase nunca',v:'rarely'},
+      {i:'sun',      l:'Todo dia, mesmo que brevemente',   v:'daily'},
+      {i:'calendar', l:'Algumas vezes por semana',         v:'few_times'},
+      {i:'heart',    l:'Só em momentos difíceis',          v:'hard_times'},
+      {i:'moon',     l:'Raramente ou quase nunca',         v:'rarely'},
     ]},
   { id:'routine', sub:'Isso nos ajuda a entender o espaço que a espiritualidade pode ocupar.',
     t: n=>`Como você descreveria sua rotina de vida, ${n}?`,
     opts:[
-      {e:'🌀',l:'Caótica — sem muito tempo livre',v:'chaotic'},
-      {e:'🗓️',l:'Estruturada e organizada',v:'structured'},
-      {e:'🌊',l:'Flexível — depende muito do dia',v:'flexible'},
-      {e:'😮‍💨',l:'Me sinto sobrecarregado(a)',v:'overwhelmed'},
+      {i:'zap',         l:'Caótica, sem muito tempo livre',    v:'chaotic'},
+      {i:'anchor',      l:'Estruturada e organizada',          v:'structured'},
+      {i:'wind',        l:'Flexível, depende muito do dia',    v:'flexible'},
+      {i:'alert-circle',l:'Me sinto sobrecarregado(a)',        v:'overwhelmed'},
     ]},
-  { id:'confession', sub:'O Sacramento da Reconciliação é um dos maiores presentes da Igreja.',
-    t: n=>`Quando foi sua última Confissão, ${n}?`,
+  { id:'confession', sub:'Isso nos ajuda a personalizar melhor o seu plano.',
+    t: n=>`Com que frequência você vai à Confissão, ${n}?`,
     opts:[
-      {e:'✅',l:'Neste mês — estou em dia',v:'recent'},
-      {e:'🕐',l:'Há 3 a 6 meses',v:'months'},
-      {e:'📆',l:'Há mais de um ano',v:'long_time'},
-      {e:'🌱',l:'Nunca fui, ou faz muitos anos',v:'never'},
+      {i:'check-circle',l:'Neste mês, estou em dia',         v:'recent'},
+      {i:'clock',       l:'Há 3 a 6 meses',                  v:'months'},
+      {i:'calendar',    l:'Há mais de um ano',               v:'long_time'},
+      {i:'sparkles',    l:'Ainda não fui, ou faz muitos anos',v:'never'},
     ]},
   { id:'goal', sub:'',
     t: n=>`O que você mais deseja alcançar na sua vida espiritual, ${n}?`,
     opts:[
-      {e:'☮️',l:'Paz interior e serenidade',v:'peace'},
-      {e:'💡',l:'Conhecer mais profundamente a fé',v:'truth'},
-      {e:'🎯',l:'Disciplina e constância espiritual',v:'discipline'},
-      {e:'❤️',l:'Amor ao próximo e ao meu lar',v:'love'},
-      {e:'🌿',l:'Cura emocional e libertação',v:'healing'},
+      {i:'sun',       l:'Paz interior e serenidade',          v:'peace'},
+      {i:'lightbulb', l:'Conhecer mais profundamente a fé',   v:'truth'},
+      {i:'target',    l:'Disciplina e constância espiritual', v:'discipline'},
+      {i:'heart',     l:'Amor ao próximo e à família',        v:'love'},
+      {i:'leaf',      l:'Cura emocional e libertação',        v:'healing'},
     ]},
-  { id:'state', sub:'Sua jornada espiritual se encaixa no seu contexto de vida.',
+  { id:'state', sub:'Sua caminhada espiritual se encaixa no seu contexto de vida.',
     t: n=>`Em que fase da vida você está, ${n}?`,
     opts:[
-      {e:'📚',l:'Estudante',v:'student'},
-      {e:'🦋',l:'Solteiro(a)',v:'single'},
-      {e:'💍',l:'Casado(a)',v:'married'},
-      {e:'👨‍👧',l:'Pai ou Mãe',v:'parent'},
-      {e:'🌳',l:'Aposentado(a)',v:'retired'},
+      {i:'book-open', l:'Estudante',       v:'student'},
+      {i:'user',      l:'Solteiro(a)',     v:'single'},
+      {i:'users',     l:'Casado(a)',       v:'married'},
+      {i:'home',      l:'Pai ou Mãe',     v:'parent'},
+      {i:'coffee',    l:'Aposentado(a)',   v:'retired'},
     ]},
   { id:'obstacle', sub:'',
     t: n=>`${n}, o que você sente que mais te impede de crescer espiritualmente?`,
     opts:[
-      {e:'⏰',l:'Falta de tempo na rotina',v:'no_time'},
-      {e:'🗺️',l:'Não sei por onde começar',v:'dont_know'},
-      {e:'🏝️',l:'Me sinto sozinho(a) na fé',v:'loneliness'},
-      {e:'📱',l:'Distrações e vícios digitais',v:'distractions'},
-      {e:'🌫️',l:'Dúvidas e questionamentos',v:'doubts'},
+      {i:'clock',      l:'Falta de tempo na rotina',          v:'no_time'},
+      {i:'compass',    l:'Não sei por onde começar',          v:'dont_know'},
+      {i:'user-minus', l:'Me sinto sozinho(a) na fé',         v:'loneliness'},
+      {i:'smartphone', l:'Distrações e vícios digitais',      v:'distractions'},
+      {i:'help-circle',l:'Dúvidas e questionamentos',         v:'doubts'},
     ]},
 ];
 
-// ── Scoring ────────────────────────────────────
 function calcScore(a) {
   const freq   = {daily:92,few_times:65,hard_times:32,rarely:12};
   const conf   = {recent:92,months:58,long_time:24,never:10};
@@ -488,7 +517,6 @@ function calcScore(a) {
   return { dims, avg, level: LEVELS[lvl] };
 }
 
-// ── Screen navigation ──────────────────────────
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -506,7 +534,6 @@ function submitName() {
   show('s-quiz');
 }
 
-// ── Quiz rendering ─────────────────────────────
 function renderQ(idx) {
   S.qIdx = idx;
   const q = QS[idx];
@@ -522,13 +549,21 @@ function renderQ(idx) {
       ${q.opts.map(o=>`
         <div class="answer-card glass" style="display:flex;align-items:center;gap:14px;border-radius:18px;padding:16px;"
              onclick="pick('${q.id}','${o.v}',this)">
-          <span style="font-size:24px;flex-shrink:0;">${o.e}</span>
+          <div class="icon-wrap" style="width:40px;height:40px;background:rgba(167,139,250,.1);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="${o.i}" style="width:20px;height:20px;color:#A78BFA;"></i>
+          </div>
           <span style="font-size:14px;font-weight:600;line-height:1.4;">${o.l}</span>
         </div>`).join('')}
     </div>`;
 
   c.style.opacity='0'; c.style.transform='translateX(22px)';
-  requestAnimationFrame(()=>{ c.style.transition='all .35s cubic-bezier(.22,1,.36,1)'; c.style.opacity='1'; c.style.transform='translateX(0)'; });
+  requestAnimationFrame(()=>{
+    c.style.transition='all .35s cubic-bezier(.22,1,.36,1)';
+    c.style.opacity='1';
+    c.style.transform='translateX(0)';
+  });
+
+  lucide.createIcons();
 }
 
 function pick(qid, val, el) {
@@ -542,7 +577,6 @@ function pick(qid, val, el) {
   }, 420);
 }
 
-// ── Email ──────────────────────────────────────
 function showEmailScreen() {
   document.getElementById('email-title').textContent = `Quase lá, ${S.name}!`;
   document.getElementById('email-sub').textContent = `Para onde envio o seu Diagnóstico Espiritual personalizado?`;
@@ -559,7 +593,6 @@ function submitEmail() {
   startLoading();
 }
 
-// ── Loading ────────────────────────────────────
 const MSGS = [
   n=>`Analisando seu perfil espiritual, ${n}...`,
   ()=>'Mapeando seus pontos de crescimento...',
@@ -580,24 +613,30 @@ function startLoading() {
   setTimeout(()=>{ clearInterval(t); showPaywall(); }, 8000);
 }
 
-// ── Paywall ────────────────────────────────────
-const BLOCKS = {
-  anxiety:'Ansiedade espiritual — a inquietude do coração',
-  laziness:'Acédia — a preguiça que paralisa a alma',
-  dryness:'Aridez contemplativa — o silêncio de Deus',
-  ignorance:'Fome de formação doutrinária profunda',
-  pride:'A batalha com o ego e o orgulho espiritual',
-  lust:'Desordem das paixões e apegos',
-};
-
 function showPaywall() {
   const lvl = S.score.level;
+  const a   = S.answers;
+
   document.getElementById('pw-title').innerHTML =
-    `${S.name}, vejo em você um<br><span style="color:${lvl.c};">${lvl.n}</span>`;
-  document.getElementById('pw-sub').textContent   = lvl.desc;
-  document.getElementById('pw-block').textContent = BLOCKS[S.answers.challenge] || 'Seu maior desafio revelado';
-  document.getElementById('pw-msg').textContent   =
-    `Isso apareceu na sua vida por um motivo, ${S.name}. O caminho está diante de você — e começa agora.`;
+    `${S.name}, aqui está<br>o seu perfil:`;
+
+  const badge = document.getElementById('pw-level-badge');
+  badge.style.background = lvl.c + '18';
+  badge.style.border = '1.5px solid ' + lvl.c + '35';
+  document.getElementById('pw-badge-icon').style.color = lvl.c;
+
+  document.getElementById('pw-level-name').textContent = lvl.n;
+  document.getElementById('pw-level-name').style.color = lvl.c;
+  document.getElementById('pw-level-sub').textContent  = lvl.d;
+  document.getElementById('pw-level-desc').textContent = lvl.desc;
+
+  document.getElementById('pw-insight-1').textContent =
+    'Seu desafio: ' + (CHALLENGE_LABELS[a.challenge] || 'identificado');
+  document.getElementById('pw-insight-2').textContent =
+    'Seu objetivo: ' + (GOAL_LABELS[a.goal] || 'identificado');
+
+  document.getElementById('pw-plan-desc').textContent =
+    `21 práticas criadas para o ${lvl.n}`;
 
   show('s-paywall');
   renderRadar(S.score.dims);
@@ -635,7 +674,6 @@ function renderRadar(dims) {
   });
 }
 
-// ── Checkout ───────────────────────────────────
 async function goToCheckout() {
   const btn = document.getElementById('cta-btn');
   btn.textContent = 'Preparando...';
@@ -663,7 +701,7 @@ async function goToCheckout() {
     if (d.url) { window.location.href = d.url; }
     else throw new Error(d.error||'Erro ao gerar checkout');
   } catch(err) {
-    btn.textContent = 'Ver Meu Diagnóstico Completo →';
+    btn.textContent = 'Ver Meu Diagnóstico Completo';
     btn.disabled = false;
     alert('Não foi possível abrir o checkout. Tente novamente.');
   }
