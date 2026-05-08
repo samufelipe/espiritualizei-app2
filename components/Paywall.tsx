@@ -1,30 +1,38 @@
 
 import React from 'react';
-import { Crown, Check, ArrowRight, Lock, Sparkles, ShieldCheck } from 'lucide-react';
-import BrandLogo from './BrandLogo';
+import { Crown, Check, ArrowRight, Lock, ShieldCheck } from 'lucide-react';
 
 interface PaywallProps {
   onCheckout: () => void;
   title?: string;
   description?: string;
+  isTrialExpired?: boolean;
 }
 
-const Paywall: React.FC<PaywallProps> = ({ onCheckout, title, description }) => {
+const Paywall: React.FC<PaywallProps> = ({ onCheckout, title, description, isTrialExpired }) => {
+  const defaultTitle = isTrialExpired ? "Seu Trial Gratuito Encerrou" : "Funcionalidade Premium";
+  const defaultDesc = isTrialExpired
+    ? "Seus 7 dias de acesso gratuito chegaram ao fim. Assine para continuar sua jornada espiritual com acesso completo."
+    : "Aprofunde sua vida espiritual com acesso total aos tesouros da Igreja e direção personalizada.";
+
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in min-h-[60vh] bg-white dark:bg-brand-dark rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-2xl relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-brand-violet/10 rounded-full blur-[80px] pointer-events-none" />
-      
+
       <div className="relative z-10 space-y-6 max-w-sm">
-        <div className="w-20 h-20 bg-brand-violet/10 rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-brand-violet/20">
-          <Lock size={32} className="text-brand-violet animate-pulse" />
+        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto shadow-inner border ${isTrialExpired ? 'bg-amber-500/10 border-amber-500/20' : 'bg-brand-violet/10 border-brand-violet/20'}`}>
+          {isTrialExpired
+            ? <Crown size={32} className="text-amber-500" />
+            : <Lock size={32} className="text-brand-violet animate-pulse" />
+          }
         </div>
 
         <div className="space-y-2">
           <h2 className="text-2xl font-black text-brand-dark dark:text-white tracking-tight">
-            {title || "Funcionalidade Premium"}
+            {title || defaultTitle}
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-            {description || "Aprofunde sua vida espiritual com acesso total aos tesouros da Igreja e direção personalizada."}
+            {description || defaultDesc}
           </p>
         </div>
 
@@ -50,7 +58,7 @@ const Paywall: React.FC<PaywallProps> = ({ onCheckout, title, description }) => 
         </button>
 
         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-          <ShieldCheck size={12} /> Assinatura segura via Cakto
+          <ShieldCheck size={12} /> Pagamento seguro via Stripe
         </p>
       </div>
     </div>

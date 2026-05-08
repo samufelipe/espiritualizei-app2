@@ -90,13 +90,23 @@ export const syncUserFromServer = async (userId: string, email: string): Promise
     if (profile && !error) {
       const updatedUser = mapProfileFromDB(profile, email);
 
-      // Enforcement de expiração: se renovação já passou, revogar premium localmente
+      // Enforcement de expiração de premium
       if (updatedUser.isPremium && updatedUser.subscriptionRenewalAt) {
         if (updatedUser.subscriptionRenewalAt < new Date()) {
           updatedUser.isPremium = false;
           updatedUser.subscriptionStatus = 'expired';
           supabase!.from('profiles')
             .update({ is_premium: false, subscription_status: 'expired' })
+            .eq('id', userId);
+        }
+      }
+
+      // Enforcement de expiração de trial
+      if (!updatedUser.isPremium && updatedUser.subscriptionStatus === 'trial' && updatedUser.subscriptionRenewalAt) {
+        if (updatedUser.subscriptionRenewalAt < new Date()) {
+          updatedUser.subscriptionStatus = 'expired';
+          supabase!.from('profiles')
+            .update({ subscription_status: 'expired' })
             .eq('id', userId);
         }
       }
@@ -179,10 +189,11 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
   if (!authData.user) throw new Error("Falha ao criar usuário no sistema de autenticação.");
 
   // 2. Preparar o payload do perfil (apenas campos que existem na tabela)
+  const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   const profilePayload: Record<string, any> = {
     id: authData.user.id,
     name: data.name.trim(),
-    email: email, // IMPORTANTE: Salvar email na tabela profiles
+    email: email,
     phone: data.phone,
     spiritual_maturity: 'Iniciante',
     spiritual_focus: data.primaryStruggle,
@@ -195,7 +206,9 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     level: 1,
     current_xp: 0,
     streak_days: 0,
-    joined_date: new Date().toISOString()
+    joined_date: new Date().toISOString(),
+    subscription_status: 'trial',
+    subscription_renewal_at: trialEnd.toISOString(),
   };
   
   // Campos opcionais - adicionar apenas se a coluna existir no banco
@@ -340,3 +353,23 @@ export const updateUserPassword = async (newPassword: string) => {
   }
   return false;
 };
+
+// --- Trial utilities ---
+
+export const isUserInTrial = (user: UserProfile): boolean => {
+  if (user.isPremium) return false;
+  return (
+    user.subscriptionStatus === 'trial' &&
+    !!user.subscriptionRenewalAt &&
+    user.subscriptionRenewalAt > new Date()
+  );
+};
+
+export const trialDaysLeft = (user: UserProfile): number => {
+  if (!isUserInTrial(user)) return 0;
+  const diff = user.subscriptionRenewalAt!.getTime() - Date.now();
+  return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+};
+
+export const hasFullAccess = (user: UserProfile): boolean =>
+  !!user.isPremium || isUserInTrial(user);

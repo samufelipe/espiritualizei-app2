@@ -18,7 +18,7 @@ import AdminLogin, { checkAdminSession, clearAdminSession, getAdminSecret } from
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { requestNotificationPermission } from './services/notificationService';
-import { registerUser, getSession, logoutUser, updateUserProfile, syncUserFromServer, SUPABASE_URL, SUPABASE_KEY } from './services/authService';
+import { registerUser, getSession, logoutUser, updateUserProfile, syncUserFromServer, isUserInTrial, trialDaysLeft, hasFullAccess, SUPABASE_URL, SUPABASE_KEY } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
@@ -373,10 +373,13 @@ const App: React.FC = () => {
     const activeChallenge = challenges.find(c => c.status === 'active');
     const needsPremium = (currentTab === Tab.KNOWLEDGE || currentTab === Tab.SOCIAL);
     
-    if (needsPremium && !user.isPremium) {
+    if (needsPremium && !hasFullAccess(user)) {
        return (
           <div className="flex items-center justify-center p-6 h-full">
-            <Paywall onCheckout={() => setViewState('checkout')} />
+            <Paywall
+              onCheckout={() => setViewState('checkout')}
+              isTrialExpired={user.subscriptionStatus === 'expired'}
+            />
           </div>
        );
     }
@@ -700,10 +703,21 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
             </div>
           )}
           
+          {viewState === 'app' && isUserInTrial(user) && (
+            <div className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 text-xs font-bold text-white shadow-lg transition-all ${trialDaysLeft(user) <= 2 ? 'bg-red-500' : trialDaysLeft(user) <= 4 ? 'bg-amber-500' : 'bg-brand-violet'}`}>
+              <span>{trialDaysLeft(user) === 1 ? 'Último dia de trial gratuito!' : `Trial gratuito: ${trialDaysLeft(user)} dias restantes`}</span>
+              <button
+                onClick={() => setViewState('checkout')}
+                className="bg-white/20 hover:bg-white/30 text-white text-[10px] font-black px-3 py-1 rounded-full transition-colors ml-3 shrink-0"
+              >
+                Assinar Agora
+              </button>
+            </div>
+          )}
           {viewState === 'app' && renderContent()}
       </main>
 
-      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} /></div>}
+      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!hasFullAccess(user)} /></div>}
       
       {showTutorial && <Tutorial user={user} onComplete={() => {
         localStorage.setItem('espiritualizei_tutorial_completed', 'true');

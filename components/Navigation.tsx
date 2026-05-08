@@ -1,14 +1,17 @@
 
 import React from 'react';
-import { Home, CheckCircle2, Book, Trophy, Heart, User } from 'lucide-react';
+import { Home, CheckCircle2, Book, Trophy, Heart, User, Lock } from 'lucide-react';
 import { Tab } from '../types';
 
 interface NavigationProps {
   currentTab: Tab;
   onTabChange: (tab: Tab) => void;
+  showLockOnPremium?: boolean;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange }) => {
+const PREMIUM_TABS = new Set([Tab.KNOWLEDGE, Tab.SOCIAL]);
+
+const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange, showLockOnPremium }) => {
   const navItems = [
     { tab: Tab.DASHBOARD, icon: Home, label: 'Início' },
     { tab: Tab.ROUTINE, icon: CheckCircle2, label: 'Jornada' },
@@ -22,7 +25,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange }) => {
     <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none md:hidden">
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-brand-dark dark:via-brand-dark/90 pointer-events-none" />
 
-      <nav 
+      <nav
         role="navigation"
         aria-label="Navegação principal"
         className="w-full bg-white/90 dark:bg-[#15191E]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 pb-safe pt-1 px-1 pointer-events-auto shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]"
@@ -30,6 +33,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange }) => {
         <div className="grid grid-cols-6 items-end w-full max-w-lg mx-auto">
           {navItems.map((item) => {
             const isActive = currentTab === item.tab;
+            const isLocked = showLockOnPremium && PREMIUM_TABS.has(item.tab);
             return (
               <button
                 key={item.tab}
@@ -37,23 +41,28 @@ const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange }) => {
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
                 className={`group flex flex-col items-center justify-center gap-1 py-3 px-0 w-full transition-all duration-300 active:scale-90 ${
-                  isActive 
-                    ? 'text-brand-violet' 
+                  isActive
+                    ? 'text-brand-violet'
                     : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                 }`}
               >
                 <div className={`relative transition-all duration-300 ${isActive ? '-translate-y-1' : ''}`}>
                    <item.icon
-                     size={20} 
+                     size={20}
                      strokeWidth={isActive ? 2.5 : 2}
-                     fill={isActive && (item.tab === Tab.COMMUNITY || item.tab === Tab.SOCIAL || item.tab === Tab.PROFILE) ? "currentColor" : "none"} 
+                     fill={isActive && (item.tab === Tab.COMMUNITY || item.tab === Tab.SOCIAL || item.tab === Tab.PROFILE) ? "currentColor" : "none"}
                      className="transition-transform duration-300"
                    />
                    {isActive && (
                      <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-brand-violet rounded-full shadow-[0_0_10px_rgba(167,139,250,0.8)]" />
                    )}
+                   {isLocked && !isActive && (
+                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full flex items-center justify-center">
+                       <Lock size={6} className="text-white" strokeWidth={3} />
+                     </span>
+                   )}
                 </div>
-                
+
                 <span className={`text-[9px] font-bold tracking-tight transition-all duration-300 truncate max-w-full ${
                   isActive ? 'opacity-100 font-extrabold' : 'opacity-100 font-medium'
                 }`}>
