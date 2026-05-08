@@ -1,0 +1,16 @@
+{
+  "name": "espiritualizei-social",
+  "version": "1.0.0",
+  "description": "Pipeline de geração automática de posts Instagram para o Espiritualizei",
+  "type": "module",
+  "scripts": {
+    "generate": "node generate-post.js",
+    "schedule": "node schedule-post.js",
+    "daily": "node generate-post.js && node schedule-post.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "puppeteer": "^22.0.0",
+    "dotenv": "^16.4.5"
+  }
+}

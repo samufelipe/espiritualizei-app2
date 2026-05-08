@@ -27,3 +27,8 @@ setup-supabase.ps1
 
 .env*.local
 supabase/.temp/
+
+# Social media pipeline outputs
+scripts/social/output/
+scripts/social/.env
+scripts/social/node_modules/
