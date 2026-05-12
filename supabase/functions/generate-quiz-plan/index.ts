@@ -70,16 +70,23 @@ Semana 3 (Dias 15-21): foco na integração com a fase de vida ("${answers?.stat
 
 Para cada semana, forneça também um "weekSummary": 1 frase curta e inspiradora sobre o tema (máximo 12 palavras).
 
-Para cada dia (21 no total), forneça:
+Para cada dia (21 no total), forneça os seguintes campos:
 - intention: intenção do dia em 1ª pessoa do singular, íntima e pessoal ("Hoje escolho...")
-- prayer: oração ou prática específica sugerida (nome concreto)
-- task: tarefa prática simples e realizável em 5-15 minutos
-- verse: versículo bíblico (referência no formato "Jo 15,5" + texto curto)
+- prayer: nome concreto da oração ou prática espiritual sugerida (ex: "Lectio Divina", "Terço meditado", "Exame de consciência")
+- prayer_steps: array de exatamente 3 strings — passos numerados e didáticos ensinando como fazer a oração do dia. Cada passo deve ser uma instrução concreta e clara, como se fosse ensinando alguém pela primeira vez. Ex: ["Encontre um lugar silencioso e feche os olhos por 1 minuto.", "Leia o versículo do dia em voz alta, devagar, duas vezes.", "Responda internamente: o que Deus quer me dizer com isso hoje?"]
+- task: nome curto da tarefa prática do dia
+- task_steps: array de exatamente 3 strings — passos numerados e didáticos para realizar a tarefa. Concretos, simples, realizáveis em 5-15 minutos. Ex: ["Pegue papel e caneta — evite o celular.", "Escreva 3 coisas pelas quais você é grato a Deus hoje.", "Releia o que escreveu e ofereça ao Senhor em silêncio."]
+- verse: versículo bíblico (referência no formato "Jo 15,5" + texto curto do versículo)
+- resource_search: termo de busca no YouTube em português para encontrar um vídeo ensinando a prática do dia (ex: "como rezar o terço meditado passo a passo", "lectio divina para iniciantes católico")
+- duration_minutes: número inteiro entre 10 e 30 — tempo total estimado para completar oração + tarefa do dia
 
-IMPORTANTE: As intenções devem ser íntimas, empáticas e pessoais — como se um diretor espiritual estivesse conversando diretamente com ${displayName}. Linguagem acessível, sem termos litúrgicos complexos.
+IMPORTANTE:
+- As intenções devem ser íntimas, empáticas e pessoais — como se um diretor espiritual estivesse conversando diretamente com ${displayName}.
+- Os prayer_steps e task_steps devem ser didáticos o suficiente para que alguém sem experiência consiga seguir sozinho.
+- Linguagem acessível, sem termos litúrgicos complexos. Conteúdo estritamente católico.
 
-Retorne APENAS JSON válido com esta estrutura:
-{"weeks":[{"theme":"Tema da Semana","weekSummary":"Uma frase curta inspiradora","lucideIcon":"leaf","days":[{"day":1,"intention":"Hoje escolho...","prayer":"...","task":"...","verse":"Jo 15,5 — ..."}]}]}
+Retorne APENAS JSON válido com esta estrutura exata:
+{"weeks":[{"theme":"Tema da Semana","weekSummary":"Uma frase curta inspiradora","lucideIcon":"leaf","days":[{"day":1,"intention":"Hoje escolho...","prayer":"Lectio Divina","prayer_steps":["Passo 1 concreto e didático.","Passo 2 concreto e didático.","Passo 3 concreto e didático."],"task":"Nome da tarefa","task_steps":["Passo 1 concreto.","Passo 2 concreto.","Passo 3 concreto."],"verse":"Jo 15,5 — Sem mim, nada podeis fazer.","resource_search":"termo de busca youtube em português","duration_minutes":15}]}]}
 
 Ícones Lucide sugeridos por semana: "leaf" (início/semente), "map" (caminho/objetivo), "star" (missão/integração).
 Tom: pastoral, íntimo, encorajador. Linguagem: português brasileiro acessível. Conteúdo: estritamente católico.`
@@ -93,7 +100,7 @@ Tom: pastoral, íntimo, encorajador. Linguagem: português brasileiro acessível
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [{ role: 'user', content: prompt }],
       }),
     })

@@ -45,12 +45,13 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: #1A2530; font-family: 'Inter', sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
 
-    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     @keyframes bgPulse { 0%,100% { opacity:1; } 50% { opacity:.7; } }
     @keyframes heartbeat { 0%,100% { transform:scale(1); } 14% { transform:scale(1.12); } 28% { transform:scale(1); } 42% { transform:scale(1.07); } 70% { transform:scale(1); } }
     @keyframes barGrow { from { width:0; } }
     @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes confetti { 0% { transform:translateY(-10px) rotate(0deg); opacity:1; } 100% { transform:translateY(60px) rotate(360deg); opacity:0; } }
 
     .anim-fade-up { animation: fadeUp .5s cubic-bezier(.22,1,.36,1) forwards; }
     .anim-fade-in { animation: fadeIn .4s ease forwards; }
@@ -77,27 +78,60 @@
     .dim-bar-track { background: rgba(255,255,255,.08); border-radius: 4px; height: 6px; overflow:hidden; }
     .dim-bar-fill { height: 100%; background: #A78BFA; border-radius: 4px; animation: barGrow .8s cubic-bezier(.22,1,.36,1) forwards; }
 
-    .day-card { background: rgba(255,255,255,.03); border: 1.5px solid rgba(255,255,255,.07); border-radius: 16px; padding: 18px; transition: border-color .2s ease; }
-    .day-card:hover { border-color: rgba(167,139,250,.3); }
-    .day-card-label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.4); margin-bottom: 5px; }
-    .day-card-label i { width: 13px; height: 13px; color: #A78BFA; flex-shrink:0; }
-
-    .verse-block { border-left: 3px solid #A78BFA; padding: 8px 12px; background: rgba(167,139,250,.05); border-radius: 0 8px 8px 0; font-size: 12px; color: rgba(255,255,255,.55); line-height: 1.5; font-style: italic; display:flex; align-items:flex-start; gap:6px; }
-
-    .feature-card { background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.08); border-radius: 16px; padding: 18px; display: flex; align-items: flex-start; gap: 14px; }
-    .feature-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(167,139,250,.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .feature-icon i { width: 20px; height: 20px; color: #A78BFA; }
-
-    .testimonial-card { background: rgba(255,255,255,.03); border: 1.5px solid rgba(255,255,255,.07); border-radius: 14px; padding: 16px 18px; }
-
-    .btn-primary { background: #A78BFA; border-radius: 14px; transition: all .2s ease; cursor: pointer; border: none; font-family: 'Inter', sans-serif; min-height: 56px; width: 100%; box-shadow: 0 8px 32px rgba(167,139,250,.28); }
+    .btn-primary { background: #A78BFA; border-radius: 14px; transition: all .2s ease; cursor: pointer; border: none; font-family: 'Inter', sans-serif; min-height: 56px; width: 100%; box-shadow: 0 8px 32px rgba(167,139,250,.28); color: #1A2530; font-weight: 700; font-size: 15px; padding: 17px 24px; }
     .btn-primary:hover { background: #9370f5; transform: translateY(-1px); box-shadow: 0 12px 40px rgba(167,139,250,.4); }
-    .btn-secondary { background: transparent; border: 1.5px solid rgba(255,255,255,.12); border-radius: 14px; transition: all .2s ease; cursor: pointer; font-family: 'Inter', sans-serif; min-height: 48px; width: 100%; }
+    .btn-secondary { background: transparent; border: 1.5px solid rgba(255,255,255,.12); border-radius: 14px; transition: all .2s ease; cursor: pointer; font-family: 'Inter', sans-serif; min-height: 48px; width: 100%; color: rgba(255,255,255,.5); font-size: 13px; padding: 13px 24px; }
     .btn-secondary:hover { border-color: rgba(255,255,255,.25); }
+    .btn-ghost { background: rgba(167,139,250,.1); border: 1.5px solid rgba(167,139,250,.25); border-radius: 12px; cursor: pointer; font-family: 'Inter', sans-serif; color: #A78BFA; font-weight: 600; font-size: 13px; padding: 12px 20px; transition: all .2s ease; }
+    .btn-ghost:hover { background: rgba(167,139,250,.18); }
+    .btn-ghost:disabled { opacity: .35; cursor: not-allowed; }
 
     .content-wrap { max-width: 520px; margin: 0 auto; padding: 0 16px 80px; position: relative; z-index: 1; }
     .grid-2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
     @media (min-width: 540px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+
+    /* Screens */
+    .screen { display: none; }
+    .screen.active { display: block; animation: fadeUp .4s cubic-bezier(.22,1,.36,1); }
+
+    /* Progress bar */
+    .progress-track { background: rgba(255,255,255,.08); border-radius: 4px; height: 4px; overflow: hidden; flex: 1; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #A78BFA, #c4b5fd); border-radius: 4px; transition: width .4s ease; }
+
+    /* Day step lists */
+    .step-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .step-item { display: flex; gap: 12px; align-items: flex-start; }
+    .step-num { width: 24px; height: 24px; border-radius: 50%; background: rgba(167,139,250,.18); border: 1.5px solid rgba(167,139,250,.35); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #A78BFA; flex-shrink: 0; margin-top: 1px; }
+    .step-text { font-size: 14px; color: rgba(255,255,255,.75); line-height: 1.55; }
+
+    /* Week preview cards */
+    .week-card { border-radius: 16px; padding: 18px; cursor: pointer; transition: all .2s ease; border: 1.5px solid rgba(167,139,250,.15); background: rgba(167,139,250,.04); }
+    .week-card:hover { border-color: rgba(167,139,250,.35); }
+    .week-card.active-week { background: rgba(167,139,250,.1); border-color: rgba(167,139,250,.4); }
+
+    /* Feature cards */
+    .feature-card { background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.08); border-radius: 16px; padding: 18px; display: flex; align-items: flex-start; gap: 14px; }
+    .feature-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(167,139,250,.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .feature-icon i { width: 20px; height: 20px; color: #A78BFA; }
+    .testimonial-card { background: rgba(255,255,255,.03); border: 1.5px solid rgba(255,255,255,.07); border-radius: 14px; padding: 16px 18px; }
+
+    /* Verse block */
+    .verse-block { border-left: 3px solid #A78BFA; padding: 10px 14px; background: rgba(167,139,250,.05); border-radius: 0 10px 10px 0; font-size: 13px; color: rgba(255,255,255,.55); line-height: 1.55; font-style: italic; display:flex; align-items:flex-start; gap:8px; }
+
+    /* Completion confetti dots */
+    .confetti-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; animation: confetti 1.6s ease-out forwards; }
+
+    /* Print styles */
+    @media print {
+      #screen-dashboard, #screen-complete, .no-print, #loading-screen { display: none !important; }
+      #screen-day { display: block !important; }
+      .bg-animated { display: none !important; }
+      body { background: #fff !important; color: #111 !important; }
+      .glass, .glass-violet, .week-card { background: #f5f5f5 !important; border-color: #ddd !important; }
+      .btn-primary, .btn-ghost, .btn-secondary, .nav-bar, .print-btn { display: none !important; }
+      .step-text { color: #333 !important; }
+      .verse-block { border-color: #888 !important; color: #555 !important; background: #f0f0f0 !important; }
+    }
   </style>
 </head>
 <body>
@@ -105,8 +139,10 @@
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
+
 <div class="bg-animated"></div>
 
+<!-- Loading screen -->
 <div id="loading-screen">
   <div class="anim-heartbeat">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="#A78BFA">
@@ -114,22 +150,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </svg>
   </div>
   <div class="spinner"></div>
-  <p style="font-size:14px;color:rgba(255,255,255,.5);">Carregando seu diagnóstico...</p>
+  <p id="loading-msg" style="font-size:14px;color:rgba(255,255,255,.5);">Carregando seu diagnóstico...</p>
 </div>
 
-<div id="main-content" style="display:none;">
+<!-- ═══════════════════════════════════════════════════════
+     TELA 1: DASHBOARD
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-dashboard" class="screen">
 <div class="content-wrap">
 
   <!-- Header -->
-  <div style="display:flex;align-items:center;gap:10px;padding:28px 0 36px;">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="#A78BFA">
-      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-    </svg>
-    <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
-    <span style="margin-left:auto;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(167,139,250,.6);">DIAGNÓSTICO COMPLETO</span>
+  <div style="display:flex;align-items:center;justify-content:center;padding:28px 0 32px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#A78BFA">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+      <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(167,139,250,.6);margin-left:8px;">DIAGNÓSTICO</span>
+    </div>
   </div>
 
-  <!-- SEÇÃO 1: Hero -->
+  <!-- Hero -->
   <div class="anim-fade-up" style="margin-bottom:36px;text-align:center;">
     <p id="hero-greeting" style="font-size:clamp(13px,4vw,15px);color:rgba(255,255,255,.5);margin-bottom:12px;"></p>
     <h1 style="font-size:clamp(24px,7vw,34px);font-weight:900;line-height:1.15;margin-bottom:20px;letter-spacing:-.5px;">
@@ -148,11 +189,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="glass-violet" style="border-radius:18px;padding:22px;text-align:left;">
       <p id="personal-letter" style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.8);line-height:1.7;"></p>
     </div>
-
-    <p style="font-size:12px;color:rgba(255,255,255,.3);margin-top:14px;">Você investiu uma vez. Seu plano é seu para sempre.</p>
   </div>
 
-  <!-- SEÇÃO 2: Mapa Espiritual -->
+  <!-- Mapa Espiritual -->
   <div class="anim-fade-up" style="margin-bottom:36px;">
     <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:18px;">SEU MAPA ESPIRITUAL</p>
 
@@ -180,18 +219,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </div>
 
-  <!-- SEÇÃO 3: Plano 21 Dias -->
-  <div class="anim-fade-up" style="margin-bottom:40px;">
-    <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:8px;">SEU DESAFIO DE 21 DIAS</p>
-    <h2 style="font-size:clamp(20px,6vw,26px);font-weight:800;margin-bottom:20px;">Uma prática por dia.<br>Feita para a sua realidade.</h2>
+  <!-- Preview das 3 Semanas -->
+  <div class="anim-fade-up" style="margin-bottom:32px;">
+    <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:16px;">SEU DESAFIO DE 21 DIAS</p>
+    <div id="weeks-preview" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;"></div>
 
-    <div style="display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;">
-      <span style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(167,139,250,.2);border:1.5px solid #A78BFA;color:#fff;">Semana 1</span>
-      <span style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(167,139,250,.08);border:1.5px solid rgba(167,139,250,.18);color:rgba(255,255,255,.55);">Semana 2</span>
-      <span style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(167,139,250,.08);border:1.5px solid rgba(167,139,250,.18);color:rgba(255,255,255,.55);">Semana 3</span>
-    </div>
+    <div id="progress-summary" style="font-size:13px;color:rgba(255,255,255,.4);text-align:center;margin-bottom:20px;"></div>
 
-    <div id="plan-container"></div>
+    <button class="btn-primary" onclick="goToDay(nextPendingDay())" id="cta-start">
+      Começar meu Desafio de 21 Dias →
+    </button>
   </div>
 
   <!-- Divisor -->
@@ -205,7 +242,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
   </div>
 
-  <!-- SEÇÃO 4: Comunidade -->
+  <!-- Pitch do App -->
   <div class="anim-fade-up" id="community-section" style="margin-bottom:40px;">
     <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:14px;">O PRÓXIMO PASSO</p>
     <h2 id="community-headline" style="font-size:clamp(20px,6vw,26px);font-weight:900;line-height:1.2;margin-bottom:10px;"></h2>
@@ -255,36 +292,92 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div style="background:rgba(167,139,250,.06);border:1.5px solid rgba(167,139,250,.18);border-radius:20px;padding:24px;text-align:center;">
       <p style="font-size:10px;font-weight:800;letter-spacing:2px;color:#A78BFA;margin-bottom:8px;">7 DIAS GRÁTIS · SEM CARTÃO AGORA</p>
       <p style="font-size:clamp(15px,5vw,18px);font-weight:700;margin-bottom:18px;line-height:1.3;">Faça parte da comunidade do Espiritualizei.</p>
-      <button class="btn-primary" onclick="goToApp()" style="font-size:15px;font-weight:700;color:#1A2530;padding:17px 24px;margin-bottom:12px;">
+      <button class="btn-primary" onclick="goToApp()" style="margin-bottom:12px;">
         Quero Fazer Parte da Comunidade
       </button>
-      <button class="btn-secondary" onclick="document.getElementById('community-section').style.display='none'" style="font-size:13px;color:rgba(255,255,255,.4);padding:13px 24px;">
+      <button class="btn-secondary" onclick="document.getElementById('community-section').style.display='none'">
         Vou continuar só com meu diagnóstico
       </button>
     </div>
   </div>
 
-  <!-- SEÇÃO 5: Fechamento -->
-  <div class="anim-fade-in" style="text-align:center;padding:28px 0 16px;">
-    <div class="anim-heartbeat" style="margin-bottom:16px;">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="#A78BFA">
+  <!-- Rodapé dashboard -->
+  <div style="text-align:center;padding:8px 0 16px;">
+    <button onclick="shareWhatsApp(false)" style="display:inline-flex;align-items:center;gap:8px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);border-radius:10px;padding:13px 22px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Compartilhar no WhatsApp
+    </button>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TELA 2: DIA
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-day" class="screen">
+<div class="content-wrap" style="padding-top:0;">
+
+  <!-- Top bar -->
+  <div class="nav-bar" style="display:flex;align-items:center;gap:12px;padding:20px 0 24px;position:sticky;top:0;z-index:10;background:#1A2530;">
+    <button onclick="showScreen('screen-dashboard')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;padding:0;white-space:nowrap;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Visão Geral
+    </button>
+    <div class="progress-track">
+      <div class="progress-fill" id="day-progress-fill" style="width:0%;"></div>
+    </div>
+    <span id="day-counter" style="font-size:12px;font-weight:800;color:#A78BFA;white-space:nowrap;"></span>
+  </div>
+
+  <!-- Conteúdo dinâmico do dia -->
+  <div id="day-content"></div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TELA 3: CELEBRAÇÃO
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-complete" class="screen">
+<div class="content-wrap">
+
+  <div style="text-align:center;padding:60px 0 40px;position:relative;overflow:hidden;">
+    <div id="confetti-container" style="position:absolute;inset:0;pointer-events:none;"></div>
+
+    <div class="anim-heartbeat" style="margin-bottom:24px;">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="#A78BFA">
         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
       </svg>
     </div>
-    <p id="closing-text" style="font-size:clamp(14px,4vw,16px);color:rgba(255,255,255,.55);line-height:1.7;max-width:320px;margin:0 auto 24px;"></p>
 
-    <!-- Ações do plano -->
-    <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto 28px;">
-      <button onclick="shareWhatsApp()" style="display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:14px 20px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;width:100%;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Compartilhar no WhatsApp
-      </button>
-      <button onclick="window.print()" style="display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:14px 20px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;width:100%;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Salvar / Imprimir Plano
-      </button>
-    </div>
+    <p style="font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#A78BFA;margin-bottom:12px;">MISSÃO CUMPRIDA</p>
+    <h1 id="complete-title" style="font-size:clamp(24px,7vw,34px);font-weight:900;line-height:1.2;margin-bottom:16px;letter-spacing:-.5px;"></h1>
+    <p id="complete-text" style="font-size:clamp(14px,4vw,16px);color:rgba(255,255,255,.6);line-height:1.7;max-width:380px;margin:0 auto 32px;"></p>
+  </div>
 
+  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:36px;">
+    <button onclick="shareWhatsApp(true)" class="btn-primary" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Compartilhar minha conquista
+    </button>
+    <button onclick="goToApp()" class="btn-secondary" style="border-color:rgba(167,139,250,.25);color:rgba(255,255,255,.7);">
+      Conhecer o Espiritualizei App
+    </button>
+    <button onclick="showScreen('screen-dashboard')" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:13px;cursor:pointer;padding:10px;">
+      Rever meu plano completo
+    </button>
+  </div>
+
+  <div style="background:rgba(167,139,250,.06);border:1.5px solid rgba(167,139,250,.18);border-radius:20px;padding:24px;text-align:center;margin-bottom:40px;">
+    <p style="font-size:10px;font-weight:800;letter-spacing:2px;color:#A78BFA;margin-bottom:8px;">O PRÓXIMO PASSO</p>
+    <p style="font-size:15px;font-weight:700;margin-bottom:16px;line-height:1.4;">Você provou que consegue. Agora mantenha esse crescimento com o App.</p>
+    <button class="btn-primary" onclick="goToApp()">
+      Começar 7 dias grátis no Espiritualizei
+    </button>
+  </div>
+
+  <div style="text-align:center;padding-bottom:20px;">
     <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(167,139,250,.4);">ESPIRITUALIZEI · Feito com amor para a glória de Deus</p>
   </div>
 
@@ -292,15 +385,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <script>
-  const SUPABASE_URL = 'https://anoqhwpdrztaqmlocnzx.supabase.co'
+  const SUPABASE_URL  = 'https://anoqhwpdrztaqmlocnzx.supabase.co'
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFub3Fod3Bkcnp0YXFtbG9jbnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2ODM3OTQsImV4cCI6MjA3OTI1OTc5NH0.eUg9hLctWst7nolKxk5OUgka6s8xUaaBNH3dP6kCduY'
 
   const LEVELS = [
-    { name:'Semente',       color:'#6EE7B7', sub:'O início de toda grande jornada',         desc:'Você está dando os primeiros passos da sua caminhada espiritual, e isso já é um ato de coragem.' },
-    { name:'Peregrino',     color:'#93C5FD', sub:'Em busca de constância e direção',         desc:'Você busca a fé com o coração, mas ainda luta para manter uma rotina consistente. Você não está sozinho.' },
-    { name:'Discípulo',     color:'#A78BFA', sub:'Crescendo no conhecimento e na prática',   desc:'Sua vida espiritual está ganhando forma. Você já sente a diferença que a constância faz no seu dia a dia.' },
-    { name:'Servo',         color:'#FCD34D', sub:'Vida sacramental ativa e missão viva',     desc:'Sua fé é fundamentada e você busca missão e comunidade. Você tem muito a oferecer a quem está começando.' },
-    { name:'Contemplativo', color:'#F9A8D4', sub:'Oração profunda e caminhada madura',       desc:'Sua vida de oração é profunda e consistente. Você busca aprofundar a contemplação e o serviço.' },
+    { name:'Semente',       color:'#6EE7B7', sub:'O início de toda grande jornada',       desc:'Você está dando os primeiros passos da sua caminhada espiritual, e isso já é um ato de coragem.' },
+    { name:'Peregrino',     color:'#93C5FD', sub:'Em busca de constância e direção',       desc:'Você busca a fé com o coração, mas ainda luta para manter uma rotina consistente. Você não está sozinho.' },
+    { name:'Discípulo',     color:'#A78BFA', sub:'Crescendo no conhecimento e na prática', desc:'Sua vida espiritual está ganhando forma. Você já sente a diferença que a constância faz no seu dia a dia.' },
+    { name:'Servo',         color:'#FCD34D', sub:'Vida sacramental ativa e missão viva',   desc:'Sua fé é fundamentada e você busca missão e comunidade. Você tem muito a oferecer a quem está começando.' },
+    { name:'Contemplativo', color:'#F9A8D4', sub:'Oração profunda e caminhada madura',     desc:'Sua vida de oração é profunda e consistente. Você busca aprofundar a contemplação e o serviço.' },
   ]
 
   const DIMS_LABELS = ['Oração','Sacramento','Formação','Comunidade','Missão']
@@ -358,17 +451,77 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     },
   }
 
+  // ── State ─────────────────────────────────────────────
+  let _data = null
+  let _plan  = null
+  let _currentDay = 1
+
+  function getProgress() {
+    try { return new Set(JSON.parse(localStorage.getItem('esp_progress') || '[]')) }
+    catch(_) { return new Set() }
+  }
+  function saveProgress(s) {
+    localStorage.setItem('esp_progress', JSON.stringify([...s]))
+  }
+
+  function nextPendingDay() {
+    const done = getProgress()
+    for (let i = 1; i <= 21; i++) { if (!done.has(i)) return i }
+    return 21
+  }
+
+  // ── Screen management ─────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+    document.getElementById(id).classList.add('active')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // ── Navigation ────────────────────────────────────────
+  function goToDay(n) {
+    _currentDay = Math.max(1, Math.min(21, n))
+    renderDay(_currentDay)
+    showScreen('screen-day')
+  }
+
+  function markDone(n) {
+    const done = getProgress()
+    done.add(n)
+    saveProgress(done)
+    updateWeekPreview()
+    if (n >= 21) {
+      renderComplete()
+      showScreen('screen-complete')
+      spawnConfetti()
+    } else {
+      goToDay(n + 1)
+    }
+  }
+
+  // ── Fallback plan ─────────────────────────────────────
   function buildFallbackPlan(data) {
-    const a = data.answers || {}
+    const a  = data.answers || {}
     const w1 = WEEK_THEMES.challenge[a.challenge] || { theme:'Regularidade na oração', icon:'heart' }
     const w2 = WEEK_THEMES.goal[a.goal]            || { theme:'Aprofundamento da fé',   icon:'lightbulb' }
     const w3 = WEEK_THEMES.state[a.state]          || { theme:'Integração com a vida',  icon:'star' }
     const makeDay = (day) => ({
       day,
-      int: `Hoje escolho dedicar meu tempo a Deus, um passo de cada vez.`,
+      intention: `Hoje escolho dedicar meu tempo a Deus, um passo de cada vez.`,
       prayer: day % 2 === 0 ? 'Rosário meditado' : 'Lectio Divina de 10 minutos',
-      task: 'Reserve 10 minutos em silêncio, longe do celular, e ofereça esse tempo a Deus.',
+      prayer_steps: [
+        'Encontre um lugar silencioso e respire fundo três vezes antes de começar.',
+        'Leia a oração ou o trecho do Evangelho sugerido devagar, palavra por palavra.',
+        'Feche os olhos por 2 minutos e permita que Deus fale ao seu coração em silêncio.',
+      ],
+      task: 'Reserve 10 minutos de silêncio',
+      task_steps: [
+        'Afaste-se do celular e de telas por pelo menos 10 minutos.',
+        'Sente-se confortavelmente e ofereça esses minutos a Deus em intenção.',
+        'Ao final, agradeça com uma frase simples: "Senhor, obrigado por este momento."',
+      ],
       verse: 'Sl 139,1: "Senhor, tu me sondas e me conheces."',
+      resource_search: 'oração católica guiada para iniciantes',
+      duration_minutes: 15,
     })
     return {
       weeks: [
@@ -379,7 +532,196 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
   }
 
-  function renderAll(data, plan) {
+  // ── Render helpers ────────────────────────────────────
+  function stepsHtml(steps) {
+    if (!steps || !steps.length) return ''
+    return `<ul class="step-list">${steps.map((s,i)=>`
+      <li class="step-item">
+        <span class="step-num">${i+1}</span>
+        <span class="step-text">${s}</span>
+      </li>`).join('')}</ul>`
+  }
+
+  function getDayData(n) {
+    let day = null
+    let week = null
+    for (const wk of _plan.weeks) {
+      const d = wk.days.find(d => d.day === n)
+      if (d) { day = d; week = wk; break }
+    }
+    return { day, week }
+  }
+
+  // ── Render: Day ───────────────────────────────────────
+  function renderDay(n) {
+    const { day, week } = getDayData(n)
+    if (!day) return
+
+    const done     = getProgress()
+    const isDone   = done.has(n)
+    const weekIdx  = _plan.weeks.indexOf(week) + 1
+    const duration = day.duration_minutes || 15
+    const ytSearch = day.resource_search || `${day.prayer || 'oração católica'} passo a passo`
+    const ytUrl    = `https://www.youtube.com/results?search_query=${encodeURIComponent(ytSearch)}`
+
+    document.getElementById('day-progress-fill').style.width = `${(n/21)*100}%`
+    document.getElementById('day-counter').textContent = `DIA ${n} / 21`
+
+    document.getElementById('day-content').innerHTML = `
+      <!-- Cabeçalho do dia -->
+      <div class="anim-fade-up" style="margin-bottom:28px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <div style="width:32px;height:32px;border-radius:9px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="${week.lucideIcon||'leaf'}" style="width:16px;height:16px;color:#A78BFA;"></i>
+          </div>
+          <div>
+            <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:1px;">SEMANA ${weekIdx} · ${week.theme}</p>
+            <p style="font-size:12px;color:rgba(255,255,255,.4);">~${duration} minutos</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intenção -->
+      <div class="glass-violet anim-fade-up" style="border-radius:18px;padding:22px;margin-bottom:20px;">
+        <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#A78BFA;margin-bottom:10px;">INTENÇÃO DO DIA</p>
+        <p style="font-size:clamp(15px,4.5vw,17px);font-style:italic;color:rgba(255,255,255,.9);line-height:1.65;">"${day.intention || ''}"</p>
+      </div>
+
+      <!-- Oração -->
+      <div class="glass anim-fade-up" style="border-radius:18px;padding:22px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="heart" style="width:14px;height:14px;color:#A78BFA;"></i>
+            </div>
+            <div>
+              <p style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:1px;">ORAÇÃO DO DIA</p>
+              <p style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9);">${day.prayer || ''}</p>
+            </div>
+          </div>
+          <a href="${ytUrl}" target="_blank" rel="noopener"
+             style="display:flex;align-items:center;gap:6px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:8px 12px;text-decoration:none;color:#FCA5A5;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Ver no YouTube
+          </a>
+        </div>
+        ${stepsHtml(day.prayer_steps)}
+      </div>
+
+      <!-- Prática do dia -->
+      <div class="glass anim-fade-up" style="border-radius:18px;padding:22px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="pencil" style="width:14px;height:14px;color:#A78BFA;"></i>
+          </div>
+          <div>
+            <p style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:1px;">PRÁTICA DO DIA</p>
+            <p style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9);">${day.task || ''}</p>
+          </div>
+        </div>
+        ${stepsHtml(day.task_steps)}
+      </div>
+
+      <!-- Versículo -->
+      <div class="verse-block anim-fade-up" style="margin-bottom:28px;">
+        <i data-lucide="book-open" style="width:14px;height:14px;color:#A78BFA;flex-shrink:0;margin-top:1px;"></i>
+        <span>${day.verse || ''}</span>
+      </div>
+
+      <!-- Botão concluir -->
+      ${isDone
+        ? `<div style="text-align:center;padding:16px;background:rgba(110,231,183,.06);border:1.5px solid rgba(110,231,183,.2);border-radius:14px;margin-bottom:20px;">
+             <p style="font-size:14px;font-weight:700;color:#6EE7B7;">✓ Dia ${n} concluído!</p>
+           </div>`
+        : `<button class="btn-primary no-print" onclick="markDone(${n})" style="margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;">
+             <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
+             Marcar dia ${n} como concluído
+           </button>`
+      }
+
+      <!-- Navegação -->
+      <div class="no-print" style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <button class="btn-ghost" onclick="goToDay(${n-1})" ${n<=1?'disabled':''} style="flex:1;">
+          ← Dia anterior
+        </button>
+        <button class="btn-ghost" onclick="goToDay(${n+1})" ${n>=21?'disabled':''} style="flex:1;">
+          Próximo dia →
+        </button>
+      </div>
+
+      <!-- Imprimir -->
+      <div class="no-print" style="text-align:center;padding-bottom:8px;">
+        <button class="print-btn" onclick="window.print()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;font-weight:600;cursor:pointer;padding:8px 16px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir este dia
+        </button>
+      </div>
+    `
+    lucide.createIcons()
+  }
+
+  // ── Render: Dashboard ─────────────────────────────────
+  function updateWeekPreview() {
+    const done    = getProgress()
+    const doneArr = [...done]
+    const pending = nextPendingDay()
+    const total   = doneArr.length
+
+    const weeksEl = document.getElementById('weeks-preview')
+    if (!weeksEl || !_plan) return
+
+    weeksEl.innerHTML = _plan.weeks.map((wk, wi) => {
+      const startDay  = wi * 7 + 1
+      const endDay    = wi * 7 + 7
+      const weekDone  = doneArr.filter(d => d >= startDay && d <= endDay).length
+      const isActive  = pending >= startDay && pending <= endDay
+      const isComplete = weekDone === 7
+      return `
+        <div class="week-card ${isActive ? 'active-week' : ''}" onclick="goToDay(${startDay})">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:38px;height:38px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="${wk.lucideIcon||'leaf'}" style="width:18px;height:18px;color:#A78BFA;"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:3px;">SEMANA ${wi+1} · Dias ${startDay}–${endDay}</p>
+              <p style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${wk.theme}</p>
+              ${wk.weekSummary ? `<p style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;font-style:italic;">${wk.weekSummary}</p>` : ''}
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              ${isComplete
+                ? `<span style="font-size:11px;font-weight:700;color:#6EE7B7;">✓ Completo</span>`
+                : `<span style="font-size:12px;font-weight:700;color:rgba(167,139,250,.7);">${weekDone}/7</span>`
+              }
+            </div>
+          </div>
+        </div>`
+    }).join('')
+
+    const progressEl = document.getElementById('progress-summary')
+    if (progressEl) {
+      if (total === 0) {
+        progressEl.textContent = 'Você ainda não começou. O primeiro dia é o mais importante.'
+      } else if (total === 21) {
+        progressEl.textContent = '🎉 Você concluiu todos os 21 dias!'
+      } else {
+        progressEl.textContent = `${total} de 21 dias concluídos — continue assim!`
+      }
+    }
+
+    const ctaBtn = document.getElementById('cta-start')
+    if (ctaBtn) {
+      if (total === 21) {
+        ctaBtn.textContent = 'Ver minha conquista 🎉'
+        ctaBtn.onclick = () => { renderComplete(); showScreen('screen-complete'); spawnConfetti() }
+      } else if (total > 0) {
+        ctaBtn.textContent = `Continuar — Dia ${pending}`
+      }
+    }
+
+    lucide.createIcons()
+  }
+
+  function renderDashboard(data, plan) {
     const name  = data.name || 'Caminhante'
     const lvl   = data.level ? data.level - 1 : 1
     const level = LEVELS[Math.min(lvl, 4)]
@@ -389,23 +731,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const a = data.answers || {}
 
     // Hero
-    document.getElementById('hero-greeting').textContent = `${name}, aqui está o que descobrimos sobre você:`
+    document.getElementById('hero-greeting').textContent  = `${name}, aqui está o que descobrimos sobre você:`
+    document.getElementById('community-headline').textContent = `${name}, você acabou de descobrir onde está.`
+
     const badge = document.getElementById('level-badge')
     badge.style.background = level.color + '18'
     badge.style.border = `1.5px solid ${level.color}44`
     document.getElementById('badge-heart').style.fill = level.color
-    document.getElementById('badge-level-name').textContent = level.name
-    document.getElementById('badge-level-name').style.color = level.color
+    document.getElementById('badge-level-name').textContent  = level.name
+    document.getElementById('badge-level-name').style.color  = level.color
     document.getElementById('level-subtitle').textContent = level.sub
 
     const challengeLabel = CHALLENGE_LABELS[a.challenge] || 'sua jornada espiritual'
-    const goalLabel = GOAL_LABELS[a.goal] || 'crescimento espiritual'
+    const goalLabel      = GOAL_LABELS[a.goal] || 'crescimento espiritual'
     document.getElementById('personal-letter').textContent =
       `${name}, você revelou que carrega o peso de ${challengeLabel} e que seu coração mais deseja ${goalLabel}. Isso é muito mais comum do que parece, e o caminho que preparamos é feito especialmente para esse momento. Cada dia dos próximos 21 foi pensado com cuidado para a sua realidade de hoje.`
-
-    document.getElementById('community-headline').textContent = `${name}, você acabou de descobrir onde está.`
-    document.getElementById('closing-text').textContent =
-      `${name}, você não chegou até aqui por acaso. Cada resposta que deu hoje revela um coração que quer crescer. Deus já está te esperando no próximo passo.`
 
     // Radar
     const ctx = document.getElementById('radar-chart').getContext('2d')
@@ -433,8 +773,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="dim-bar-track">
           <div class="dim-bar-fill" style="width:${Math.round(dims[i])}%;animation-delay:${i*0.1}s;"></div>
         </div>
-      </div>
-    `).join('')
+      </div>`).join('')
 
     // Dons e bloqueio
     const challenge = a.challenge || 'anxiety'
@@ -442,60 +781,57 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <li style="display:flex;align-items:flex-start;gap:8px;">
         <i data-lucide="check" style="width:13px;height:13px;color:#A78BFA;margin-top:2px;flex-shrink:0;"></i>
         <span style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.4;">${g}</span>
-      </li>
-    `).join('')
+      </li>`).join('')
     document.getElementById('blocker-text').textContent = BLOCKS_MAP[challenge] || BLOCKS_MAP.anxiety
 
-    // Plano 21 dias
-    document.getElementById('plan-container').innerHTML = plan.weeks.map((wk, wi) => `
-      <div style="margin-bottom:32px;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i data-lucide="${wk.lucideIcon||'leaf'}" style="width:18px;height:18px;color:#A78BFA;"></i>
-          </div>
-          <div>
-            <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:2px;">SEMANA ${wi+1}</p>
-            <p style="font-size:15px;font-weight:700;color:rgba(255,255,255,.9);">${wk.theme}</p>
-          </div>
-        </div>
-        ${wk.weekSummary ? `<p style="font-size:13px;color:rgba(255,255,255,.38);font-style:italic;margin-bottom:14px;padding-left:48px;">${wk.weekSummary}</p>` : ''}
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          ${wk.days.map(d=>`
-            <div class="day-card">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                <span style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;">DIA ${d.day}</span>
-                <i data-lucide="${wk.lucideIcon||'calendar'}" style="width:13px;height:13px;color:rgba(167,139,250,.35);"></i>
-              </div>
-              <p style="font-size:14px;font-style:italic;color:rgba(255,255,255,.8);line-height:1.55;margin-bottom:14px;">"${d.int||d.intention||''}"</p>
-              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
-                <div class="day-card-label"><i data-lucide="heart"></i><span>Oração</span></div>
-                <p style="font-size:13px;color:rgba(255,255,255,.6);padding-left:21px;line-height:1.4;">${d.prayer||d.praye||''}</p>
-                <div class="day-card-label" style="margin-top:4px;"><i data-lucide="pencil"></i><span>Prática do dia</span></div>
-                <p style="font-size:13px;color:rgba(255,255,255,.6);padding-left:21px;line-height:1.4;">${d.task||''}</p>
-              </div>
-              <div class="verse-block">
-                <i data-lucide="book-open" style="width:12px;height:12px;color:#A78BFA;flex-shrink:0;margin-top:1px;"></i>
-                <span>${d.verse||''}</span>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `).join('')
+    // Week preview
+    updateWeekPreview()
 
     lucide.createIcons()
     document.getElementById('loading-screen').style.display = 'none'
-    document.getElementById('main-content').style.display = 'block'
+    showScreen('screen-dashboard')
   }
 
-  function shareWhatsApp() {
-    const stored = localStorage.getItem('espiritualizei_quiz')
-    const name   = stored ? (JSON.parse(stored).name || '') : ''
-    const sessionId = new URLSearchParams(window.location.search).get('session') || ''
-    const link   = sessionId
+  // ── Render: Completion ────────────────────────────────
+  function renderComplete() {
+    const name = _data?.name || 'Caminhante'
+    document.getElementById('complete-title').textContent =
+      `Parabéns, ${name}! Você concluiu os 21 Dias!`
+    document.getElementById('complete-text').textContent =
+      `Você provou que a constância é possível. Em 21 dias, você transformou uma intenção em hábito espiritual. Isso é obra de Deus agindo em você — e o seu coração já não é mais o mesmo.`
+  }
+
+  function spawnConfetti() {
+    const colors = ['#A78BFA','#6EE7B7','#FCD34D','#F9A8D4','#93C5FD']
+    const container = document.getElementById('confetti-container')
+    if (!container) return
+    container.innerHTML = ''
+    for (let i = 0; i < 18; i++) {
+      const dot = document.createElement('div')
+      dot.className = 'confetti-dot'
+      dot.style.cssText = `
+        left:${Math.random()*100}%;
+        top:${Math.random()*40}%;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        animation-delay:${Math.random()*0.8}s;
+        animation-duration:${1.2+Math.random()*0.8}s;
+      `
+      container.appendChild(dot)
+    }
+  }
+
+  // ── Share ─────────────────────────────────────────────
+  function shareWhatsApp(isCelebration) {
+    const name       = _data?.name || ''
+    const sessionId  = new URLSearchParams(window.location.search).get('session') || ''
+    const link       = sessionId
       ? `https://www.espiritualizei.com/quiz/resultado?session=${sessionId}`
       : 'https://www.espiritualizei.com/quiz'
-    const text   = `Acabei de receber meu Diagnóstico Espiritual personalizado pelo Espiritualizei e tenho um Plano de 21 Dias criado especialmente para mim. Você também pode descobrir o seu nível espiritual gratuitamente:\n\n${link}`
+
+    const text = isCelebration
+      ? `Acabei de concluir o Desafio de 21 Dias do Espiritualizei! 🙏 Foi uma jornada incrível de crescimento espiritual. Se você quer descobrir seu nível espiritual e receber um plano personalizado, acesse:\n\n${link}`
+      : `Acabei de receber meu Diagnóstico Espiritual personalizado pelo Espiritualizei e tenho um Plano de 21 Dias criado especialmente para mim. Você também pode descobrir o seu nível espiritual:\n\n${link}`
+
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank')
   }
 
@@ -522,12 +858,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     return res.json()
   }
 
+  // ── Init ──────────────────────────────────────────────
   async function init() {
     const urlParams       = new URLSearchParams(window.location.search)
     const stripeSessionId = urlParams.get('session')
     const stored          = localStorage.getItem('espiritualizei_quiz')
 
-    // Tracking
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'quiz_purchase', value: 19.90, currency: 'BRL', page_path: '/quiz/resultado' })
     if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL' })
@@ -536,7 +872,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       let data, plan
 
       if (stored) {
-        // Caminho primário: localStorage disponível
         data = JSON.parse(stored)
         setLoadingMsg(`${data.name || 'Caminhante'}, preparando seu diagnóstico...`)
         try {
@@ -551,7 +886,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           plan = buildFallbackPlan(data)
         }
 
-        // Se temos session_id, pedir ao servidor para gerar e enviar e-mail (fire & forget)
         if (stripeSessionId) {
           fetch(`${SUPABASE_URL}/functions/v1/get-quiz-result`, {
             method: 'POST',
@@ -561,29 +895,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
 
       } else if (stripeSessionId) {
-        // Caminho de recuperação: localStorage perdido, recuperar do servidor
         const result = await fetchFromServer(stripeSessionId)
         data = result.quizData
         plan = result.plan || buildFallbackPlan(data)
-        // Restaurar localStorage para visitas futuras
         localStorage.setItem('espiritualizei_quiz', JSON.stringify(data))
 
       } else {
-        // Sem dados e sem session_id — redirecionar
         window.location.href = '/quiz'
         return
       }
 
-      renderAll(data, plan)
+      _data = data
+      _plan = plan
+      renderDashboard(data, plan)
 
     } catch(e) {
       console.error('[resultado] init falhou:', e.message)
-      // Última tentativa: se tem localStorage, renderizar com fallback
       if (stored) {
         const data = JSON.parse(stored)
-        renderAll(data, buildFallbackPlan(data))
+        _data = data
+        _plan = buildFallbackPlan(data)
+        renderDashboard(data, _plan)
       } else {
-        // Mostrar tela de erro amigável em vez de redirect silencioso
         document.getElementById('loading-screen').innerHTML = `
           <div style="text-align:center;padding:40px 24px;max-width:400px;margin:0 auto;">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="#A78BFA" style="margin-bottom:20px;">
@@ -594,8 +927,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               Não conseguimos carregar seu diagnóstico aqui, mas enviamos o link de acesso permanente para o e-mail que você cadastrou.
             </p>
             <p style="color:rgba(255,255,255,.35);font-size:13px;">Verifique sua caixa de entrada e spam.</p>
-          </div>
-        `
+          </div>`
       }
     }
   }
