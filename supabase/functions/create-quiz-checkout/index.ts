@@ -25,7 +25,7 @@ serve(async (req) => {
       })
     }
 
-    const { email, name } = await req.json()
+    const { email, name, quiz_session_id } = await req.json()
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'email obrigatório' }), {
@@ -46,7 +46,7 @@ serve(async (req) => {
       payment_intent_data: {
         metadata: { name: name || '' },
       },
-      metadata: { name: name || '', source: 'quiz' },
+      metadata: { name: name || '', source: 'quiz', quiz_session_id: quiz_session_id || '' },
     })
 
     console.log(`✅ Quiz checkout session criada: ${session.id} para ${email}`)

@@ -1,8 +1,8 @@
 {
   "redirects": [
     {
-      "source": "/",
-      "destination": "https://www.espiritualizei.com",
+      "source": "/:path*",
+      "destination": "https://www.espiritualizei.com/:path*",
       "has": [{ "type": "host", "value": "espiritualizei.com" }],
       "permanent": true
     }

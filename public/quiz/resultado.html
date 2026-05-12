@@ -271,7 +271,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
       </svg>
     </div>
-    <p id="closing-text" style="font-size:clamp(14px,4vw,16px);color:rgba(255,255,255,.55);line-height:1.7;max-width:320px;margin:0 auto 18px;"></p>
+    <p id="closing-text" style="font-size:clamp(14px,4vw,16px);color:rgba(255,255,255,.55);line-height:1.7;max-width:320px;margin:0 auto 24px;"></p>
+
+    <!-- Ações do plano -->
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto 28px;">
+      <button onclick="shareWhatsApp()" style="display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:14px 20px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;width:100%;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Compartilhar no WhatsApp
+      </button>
+      <button onclick="window.print()" style="display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:14px 20px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;width:100%;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Salvar / Imprimir Plano
+      </button>
+    </div>
+
     <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(167,139,250,.4);">ESPIRITUALIZEI · Feito com amor para a glória de Deus</p>
   </div>
 
@@ -475,27 +488,115 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.getElementById('main-content').style.display = 'block'
   }
 
+  function shareWhatsApp() {
+    const stored = localStorage.getItem('espiritualizei_quiz')
+    const name   = stored ? (JSON.parse(stored).name || '') : ''
+    const sessionId = new URLSearchParams(window.location.search).get('session') || ''
+    const link   = sessionId
+      ? `https://www.espiritualizei.com/quiz/resultado?session=${sessionId}`
+      : 'https://www.espiritualizei.com/quiz'
+    const text   = `Acabei de receber meu Diagnóstico Espiritual personalizado pelo Espiritualizei e tenho um Plano de 21 Dias criado especialmente para mim. Você também pode descobrir o seu nível espiritual gratuitamente:\n\n${link}`
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank')
+  }
+
   function goToApp() {
     window.open('https://www.espiritualizei.com', '_blank')
   }
 
+  function setLoadingMsg(msg) {
+    const el = document.getElementById('loading-msg')
+    if (el) el.textContent = msg
+  }
+
+  async function fetchFromServer(stripeSessionId) {
+    setLoadingMsg('Verificando seu pagamento...')
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/get-quiz-result`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+      body: JSON.stringify({ stripe_session_id: stripeSessionId })
+    })
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}))
+      throw new Error(e.error || `Erro ${res.status}`)
+    }
+    return res.json()
+  }
+
   async function init() {
-    const stored = localStorage.getItem('espiritualizei_quiz')
-    if (!stored) { window.location.href = '/quiz'; return }
-    const data = JSON.parse(stored)
+    const urlParams       = new URLSearchParams(window.location.search)
+    const stripeSessionId = urlParams.get('session')
+    const stored          = localStorage.getItem('espiritualizei_quiz')
+
+    // Tracking
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'quiz_purchase', value: 19.90, currency: 'BRL', page_path: '/quiz/resultado' })
     if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL' })
+
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-quiz-plan`, {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json', 'apikey':SUPABASE_ANON, 'Authorization':`Bearer ${SUPABASE_ANON}` },
-        body: JSON.stringify(data)
-      })
-      const d = await res.json()
-      renderAll(data, d.plan || buildFallbackPlan(data))
+      let data, plan
+
+      if (stored) {
+        // Caminho primário: localStorage disponível
+        data = JSON.parse(stored)
+        setLoadingMsg(`${data.name || 'Caminhante'}, preparando seu diagnóstico...`)
+        try {
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-quiz-plan`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+            body: JSON.stringify(data)
+          })
+          const d = await res.json()
+          plan = d.plan || buildFallbackPlan(data)
+        } catch(_) {
+          plan = buildFallbackPlan(data)
+        }
+
+        // Se temos session_id, pedir ao servidor para gerar e enviar e-mail (fire & forget)
+        if (stripeSessionId) {
+          fetch(`${SUPABASE_URL}/functions/v1/get-quiz-result`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+            body: JSON.stringify({ stripe_session_id: stripeSessionId })
+          }).catch(() => {})
+        }
+
+      } else if (stripeSessionId) {
+        // Caminho de recuperação: localStorage perdido, recuperar do servidor
+        const result = await fetchFromServer(stripeSessionId)
+        data = result.quizData
+        plan = result.plan || buildFallbackPlan(data)
+        // Restaurar localStorage para visitas futuras
+        localStorage.setItem('espiritualizei_quiz', JSON.stringify(data))
+
+      } else {
+        // Sem dados e sem session_id — redirecionar
+        window.location.href = '/quiz'
+        return
+      }
+
+      renderAll(data, plan)
+
     } catch(e) {
-      renderAll(data, buildFallbackPlan(data))
+      console.error('[resultado] init falhou:', e.message)
+      // Última tentativa: se tem localStorage, renderizar com fallback
+      if (stored) {
+        const data = JSON.parse(stored)
+        renderAll(data, buildFallbackPlan(data))
+      } else {
+        // Mostrar tela de erro amigável em vez de redirect silencioso
+        document.getElementById('loading-screen').innerHTML = `
+          <div style="text-align:center;padding:40px 24px;max-width:400px;margin:0 auto;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="#A78BFA" style="margin-bottom:20px;">
+              <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
+            </svg>
+            <h2 style="font-size:20px;font-weight:800;margin-bottom:12px;">Seu plano está no seu e-mail</h2>
+            <p style="color:rgba(255,255,255,.5);font-size:14px;line-height:1.6;margin-bottom:24px;">
+              Não conseguimos carregar seu diagnóstico aqui, mas enviamos o link de acesso permanente para o e-mail que você cadastrou.
+            </p>
+            <p style="color:rgba(255,255,255,.35);font-size:13px;">Verifique sua caixa de entrada e spam.</p>
+          </div>
+        `
+      }
     }
   }
 

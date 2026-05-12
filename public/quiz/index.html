@@ -826,10 +826,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     localStorage.setItem('espiritualizei_quiz', JSON.stringify(quizData))
 
     try {
+      // 1. Salvar sessão no servidor (persistência independente de localStorage)
+      let quiz_session_id = null
+      try {
+        const saveRes = await fetch(`${SUPABASE_URL}/functions/v1/save-quiz-session`, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+          body: JSON.stringify({ email: S.email, name: S.name, quizData })
+        })
+        if (saveRes.ok) {
+          const saved = await saveRes.json()
+          quiz_session_id = saved.id || null
+        }
+      } catch(_) { /* checkout continua mesmo sem persistência */ }
+
+      // 2. Criar sessão Stripe com referência à sessão salva
       const res = await fetch(`${SUPABASE_URL}/functions/v1/create-quiz-checkout`, {
         method:'POST',
         headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
-        body: JSON.stringify({ email: S.email, name: S.name })
+        body: JSON.stringify({ email: S.email, name: S.name, quiz_session_id })
       })
 
       let d
