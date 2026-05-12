@@ -12,6 +12,29 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+  <!-- End Google Tag Manager -->
+
+  <!-- Meta Pixel Code -->
+  <script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init','PIXEL_ID');
+  fbq('track','PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=PIXEL_ID&ev=PageView&noscript=1"/></noscript>
+  <!-- End Meta Pixel Code -->
+
   <script>
     tailwind = { config: {
       darkMode: 'class',
@@ -184,6 +207,10 @@
   </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 <div class="bg-animated"></div>
 
 <!-- PROGRESS BAR -->
@@ -561,10 +588,26 @@
     lust: n => `${n}, lutar com hábitos difíceis é parte da jornada de todos. Não há condenação aqui, apenas um caminho de graça.`,
   }
 
+  const SCREEN_PATHS = {
+    's-name':    '/quiz/nome',
+    's-email':   '/quiz/email',
+    's-loading': '/quiz/analisando',
+    's-paywall': '/quiz/diagnostico',
+  }
+
+  function _track(path, eventName, extra) {
+    history.pushState({ path }, '', path)
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push(Object.assign({ event: eventName, page_path: path }, extra || {}))
+    if (typeof fbq !== 'undefined') fbq('track', 'PageView')
+  }
+
   function show(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
     document.getElementById(id).classList.add('active')
     window.scrollTo(0,0)
+    const path = SCREEN_PATHS[id]
+    if (path) _track(path, 'quiz_step', { screen: id })
   }
 
   function updateProgress(step, total) {
@@ -611,6 +654,7 @@
     `
     lucide.createIcons()
     updateProgress(S.qIdx + 1, QUESTIONS.length + 2)
+    _track('/quiz/pergunta-' + (S.qIdx + 1), 'quiz_question', { question_num: S.qIdx + 1 })
   }
 
   function showMicro(html, cb) {
@@ -645,6 +689,9 @@
     const v = document.getElementById('email-input').value.trim()
     if (!v || !v.includes('@')) { document.getElementById('email-input').focus(); return }
     S.email = v
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'quiz_lead', page_path: '/quiz/email' })
+    if (typeof fbq !== 'undefined') fbq('track', 'Lead')
     updateProgress(QUESTIONS.length + 2, QUESTIONS.length + 2)
     startLoading()
   }
@@ -757,6 +804,9 @@
     const btn = document.getElementById('pay-btn')
     btn.disabled = true
     btn.textContent = 'Processando...'
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'quiz_initiate_checkout', value: 19.90, currency: 'BRL', page_path: '/quiz/diagnostico' })
+    if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', { value: 19.90, currency: 'BRL' })
 
     const quizData = {
       name: S.name, email: S.email,
