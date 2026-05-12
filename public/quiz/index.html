@@ -9,11 +9,9 @@
   <meta property="og:description" content="Descubra seu nível de maturidade espiritual e receba um plano personalizado de 21 dias." />
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/png" href="/favicon-32x32.png" />
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
   <script>
     tailwind = { config: {
       darkMode: 'class',
@@ -31,20 +29,32 @@
     .screen { display: none; min-height: 100vh; flex-direction: column; }
     .screen.active { display: flex; }
 
-    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     @keyframes pulseSlow { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.65; transform:scale(.95); } }
-    @keyframes slideRight { from { opacity:0; transform:translateX(28px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes slideRight { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
     @keyframes dot { 0%,80%,100% { opacity:.25; transform:scale(.75); } 40% { opacity:1; transform:scale(1); } }
-    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes bgPulse { 0%,100% { opacity:1; } 50% { opacity:.7; } }
+    @keyframes heartbeat { 0%,100% { transform:scale(1); } 14% { transform:scale(1.1); } 28% { transform:scale(1); } 42% { transform:scale(1.06); } 70% { transform:scale(1); } }
+    @keyframes progressIn { from { width:0; } }
+    @keyframes microFade { 0% { opacity:0; transform:translateY(8px); } 30%,70% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-8px); } }
 
-    .anim-fade-up { animation: fadeUp .5s cubic-bezier(.22,1,.36,1) forwards; }
-    .anim-fade-in { animation: fadeIn .4s ease forwards; }
+    .anim-fade-up { animation: fadeUp .45s cubic-bezier(.22,1,.36,1) forwards; }
+    .anim-fade-in { animation: fadeIn .35s ease forwards; }
     .anim-pulse { animation: pulseSlow 2.4s ease-in-out infinite; }
-    .anim-slide { animation: slideRight .38s cubic-bezier(.22,1,.36,1) forwards; }
-    .d1 { animation: dot 1.5s ease-in-out infinite; }
-    .d2 { animation: dot 1.5s ease-in-out .18s infinite; }
-    .d3 { animation: dot 1.5s ease-in-out .36s infinite; }
+    .anim-slide { animation: slideRight .35s cubic-bezier(.22,1,.36,1) forwards; }
+    .anim-heartbeat { animation: heartbeat 2s ease-in-out infinite; }
+    .d1 { animation: dot 1.4s ease-in-out infinite; }
+    .d2 { animation: dot 1.4s ease-in-out .16s infinite; }
+    .d3 { animation: dot 1.4s ease-in-out .32s infinite; }
+
+    .bg-animated {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at 25% 15%, rgba(167,139,250,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 75% 85%, rgba(167,139,250,0.05) 0%, transparent 55%);
+      animation: bgPulse 7s ease-in-out infinite;
+    }
 
     .glass {
       background: rgba(255,255,255,.04);
@@ -53,659 +63,736 @@
     }
     .glass-violet {
       background: rgba(167,139,250,.06);
-      border: 1.5px solid rgba(167,139,250,.2);
+      border: 1.5px solid rgba(167,139,250,.18);
     }
 
+    /* Progress bar */
+    .progress-bar-wrap {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 3px; background: rgba(255,255,255,.06);
+    }
+    .progress-bar-fill {
+      height: 100%; background: #A78BFA;
+      transition: width .4s cubic-bezier(.22,1,.36,1);
+      animation: progressIn .4s ease;
+    }
+
+    /* Answer cards */
     .answer-card {
       transition: all .18s ease;
-      cursor: pointer;
-      user-select: none;
+      cursor: pointer; user-select: none;
+      border-radius: 16px;
     }
-    .answer-card:hover { border-color: #A78BFA !important; background: rgba(167,139,250,.09); transform: translateY(-1px); }
+    .answer-card:hover { border-color: #A78BFA !important; background: rgba(167,139,250,.09) !important; transform: translateY(-1px); }
     .answer-card:active { transform: scale(.98); }
-    .answer-card.selected { border-color: #A78BFA !important; background: rgba(167,139,250,.16); }
-    .answer-card .icon-wrap { transition: background .18s ease; }
+    .answer-card.selected { border-color: #A78BFA !important; background: rgba(167,139,250,.16) !important; }
+    .answer-card .icon-wrap { transition: background .18s ease; border-radius: 10px; }
     .answer-card.selected .icon-wrap { background: rgba(167,139,250,.3) !important; }
-    .answer-card .icon-wrap i { color: #A78BFA; }
 
+    /* Micro encouragement */
+    .micro-text {
+      position: fixed; inset: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(26,37,48,.85); backdrop-filter: blur(4px);
+    }
+    .micro-text p {
+      animation: microFade 1.6s ease forwards;
+      font-size: clamp(18px,5vw,26px); font-weight: 600;
+      color: #fff; text-align: center; padding: 0 32px;
+    }
+    .micro-text p span { color: #A78BFA; }
+
+    /* Buttons */
     .btn-primary {
       background: #A78BFA;
       box-shadow: 0 8px 32px rgba(167,139,250,.28);
-      transition: all .2s ease;
-      cursor: pointer;
-      border: none;
-      font-family: 'Inter', sans-serif;
+      transition: all .2s ease; cursor: pointer; border: none;
+      font-family: 'Inter', sans-serif; border-radius: 14px;
+      min-height: 56px; width: 100%;
     }
     .btn-primary:hover { background: #9370f5; box-shadow: 0 8px 40px rgba(167,139,250,.45); transform: translateY(-1px); }
     .btn-primary:active { transform: translateY(0) scale(.99); }
-    .btn-primary:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-
-    .btn-ghost {
-      background: rgba(255,255,255,.06);
-      border: 1.5px solid rgba(255,255,255,.1);
-      transition: all .2s ease;
-      cursor: pointer;
+    .btn-secondary {
+      background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.1);
+      transition: all .2s ease; cursor: pointer;
+      font-family: 'Inter', sans-serif; border-radius: 14px;
+      min-height: 48px; width: 100%;
     }
-    .btn-ghost:hover { background: rgba(255,255,255,.1); }
+    .btn-secondary:hover { background: rgba(255,255,255,.1); }
 
-    .gradient-text {
-      background: linear-gradient(135deg, #A78BFA 0%, #c4b5fd 50%, #ddd6fe 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    /* Input */
+    .input-field {
+      background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.1);
+      border-radius: 14px; color: #fff; font-family: 'Inter', sans-serif;
+      font-size: 16px; width: 100%; padding: 18px 20px;
+      transition: border-color .2s ease; outline: none;
+    }
+    .input-field:focus { border-color: #A78BFA; }
+    .input-field::placeholder { color: rgba(255,255,255,.35); }
+
+    /* Paywall */
+    .censored-bar { height: 10px; background: rgba(255,255,255,.1); border-radius: 5px; }
+    .blur-zone { filter: blur(5px); pointer-events: none; user-select: none; opacity: .6; }
+    .lock-overlay {
+      position: absolute; inset: 0; z-index: 10;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(26,37,48,.55); backdrop-filter: blur(2px); border-radius: 20px;
     }
 
-    .progress-fill { transition: width .5s cubic-bezier(.22,1,.36,1); }
-
-    .censored-bar {
-      height: 12px;
-      background: rgba(255,255,255,.12);
-      border-radius: 6px;
-      margin: 4px 0;
+    /* Week preview cards */
+    .week-preview-card {
+      background: rgba(167,139,250,.06);
+      border: 1.5px solid rgba(167,139,250,.18);
+      border-radius: 16px; padding: 16px 18px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .week-num {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: rgba(167,139,250,.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #A78BFA; flex-shrink: 0;
     }
 
-    input[type=text], input[type=email] {
-      width: 100%;
-      background: rgba(255,255,255,.06);
-      border: 1.5px solid rgba(255,255,255,.12);
-      border-radius: 16px;
-      padding: 18px 20px;
-      font-size: 17px;
-      font-weight: 600;
-      color: #fff;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-      font-family: 'Inter', sans-serif;
+    /* Trust signals */
+    .trust-row { display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,.5); font-size: 12px; }
+    .trust-row i { width: 13px; height: 13px; color: rgba(167,139,250,.7); }
+
+    /* Badge glow */
+    .level-badge-glow { transition: box-shadow .4s ease; }
+
+    /* Day 1 blur preview */
+    .day-preview {
+      background: rgba(167,139,250,.06); border: 1.5px solid rgba(167,139,250,.15);
+      border-radius: 14px; padding: 16px 18px; position: relative; overflow: hidden;
     }
-    input:focus { border-color: #A78BFA; box-shadow: 0 0 0 4px rgba(167,139,250,.12); }
-    input::placeholder { color: rgba(255,255,255,.28); font-weight: 400; }
+    .day-preview-content { filter: blur(4px); user-select: none; pointer-events: none; }
+    .day-preview-overlay {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(26,37,48,.5); border-radius: 14px;
+    }
 
-    .orb { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
+    /* Responsive */
+    @media (min-width: 640px) {
+      .answer-grid-2 { grid-template-columns: 1fr 1fr; }
+    }
 
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #1A2530; }
-    ::-webkit-scrollbar-thumb { background: rgba(167,139,250,.25); border-radius: 4px; }
+    /* Loading dots */
+    .dot-loader { display: flex; gap: 6px; align-items: center; }
+    .dot-loader span {
+      width: 7px; height: 7px; border-radius: 50%; background: #A78BFA; display: inline-block;
+    }
   </style>
 </head>
 <body>
+<div class="bg-animated"></div>
 
-<!-- Background orbs -->
-<div class="orb" style="width:600px;height:600px;top:-200px;right:-150px;background:radial-gradient(circle,rgba(167,139,250,.1) 0%,transparent 65%);"></div>
-<div class="orb" style="width:400px;height:400px;bottom:-100px;left:-100px;background:radial-gradient(circle,rgba(167,139,250,.07) 0%,transparent 65%);"></div>
+<!-- PROGRESS BAR -->
+<div class="progress-bar-wrap" id="progress-bar-wrap" style="display:none">
+  <div class="progress-bar-fill" id="progress-bar-fill" style="width:0%"></div>
+</div>
 
-<!-- ═══════════════════════════════════════════════
-     TELA 0 — LANDING
-════════════════════════════════════════════════ -->
-<div id="s-landing" class="screen active">
-  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:40px 24px 64px;max-width:440px;margin:0 auto;width:100%;">
+<!-- TELA 0 — LANDING -->
+<div id="s-landing" class="screen active" style="position:relative;z-index:1;">
+  <div class="flex flex-col items-center justify-center min-h-screen px-5 py-12 text-center">
+    <div class="anim-fade-up" style="max-width:420px;width:100%;">
 
-    <!-- Logo -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:40px;">
-      <div style="width:36px;height:36px;background:#A78BFA;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <!-- Logo -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:40px;">
+        <div class="anim-heartbeat">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#A78BFA">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+        <span style="font-size:15px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;">Espiritualizei</span>
       </div>
-      <span style="font-size:18px;font-weight:800;letter-spacing:-.3px;color:#A78BFA;">Espiritualizei</span>
-    </div>
 
-    <!-- Badge -->
-    <div class="glass-violet" style="border-radius:100px;padding:6px 18px;font-size:11px;font-weight:800;color:#A78BFA;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:24px;">
-      Diagnóstico Espiritual Gratuito
-    </div>
+      <!-- Headline -->
+      <h1 style="font-size:clamp(26px,7vw,38px);font-weight:900;line-height:1.15;margin-bottom:16px;letter-spacing:-.5px;">
+        Qual é o seu<br>
+        <span style="color:#A78BFA;">nível espiritual</span><br>agora?
+      </h1>
+      <p style="font-size:clamp(14px,4vw,16px);color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:36px;">
+        6 perguntas honestas. Um plano de 21 dias criado para você — de acordo com o momento espiritual que você vive <em>hoje</em>.
+      </p>
 
-    <!-- Headline -->
-    <h1 style="font-size:clamp(26px,6vw,38px);font-weight:900;text-align:center;line-height:1.15;letter-spacing:-.5px;margin-bottom:16px;">
-      Qual é o seu Nível de<br><span class="gradient-text">Maturidade Espiritual?</span>
-    </h1>
+      <!-- Levels preview -->
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:36px;flex-wrap:wrap;">
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(110,231,183,.12);color:#6EE7B7;border:1px solid rgba(110,231,183,.2);">Semente</span>
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(147,197,253,.12);color:#93C5FD;border:1px solid rgba(147,197,253,.2);">Peregrino</span>
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(167,139,250,.16);color:#A78BFA;border:1px solid rgba(167,139,250,.3);">Discípulo</span>
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(252,211,77,.1);color:#FCD34D;border:1px solid rgba(252,211,77,.2);">Servo</span>
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(249,168,212,.1);color:#F9A8D4;border:1px solid rgba(249,168,212,.2);">Contemplativo</span>
+      </div>
 
-    <!-- Sub -->
-    <p style="font-size:15px;color:rgba(255,255,255,.5);text-align:center;line-height:1.65;margin-bottom:36px;max-width:320px;">
-      Responda 7 perguntas e descubra onde você está na sua jornada espiritual. Receba um <strong style="color:rgba(255,255,255,.8);">Plano de 21 Dias</strong> criado especialmente para você.
-    </p>
+      <button class="btn-primary" onclick="show('s-name')" style="font-size:16px;font-weight:700;color:#1A2530;padding:18px 24px;">
+        Descobrir Meu Nível
+      </button>
 
-    <!-- 5 Levels card -->
-    <div class="glass" style="border-radius:24px;padding:24px;width:100%;margin-bottom:28px;">
-      <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:18px;">Os 5 Níveis da Jornada</p>
-      <div id="levels-list" style="display:flex;flex-direction:column;gap:12px;"></div>
-    </div>
-
-    <!-- CTA -->
-    <button class="btn-primary" onclick="toName()" style="width:100%;border-radius:18px;padding:20px;font-size:17px;font-weight:900;color:#fff;margin-bottom:16px;">
-      Descobrir Meu Nível
-    </button>
-
-    <!-- Trust -->
-    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-      <p style="font-size:12px;color:rgba(255,255,255,.28);font-weight:600;">Gratuito · Sem compromisso · 2 minutos</p>
-      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.22);">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Seus dados são privados e protegidos
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px;flex-wrap:wrap;">
+        <div class="trust-row"><i data-lucide="shield-check"></i><span>Privado e seguro</span></div>
+        <div class="trust-row"><i data-lucide="clock"></i><span>2 minutos</span></div>
+        <div class="trust-row"><i data-lucide="heart"></i><span>Feito com amor</span></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     TELA 1 — NOME
-════════════════════════════════════════════════ -->
-<div id="s-name" class="screen">
-  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;min-height:100vh;max-width:400px;margin:0 auto;width:100%;">
-    <div class="anim-fade-up" style="width:100%;">
+<!-- TELA 1 — NOME -->
+<div id="s-name" class="screen" style="position:relative;z-index:1;">
+  <div class="flex flex-col items-center justify-center min-h-screen px-5 py-12">
+    <div style="max-width:420px;width:100%;" class="anim-fade-up">
 
-      <!-- Icon -->
-      <div style="display:flex;justify-content:center;margin-bottom:32px;">
-        <div class="anim-pulse" style="width:64px;height:64px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.3);border-radius:20px;display:flex;align-items:center;justify-content:center;">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="#A78BFA"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-        </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:44px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#A78BFA">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
       </div>
 
-      <p style="font-size:13px;color:rgba(255,255,255,.4);text-align:center;font-weight:600;margin-bottom:8px;">Antes de começarmos...</p>
-      <h2 style="font-size:28px;font-weight:900;text-align:center;line-height:1.25;margin-bottom:32px;">Como posso<br>te chamar?</h2>
+      <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:14px;">ANTES DE COMEÇAR</p>
+      <h2 style="font-size:clamp(22px,6vw,30px);font-weight:800;margin-bottom:10px;line-height:1.2;">Como podemos te chamar?</h2>
+      <p style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:32px;line-height:1.5;">Queremos criar algo verdadeiramente seu — não um plano genérico.</p>
 
-      <input type="text" id="inp-name" placeholder="Seu primeiro nome" autocomplete="given-name"
-        onkeydown="if(event.key==='Enter')submitName()" style="margin-bottom:16px;" />
+      <input id="name-input" class="input-field" type="text" placeholder="Seu primeiro nome" autocomplete="given-name" onkeydown="if(event.key==='Enter')saveName()" />
 
-      <button class="btn-primary" onclick="submitName()" style="width:100%;border-radius:16px;padding:18px;font-size:16px;font-weight:800;color:#fff;">
+      <button class="btn-primary" onclick="saveName()" style="font-size:15px;font-weight:700;color:#1A2530;padding:17px 24px;margin-top:14px;">
         Continuar
       </button>
 
-      <p style="text-align:center;font-size:12px;color:rgba(255,255,255,.22);margin-top:16px;font-weight:500;">
-        Seu nome ficará apenas entre nós.
-      </p>
+      <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-top:20px;">
+        <i data-lucide="lock" style="width:12px;height:12px;color:rgba(167,139,250,.6);"></i>
+        <span style="font-size:12px;color:rgba(255,255,255,.35);">Suas respostas são privadas e protegidas</span>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     TELA 2 — QUIZ
-════════════════════════════════════════════════ -->
-<div id="s-quiz" class="screen">
-  <div style="position:relative;z-index:1;display:flex;flex-direction:column;padding:32px 24px 48px;max-width:440px;margin:0 auto;width:100%;">
-
-    <!-- Progress -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:36px;">
-      <div style="flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:100px;overflow:hidden;">
-        <div id="prog-bar" class="progress-fill" style="height:100%;background:#A78BFA;border-radius:100px;width:14%;"></div>
-      </div>
-      <span id="prog-text" style="font-size:12px;font-weight:700;color:rgba(255,255,255,.38);white-space:nowrap;min-width:36px;text-align:right;">1/7</span>
-    </div>
-
-    <!-- Question (filled by JS) -->
-    <div id="q-container"></div>
+<!-- TELA 2 — QUIZ -->
+<div id="s-quiz" class="screen" style="position:relative;z-index:1;">
+  <div class="flex flex-col items-center justify-center min-h-screen px-5 py-16">
+    <div id="quiz-container" style="max-width:440px;width:100%;"></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     TELA 3 — EMAIL
-════════════════════════════════════════════════ -->
-<div id="s-email" class="screen">
-  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;min-height:100vh;max-width:400px;margin:0 auto;width:100%;">
-    <div class="anim-fade-up" style="width:100%;">
+<!-- TELA 3 — EMAIL -->
+<div id="s-email" class="screen" style="position:relative;z-index:1;">
+  <div class="flex flex-col items-center justify-center min-h-screen px-5 py-12">
+    <div style="max-width:420px;width:100%;" class="anim-fade-up">
 
-      <div style="display:flex;justify-content:center;margin-bottom:28px;">
-        <div style="width:60px;height:60px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.3);border-radius:18px;display:flex;align-items:center;justify-content:center;">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:44px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#A78BFA">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
       </div>
 
-      <h2 id="email-title" style="font-size:24px;font-weight:900;text-align:center;line-height:1.3;margin-bottom:10px;"></h2>
-      <p id="email-sub" style="font-size:14px;color:rgba(255,255,255,.5);text-align:center;line-height:1.6;margin-bottom:28px;"></p>
+      <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:14px;">ÚLTIMA ETAPA</p>
+      <h2 style="font-size:clamp(22px,6vw,30px);font-weight:800;margin-bottom:10px;line-height:1.2;">Onde enviamos seu resultado, <span id="email-name">amigo</span>?</h2>
+      <p style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:32px;line-height:1.5;">Seu diagnóstico fica salvo para você acessar quando quiser. Sem spam.</p>
 
-      <input type="email" id="inp-email" placeholder="seu@email.com" autocomplete="email"
-        onkeydown="if(event.key==='Enter')submitEmail()" style="margin-bottom:16px;" />
+      <input id="email-input" class="input-field" type="email" placeholder="Seu melhor e-mail" autocomplete="email" onkeydown="if(event.key==='Enter')saveEmail()" />
 
-      <button class="btn-primary" onclick="submitEmail()" style="width:100%;border-radius:16px;padding:18px;font-size:16px;font-weight:800;color:#fff;">
+      <button class="btn-primary" onclick="saveEmail()" style="font-size:15px;font-weight:700;color:#1A2530;padding:17px 24px;margin-top:14px;">
         Ver Meu Diagnóstico
       </button>
 
-      <p style="text-align:center;font-size:11px;color:rgba(255,255,255,.2);margin-top:14px;line-height:1.5;">
-        Sem spam. Apenas seu diagnóstico<br>e dicas espirituais ocasionais.
-      </p>
+      <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-top:18px;">
+        <i data-lucide="shield-check" style="width:12px;height:12px;color:rgba(167,139,250,.6);"></i>
+        <span style="font-size:12px;color:rgba(255,255,255,.35);">Zero spam. Seus dados são seus.</span>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     TELA 4 — LOADING
-════════════════════════════════════════════════ -->
-<div id="s-loading" class="screen">
-  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;text-align:center;max-width:340px;margin:0 auto;">
+<!-- TELA 4 — LOADING -->
+<div id="s-loading" class="screen" style="position:relative;z-index:1;">
+  <div class="flex flex-col items-center justify-center min-h-screen px-5 text-center">
+    <div style="max-width:340px;width:100%;">
 
-    <div class="anim-pulse" style="width:88px;height:88px;background:rgba(167,139,250,.12);border:2px solid rgba(167,139,250,.35);border-radius:26px;display:flex;align-items:center;justify-content:center;margin-bottom:32px;">
-      <svg width="50" height="50" viewBox="0 0 24 24" fill="#A78BFA"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-    </div>
+      <div class="anim-heartbeat" style="margin-bottom:32px;">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#A78BFA">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </div>
 
-    <p id="load-msg" style="font-size:18px;font-weight:700;margin-bottom:10px;transition:opacity .3s;line-height:1.4;"></p>
-    <p style="font-size:13px;color:rgba(255,255,255,.35);margin-bottom:28px;">Por favor, aguarde...</p>
+      <p id="loading-msg" style="font-size:clamp(16px,4.5vw,20px);font-weight:600;color:rgba(255,255,255,.85);margin-bottom:24px;min-height:56px;line-height:1.4;transition:opacity .3s;"></p>
 
-    <div style="display:flex;gap:8px;justify-content:center;">
-      <div class="d1" style="width:9px;height:9px;background:#A78BFA;border-radius:50%;"></div>
-      <div class="d2" style="width:9px;height:9px;background:#A78BFA;border-radius:50%;"></div>
-      <div class="d3" style="width:9px;height:9px;background:#A78BFA;border-radius:50%;"></div>
+      <div class="dot-loader" style="justify-content:center;">
+        <span class="d1"></span><span class="d2"></span><span class="d3"></span>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     TELA 5 — PAYWALL
-════════════════════════════════════════════════ -->
-<div id="s-paywall" class="screen">
-  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:32px 20px 56px;max-width:440px;margin:0 auto;width:100%;">
-
-    <!-- Badge -->
-    <div class="glass-violet" style="border-radius:100px;padding:5px 16px;font-size:11px;font-weight:800;color:#A78BFA;letter-spacing:1px;text-transform:uppercase;margin-bottom:20px;">
-      Perfil Pronto
-    </div>
+<!-- TELA 5 — PAYWALL -->
+<div id="s-paywall" class="screen" style="position:relative;z-index:1;">
+  <div style="max-width:460px;margin:0 auto;width:100%;padding:20px 16px 48px;">
 
     <!-- Header -->
-    <h2 id="pw-title" style="font-size:22px;font-weight:900;text-align:center;line-height:1.35;margin-bottom:20px;"></h2>
+    <div style="display:flex;align-items:center;gap:10px;padding:24px 0 32px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#A78BFA">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+      <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
+    </div>
 
-    <!-- ZONA 1: Conteúdo gratuito visível -->
-    <div class="glass" style="border-radius:22px;padding:20px;width:100%;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-        <div id="pw-level-badge" style="width:48px;height:48px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" id="pw-badge-icon"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-        </div>
-        <div>
-          <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;">Seu Nível</p>
-          <p id="pw-level-name" style="font-size:22px;font-weight:900;line-height:1;"></p>
-          <p id="pw-level-sub" style="font-size:12px;color:rgba(255,255,255,.45);margin-top:2px;"></p>
-        </div>
+    <!-- ZONA 1: Nível revelado -->
+    <div class="anim-fade-up" style="text-align:center;margin-bottom:28px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:16px;">SEU DIAGNÓSTICO</p>
+
+      <div id="pw-badge" class="level-badge-glow" style="display:inline-flex;align-items:center;gap:10px;padding:10px 20px;border-radius:40px;margin-bottom:18px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.25);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#A78BFA">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <span id="pw-level-name" style="font-size:14px;font-weight:700;color:#A78BFA;"></span>
       </div>
-      <p id="pw-level-desc" style="font-size:14px;color:rgba(255,255,255,.6);line-height:1.65;border-top:1px solid rgba(255,255,255,.06);padding-top:14px;"></p>
 
-      <!-- 2 insights gratuitos -->
-      <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:26px;height:26px;background:rgba(110,231,183,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2.5"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-          </div>
-          <p id="pw-insight-1" style="font-size:13px;font-weight:600;color:rgba(255,255,255,.7);"></p>
+      <h2 id="pw-level-subtitle" style="font-size:clamp(18px,5vw,22px);font-weight:700;margin-bottom:12px;font-style:italic;color:rgba(255,255,255,.75);"></h2>
+
+      <p id="pw-personal-text" style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.65);line-height:1.65;max-width:360px;margin:0 auto;"></p>
+    </div>
+
+    <!-- ZONA 2: Prévia das semanas -->
+    <div class="anim-fade-up" style="margin-bottom:28px;">
+      <div style="background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:20px;padding:20px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px;">SEU PLANO DE 21 DIAS</p>
+
+        <div style="display:flex;flex-direction:column;gap:10px;" id="pw-weeks-preview">
+          <!-- preenchido via JS -->
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:26px;height:26px;background:rgba(110,231,183,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2.5"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+
+        <!-- Dia 1 preview bloqueado -->
+        <div class="day-preview" style="margin-top:14px;">
+          <div class="day-preview-content">
+            <p style="font-size:11px;font-weight:700;color:#A78BFA;margin-bottom:6px;">DIA 1</p>
+            <p style="font-size:13px;font-style:italic;color:rgba(255,255,255,.7);margin-bottom:10px;">"Hoje começo com um coração aberto..."</p>
+            <p style="font-size:12px;color:rgba(255,255,255,.4);">Oração: Pai Nosso meditado · Tarefa: 5 min de silêncio</p>
           </div>
-          <p id="pw-insight-2" style="font-size:13px;font-weight:600;color:rgba(255,255,255,.7);"></p>
+          <div class="day-preview-overlay">
+            <i data-lucide="lock" style="width:20px;height:20px;color:#A78BFA;margin-bottom:6px;"></i>
+            <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6);">Desbloqueado após pagamento</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ZONA 2: Conteúdo bloqueado -->
-    <div style="position:relative;width:100%;margin-bottom:16px;">
-      <!-- Conteúdo borrado -->
-      <div style="filter:blur(4px);opacity:.6;pointer-events:none;user-select:none;">
-        <!-- Radar -->
-        <div style="display:flex;justify-content:center;margin-bottom:12px;">
-          <canvas id="radar-canvas" width="200" height="200"></canvas>
+    <!-- ZONA 3: Radar bloqueado + dons -->
+    <div style="position:relative;margin-bottom:28px;">
+      <div class="blur-zone" style="background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:20px;padding:20px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px;">SEU MAPA ESPIRITUAL</p>
+        <div style="position:relative;width:160px;height:160px;margin:0 auto 16px;">
+          <canvas id="pw-radar" width="160" height="160"></canvas>
         </div>
-        <!-- Gifts preview -->
-        <div class="glass" style="border-radius:20px;padding:18px;">
-          <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;">Seus Dons Espirituais</p>
-          <div class="censored-bar" style="width:72%;"></div>
-          <div class="censored-bar" style="width:55%;"></div>
-          <div class="censored-bar" style="width:64%;"></div>
-          <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-top:14px;margin-bottom:10px;">Caminho para superar seu bloqueio</p>
-          <div class="censored-bar" style="width:90%;"></div>
-          <div class="censored-bar" style="width:76%;"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="censored-bar" style="width:70%;"></div>
+            <div class="censored-bar" style="width:20%;"></div>
+          </div>
+          <div class="censored-bar" style="width:55%;height:8px;"></div>
+          <div class="censored-bar" style="width:80%;height:8px;"></div>
         </div>
       </div>
-
-      <!-- Overlay de bloqueio -->
-      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
-        <div class="glass-violet" style="border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.5);text-align:center;">Diagnóstico completo bloqueado</p>
+      <div class="lock-overlay">
+        <i data-lucide="lock" style="width:28px;height:28px;color:#A78BFA;margin-bottom:8px;"></i>
+        <p style="font-size:13px;font-weight:600;color:rgba(255,255,255,.7);text-align:center;">Seus Dons e Mapa Espiritual<br>estão bloqueados</p>
       </div>
     </div>
 
-    <!-- ZONA 3: CTA -->
-    <div class="glass" style="border-radius:26px;padding:24px;width:100%;text-align:center;border-color:rgba(167,139,250,.2);">
-      <p id="pw-plan-label" style="font-size:15px;font-weight:800;margin-bottom:4px;">Seu Plano de 21 Dias está pronto</p>
-      <p id="pw-plan-desc" style="font-size:13px;color:rgba(255,255,255,.45);margin-bottom:18px;"></p>
+    <!-- ZONA 4: CTA pagamento único -->
+    <div style="background:rgba(167,139,250,.06);border:1.5px solid rgba(167,139,250,.2);border-radius:20px;padding:24px;text-align:center;">
 
-      <div style="display:flex;align-items:baseline;justify-content:center;gap:2px;margin-bottom:18px;">
-        <span style="font-size:20px;font-weight:700;color:rgba(255,255,255,.5);margin-top:8px;">R$</span>
-        <span style="font-size:52px;font-weight:900;letter-spacing:-3px;line-height:1;">19</span>
-        <span style="font-size:24px;font-weight:700;">,90</span>
+      <p id="pw-cta-headline" style="font-size:clamp(16px,4.5vw,19px);font-weight:700;line-height:1.35;margin-bottom:6px;"></p>
+      <p style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px;line-height:1.5;">Um caminho prático para se aproximar de Deus no seu dia a dia de hoje.</p>
+
+      <div style="display:inline-block;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.25);border-radius:8px;padding:5px 14px;margin-bottom:16px;">
+        <span style="font-size:10px;font-weight:800;letter-spacing:2px;color:#A78BFA;">PAGAMENTO ÚNICO · SEM ASSINATURA · ACESSO IMEDIATO</span>
       </div>
 
-      <button id="cta-btn" class="btn-primary" onclick="goToCheckout()" style="width:100%;border-radius:16px;padding:19px;font-size:16px;font-weight:900;color:#fff;margin-bottom:12px;">
-        Ver Meu Diagnóstico Completo
+      <button id="pay-btn" class="btn-primary" onclick="startCheckout()" style="font-size:16px;font-weight:800;color:#1A2530;padding:18px 24px;margin-bottom:14px;">
+        Receber Meu Plano Personalizado — R$ 19,90
       </button>
 
-      <p style="font-size:11px;color:rgba(255,255,255,.28);">Menos que um café · Acesso imediato</p>
+      <p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.55;margin-bottom:18px;">
+        Uma única vez. Sem mensalidade. Sem compromisso.<br>
+        Seu caminho de volta à presença de Deus, criado para a sua realidade de hoje.
+      </p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+        <div class="trust-row"><i data-lucide="shield-check"></i><span>Pagamento 100% seguro via Stripe</span></div>
+        <div class="trust-row"><i data-lucide="lock"></i><span>Seus dados são privados</span></div>
+        <div class="trust-row"><i data-lucide="refresh-ccw"></i><span>Satisfação garantida</span></div>
+      </div>
     </div>
 
-    <!-- Security -->
-    <div style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:11px;color:rgba(255,255,255,.25);font-weight:600;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Pagamento seguro via Stripe
-    </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════════════ -->
 <script>
-const SUPABASE_URL = 'https://anoqhwpdrztaqmlocnzx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFub3Fod3Bkcnp0YXFtbG9jbnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2ODM3OTQsImV4cCI6MjA3OTI1OTc5NH0.eUg9hLctWst7nolKxk5OUgka6s8xUaaBNH3dP6kCduY';
+  const SUPABASE_URL = 'https://anoqhwpdrztaqmlocnzx.supabase.co'
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFub3Fod3BkcnpzYXFtbG9jbnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM5NjY2ODIsImV4cCI6MjA1OTU0MjY4Mn0.V8_XJMlLsTgVmPcRhqEAHZfv1JYVxG-q_7f8JMbpO28'
 
-const S = { name:'', email:'', qIdx:0, answers:{}, score:null, chart:null };
+  const S = { name:'', email:'', qIdx:0, answers:{}, score:null, chart:null }
 
-const LEVELS = [
-  { n:'Semente',       d:'O início de toda grande jornada',             c:'#6EE7B7', desc:'Você está dando os primeiros passos da sua caminhada espiritual, e isso já é um ato de coragem. Muitos querem, poucos começam.' },
-  { n:'Peregrino',     d:'Em busca de constância e direção',            c:'#93C5FD', desc:'Você busca a fé com o coração, mas ainda luta para manter uma rotina consistente. Você não está sozinho nessa batalha.' },
-  { n:'Discípulo',     d:'Crescendo no conhecimento e na prática',      c:'#A78BFA', desc:'Sua vida espiritual está ganhando forma. Você já sente a diferença que a constância faz no seu dia a dia.' },
-  { n:'Servo',         d:'Vida sacramental ativa e missão viva',        c:'#FCD34D', desc:'Sua fé é fundamentada e você busca missão e comunidade. Você tem muito a oferecer a quem está começando.' },
-  { n:'Contemplativo', d:'Oração profunda e caminhada madura',          c:'#F9A8D4', desc:'Sua vida de oração é profunda e consistente. Você busca aprofundar a contemplação e o serviço ao próximo.' },
-];
+  const LEVELS = [
+    { name:'Semente',       color:'#6EE7B7', sub:'O início de toda grande jornada',         desc:'Você está dando os primeiros passos da sua caminhada espiritual, e isso já é um ato de coragem. Muitos querem, poucos começam.' },
+    { name:'Peregrino',     color:'#93C5FD', sub:'Em busca de constância e direção',         desc:'Você busca a fé com o coração, mas ainda luta para manter uma rotina consistente. Você não está sozinho nessa batalha.' },
+    { name:'Discípulo',     color:'#A78BFA', sub:'Crescendo no conhecimento e na prática',   desc:'Sua vida espiritual está ganhando forma. Você já sente a diferença que a constância faz no seu dia a dia.' },
+    { name:'Servo',         color:'#FCD34D', sub:'Vida sacramental ativa e missão viva',     desc:'Sua fé é fundamentada e você busca missão e comunidade. Você tem muito a oferecer a quem está começando.' },
+    { name:'Contemplativo', color:'#F9A8D4', sub:'Oração profunda e caminhada madura',       desc:'Sua vida de oração é profunda e consistente. Você busca aprofundar a contemplação e o serviço ao próximo.' },
+  ]
 
-const CHALLENGE_LABELS = {
-  anxiety:   'Ansiedade e inquietação interior',
-  laziness:  'Falta de constância e motivação',
-  dryness:   'A oração parece vazia ou distante',
-  ignorance: 'Dúvidas e questionamentos sobre a fé',
-  pride:     'Orgulho e dificuldade de se abrir',
-  lust:      'Lutas com hábitos e vícios',
-};
-
-const GOAL_LABELS = {
-  peace:      'Paz interior e serenidade',
-  truth:      'Conhecer mais profundamente a fé',
-  discipline: 'Disciplina e constância espiritual',
-  love:       'Amor ao próximo e à família',
-  healing:    'Cura emocional e libertação',
-};
-
-(function(){
-  document.getElementById('levels-list').innerHTML = LEVELS.map((l,i)=>`
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div style="width:30px;height:30px;background:${l.c}18;border:1px solid ${l.c}35;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <span style="font-size:12px;font-weight:800;color:${l.c};">${i+1}</span>
-      </div>
-      <div>
-        <span style="font-size:13px;font-weight:700;color:${l.c};">${l.n}</span>
-        <span style="font-size:12px;color:rgba(255,255,255,.32);margin-left:6px;">${l.d}</span>
-      </div>
-    </div>`).join('');
-})();
-
-const QS = [
-  { id:'challenge', sub:'Escolha o que mais ressoa com o que você vive.',
-    t: n=>`${n}, qual é o seu maior desafio espiritual hoje?`,
-    opts:[
-      {i:'brain',     l:'Ansiedade e inquietação interior',      v:'anxiety'},
-      {i:'clock',     l:'Falta de constância e motivação',       v:'laziness'},
-      {i:'cloud-rain',l:'A oração parece vazia ou distante',     v:'dryness'},
-      {i:'help-circle',l:'Dúvidas e questionamentos sobre a fé', v:'ignorance'},
-      {i:'shield',    l:'Orgulho, impaciência ou julgamento',    v:'pride'},
-      {i:'eye-off',   l:'Lutas com hábitos e vícios',            v:'lust'},
-    ]},
-  { id:'frequency', sub:'Seja honesto, não há resposta errada aqui.',
-    t: n=>`Com que frequência você consegue orar ou rezar, ${n}?`,
-    opts:[
-      {i:'sun',      l:'Todo dia, mesmo que brevemente',   v:'daily'},
-      {i:'calendar', l:'Algumas vezes por semana',         v:'few_times'},
-      {i:'heart',    l:'Só em momentos difíceis',          v:'hard_times'},
-      {i:'moon',     l:'Raramente ou quase nunca',         v:'rarely'},
-    ]},
-  { id:'routine', sub:'Isso nos ajuda a entender o espaço que a espiritualidade pode ocupar.',
-    t: n=>`Como você descreveria sua rotina de vida, ${n}?`,
-    opts:[
-      {i:'zap',         l:'Caótica, sem muito tempo livre',    v:'chaotic'},
-      {i:'anchor',      l:'Estruturada e organizada',          v:'structured'},
-      {i:'wind',        l:'Flexível, depende muito do dia',    v:'flexible'},
-      {i:'alert-circle',l:'Me sinto sobrecarregado(a)',        v:'overwhelmed'},
-    ]},
-  { id:'confession', sub:'Isso nos ajuda a personalizar melhor o seu plano.',
-    t: n=>`Com que frequência você vai à Confissão, ${n}?`,
-    opts:[
-      {i:'check-circle',l:'Neste mês, estou em dia',         v:'recent'},
-      {i:'clock',       l:'Há 3 a 6 meses',                  v:'months'},
-      {i:'calendar',    l:'Há mais de um ano',               v:'long_time'},
-      {i:'sparkles',    l:'Ainda não fui, ou faz muitos anos',v:'never'},
-    ]},
-  { id:'goal', sub:'',
-    t: n=>`O que você mais deseja alcançar na sua vida espiritual, ${n}?`,
-    opts:[
-      {i:'sun',       l:'Paz interior e serenidade',          v:'peace'},
-      {i:'lightbulb', l:'Conhecer mais profundamente a fé',   v:'truth'},
-      {i:'target',    l:'Disciplina e constância espiritual', v:'discipline'},
-      {i:'heart',     l:'Amor ao próximo e à família',        v:'love'},
-      {i:'leaf',      l:'Cura emocional e libertação',        v:'healing'},
-    ]},
-  { id:'state', sub:'Sua caminhada espiritual se encaixa no seu contexto de vida.',
-    t: n=>`Em que fase da vida você está, ${n}?`,
-    opts:[
-      {i:'book-open', l:'Estudante',       v:'student'},
-      {i:'user',      l:'Solteiro(a)',     v:'single'},
-      {i:'users',     l:'Casado(a)',       v:'married'},
-      {i:'home',      l:'Pai ou Mãe',     v:'parent'},
-      {i:'coffee',    l:'Aposentado(a)',   v:'retired'},
-    ]},
-  { id:'obstacle', sub:'',
-    t: n=>`${n}, o que você sente que mais te impede de crescer espiritualmente?`,
-    opts:[
-      {i:'clock',      l:'Falta de tempo na rotina',          v:'no_time'},
-      {i:'compass',    l:'Não sei por onde começar',          v:'dont_know'},
-      {i:'user-minus', l:'Me sinto sozinho(a) na fé',         v:'loneliness'},
-      {i:'smartphone', l:'Distrações e vícios digitais',      v:'distractions'},
-      {i:'help-circle',l:'Dúvidas e questionamentos',         v:'doubts'},
-    ]},
-];
-
-function calcScore(a) {
-  const freq   = {daily:92,few_times:65,hard_times:32,rarely:12};
-  const conf   = {recent:92,months:58,long_time:24,never:10};
-  const rout   = {structured:82,flexible:60,chaotic:34,overwhelmed:28};
-  const goalF  = {truth:78,discipline:70,peace:58,love:55,healing:52};
-  const obstF  = {doubts:60,distractions:52,loneliness:46,no_time:42,dont_know:20};
-  const stateC = {parent:72,married:68,single:52,student:48,retired:60};
-
-  const prayer    = Math.min(100, ((freq[a.frequency]||40) + (rout[a.routine]||40)) / 2);
-  const sacrament = Math.min(100,  conf[a.confession] || 30);
-  const formation = Math.min(100,  goalF[a.goal]     || 55);
-  const community = Math.min(100,  stateC[a.state]   || 52);
-  const mission   = Math.min(100, ((goalF[a.goal]||55) + (obstF[a.obstacle]||42)) / 2);
-
-  const dims = [prayer, sacrament, formation, community, mission];
-  const avg  = dims.reduce((s,v)=>s+v,0) / 5;
-  const lvl  = avg >= 76 ? 4 : avg >= 60 ? 3 : avg >= 44 ? 2 : avg >= 28 ? 1 : 0;
-
-  return { dims, avg, level: LEVELS[lvl] };
-}
-
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0, 0);
-}
-
-function toName() { show('s-name'); document.getElementById('inp-name').focus(); }
-
-function submitName() {
-  const v = document.getElementById('inp-name').value.trim();
-  if (!v) { document.getElementById('inp-name').style.borderColor='#F87171'; return; }
-  S.name = v.split(' ')[0];
-  S.qIdx = 0;
-  renderQ(0);
-  show('s-quiz');
-}
-
-function renderQ(idx) {
-  S.qIdx = idx;
-  const q = QS[idx];
-  const pct = Math.round(((idx+1)/QS.length)*100);
-  document.getElementById('prog-bar').style.width = pct + '%';
-  document.getElementById('prog-text').textContent = `${idx+1}/${QS.length}`;
-
-  const c = document.getElementById('q-container');
-  c.innerHTML = `
-    ${q.sub ? `<p style="font-size:13px;color:rgba(255,255,255,.38);font-weight:600;margin-bottom:8px;line-height:1.5;">${q.sub}</p>` : ''}
-    <h3 style="font-size:20px;font-weight:800;line-height:1.35;margin-bottom:24px;">${q.t(S.name)}</h3>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      ${q.opts.map(o=>`
-        <div class="answer-card glass" style="display:flex;align-items:center;gap:14px;border-radius:18px;padding:16px;"
-             onclick="pick('${q.id}','${o.v}',this)">
-          <div class="icon-wrap" style="width:40px;height:40px;background:rgba(167,139,250,.1);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i data-lucide="${o.i}" style="width:20px;height:20px;color:#A78BFA;"></i>
-          </div>
-          <span style="font-size:14px;font-weight:600;line-height:1.4;">${o.l}</span>
-        </div>`).join('')}
-    </div>`;
-
-  c.style.opacity='0'; c.style.transform='translateX(22px)';
-  requestAnimationFrame(()=>{
-    c.style.transition='all .35s cubic-bezier(.22,1,.36,1)';
-    c.style.opacity='1';
-    c.style.transform='translateX(0)';
-  });
-
-  lucide.createIcons();
-}
-
-function pick(qid, val, el) {
-  document.querySelectorAll('.answer-card').forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected');
-  S.answers[qid] = val;
-
-  setTimeout(()=>{
-    if (S.qIdx < QS.length-1) { renderQ(S.qIdx+1); }
-    else { showEmailScreen(); }
-  }, 420);
-}
-
-function showEmailScreen() {
-  document.getElementById('email-title').textContent = `Quase lá, ${S.name}!`;
-  document.getElementById('email-sub').textContent = `Para onde envio o seu Diagnóstico Espiritual personalizado?`;
-  show('s-email');
-  setTimeout(()=>document.getElementById('inp-email').focus(), 300);
-}
-
-function submitEmail() {
-  const v = document.getElementById('inp-email').value.trim();
-  if (!v || !v.includes('@') || !v.includes('.')) {
-    document.getElementById('inp-email').style.borderColor='#F87171'; return;
-  }
-  S.email = v;
-  startLoading();
-}
-
-const MSGS = [
-  n=>`Analisando seu perfil espiritual, ${n}...`,
-  ()=>'Mapeando seus pontos de crescimento...',
-  n=>`Preparando seu Plano de 21 Dias, ${n}...`,
-  ()=>'Calculando seu Nível de Maturidade...',
-  n=>`Quase pronto, ${n}...`,
-];
-
-function startLoading() {
-  show('s-loading');
-  S.score = calcScore(S.answers);
-
-  let i=0;
-  const el = document.getElementById('load-msg');
-  function next() { el.style.opacity=0; setTimeout(()=>{ el.textContent=MSGS[i%MSGS.length](S.name); el.style.opacity=1; i++; },280); }
-  next();
-  const t = setInterval(next, 2200);
-  setTimeout(()=>{ clearInterval(t); showPaywall(); }, 8000);
-}
-
-function showPaywall() {
-  const lvl = S.score.level;
-  const a   = S.answers;
-
-  document.getElementById('pw-title').innerHTML =
-    `${S.name}, aqui está<br>o seu perfil:`;
-
-  const badge = document.getElementById('pw-level-badge');
-  badge.style.background = lvl.c + '18';
-  badge.style.border = '1.5px solid ' + lvl.c + '35';
-  document.getElementById('pw-badge-icon').style.color = lvl.c;
-
-  document.getElementById('pw-level-name').textContent = lvl.n;
-  document.getElementById('pw-level-name').style.color = lvl.c;
-  document.getElementById('pw-level-sub').textContent  = lvl.d;
-  document.getElementById('pw-level-desc').textContent = lvl.desc;
-
-  document.getElementById('pw-insight-1').textContent =
-    'Seu desafio: ' + (CHALLENGE_LABELS[a.challenge] || 'identificado');
-  document.getElementById('pw-insight-2').textContent =
-    'Seu objetivo: ' + (GOAL_LABELS[a.goal] || 'identificado');
-
-  document.getElementById('pw-plan-desc').textContent =
-    `21 práticas criadas para o ${lvl.n}`;
-
-  show('s-paywall');
-  renderRadar(S.score.dims);
-}
-
-function renderRadar(dims) {
-  const ctx = document.getElementById('radar-canvas').getContext('2d');
-  if (S.chart) S.chart.destroy();
-  S.chart = new Chart(ctx, {
-    type:'radar',
-    data:{
-      labels:['Oração','Sacramento','Formação','Comunidade','Missão'],
-      datasets:[{
-        data:dims,
-        backgroundColor:'rgba(167,139,250,.18)',
-        borderColor:'#A78BFA',
-        borderWidth:2,
-        pointBackgroundColor:'#A78BFA',
-        pointBorderColor:'#1A2530',
-        pointRadius:4,
-      }]
+  const QUESTIONS = [
+    {
+      id:'challenge', step:1,
+      text: n => `${n}, todo coração carrega um peso.<br>Qual é o seu desafio espiritual mais real hoje?`,
+      sub: 'Não há resposta certa. Seja honesto consigo mesmo.',
+      opts: [
+        {i:'brain',    l:'Ansiedade e inquietação interior',       v:'anxiety'},
+        {i:'clock',    l:'Falta de constância e motivação',        v:'laziness'},
+        {i:'cloud',    l:'A oração parece vazia ou distante',      v:'dryness'},
+        {i:'help-circle', l:'Dúvidas e questionamentos sobre a fé',v:'ignorance'},
+        {i:'shield',   l:'Orgulho, impaciência ou julgamento',     v:'pride'},
+        {i:'eye-off',  l:'Lutas com hábitos e vícios',             v:'lust'},
+      ],
+      micro: n => `Obrigado por essa honestidade, <span>${n}</span>.`,
     },
-    options:{
-      responsive:false,
-      plugins:{legend:{display:false}},
-      scales:{r:{
-        min:0,max:100,
-        ticks:{display:false},
-        grid:{color:'rgba(255,255,255,.07)'},
-        angleLines:{color:'rgba(255,255,255,.07)'},
-        pointLabels:{color:'rgba(255,255,255,.5)',font:{size:11,weight:'600',family:'Inter'}},
-      }},
-      animation:{duration:900}
-    }
-  });
-}
+    {
+      id:'prayerReality', step:2,
+      text: n => `Como você se encontra com Deus hoje, ${n}?`,
+      sub: 'Isso nos ajuda a entender onde você realmente está.',
+      opts: [
+        {i:'sun',      l:'Tenho uma rotina, mesmo que imperfeita',    v:'consistent'},
+        {i:'calendar', l:'Oro quando lembro ou quando preciso muito', v:'occasional'},
+        {i:'wind',     l:'Quero rezar, mas não consigo manter',       v:'struggling'},
+        {i:'moon',     l:'Faz tempo que não me sinto próximo de Deus',v:'distant'},
+      ],
+    },
+    {
+      id:'confession', step:3,
+      text: n => `Com que frequência você vai à Confissão, ${n}?`,
+      sub: 'Sem julgamento — isso apenas ajuda a personalizar seu caminho.',
+      opts: [
+        {i:'check-circle', l:'Neste mês, estou em dia',               v:'recent'},
+        {i:'clock',        l:'Há 3 a 6 meses',                        v:'months'},
+        {i:'calendar',     l:'Há mais de um ano',                     v:'long_time'},
+        {i:'compass',      l:'Ainda não fui, ou faz muitos anos',     v:'never'},
+      ],
+      micro: n => `Cuidamos das suas respostas com total privacidade, <span>${n}</span>.`,
+    },
+    {
+      id:'goal', step:4,
+      text: n => `O que você mais quer encontrar nessa jornada, ${n}?`,
+      sub: 'Deixe que seu coração responda, não a sua cabeça.',
+      opts: [
+        {i:'sun',        l:'Paz interior e serenidade',                v:'peace'},
+        {i:'lightbulb',  l:'Conhecer mais profundamente a fé',         v:'truth'},
+        {i:'target',     l:'Disciplina e constância espiritual',       v:'discipline'},
+        {i:'heart',      l:'Amor ao próximo e à família',              v:'love'},
+        {i:'leaf',       l:'Cura emocional e libertação',              v:'healing'},
+      ],
+    },
+    {
+      id:'state', step:5,
+      text: n => `Em que fase da vida você está, ${n}?`,
+      sub: 'Sua caminhada espiritual se encaixa no seu contexto de vida.',
+      opts: [
+        {i:'book-open', l:'Estudante',      v:'student'},
+        {i:'user',      l:'Solteiro(a)',     v:'single'},
+        {i:'users',     l:'Casado(a)',       v:'married'},
+        {i:'home',      l:'Pai ou Mãe',     v:'parent'},
+        {i:'coffee',    l:'Aposentado(a)',   v:'retired'},
+      ],
+      micro: n => `Quase lá, <span>${n}</span>. Sua análise está sendo preparada.`,
+    },
+    {
+      id:'obstacle', step:6,
+      text: n => `${n}, o que você sente que mais te afasta de Deus?`,
+      sub: 'Nomear o obstáculo já é o primeiro passo para superá-lo.',
+      opts: [
+        {i:'clock',        l:'Falta de tempo na rotina',           v:'no_time'},
+        {i:'compass',      l:'Não sei por onde começar',           v:'dont_know'},
+        {i:'user-x',       l:'Me sinto sozinho(a) na fé',         v:'loneliness'},
+        {i:'smartphone',   l:'Distrações e vícios digitais',       v:'distractions'},
+        {i:'help-circle',  l:'Dúvidas e questionamentos',          v:'doubts'},
+      ],
+    },
+  ]
 
-async function goToCheckout() {
-  const btn = document.getElementById('cta-btn');
-  btn.textContent = 'Preparando...';
-  btn.disabled = true;
-
-  const quizData = {
-    name:S.name, email:S.email,
-    level:LEVELS.indexOf(S.score.level)+1,
-    levelName:S.score.level.n,
-    levelColor:S.score.level.c,
-    answers:S.answers, dims:S.score.dims,
-  };
-
-  localStorage.setItem('espiritualizei_quiz', JSON.stringify(quizData));
-
-  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(quizData))));
-
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/create-quiz-checkout`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`},
-      body: JSON.stringify({email:S.email, name:S.name, encoded}),
-    });
-    const d = await res.json();
-    if (d.url) { window.location.href = d.url; }
-    else throw new Error(d.error||'Erro ao gerar checkout');
-  } catch(err) {
-    btn.textContent = 'Ver Meu Diagnóstico Completo';
-    btn.disabled = false;
-    alert('Não foi possível abrir o checkout. Tente novamente.');
+  const WEEK_THEMES = {
+    challenge: {
+      anxiety:   { theme:'Aprender a descansar em Deus',        icon:'wind'  },
+      laziness:  { theme:'Construindo o hábito da presença',    icon:'anchor'},
+      dryness:   { theme:'Reencontrar Deus no silêncio',        icon:'cloud' },
+      ignorance: { theme:'Conhecer para amar com mais força',   icon:'book-open'},
+      pride:     { theme:'O caminho do esvaziamento interior',  icon:'feather'},
+      lust:      { theme:'Ordenando o coração com misericórdia',icon:'heart' },
+    },
+    goal: {
+      peace:      { theme:'Cultivando a paz que o mundo não dá', icon:'sun'   },
+      truth:      { theme:'Formação e aprofundamento da fé',      icon:'lightbulb'},
+      discipline: { theme:'A disciplina como ato de amor',        icon:'target'},
+      love:       { theme:'Amar como Deus ama',                   icon:'heart' },
+      healing:    { theme:'Cura e libertação pelo amor divino',   icon:'leaf'  },
+    },
+    state: {
+      student:  { theme:'Crescendo na fé em cada fase',          icon:'book-open'},
+      single:   { theme:'A missão de quem caminha livre',        icon:'user'  },
+      married:  { theme:'O casal que ora junto permanece junto', icon:'users' },
+      parent:   { theme:'A espiritualidade de quem serve a vida',icon:'home'  },
+      retired:  { theme:'A sabedoria da contemplação madura',    icon:'coffee'},
+    },
   }
-}
+
+  const CHALLENGE_LABELS = {
+    anxiety:'ansiedade e inquietação interior', laziness:'falta de constância',
+    dryness:'a oração que parece distante',     ignorance:'questionamentos e dúvidas na fé',
+    pride:'orgulho e impaciência interior',     lust:'lutas com hábitos e vícios',
+  }
+  const GOAL_LABELS = {
+    peace:'paz interior', truth:'conhecer mais a fé', discipline:'disciplina e constância',
+    love:'amar mais ao próximo', healing:'cura emocional e libertação',
+  }
+  const PERSONAL_TEXTS = {
+    anxiety: n => `${n}, seus dados revelam que carregar ansiedade no coração é um convite para aprender a descansar em Deus. Isso é mais comum do que parece — e existe um caminho prático para avançar.`,
+    laziness: n => `${n}, a falta de constância que você sente não é fraqueza — é o ponto de partida de quem finalmente decide começar de verdade.`,
+    dryness: n => `${n}, sentir a oração vazia é um sinal de que seu coração ainda busca. Quem para de buscar é quem desistiu — e você não desistiu.`,
+    ignorance: n => `${n}, suas dúvidas mostram que você leva a fé a sério. Quem não questiona, não cresce. Vamos aprofundar isso juntos.`,
+    pride: n => `${n}, reconhecer o orgulho ou a impaciência já é um ato de humildade enorme. A partir daqui, só cresce.`,
+    lust: n => `${n}, lutar com hábitos difíceis é parte da jornada de todos. Não há condenação aqui — apenas um caminho de graça.`,
+  }
+
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+    document.getElementById(id).classList.add('active')
+    window.scrollTo(0,0)
+  }
+
+  function updateProgress(step, total) {
+    const wrap = document.getElementById('progress-bar-wrap')
+    const fill = document.getElementById('progress-bar-fill')
+    if (step > 0) {
+      wrap.style.display = 'block'
+      fill.style.width = ((step / total) * 100) + '%'
+    } else {
+      wrap.style.display = 'none'
+    }
+  }
+
+  function saveName() {
+    const v = document.getElementById('name-input').value.trim()
+    if (!v) { document.getElementById('name-input').focus(); return }
+    S.name = v.charAt(0).toUpperCase() + v.slice(1)
+    document.getElementById('email-name').textContent = S.name
+    S.qIdx = 0
+    renderQ()
+    show('s-quiz')
+    updateProgress(1, QUESTIONS.length + 2)
+  }
+
+  function renderQ() {
+    const q = QUESTIONS[S.qIdx]
+    const container = document.getElementById('quiz-container')
+    container.innerHTML = `
+      <div class="anim-slide">
+        <p style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:14px;">PERGUNTA ${q.step} DE ${QUESTIONS.length}</p>
+        <h2 style="font-size:clamp(19px,5.5vw,26px);font-weight:800;line-height:1.25;margin-bottom:8px;">${q.text(S.name)}</h2>
+        <p style="font-size:13px;color:rgba(255,255,255,.45);margin-bottom:24px;">${q.sub}</p>
+        <div style="display:grid;grid-template-columns:1fr;gap:10px;" id="opts-grid">
+          ${q.opts.map(o=>`
+            <div class="answer-card glass" style="padding:15px 18px;display:flex;align-items:center;gap:14px;" onclick="selectAnswer('${o.v}')">
+              <div class="icon-wrap" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(167,139,250,.12);flex-shrink:0;">
+                <i data-lucide="${o.i}" style="width:18px;height:18px;color:#A78BFA;"></i>
+              </div>
+              <span style="font-size:clamp(13px,3.8vw,15px);font-weight:600;line-height:1.3;">${o.l}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `
+    lucide.createIcons()
+    updateProgress(S.qIdx + 1, QUESTIONS.length + 2)
+  }
+
+  function showMicro(html, cb) {
+    const el = document.createElement('div')
+    el.className = 'micro-text'
+    el.innerHTML = `<p>${html}</p>`
+    document.body.appendChild(el)
+    setTimeout(() => { el.remove(); cb() }, 1700)
+  }
+
+  function selectAnswer(val) {
+    const q = QUESTIONS[S.qIdx]
+    S.answers[q.id] = val
+    if (q.micro) {
+      showMicro(q.micro(S.name), nextStep)
+    } else {
+      nextStep()
+    }
+  }
+
+  function nextStep() {
+    S.qIdx++
+    if (S.qIdx < QUESTIONS.length) {
+      renderQ()
+    } else {
+      updateProgress(QUESTIONS.length + 1, QUESTIONS.length + 2)
+      show('s-email')
+    }
+  }
+
+  function saveEmail() {
+    const v = document.getElementById('email-input').value.trim()
+    if (!v || !v.includes('@')) { document.getElementById('email-input').focus(); return }
+    S.email = v
+    updateProgress(QUESTIONS.length + 2, QUESTIONS.length + 2)
+    startLoading()
+  }
+
+  const LOADING_MSGS = [
+    n => `${n}, estamos lendo seu perfil com atenção...`,
+    () => 'Cada resposta revela algo único sobre sua jornada...',
+    () => 'Estamos criando algo feito especialmente para você...',
+    () => 'Seu Plano de 21 Dias está tomando forma...',
+    n => `Pronto. Aqui está o que descobrimos sobre você, ${n}.`,
+  ]
+
+  function startLoading() {
+    show('s-loading')
+    S.score = calcScore(S.answers)
+    let i = 0
+    const el = document.getElementById('loading-msg')
+    el.textContent = LOADING_MSGS[0](S.name)
+    const t = setInterval(() => {
+      i++
+      if (i < LOADING_MSGS.length) {
+        el.style.opacity = '0'
+        setTimeout(() => {
+          el.textContent = LOADING_MSGS[i](S.name)
+          el.style.opacity = '1'
+        }, 300)
+      } else {
+        clearInterval(t)
+      }
+    }, 1400)
+    setTimeout(() => { clearInterval(t); showPaywall() }, 7000)
+  }
+
+  function calcScore(a) {
+    const pray  = { consistent:90, occasional:60, struggling:35, distant:18 }
+    const conf  = { recent:92,     months:58,     long_time:24,  never:10   }
+    const goalF = { truth:78, discipline:70, peace:58, love:55, healing:52  }
+    const obstF = { doubts:60, distractions:52, loneliness:46, no_time:42, dont_know:20 }
+    const stateC= { parent:72, married:68, single:52, student:48, retired:60 }
+
+    const prayer    = Math.min(100, pray[a.prayerReality] || 40)
+    const sacrament = Math.min(100, conf[a.confession] || 30)
+    const formation = Math.min(100, goalF[a.goal] || 55)
+    const community = Math.min(100, stateC[a.state] || 52)
+    const mission   = Math.min(100, ((goalF[a.goal]||55) + (obstF[a.obstacle]||42)) / 2)
+
+    const dims = [prayer, sacrament, formation, community, mission]
+    const avg  = dims.reduce((s,v)=>s+v,0) / 5
+    const lvl  = avg>=76?4 : avg>=60?3 : avg>=44?2 : avg>=28?1 : 0
+
+    return { dims, avg, level: LEVELS[lvl], levelIndex: lvl }
+  }
+
+  function showPaywall() {
+    const { dims, level, levelIndex } = S.score
+    const a = S.answers
+
+    // Badge
+    document.getElementById('pw-level-name').textContent = level.name
+    document.getElementById('pw-badge').style.borderColor = level.color + '55'
+    document.getElementById('pw-level-subtitle').textContent = level.sub
+
+    // Texto pessoal
+    const textFn = PERSONAL_TEXTS[a.challenge]
+    document.getElementById('pw-personal-text').textContent = textFn
+      ? textFn(S.name)
+      : `${S.name}, seus dados revelam um coração que busca e que quer crescer. Existe um caminho concreto para avançar.`
+
+    // CTA headline
+    document.getElementById('pw-cta-headline').textContent =
+      `${S.name}, seu Plano foi criado para o momento espiritual que você vive hoje.`
+
+    // Semanas preview
+    const w1 = WEEK_THEMES.challenge[a.challenge] || { theme:'Regularidade na oração', icon:'heart' }
+    const w2 = WEEK_THEMES.goal[a.goal]            || { theme:'Aprofundamento da fé',   icon:'lightbulb' }
+    const w3 = WEEK_THEMES.state[a.state]          || { theme:'Integração com a vida',  icon:'star' }
+
+    document.getElementById('pw-weeks-preview').innerHTML = [w1,w2,w3].map((w,i)=>`
+      <div class="week-preview-card">
+        <div class="week-num">S${i+1}</div>
+        <div>
+          <p style="font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:3px;">SEMANA ${i+1}</p>
+          <p style="font-size:14px;font-weight:600;color:rgba(255,255,255,.85);">${w.theme}</p>
+        </div>
+        <i data-lucide="${w.icon}" style="width:18px;height:18px;color:#A78BFA;margin-left:auto;flex-shrink:0;"></i>
+      </div>
+    `).join('')
+
+    // Radar bloqueado
+    const ctx = document.getElementById('pw-radar').getContext('2d')
+    if (S.chart) S.chart.destroy()
+    S.chart = new Chart(ctx, {
+      type:'radar',
+      data:{
+        labels:['Oração','Sacramento','Formação','Comunidade','Missão'],
+        datasets:[{ data:dims, backgroundColor:'rgba(167,139,250,.15)', borderColor:'rgba(167,139,250,.5)', borderWidth:1.5, pointBackgroundColor:'#A78BFA', pointRadius:3 }]
+      },
+      options:{
+        responsive:false, scales:{ r:{ display:false, min:0, max:100 }},
+        plugins:{ legend:{ display:false } },
+        elements:{ line:{ tension:.3 } }
+      }
+    })
+
+    lucide.createIcons()
+    show('s-paywall')
+  }
+
+  async function startCheckout() {
+    const btn = document.getElementById('pay-btn')
+    btn.disabled = true
+    btn.textContent = 'Processando...'
+
+    const quizData = {
+      name: S.name, email: S.email,
+      level: S.score.levelIndex + 1,
+      levelName: S.score.level.name,
+      levelColor: S.score.level.color,
+      answers: S.answers,
+      dims: {
+        oracao: Math.round(S.score.dims[0]),
+        sacramento: Math.round(S.score.dims[1]),
+        formacao: Math.round(S.score.dims[2]),
+        comunidade: Math.round(S.score.dims[3]),
+        missao: Math.round(S.score.dims[4]),
+      }
+    }
+    localStorage.setItem('espiritualizei_quiz', JSON.stringify(quizData))
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(quizData))))
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-quiz-checkout`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+        body: JSON.stringify({ email: S.email, name: S.name, encoded })
+      })
+      const d = await res.json()
+      if (d.url) { window.location.href = d.url }
+      else { throw new Error(d.error || 'Erro desconhecido') }
+    } catch(e) {
+      btn.disabled = false
+      btn.textContent = 'Receber Meu Plano Personalizado — R$ 19,90'
+      alert('Ocorreu um erro. Tente novamente.')
+    }
+  }
+
+  // Init
+  lucide.createIcons()
 </script>
 </body>
 </html>
