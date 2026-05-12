@@ -438,6 +438,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <button id="pay-btn" class="btn-primary" onclick="startCheckout()" style="font-size:16px;font-weight:800;color:#1A2530;padding:18px 24px;margin-bottom:14px;">
         Receber Meu Plano Personalizado por R$ 19,90
       </button>
+      <p id="checkout-error" style="display:none;color:#f87171;font-size:13px;margin-bottom:10px;text-align:center;"></p>
 
       <p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.55;margin-bottom:18px;">
         Uma única vez. Sem mensalidade. Sem compromisso.<br>
@@ -823,21 +824,31 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
     }
     localStorage.setItem('espiritualizei_quiz', JSON.stringify(quizData))
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(quizData))))
 
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/create-quiz-checkout`, {
         method:'POST',
         headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
-        body: JSON.stringify({ email: S.email, name: S.name, encoded })
+        body: JSON.stringify({ email: S.email, name: S.name })
       })
-      const d = await res.json()
-      if (d.url) { window.location.href = d.url }
-      else { throw new Error(d.error || 'Erro desconhecido') }
+
+      let d
+      try { d = await res.json() } catch(_) { d = {} }
+
+      if (!res.ok || !d.url) {
+        const msg = d.error || `Erro ${res.status}`
+        console.error('[checkout]', msg)
+        throw new Error(msg)
+      }
+
+      window.location.href = d.url
     } catch(e) {
       btn.disabled = false
       btn.textContent = 'Receber Meu Plano Personalizado por R$ 19,90'
-      alert('Ocorreu um erro. Tente novamente.')
+      console.error('[checkout] falha:', e.message)
+      const errEl = document.getElementById('checkout-error')
+      if (errEl) { errEl.textContent = 'Não foi possível iniciar o pagamento. Tente novamente.'; errEl.style.display = 'block' }
+      else { alert('Não foi possível iniciar o pagamento. Tente novamente.') }
     }
   }
 

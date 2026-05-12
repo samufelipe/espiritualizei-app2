@@ -25,7 +25,7 @@ serve(async (req) => {
       })
     }
 
-    const { email, name, encoded } = await req.json()
+    const { email, name } = await req.json()
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'email obrigatório' }), {
@@ -44,9 +44,9 @@ serve(async (req) => {
       success_url: `https://www.espiritualizei.com/quiz/resultado?session={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://www.espiritualizei.com/quiz`,
       payment_intent_data: {
-        metadata: { name: name || '', encoded: encoded || '' },
+        metadata: { name: name || '' },
       },
-      metadata: { name: name || '', encoded: encoded || '' },
+      metadata: { name: name || '', source: 'quiz' },
     })
 
     console.log(`✅ Quiz checkout session criada: ${session.id} para ${email}`)
