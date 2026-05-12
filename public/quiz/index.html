@@ -212,7 +212,7 @@
         <span style="color:#A78BFA;">nível espiritual</span><br>agora?
       </h1>
       <p style="font-size:clamp(14px,4vw,16px);color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:36px;">
-        6 perguntas honestas. Um plano de 21 dias criado para você — de acordo com o momento espiritual que você vive <em>hoje</em>.
+        6 perguntas honestas. Um plano de 21 dias criado para você, de acordo com o momento espiritual que você vive <em>hoje</em>.
       </p>
 
       <!-- Levels preview -->
@@ -251,7 +251,7 @@
 
       <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:14px;">ANTES DE COMEÇAR</p>
       <h2 style="font-size:clamp(22px,6vw,30px);font-weight:800;margin-bottom:10px;line-height:1.2;">Como podemos te chamar?</h2>
-      <p style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:32px;line-height:1.5;">Queremos criar algo verdadeiramente seu — não um plano genérico.</p>
+      <p style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:32px;line-height:1.5;">Queremos criar algo verdadeiramente seu, não um plano genérico.</p>
 
       <input id="name-input" class="input-field" type="text" placeholder="Seu primeiro nome" autocomplete="given-name" onkeydown="if(event.key==='Enter')saveName()" />
 
@@ -409,7 +409,7 @@
       </div>
 
       <button id="pay-btn" class="btn-primary" onclick="startCheckout()" style="font-size:16px;font-weight:800;color:#1A2530;padding:18px 24px;margin-bottom:14px;">
-        Receber Meu Plano Personalizado — R$ 19,90
+        Receber Meu Plano Personalizado por R$ 19,90
       </button>
 
       <p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.55;margin-bottom:18px;">
@@ -470,7 +470,7 @@
     {
       id:'confession', step:3,
       text: n => `Com que frequência você vai à Confissão, ${n}?`,
-      sub: 'Sem julgamento — isso apenas ajuda a personalizar seu caminho.',
+      sub: 'Sem julgamento. Isso apenas ajuda a personalizar seu caminho.',
       opts: [
         {i:'check-circle', l:'Neste mês, estou em dia',               v:'recent'},
         {i:'clock',        l:'Há 3 a 6 meses',                        v:'months'},
@@ -553,12 +553,12 @@
     love:'amar mais ao próximo', healing:'cura emocional e libertação',
   }
   const PERSONAL_TEXTS = {
-    anxiety: n => `${n}, seus dados revelam que carregar ansiedade no coração é um convite para aprender a descansar em Deus. Isso é mais comum do que parece — e existe um caminho prático para avançar.`,
-    laziness: n => `${n}, a falta de constância que você sente não é fraqueza — é o ponto de partida de quem finalmente decide começar de verdade.`,
-    dryness: n => `${n}, sentir a oração vazia é um sinal de que seu coração ainda busca. Quem para de buscar é quem desistiu — e você não desistiu.`,
+    anxiety: n => `${n}, seus dados revelam que carregar ansiedade no coração é um convite para aprender a descansar em Deus. Isso é mais comum do que parece, e existe um caminho prático para avançar.`,
+    laziness: n => `${n}, a falta de constância que você sente não é fraqueza. É o ponto de partida de quem finalmente decide começar de verdade.`,
+    dryness: n => `${n}, sentir a oração vazia é um sinal de que seu coração ainda busca. Quem para de buscar é quem desistiu, e você não desistiu.`,
     ignorance: n => `${n}, suas dúvidas mostram que você leva a fé a sério. Quem não questiona, não cresce. Vamos aprofundar isso juntos.`,
     pride: n => `${n}, reconhecer o orgulho ou a impaciência já é um ato de humildade enorme. A partir daqui, só cresce.`,
-    lust: n => `${n}, lutar com hábitos difíceis é parte da jornada de todos. Não há condenação aqui — apenas um caminho de graça.`,
+    lust: n => `${n}, lutar com hábitos difíceis é parte da jornada de todos. Não há condenação aqui, apenas um caminho de graça.`,
   }
 
   function show(id) {
@@ -786,7 +786,7 @@
       else { throw new Error(d.error || 'Erro desconhecido') }
     } catch(e) {
       btn.disabled = false
-      btn.textContent = 'Receber Meu Plano Personalizado — R$ 19,90'
+      btn.textContent = 'Receber Meu Plano Personalizado por R$ 19,90'
       alert('Ocorreu um erro. Tente novamente.')
     }
   }

@@ -186,7 +186,7 @@
 
     <div class="glass-violet" style="border-radius:20px;padding:22px;margin-bottom:20px;">
       <p style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.8);line-height:1.7;">
-        Mais de <strong>3.000 pessoas no Brasil</strong> acordam todo dia com uma rotina espiritual criada especialmente para elas pela IA — atualizada toda semana, adaptada ao tempo litúrgico e à fase de vida de cada um.
+        Mais de <strong>3.000 pessoas no Brasil</strong> acordam todo dia com uma rotina espiritual criada especialmente para elas pela IA, atualizada toda semana e adaptada ao tempo litúrgico e à fase de vida de cada um.
       </p>
     </div>
 
@@ -328,7 +328,7 @@
       int: `Hoje escolho dedicar meu tempo a Deus, um passo de cada vez.`,
       prayer: day % 2 === 0 ? 'Rosário meditado' : 'Lectio Divina de 10 minutos',
       task: 'Reserve 10 minutos em silêncio, longe do celular, e ofereça esse tempo a Deus.',
-      verse: 'Sl 139,1 — "Senhor, tu me sondas e me conheces."',
+      verse: 'Sl 139,1: "Senhor, tu me sondas e me conheces."',
     })
     return {
       weeks: [
@@ -361,7 +361,7 @@
     const challengeLabel = CHALLENGE_LABELS[a.challenge] || 'sua jornada espiritual'
     const goalLabel = GOAL_LABELS[a.goal] || 'crescimento espiritual'
     document.getElementById('personal-letter').textContent =
-      `${name}, você revelou que carrega o peso de ${challengeLabel} e que seu coração mais deseja ${goalLabel}. Isso é muito mais comum do que parece — e o caminho que preparamos é feito especialmente para esse momento. Cada dia dos próximos 21 foi pensado com cuidado para a sua realidade de hoje.`
+      `${name}, você revelou que carrega o peso de ${challengeLabel} e que seu coração mais deseja ${goalLabel}. Isso é muito mais comum do que parece, e o caminho que preparamos é feito especialmente para esse momento. Cada dia dos próximos 21 foi pensado com cuidado para a sua realidade de hoje.`
 
     document.getElementById('community-headline').textContent = `${name}, você acabou de descobrir onde está.`
     document.getElementById('closing-text').textContent =
