@@ -40,6 +40,7 @@ serve(async (req) => {
       mode: 'payment',
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: email,
+      allow_promotion_codes: true,
       success_url: `https://www.espiritualizei.com/quiz/resultado?session={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://www.espiritualizei.com/quiz`,
       payment_intent_data: {
