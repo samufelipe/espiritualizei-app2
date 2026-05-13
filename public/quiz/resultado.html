@@ -873,10 +873,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   async function fetchFromServer(stripeSessionId) {
     setLoadingMsg('Verificando seu pagamento...')
+    // Envia quiz_data_fallback do localStorage para o servidor poder criar sessão
+    // mesmo quando save-quiz-session expirou antes de responder
+    const localQuizData = (() => {
+      try { return JSON.parse(localStorage.getItem('espiritualizei_quiz') || 'null') } catch(_) { return null }
+    })()
     const res = await fetch(`${SUPABASE_URL}/functions/v1/get-quiz-result`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
-      body: JSON.stringify({ stripe_session_id: stripeSessionId })
+      body: JSON.stringify({ stripe_session_id: stripeSessionId, quiz_data_fallback: localQuizData })
     })
     if (!res.ok) {
       const e = await res.json().catch(() => ({}))

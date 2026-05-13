@@ -295,7 +295,8 @@ serve(async (req: any) => {
 
     if (!stripeKey) return err(500, 'Stripe não configurado')
 
-    const { stripe_session_id } = await req.json()
+    // quiz_data_fallback: enviado pelo client a partir do localStorage quando salvo no quiz
+    const { stripe_session_id, quiz_data_fallback } = await req.json()
     if (!stripe_session_id) return err(400, 'stripe_session_id é obrigatório')
 
     const stripe   = new Stripe(stripeKey, { apiVersion: '2023-10-16' })
@@ -307,44 +308,75 @@ serve(async (req: any) => {
       return err(402, 'Pagamento ainda não confirmado')
     }
 
-    // 2. Obter quiz_session_id dos metadados
-    const quiz_session_id = session.metadata?.quiz_session_id
-    if (!quiz_session_id) return err(404, 'Dados do quiz não encontrados. Acesse seu e-mail para recuperar o plano.')
+    const customerEmail = session.customer_email || session.customer_details?.email || ''
 
-    // 3. Buscar sessão no banco
-    const { data: qs, error: dbErr } = await supabase
-      .from('quiz_sessions')
-      .select('*')
-      .eq('id', quiz_session_id)
-      .single()
+    // 2. Buscar quiz_session com cascata de fallbacks
+    let qs: any = null
 
-    if (dbErr || !qs) return err(404, 'Sessão do quiz não encontrada')
-
-    // Atualizar stripe_session_id se ausente
-    if (!qs.stripe_session_id) {
-      await supabase.from('quiz_sessions').update({ stripe_session_id }).eq('id', quiz_session_id)
+    // 2a. Pelo quiz_session_id salvo nos metadados do Stripe (caminho feliz)
+    const metaId = session.metadata?.quiz_session_id
+    if (metaId) {
+      const { data } = await supabase.from('quiz_sessions').select('*').eq('id', metaId).single()
+      if (data) qs = data
     }
 
-    // 4. Se plano já gerado, retornar direto
+    // 2b. Pelo stripe_session_id já gravado (re-acesso à página)
+    if (!qs) {
+      const { data } = await supabase.from('quiz_sessions').select('*').eq('stripe_session_id', stripe_session_id).single()
+      if (data) qs = data
+    }
+
+    // 2c. Pelo e-mail do comprador (save-quiz-session expirou antes de retornar)
+    if (!qs && customerEmail) {
+      const { data } = await supabase
+        .from('quiz_sessions')
+        .select('*')
+        .eq('email', customerEmail)
+        .is('stripe_session_id', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      if (data) qs = data
+    }
+
+    // 2d. Criar sessão on-the-fly com dados enviados pelo client (último recurso)
+    if (!qs && quiz_data_fallback && customerEmail) {
+      console.log(`⚡ Criando quiz_session on-the-fly para ${customerEmail}`)
+      const { data } = await supabase
+        .from('quiz_sessions')
+        .insert({ email: customerEmail, name: quiz_data_fallback.name || '', quiz_data: quiz_data_fallback, stripe_session_id })
+        .select('*')
+        .single()
+      if (data) qs = data
+    }
+
+    if (!qs) return err(404, 'Dados do quiz não encontrados. Verifique seu e-mail para acessar o plano.')
+
+    // Gravar stripe_session_id para lookups futuros (re-acesso)
+    if (!qs.stripe_session_id) {
+      await supabase.from('quiz_sessions').update({ stripe_session_id }).eq('id', qs.id)
+    }
+
+    // 3. Se plano já gerado, retornar direto
     if (qs.plan_data) {
       console.log(`✅ Plano existente retornado para ${qs.email}`)
       return ok({ quizData: qs.quiz_data, plan: qs.plan_data })
     }
 
-    // 4b. Enviar evento Purchase ao Meta CAPI (apenas na primeira vez — plan_data ainda null)
+    // 3b. Enviar evento Purchase ao Meta CAPI (apenas na primeira vez — plan_data ainda null)
     if (capiToken && qs.email) {
       await sendMetaCAPI(capiToken, qs.email, stripe_session_id)
     }
 
-    // 5. Gerar plano via Anthropic API (inlined)
+    // 4. Gerar plano via Anthropic API (inlined)
     const plan = await generatePlan(qs.quiz_data)
 
-    // 6. Salvar plano no banco
+    // 5. Salvar plano no banco
     if (plan) {
-      await supabase.from('quiz_sessions').update({ plan_data: plan }).eq('id', quiz_session_id)
+      await supabase.from('quiz_sessions').update({ plan_data: plan }).eq('id', qs.id)
     }
 
-    // 7. Enviar e-mail (somente na primeira vez)
+    // 6. Enviar e-mail (somente na primeira vez)
     if (!qs.email_sent && qs.email && resendKey) {
       try {
         const emailHtml = buildEmailHtml(qs.quiz_data, plan, stripe_session_id)
@@ -359,7 +391,7 @@ serve(async (req: any) => {
             html: emailHtml,
           }),
         })
-        await supabase.from('quiz_sessions').update({ email_sent: true }).eq('id', quiz_session_id)
+        await supabase.from('quiz_sessions').update({ email_sent: true }).eq('id', qs.id)
         console.log(`📧 E-mail enviado para ${qs.email}`)
       } catch (emailErr: any) {
         console.warn('Falha ao enviar e-mail:', emailErr.message)
