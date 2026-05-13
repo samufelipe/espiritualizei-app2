@@ -78,6 +78,75 @@ const App: React.FC = () => {
     }
   }, [viewState]);
 
+  // Tracking Meta Pixel + GTM por viewState
+  const _trackingFirstRender = useRef(true);
+  useEffect(() => {
+    // Pular primeiro render — index.html já disparou PageView na inicialização do pixel
+    if (_trackingFirstRender.current) { _trackingFirstRender.current = false; return; }
+
+    const VIEW_PATHS: Record<string, string> = {
+      landing:           '/',
+      login:             '/login',
+      onboarding:        '/onboarding',
+      generating:        '/gerando-rotina',
+      checkout:          '/checkout',
+      verifying_payment: '/verificando-pagamento',
+      welcome_premium:   '/bem-vindo-premium',
+      app:               '/app',
+      admin_login:       '/admin/login',
+      admin:             '/admin',
+      reset_password:    '/reset-password',
+    };
+    const path = VIEW_PATHS[viewState] || '/';
+
+    // GTM dataLayer
+    (window as any).dataLayer = (window as any).dataLayer || [];
+    (window as any).dataLayer.push({ event: 'page_view', page_path: path, page_title: viewState });
+
+    // Meta Pixel PageView
+    if (typeof (window as any).fbq === 'function') {
+      (window as any).fbq('track', 'PageView');
+    }
+
+    // Eventos de conversão por viewState
+    if (typeof (window as any).fbq === 'function') {
+      if (viewState === 'onboarding') {
+        (window as any).fbq('track', 'Lead');
+        (window as any).dataLayer.push({ event: 'lead', page_path: path });
+      }
+      if (viewState === 'checkout') {
+        (window as any).fbq('track', 'InitiateCheckout', { value: 19.90, currency: 'BRL', content_name: 'Espiritualizei Premium' });
+        (window as any).dataLayer.push({ event: 'initiate_checkout', value: 19.90, currency: 'BRL' });
+      }
+      if (viewState === 'welcome_premium') {
+        (window as any).fbq('track', 'Purchase', { value: 19.90, currency: 'BRL', content_name: 'Espiritualizei Premium', content_ids: ['espiritualizei-premium'], content_type: 'product' });
+        (window as any).dataLayer.push({ event: 'purchase', value: 19.90, currency: 'BRL', page_path: path });
+      }
+    }
+  }, [viewState]);
+
+  // Tracking de abas dentro do app
+  useEffect(() => {
+    if (viewState !== 'app') return;
+
+    const TAB_PATHS: Record<string, string> = {
+      DASHBOARD:  '/app/dashboard',
+      ROUTINE:    '/app/rotina',
+      KNOWLEDGE:  '/app/formacao',
+      COMMUNITY:  '/app/comunidade',
+      SOCIAL:     '/app/social',
+      PROFILE:    '/app/perfil',
+    };
+    const path = TAB_PATHS[currentTab] || '/app';
+
+    (window as any).dataLayer = (window as any).dataLayer || [];
+    (window as any).dataLayer.push({ event: 'page_view', page_path: path, page_title: currentTab });
+
+    if (typeof (window as any).fbq === 'function') {
+      (window as any).fbq('track', 'PageView');
+    }
+  }, [currentTab, viewState]);
+
   // Verificação de acesso ao painel admin e reset-password via URL - PRIORIDADE MÁXIMA
   useEffect(() => {
     const path = window.location.pathname;
