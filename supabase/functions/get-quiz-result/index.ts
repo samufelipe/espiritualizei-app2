@@ -12,6 +12,51 @@ const cors = {
 const ok  = (body: object) => new Response(JSON.stringify(body), { headers: { ...cors, 'Content-Type': 'application/json' }, status: 200 })
 const err = (status: number, msg: string) => new Response(JSON.stringify({ error: msg }), { headers: { ...cors, 'Content-Type': 'application/json' }, status })
 
+// ── Meta Conversions API ──────────────────────────────────────────────────────
+
+const META_PIXEL_ID = '929131016839633'
+
+async function hashSHA256(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text.toLowerCase().trim())
+  const buf  = await crypto.subtle.digest('SHA-256', data)
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+async function sendMetaCAPI(capiToken: string, email: string, stripeSessionId: string): Promise<void> {
+  try {
+    const hashedEmail = await hashSHA256(email)
+    const eventId     = `purchase_${stripeSessionId}`
+    const payload = {
+      data: [{
+        event_name:       'Purchase',
+        event_time:       Math.floor(Date.now() / 1000),
+        event_id:         eventId,
+        event_source_url: `https://www.espiritualizei.com/quiz/resultado?session=${stripeSessionId}`,
+        action_source:    'website',
+        user_data: {
+          em: [hashedEmail],
+        },
+        custom_data: {
+          value:        19.90,
+          currency:     'BRL',
+          content_name: 'Diagnóstico Espiritual',
+          content_ids:  ['diagnostico-espiritual'],
+          content_type: 'product',
+        },
+      }],
+    }
+    const res = await fetch(
+      `https://graph.facebook.com/v21.0/${META_PIXEL_ID}/events?access_token=${capiToken}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
+    )
+    const body = await res.json()
+    if (!res.ok) console.error('Meta CAPI error:', JSON.stringify(body))
+    else console.log(`📊 Meta CAPI Purchase enviado — event_id: ${eventId}, events_received: ${body.events_received}`)
+  } catch (e: any) {
+    console.warn('Meta CAPI falhou silenciosamente:', e.message)
+  }
+}
+
 // ── Plan generation (inlined from generate-quiz-plan) ─────────────────────────
 
 const PRAYER_REALITY_LABELS: Record<string, string> = {
@@ -242,10 +287,11 @@ serve(async (req: any) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
   try {
-    const stripeKey  = Deno.env.get('STRIPE_SECRET_KEY')
+    const stripeKey   = Deno.env.get('STRIPE_SECRET_KEY')
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const resendKey   = Deno.env.get('RESEND_API_KEY')
+    const capiToken   = Deno.env.get('META_CAPI_TOKEN')
 
     if (!stripeKey) return err(500, 'Stripe não configurado')
 
@@ -283,6 +329,11 @@ serve(async (req: any) => {
     if (qs.plan_data) {
       console.log(`✅ Plano existente retornado para ${qs.email}`)
       return ok({ quizData: qs.quiz_data, plan: qs.plan_data })
+    }
+
+    // 4b. Enviar evento Purchase ao Meta CAPI (apenas na primeira vez — plan_data ainda null)
+    if (capiToken && qs.email) {
+      await sendMetaCAPI(capiToken, qs.email, stripe_session_id)
     }
 
     // 5. Gerar plano via Anthropic API (inlined)

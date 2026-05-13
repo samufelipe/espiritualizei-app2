@@ -913,7 +913,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           if (!sessionStorage.getItem('esp_purchase_' + stripeSessionId)) {
             sessionStorage.setItem('esp_purchase_' + stripeSessionId, '1')
             window.dataLayer.push({ event: 'quiz_purchase', value: 19.90, currency: 'BRL', page_path: '/quiz/resultado' })
-            if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL', content_name: 'Diagnóstico Espiritual', content_ids: ['diagnostico-espiritual'], content_type: 'product' })
+            if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL', content_name: 'Diagnóstico Espiritual', content_ids: ['diagnostico-espiritual'], content_type: 'product' }, { eventID: 'purchase_' + stripeSessionId })
           }
         } catch(e) {
           console.warn('[init] server fetch falhou, usando cache local:', e.message)
