@@ -15,10 +15,9 @@ serve(async (req) => {
 
   try {
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
-    const priceId = Deno.env.get('STRIPE_QUIZ_PRICE_ID')
 
-    if (!stripeKey || !priceId) {
-      console.error('STRIPE_SECRET_KEY ou STRIPE_QUIZ_PRICE_ID não configurado')
+    if (!stripeKey) {
+      console.error('STRIPE_SECRET_KEY não configurado')
       return new Response(JSON.stringify({ error: 'Servidor mal configurado' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
@@ -38,7 +37,17 @@ serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{
+        price_data: {
+          currency: 'brl',
+          unit_amount: 1990, // R$19,90 em centavos
+          product_data: {
+            name: 'Diagnóstico Espiritual + Plano de 21 Dias',
+            description: 'Seu caminho personalizado de volta à presença de Deus',
+          },
+        },
+        quantity: 1,
+      }],
       customer_email: email,
       allow_promotion_codes: true,
       success_url: `https://www.espiritualizei.com/quiz/resultado?session={CHECKOUT_SESSION_ID}`,
