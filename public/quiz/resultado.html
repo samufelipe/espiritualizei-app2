@@ -24,11 +24,11 @@
   n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
   t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
   document,'script','https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init','PIXEL_ID');
+  fbq('init','929131016839633');
   fbq('track','PageView');
   </script>
   <noscript><img height="1" width="1" style="display:none"
-  src="https://www.facebook.com/tr?id=PIXEL_ID&ev=PageView&noscript=1"/></noscript>
+  src="https://www.facebook.com/tr?id=929131016839633&ev=PageView&noscript=1"/></noscript>
   <!-- End Meta Pixel Code -->
 
   <script>
@@ -893,8 +893,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const cachedPlanRaw   = localStorage.getItem('espiritualizei_plan')
 
     window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({ event: 'quiz_purchase', value: 19.90, currency: 'BRL', page_path: '/quiz/resultado' })
-    if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL' })
 
     try {
       let data = null, plan = null
@@ -911,6 +909,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             localStorage.setItem('espiritualizei_plan', JSON.stringify(plan))
           }
           localStorage.setItem('espiritualizei_quiz', JSON.stringify(data))
+          // Disparar Purchase apenas uma vez por sessão Stripe, após pagamento confirmado
+          if (!sessionStorage.getItem('esp_purchase_' + stripeSessionId)) {
+            sessionStorage.setItem('esp_purchase_' + stripeSessionId, '1')
+            window.dataLayer.push({ event: 'quiz_purchase', value: 19.90, currency: 'BRL', page_path: '/quiz/resultado' })
+            if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL', content_name: 'Diagnóstico Espiritual', content_ids: ['diagnostico-espiritual'], content_type: 'product' })
+          }
         } catch(e) {
           console.warn('[init] server fetch falhou, usando cache local:', e.message)
         }
