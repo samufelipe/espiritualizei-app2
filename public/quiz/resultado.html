@@ -873,14 +873,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   async function fetchFromServer(stripeSessionId) {
     setLoadingMsg('Verificando seu pagamento...')
-    // Envia quiz_data_fallback do localStorage para o servidor poder criar sessão
-    // mesmo quando save-quiz-session expirou antes de responder
     const localQuizData = (() => {
       try { return JSON.parse(localStorage.getItem('espiritualizei_quiz') || 'null') } catch(_) { return null }
     })()
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/get-quiz-result`, {
+    const res = await fetch('/api/quiz-result', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stripe_session_id: stripeSessionId, quiz_data_fallback: localQuizData })
     })
     if (!res.ok) {
@@ -902,8 +900,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     try {
       let data = null, plan = null
 
-      // Step 1: session ID presente → servidor é a fonte autoritativa (tem quiz data + plano IA)
+      // Step 1: session ID presente → disparar Purchase imediatamente (uma vez por sessão)
+      // e buscar dados do servidor via proxy Vercel (sem CORS)
       if (stripeSessionId) {
+        // Purchase dispara antes do fetch — garante rastreio mesmo se servidor demorar
+        if (!sessionStorage.getItem('esp_purchase_' + stripeSessionId)) {
+          sessionStorage.setItem('esp_purchase_' + stripeSessionId, '1')
+          window.dataLayer.push({ event: 'quiz_purchase', value: 19.90, currency: 'BRL', page_path: '/quiz/resultado' })
+          if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL', content_name: 'Diagnóstico Espiritual', content_ids: ['diagnostico-espiritual'], content_type: 'product' }, { eventID: 'purchase_' + stripeSessionId })
+        }
+
         setLoadingMsg('Carregando seu plano personalizado...')
         try {
           const result = await fetchFromServer(stripeSessionId)
@@ -914,12 +920,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             localStorage.setItem('espiritualizei_plan', JSON.stringify(plan))
           }
           localStorage.setItem('espiritualizei_quiz', JSON.stringify(data))
-          // Disparar Purchase apenas uma vez por sessão Stripe, após pagamento confirmado
-          if (!sessionStorage.getItem('esp_purchase_' + stripeSessionId)) {
-            sessionStorage.setItem('esp_purchase_' + stripeSessionId, '1')
-            window.dataLayer.push({ event: 'quiz_purchase', value: 19.90, currency: 'BRL', page_path: '/quiz/resultado' })
-            if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL', content_name: 'Diagnóstico Espiritual', content_ids: ['diagnostico-espiritual'], content_type: 'product' }, { eventID: 'purchase_' + stripeSessionId })
-          }
         } catch(e) {
           console.warn('[init] server fetch falhou, usando cache local:', e.message)
         }
