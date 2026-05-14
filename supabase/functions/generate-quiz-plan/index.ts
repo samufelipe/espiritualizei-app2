@@ -8,11 +8,11 @@ const corsHeaders = {
 }
 
 const LEVEL_NAMES: Record<number, string> = {
-  1: 'Semente',
-  2: 'Peregrino',
-  3: 'Discípulo',
-  4: 'Servo',
-  5: 'Contemplativo',
+  1: 'Acordando',
+  2: 'Buscando',
+  3: 'Crescendo',
+  4: 'Enraizado',
+  5: 'Maduro',
 }
 
 const PRAYER_REALITY_LABELS: Record<string, string> = {
@@ -130,7 +130,7 @@ serve(async (req) => {
     const { name, level, levelName, answers, dims } = quizData
 
     const displayName  = name      || 'Caminhante'
-    const displayLevel = levelName || LEVEL_NAMES[level] || 'Peregrino'
+    const displayLevel = levelName || LEVEL_NAMES[level] || 'Buscando'
 
     // Definir temas das semanas com base nas respostas
     const CHALLENGE_THEMES: Record<string, { theme: string; icon: string }> = {

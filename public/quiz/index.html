@@ -244,11 +244,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <!-- Levels preview -->
       <div style="display:flex;gap:8px;justify-content:center;margin-bottom:36px;flex-wrap:wrap;">
-        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(110,231,183,.12);color:#6EE7B7;border:1px solid rgba(110,231,183,.2);">Semente</span>
-        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(147,197,253,.12);color:#93C5FD;border:1px solid rgba(147,197,253,.2);">Peregrino</span>
-        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(167,139,250,.16);color:#A78BFA;border:1px solid rgba(167,139,250,.3);">Discípulo</span>
-        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(252,211,77,.1);color:#FCD34D;border:1px solid rgba(252,211,77,.2);">Servo</span>
-        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(249,168,212,.1);color:#F9A8D4;border:1px solid rgba(249,168,212,.2);">Contemplativo</span>
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(110,231,183,.12);color:#6EE7B7;border:1px solid rgba(110,231,183,.2);">Acordando</span>
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(147,197,253,.12);color:#93C5FD;border:1px solid rgba(147,197,253,.2);">Buscando</span>
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(167,139,250,.16);color:#A78BFA;border:1px solid rgba(167,139,250,.3);">Crescendo</span>
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(252,211,77,.1);color:#FCD34D;border:1px solid rgba(252,211,77,.2);">Enraizado</span>
+        <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(249,168,212,.1);color:#F9A8D4;border:1px solid rgba(249,168,212,.2);">Maduro</span>
       </div>
 
       <button class="btn-primary" onclick="show('s-name')" style="font-size:16px;font-weight:700;color:#1A2530;padding:18px 24px;">
@@ -387,57 +387,85 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p id="pw-personal-text" style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.65);line-height:1.65;max-width:360px;margin:0 auto;"></p>
     </div>
 
-    <!-- ZONA 2: Prévia das semanas -->
+    <!-- ZONA 2: O que descobrimos sobre você -->
     <div class="anim-fade-up" style="margin-bottom:28px;">
-      <div style="background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:20px;padding:20px;">
-        <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px;">SEU PLANO DE 21 DIAS</p>
-
-        <div style="display:flex;flex-direction:column;gap:10px;" id="pw-weeks-preview">
-          <!-- preenchido via JS -->
-        </div>
-
-        <!-- Dia 1 preview bloqueado -->
-        <div class="day-preview" style="margin-top:14px;">
-          <div class="day-preview-content">
-            <p style="font-size:11px;font-weight:700;color:#A78BFA;margin-bottom:6px;">DIA 1</p>
-            <p style="font-size:13px;font-style:italic;color:rgba(255,255,255,.7);margin-bottom:10px;">"Hoje começo com um coração aberto..."</p>
-            <p style="font-size:12px;color:rgba(255,255,255,.4);">Oração: Pai Nosso meditado · Tarefa: 5 min de silêncio</p>
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:12px;">O QUE DESCOBRIMOS SOBRE VOCÊ</p>
+      <div id="pw-insights" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <!-- Card A: Dom Espiritual (visível) -->
+        <div id="pw-gift" style="background:rgba(167,139,250,.08);border:1.5px solid rgba(167,139,250,.2);border-radius:16px;padding:14px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <i data-lucide="sparkles" style="width:14px;height:14px;color:#A78BFA;flex-shrink:0;"></i>
+            <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#A78BFA;text-transform:uppercase;">SEU DOM</span>
           </div>
-          <div class="day-preview-overlay">
-            <i data-lucide="lock" style="width:20px;height:20px;color:#A78BFA;margin-bottom:6px;"></i>
+          <p id="pw-gift-text" style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;"></p>
+        </div>
+        <!-- Card B: Bloqueio Principal (visível) -->
+        <div id="pw-block" style="background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.18);border-radius:16px;padding:14px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <i data-lucide="target" style="width:14px;height:14px;color:#f87171;flex-shrink:0;"></i>
+            <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#f87171;text-transform:uppercase;">SEU BLOQUEIO</span>
+          </div>
+          <p id="pw-block-text" style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;"></p>
+        </div>
+        <!-- Card C: Próximos Passos (bloqueado, coluna dupla) -->
+        <div style="grid-column:1/-1;position:relative;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:16px;padding:14px;overflow:hidden;">
+          <div style="filter:blur(4px);pointer-events:none;user-select:none;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+              <i data-lucide="list-checks" style="width:14px;height:14px;color:#A78BFA;flex-shrink:0;"></i>
+              <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#A78BFA;text-transform:uppercase;">SEUS 3 PRÓXIMOS PASSOS</span>
+            </div>
+            <p style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.5;">Passo 1 · Passo 2 · Passo 3 concretos para avançar</p>
+          </div>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(26,37,48,.4);">
+            <i data-lucide="lock" style="width:14px;height:14px;color:#A78BFA;"></i>
             <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6);">Desbloqueado após pagamento</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ZONA 3: Radar bloqueado + dons -->
-    <div style="position:relative;margin-bottom:28px;">
-      <div class="blur-zone" style="background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:20px;padding:20px;">
+    <!-- ZONA 3: Mapa Espiritual parcial -->
+    <div class="anim-fade-up" style="margin-bottom:28px;">
+      <div style="background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:20px;padding:20px;">
         <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px;">SEU MAPA ESPIRITUAL</p>
-        <div style="position:relative;width:160px;height:160px;margin:0 auto 16px;">
-          <canvas id="pw-radar" width="160" height="160"></canvas>
+        <div id="pw-dims" style="display:flex;flex-direction:column;gap:10px;">
+          <!-- preenchido via JS -->
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <div class="censored-bar" style="width:70%;"></div>
-            <div class="censored-bar" style="width:20%;"></div>
-          </div>
-          <div class="censored-bar" style="width:55%;height:8px;"></div>
-          <div class="censored-bar" style="width:80%;height:8px;"></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);">
+          <i data-lucide="lock" style="width:12px;height:12px;color:rgba(255,255,255,.3);"></i>
+          <span style="font-size:11px;color:rgba(255,255,255,.3);">Ver mapa completo, desbloqueado após pagamento</span>
         </div>
-      </div>
-      <div class="lock-overlay">
-        <i data-lucide="lock" style="width:28px;height:28px;color:#A78BFA;margin-bottom:8px;"></i>
-        <p style="font-size:13px;font-weight:600;color:rgba(255,255,255,.7);text-align:center;">Seus Dons e Mapa Espiritual<br>estão bloqueados</p>
       </div>
     </div>
 
-    <!-- ZONA 4: CTA pagamento único -->
+    <!-- ZONA 4: Dia 1 específico por desafio -->
+    <div class="anim-fade-up" style="margin-bottom:28px;">
+      <div class="day-preview">
+        <div class="day-preview-content">
+          <p style="font-size:11px;font-weight:700;color:#A78BFA;margin-bottom:6px;">DIA 1 DO SEU PLANO</p>
+          <p id="pw-day1-intention" style="font-size:13px;font-style:italic;color:rgba(255,255,255,.75);margin-bottom:10px;line-height:1.5;"></p>
+          <p id="pw-day1-meta" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
+        </div>
+        <div class="day-preview-overlay">
+          <i data-lucide="lock" style="width:20px;height:20px;color:#A78BFA;margin-bottom:6px;"></i>
+          <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6);">Desbloqueado após pagamento</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONA 5: 3 semanas condensadas (prova do plano) -->
+    <div class="anim-fade-up" style="margin-bottom:28px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:12px;">SEU PLANO DE 21 DIAS</p>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="pw-weeks-preview">
+        <!-- preenchido via JS -->
+      </div>
+    </div>
+
+    <!-- ZONA 6: CTA pagamento único -->
     <div style="background:rgba(167,139,250,.06);border:1.5px solid rgba(167,139,250,.2);border-radius:20px;padding:24px;text-align:center;">
 
       <p id="pw-cta-headline" style="font-size:clamp(16px,4.5vw,19px);font-weight:700;line-height:1.35;margin-bottom:6px;"></p>
-      <p style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px;line-height:1.5;">Um caminho prático para se aproximar de Deus no seu dia a dia de hoje.</p>
+      <p style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px;line-height:1.5;">21 dias feitos para a sua realidade, não para uma pessoa genérica.</p>
 
       <div style="display:inline-block;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.25);border-radius:8px;padding:5px 14px;margin-bottom:16px;">
         <span style="font-size:10px;font-weight:800;letter-spacing:2px;color:#A78BFA;">PAGAMENTO ÚNICO · SEM ASSINATURA · ACESSO IMEDIATO</span>
@@ -470,11 +498,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const S = { name:'', email:'', qIdx:0, answers:{}, score:null, chart:null }
 
   const LEVELS = [
-    { name:'Semente',       color:'#6EE7B7', sub:'O início de toda grande jornada',         desc:'Você está dando os primeiros passos da sua caminhada espiritual, e isso já é um ato de coragem. Muitos querem, poucos começam.' },
-    { name:'Peregrino',     color:'#93C5FD', sub:'Em busca de constância e direção',         desc:'Você busca a fé com o coração, mas ainda luta para manter uma rotina consistente. Você não está sozinho nessa batalha.' },
-    { name:'Discípulo',     color:'#A78BFA', sub:'Crescendo no conhecimento e na prática',   desc:'Sua vida espiritual está ganhando forma. Você já sente a diferença que a constância faz no seu dia a dia.' },
-    { name:'Servo',         color:'#FCD34D', sub:'Vida sacramental ativa e missão viva',     desc:'Sua fé é fundamentada e você busca missão e comunidade. Você tem muito a oferecer a quem está começando.' },
-    { name:'Contemplativo', color:'#F9A8D4', sub:'Oração profunda e caminhada madura',       desc:'Sua vida de oração é profunda e consistente. Você busca aprofundar a contemplação e o serviço ao próximo.' },
+    { name:'Acordando',  color:'#6EE7B7', sub:'Dando os primeiros passos da fé',          desc:'Você está dando os primeiros passos da sua caminhada espiritual, e isso já é um ato de coragem. Muitos querem, poucos começam.' },
+    { name:'Buscando',   color:'#93C5FD', sub:'Em busca de constância e direção',          desc:'Você busca a fé com o coração, mas ainda luta para manter uma rotina consistente. Você não está sozinho nessa batalha.' },
+    { name:'Crescendo',  color:'#A78BFA', sub:'Construindo uma vida espiritual real',       desc:'Sua vida espiritual está ganhando forma. Você já sente a diferença que a constância faz no seu dia a dia.' },
+    { name:'Enraizado',  color:'#FCD34D', sub:'Fé firme e presença sacramental ativa',     desc:'Sua fé é fundamentada e você busca missão e comunidade. Você tem muito a oferecer a quem está começando.' },
+    { name:'Maduro',     color:'#F9A8D4', sub:'Oração profunda e coração transformado',    desc:'Sua vida de oração é profunda e consistente. Você busca aprofundar a contemplação e o serviço ao próximo.' },
   ]
 
   const QUESTIONS = [
@@ -595,6 +623,31 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     ignorance: n => `${n}, suas dúvidas mostram que você leva a fé a sério. Quem não questiona, não cresce. Vamos aprofundar isso juntos.`,
     pride: n => `${n}, reconhecer o orgulho ou a impaciência já é um ato de humildade enorme. A partir daqui, só cresce.`,
     lust: n => `${n}, lutar com hábitos difíceis é parte da jornada de todos. Não há condenação aqui, apenas um caminho de graça.`,
+  }
+
+  const GIFTS_SHORT = {
+    anxiety:   'Sensibilidade espiritual profunda e desejo genuíno de paz interior',
+    laziness:  'Potencial contemplativo latente e coração que sabe esperar em Deus',
+    dryness:   'Sede autêntica do transcendente. Fé que persevera mesmo no silêncio',
+    ignorance: 'Sede de verdade e abertura genuína para crescer na fé',
+    pride:     'Liderança interior e capacidade de influenciar positivamente os que estão ao redor',
+    lust:      'Intensidade afetiva e capacidade de amar com profundidade e entrega',
+  }
+  const BLOCKS_SHORT = {
+    anxiety:   'Ansiedade e inquietação que impedem o descanso e a confiança em Deus',
+    laziness:  'Falta de constância: o hábito de adiar o que o coração realmente quer fazer',
+    dryness:   'Oração que parece vazia: um silêncio que pede uma fé mais profunda e real',
+    ignorance: 'Dúvidas que nublam a clareza e a segurança no caminho da fé',
+    pride:     'Ego e orgulho: a batalha de se esvaziar para ser preenchido por Deus',
+    lust:      'Desordem dos afetos: coração buscando amor no lugar e na forma certos',
+  }
+  const DAY1_PREVIEW = {
+    anxiety:   { intention:'Hoje escolho pausar o barulho e abrir meu coração ao silêncio de Deus.', prayer:'Lectio Divina', task:'Momento de silêncio total: 10 minutos' },
+    laziness:  { intention:'Hoje escolho dar um primeiro passo: pequeno, mas real e concreto.', prayer:'Oração Matinal de Oferta', task:'Definir e cumprir um horário fixo de oração' },
+    dryness:   { intention:'Hoje escolho rezar mesmo sem sentir. A fé não depende do sentimento.', prayer:'Salmo 63 meditado', task:'Escrever uma carta honesta para Deus' },
+    ignorance: { intention:'Hoje escolho aprender algo novo sobre a fé com mente e coração abertos.', prayer:'Lectio com o Evangelho do Dia', task:'Meditar um parágrafo do Catecismo' },
+    pride:     { intention:'Hoje escolho me esvaziar: menos eu, mais Deus em cada gesto.', prayer:'Exame de Consciência guiado', task:'Um gesto concreto e silencioso de serviço' },
+    lust:      { intention:'Hoje escolho oferecer meu coração a Deus com misericórdia comigo mesmo.', prayer:'Rosário meditado', task:'Oração de consagração do coração' },
   }
 
   const SCREEN_PATHS = {
@@ -771,9 +824,40 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     // CTA headline
     document.getElementById('pw-cta-headline').textContent =
-      `${S.name}, seu Plano foi criado para o momento espiritual que você vive hoje.`
+      `${S.name}, seu plano começa exatamente onde você está.`
 
-    // Semanas preview
+    // Dom e Bloqueio
+    document.getElementById('pw-gift-text').textContent = GIFTS_SHORT[a.challenge] || 'Dom espiritual identificado pelo seu perfil único'
+    document.getElementById('pw-block-text').textContent = BLOCKS_SHORT[a.challenge] || 'Bloqueio principal identificado pelo diagnóstico'
+
+    // Dia 1 específico
+    const d1 = DAY1_PREVIEW[a.challenge] || { intention:'Hoje escolho abrir meu coração a Deus com humildade e confiança.', prayer:'Oração de abertura', task:'5 minutos de silêncio interior' }
+    document.getElementById('pw-day1-intention').textContent = `"${d1.intention}"`
+    document.getElementById('pw-day1-meta').textContent = `Oração: ${d1.prayer} · Tarefa: ${d1.task}`
+
+    // Mapa Espiritual parcial (2 barras visíveis, 3 borradas)
+    const DIM_LABELS = ['Oração','Sacramento','Formação','Comunidade','Missão']
+    const strongIdx = dims.indexOf(Math.max(...dims))
+    const weakIdx   = dims.indexOf(Math.min(...dims))
+    document.getElementById('pw-dims').innerHTML = dims.map((v, i) => {
+      const isStrong = i === strongIdx
+      const isWeak   = i === weakIdx
+      const visible  = isStrong || isWeak
+      const barColor = isStrong ? '#A78BFA' : isWeak ? 'rgba(239,68,68,.7)' : '#A78BFA'
+      const pct      = Math.round(v)
+      return `
+        <div style="${visible ? '' : 'filter:blur(5px);pointer-events:none;user-select:none;'}">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;color:rgba(255,255,255,.7);">${DIM_LABELS[i]}</span>
+            <span style="font-size:12px;font-weight:700;color:${visible ? barColor : 'rgba(255,255,255,.3)'};">${visible ? pct + '%' : '—'}</span>
+          </div>
+          <div style="height:6px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;"></div>
+          </div>
+        </div>`
+    }).join('')
+
+    // Semanas condensadas
     const w1 = WEEK_THEMES.challenge[a.challenge] || { theme:'Regularidade na oração', icon:'heart' }
     const w2 = WEEK_THEMES.goal[a.goal]            || { theme:'Aprofundamento da fé',   icon:'lightbulb' }
     const w3 = WEEK_THEMES.state[a.state]          || { theme:'Integração com a vida',  icon:'star' }
@@ -788,22 +872,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <i data-lucide="${w.icon}" style="width:18px;height:18px;color:#A78BFA;margin-left:auto;flex-shrink:0;"></i>
       </div>
     `).join('')
-
-    // Radar bloqueado
-    const ctx = document.getElementById('pw-radar').getContext('2d')
-    if (S.chart) S.chart.destroy()
-    S.chart = new Chart(ctx, {
-      type:'radar',
-      data:{
-        labels:['Oração','Sacramento','Formação','Comunidade','Missão'],
-        datasets:[{ data:dims, backgroundColor:'rgba(167,139,250,.15)', borderColor:'rgba(167,139,250,.5)', borderWidth:1.5, pointBackgroundColor:'#A78BFA', pointRadius:3 }]
-      },
-      options:{
-        responsive:false, scales:{ r:{ display:false, min:0, max:100 }},
-        plugins:{ legend:{ display:false } },
-        elements:{ line:{ tension:.3 } }
-      }
-    })
 
     lucide.createIcons()
     show('s-paywall')

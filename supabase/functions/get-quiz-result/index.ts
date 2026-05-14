@@ -157,7 +157,7 @@ async function generatePlan(quizData: any): Promise<any | null> {
 
   const { name, levelName, answers, dims } = quizData
   const displayName  = name      || 'Caminhante'
-  const displayLevel = levelName || 'Peregrino'
+  const displayLevel = levelName || 'Buscando'
 
   const CHALLENGE_THEMES: Record<string, { theme: string; icon: string }> = {
     anxiety:   { theme: 'Aprender a descansar em Deus',         icon: 'wind'      },
@@ -216,7 +216,7 @@ async function generatePlan(quizData: any): Promise<any | null> {
 
 function buildEmailHtml(quizData: any, plan: any, stripeSessionId: string): string {
   const name      = quizData.name      || 'Caminhante'
-  const levelName = quizData.levelName || 'Peregrino'
+  const levelName = quizData.levelName || 'Buscando'
   const resultUrl = `https://www.espiritualizei.com/quiz/resultado?session=${stripeSessionId}`
 
   const firstWeek = plan?.weeks?.[0]
