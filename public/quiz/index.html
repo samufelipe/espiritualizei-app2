@@ -850,11 +850,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       ])
       console.log('[checkout] quiz_session_id:', quiz_session_id)
 
-      // 2. Criar sessão Stripe
-      console.log('[checkout] chamando create-quiz-checkout...')
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-quiz-checkout`, {
+      // 2. Criar sessão Stripe via proxy Vercel (same-origin, sem CORS)
+      console.log('[checkout] chamando /api/quiz-checkout...')
+      const res = await fetch('/api/quiz-checkout', {
         method:'POST',
-        headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+        headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({ email: S.email, name: S.name, quiz_session_id })
       })
 
