@@ -834,37 +834,37 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     localStorage.setItem('espiritualizei_quiz', JSON.stringify(quizData))
 
     try {
-      // 1. Salvar sessão — fire-and-forget com timeout de 3s para não bloquear o checkout
-      let quiz_session_id = null
-      try {
-        const ctrl = new AbortController()
-        const timer = setTimeout(() => ctrl.abort(), 3000)
-        const saveRes = await fetch(`${SUPABASE_URL}/functions/v1/save-quiz-session`, {
+      console.log('[checkout] email:', S.email, 'name:', S.name)
+
+      // 1. Salvar sessão — race com timeout de 2.5s, nunca bloqueia o checkout
+      const quiz_session_id = await Promise.race([
+        fetch(`${SUPABASE_URL}/functions/v1/save-quiz-session`, {
           method:'POST',
           headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
-          body: JSON.stringify({ email: S.email, name: S.name, quizData }),
-          signal: ctrl.signal
+          body: JSON.stringify({ email: S.email, name: S.name, quizData })
         })
-        clearTimeout(timer)
-        if (saveRes.ok) {
-          const saved = await saveRes.json()
-          quiz_session_id = saved.id || null
-        }
-      } catch(_) { /* checkout continua mesmo sem persistência */ }
+          .then(r => r.ok ? r.json() : null)
+          .then(d => d?.id || null)
+          .catch(() => null),
+        new Promise(resolve => setTimeout(() => resolve(null), 2500))
+      ])
+      console.log('[checkout] quiz_session_id:', quiz_session_id)
 
       // 2. Criar sessão Stripe
+      console.log('[checkout] chamando create-quiz-checkout...')
       const res = await fetch(`${SUPABASE_URL}/functions/v1/create-quiz-checkout`, {
         method:'POST',
         headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
         body: JSON.stringify({ email: S.email, name: S.name, quiz_session_id })
       })
 
+      console.log('[checkout] status:', res.status)
       let d
       try { d = await res.json() } catch(_) { d = {} }
+      console.log('[checkout] response:', JSON.stringify(d))
 
       if (!res.ok || !d.url) {
-        const msg = d.error || `Erro ${res.status}`
-        console.error('[checkout]', msg)
+        const msg = d.error || `Erro HTTP ${res.status}`
         throw new Error(msg)
       }
 
@@ -874,8 +874,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       btn.textContent = 'Receber Meu Plano Personalizado por R$ 19,90'
       console.error('[checkout] falha:', e.message)
       const errEl = document.getElementById('checkout-error')
-      if (errEl) { errEl.textContent = 'Não foi possível iniciar o pagamento. Tente novamente.'; errEl.style.display = 'block' }
-      else { alert('Não foi possível iniciar o pagamento. Tente novamente.') }
+      if (errEl) { errEl.textContent = `Não foi possível iniciar o pagamento: ${e.message}. Tente novamente.`; errEl.style.display = 'block' }
+      else { alert(`Erro: ${e.message}`) }
     }
   }
 

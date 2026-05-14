@@ -18,6 +18,18 @@
   ],
   "headers": [
     {
+      "source": "/quiz/(.*).html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/quiz/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         { "key": "Content-Type", "value": "application/javascript" },
