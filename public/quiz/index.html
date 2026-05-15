@@ -112,6 +112,30 @@
     .answer-card .icon-wrap { transition: background .18s ease; border-radius: 10px; }
     .answer-card.selected .icon-wrap { background: rgba(167,139,250,.3) !important; }
 
+    /* Step dots */
+    .quiz-steps { display:flex; gap:6px; justify-content:center; margin-bottom:22px; }
+    .quiz-step-dot { height:4px; border-radius:2px; background:rgba(255,255,255,.1); transition:all .35s cubic-bezier(.22,1,.36,1); }
+    .quiz-step-dot.done  { background:rgba(167,139,250,.45); width:24px; }
+    .quiz-step-dot.active{ background:#A78BFA; width:36px; box-shadow:0 0 8px rgba(167,139,250,.5); }
+    .quiz-step-dot.pending{ width:24px; }
+
+    /* Next button */
+    .next-btn {
+      display:none; width:100%; margin-top:18px;
+      padding:15px 20px; border:none; border-radius:14px;
+      background:linear-gradient(135deg,#A78BFA,#7C3AED);
+      color:#fff; font-size:15px; font-weight:700; letter-spacing:.3px;
+      cursor:pointer; align-items:center; justify-content:center; gap:8px;
+      transition:all .2s ease; animation:slideUpBtn .28s ease;
+    }
+    .next-btn.visible { display:flex; }
+    .next-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(167,139,250,.4); }
+    .next-btn:active { transform:scale(.98); }
+    @keyframes slideUpBtn {
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
     /* Micro encouragement */
     .micro-text {
       position: fixed; inset: 0; z-index: 200;
@@ -532,14 +556,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       ],
     },
     {
-      id:'confession', step:3,
-      text: n => `Com que frequência você vai à Confissão, ${n}?`,
-      sub: 'Sem julgamento. Isso apenas ajuda a personalizar seu caminho.',
+      id:'spiritualFeeling', step:3,
+      text: n => `${n}, como você se sente em relação à sua vida espiritual hoje?`,
+      sub: 'Não há resposta certa. Deixe o coração falar.',
       opts: [
-        {i:'check-circle', l:'Neste mês, estou em dia',               v:'recent'},
-        {i:'clock',        l:'Há 3 a 6 meses',                        v:'months'},
-        {i:'calendar',     l:'Há mais de um ano',                     v:'long_time'},
-        {i:'compass',      l:'Ainda não fui, ou faz muitos anos',     v:'never'},
+        {i:'clock',      l:'Saudade de algo que já senti, mas parece longe agora',    v:'nostalgia'},
+        {i:'compass',    l:'Quero ir mais fundo, mas não sei por onde começar',       v:'lost'},
+        {i:'heart',      l:'Tenho esperança de que algo pode mudar a partir de agora',v:'hopeful'},
+        {i:'cloud',      l:'Carrego uma inquietação que não consigo nomear direito',  v:'restless'},
+        {i:'shield',     l:'Me sinto culpado(a) por não dar a atenção que devia',    v:'guilt'},
       ],
       micro: n => `Cuidamos das suas respostas com total privacidade, <span>${n}</span>.`,
     },
@@ -697,14 +722,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   function renderQ() {
     const q = QUESTIONS[S.qIdx]
     const container = document.getElementById('quiz-container')
+    const stepDots = QUESTIONS.map((_, i) => {
+      const cls = i < S.qIdx ? 'done' : i === S.qIdx ? 'active' : 'pending'
+      return `<div class="quiz-step-dot ${cls}"></div>`
+    }).join('')
     container.innerHTML = `
       <div class="anim-slide">
+        <div class="quiz-steps">${stepDots}</div>
         <p style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:14px;">PERGUNTA ${q.step} DE ${QUESTIONS.length}</p>
         <h2 style="font-size:clamp(19px,5.5vw,26px);font-weight:800;line-height:1.25;margin-bottom:8px;">${q.text(S.name)}</h2>
         <p style="font-size:13px;color:rgba(255,255,255,.45);margin-bottom:24px;">${q.sub}</p>
         <div style="display:grid;grid-template-columns:1fr;gap:10px;" id="opts-grid">
           ${q.opts.map(o=>`
-            <div class="answer-card glass" style="padding:15px 18px;display:flex;align-items:center;gap:14px;" onclick="selectAnswer('${o.v}')">
+            <div class="answer-card glass" style="padding:15px 18px;display:flex;align-items:center;gap:14px;" onclick="selectAnswer('${o.v}', this)">
               <div class="icon-wrap" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(167,139,250,.12);flex-shrink:0;">
                 <i data-lucide="${o.i}" style="width:18px;height:18px;color:#A78BFA;"></i>
               </div>
@@ -712,6 +742,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
           `).join('')}
         </div>
+        <button class="next-btn" id="next-btn" onclick="confirmAnswer()">
+          <span>Próxima pergunta</span>
+          <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
+        </button>
       </div>
     `
     lucide.createIcons()
@@ -727,9 +761,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     setTimeout(() => { el.remove(); cb() }, 1700)
   }
 
-  function selectAnswer(val) {
+  function selectAnswer(val, el) {
     const q = QUESTIONS[S.qIdx]
     S.answers[q.id] = val
+    document.querySelectorAll('.answer-card').forEach(c => c.classList.remove('selected'))
+    el.classList.add('selected')
+    const btn = document.getElementById('next-btn')
+    if (btn) btn.classList.add('visible')
+  }
+
+  function confirmAnswer() {
+    const q = QUESTIONS[S.qIdx]
+    if (!S.answers[q.id]) return
     if (q.micro) {
       showMicro(q.micro(S.name), nextStep)
     } else {
@@ -789,13 +832,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   function calcScore(a) {
     const pray  = { consistent:90, occasional:60, struggling:35, distant:18 }
-    const conf  = { recent:92,     months:58,     long_time:24,  never:10   }
+    const feelF = { hopeful:85, nostalgia:65, restless:50, lost:40, guilt:32 }
     const goalF = { truth:78, discipline:70, peace:58, love:55, healing:52  }
     const obstF = { doubts:60, distractions:52, loneliness:46, no_time:42, dont_know:20 }
     const stateC= { parent:72, married:68, single:52, student:48, retired:60 }
 
     const prayer    = Math.min(100, pray[a.prayerReality] || 40)
-    const sacrament = Math.min(100, conf[a.confession] || 30)
+    const sacrament = Math.min(100, feelF[a.spiritualFeeling] || 50)
     const formation = Math.min(100, goalF[a.goal] || 55)
     const community = Math.min(100, stateC[a.state] || 52)
     const mission   = Math.min(100, ((goalF[a.goal]||55) + (obstF[a.obstacle]||42)) / 2)
