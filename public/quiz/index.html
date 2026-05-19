@@ -259,6 +259,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <span style="font-size:15px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;">Espiritualizei</span>
       </div>
 
+      <!-- Banner litúrgico (preenchido via JS) -->
+      <div id="seasonal-banner" style="margin-bottom:22px;margin-top:-16px;display:flex;justify-content:center;"></div>
+
       <!-- Headline -->
       <h1 style="font-size:clamp(26px,7vw,38px);font-weight:900;line-height:1.15;margin-bottom:16px;letter-spacing:-.5px;">
         Sua fé merece um<br>
@@ -487,6 +490,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
+    <!-- ZONA LITÚRGICA: contexto do tempo da Igreja (preenchida via JS) -->
+    <div id="pw-seasonal" class="anim-fade-up" style="margin-bottom:20px;"></div>
+
     <!-- ZONA 6: CTA pagamento único -->
     <div style="background:rgba(167,139,250,.06);border:1.5px solid rgba(167,139,250,.2);border-radius:20px;padding:24px;text-align:center;">
 
@@ -546,6 +552,105 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script>
   const SUPABASE_URL = 'https://anoqhwpdrztaqmlocnzx.supabase.co'
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFub3Fod3Bkcnp0YXFtbG9jbnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2ODM3OTQsImV4cCI6MjA3OTI1OTc5NH0.eUg9hLctWst7nolKxk5OUgka6s8xUaaBNH3dP6kCduY'
+
+  // ── CALENDÁRIO LITÚRGICO CATÓLICO ──────────────────────────────────────────
+  // Algoritmo de Gauss (Anonymous Gregorian): calcula a Páscoa sem API externa.
+  // Todos os tempos litúrgicos derivam matematicamente da data da Páscoa.
+  function _easter(y) {
+    const a=y%19, b=Math.floor(y/100), c=y%100, d=Math.floor(b/4), e=b%4
+    const f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3)
+    const h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4
+    const l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451)
+    const mo=Math.floor((h+l-7*m+114)/31), dy=((h+l-7*m+114)%31)+1
+    return new Date(y, mo-1, dy)
+  }
+
+  function getLiturgicalSeason() {
+    const now  = new Date()
+    const y    = now.getFullYear()
+    const ms   = now.getTime()
+    const add  = (d, n) => { const r=new Date(d); r.setDate(r.getDate()+n); return r }
+
+    const easter     = _easter(y)
+    const ashWed     = add(easter, -46)          // Quarta-feira de Cinzas
+    const palmSun    = add(easter, -7)           // Domingo de Ramos
+    const holyThu    = add(easter, -3)           // Quinta-feira Santa (começo do Tríduo)
+    const pentecost  = add(easter, 49)           // Pentecostes
+
+    // Advento: começa no Domingo mais próximo de 30/11 (4 Domingos antes do Natal)
+    const xmas       = new Date(y, 11, 25)
+    const xDow       = xmas.getDay()
+    const adventStart= add(xmas, -(xDow===0 ? 28 : xDow+21))
+
+    // Batismo do Senhor: Domingo após 6/01
+    const epiph      = new Date(y, 0, 6)
+    const epDow      = epiph.getDay()
+    const baptism    = add(epiph, epDow===0 ? 7 : 7-epDow)
+
+    // Advento do ano anterior (cobre início de janeiro)
+    const pXmas      = new Date(y-1, 11, 25)
+    const pXDow      = pXmas.getDay()
+    const prevAdvent = add(pXmas, -(pXDow===0 ? 28 : pXDow+21))
+
+    // Semana dentro do tempo (para contexto textual)
+    const weekOf = (start) => Math.ceil((ms - start.getTime()) / (7*864e5))
+
+    if (ms >= adventStart.getTime() && ms < xmas.getTime()) {
+      const wk = weekOf(adventStart)
+      return { id:'advento',  name:'Advento',      color:'#9333EA', emoji:'🕯️',
+        tagline:`Semana ${wk} do Advento — tempo de espera e preparação para o Natal de Cristo.`,
+        paywallMsg:`Estamos no Advento, um dos tempos mais ricos do ano litúrgico. Seu plano foi desenhado para transformar essa espera em um encontro real com Cristo que está por vir.` }
+    }
+    if (ms >= xmas.getTime() || ms < baptism.getTime()) {
+      return { id:'natal',    name:'Tempo do Natal', color:'#D4A853', emoji:'⭐',
+        tagline:`Tempo do Natal — 50 dias celebrando o mistério da Encarnação.`,
+        paywallMsg:`Estamos no Tempo do Natal — a Igreja celebra que Deus se fez carne. Seu plano espiritual honra esse mistério e leva a alegria do Natal para dentro da sua rotina.` }
+    }
+    if (ms >= baptism.getTime() && ms < ashWed.getTime()) {
+      const wk = weekOf(baptism)
+      return { id:'comum',    name:'Tempo Comum',  color:'#10B981', emoji:'🌿',
+        tagline:`${wk}ª semana do Tempo Comum — tempo de crescimento e discipulado.`,
+        paywallMsg:`Estamos no Tempo Comum — o tempo mais longo do ano litúrgico, onde a fé se constrói dia a dia. É aqui que as grandes transformações acontecem, na fidelidade do ordinário.` }
+    }
+    if (ms >= ashWed.getTime() && ms < holyThu.getTime()) {
+      const wk = weekOf(ashWed)
+      return { id:'quaresma', name:'Quaresma',     color:'#7C3AED', emoji:'✝️',
+        tagline:`${wk}ª semana da Quaresma — 40 dias de oração, jejum e esmola.`,
+        paywallMsg:`Estamos na Quaresma — um tempo sagrado de conversão. Seu plano foi criado para que esses dias não passem em branco, mas se tornem um marco real na sua caminhada com Deus.` }
+    }
+    if (ms >= holyThu.getTime() && ms < easter.getTime()) {
+      return { id:'triduo',   name:'Tríduo Pascal', color:'#7C3AED', emoji:'🕯️',
+        tagline:`Tríduo Pascal — os três dias mais sagrados do ano cristão.`,
+        paywallMsg:`Estamos no Tríduo Pascal — o coração de toda a fé cristã. Há algo profundo acontecendo nesse momento. Seu plano espiritual foi preparado para esse tempo único.` }
+    }
+    if (ms >= easter.getTime() && ms < pentecost.getTime()) {
+      const wk = weekOf(easter)
+      return { id:'pascal',   name:'Tempo Pascal',  color:'#F472B6', emoji:'✨',
+        tagline:`${wk}ª semana do Tempo Pascal — 50 dias de alegria pela Ressurreição.`,
+        paywallMsg:`Estamos no Tempo Pascal — 50 dias de Aleluia! A Ressurreição de Cristo também tem algo a dizer sobre o seu coração. Seu plano nasce nessa alegria.` }
+    }
+    // Tempo Comum após Pentecostes
+    const wk = weekOf(pentecost)
+    return { id:'comum',    name:'Tempo Comum',   color:'#10B981', emoji:'🌿',
+      tagline:`${wk}ª semana do Tempo Comum — tempo de crescimento e discipulado.`,
+      paywallMsg:`Estamos no Tempo Comum — o tempo mais longo do ano litúrgico, onde a fé se constrói dia a dia. É aqui que as grandes transformações acontecem, na fidelidade do ordinário.` }
+  }
+
+  const LITURGICAL = getLiturgicalSeason()
+
+  function initSeasonalBanner() {
+    const el = document.getElementById('seasonal-banner')
+    if (!el) return
+    el.innerHTML = `
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:5px 16px 5px 10px;max-width:90%;flex-wrap:wrap;justify-content:center;">
+        <span style="font-size:15px;">${LITURGICAL.emoji}</span>
+        <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${LITURGICAL.color};">${LITURGICAL.name}</span>
+        <span style="color:rgba(255,255,255,.2);font-size:10px;">·</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.4;">${LITURGICAL.tagline}</span>
+      </div>
+    `
+  }
+  // ── FIM DO CALENDÁRIO LITÚRGICO ────────────────────────────────────────────
 
   const S = { name:'', email:'', qIdx:0, answers:{}, score:null, chart:null }
 
@@ -832,8 +937,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const LOADING_MSGS = [
     n => `${n}, estamos lendo seu perfil com atenção...`,
     () => 'Cada resposta revela algo único sobre sua jornada...',
-    () => 'Estamos criando algo feito especialmente para você...',
-    () => 'Seu Plano de 21 Dias está tomando forma...',
+    () => `Estamos no ${LITURGICAL.name} — um tempo especial para crescer na fé...`,
+    () => 'Seu Plano está tomando forma para este momento da sua vida...',
     n => `Pronto. Aqui está o que descobrimos sobre você, ${n}.`,
   ]
 
@@ -952,6 +1057,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     `).join('')
 
+    // Zona litúrgica — tempo real da Igreja
+    const pwSeasonal = document.getElementById('pw-seasonal')
+    if (pwSeasonal) {
+      pwSeasonal.innerHTML = `
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:16px 18px;display:flex;align-items:flex-start;gap:13px;">
+          <span style="font-size:22px;flex-shrink:0;margin-top:1px;">${LITURGICAL.emoji}</span>
+          <div>
+            <p style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:${LITURGICAL.color};margin-bottom:5px;">TEMPO LITÚRGICO ATUAL · ${LITURGICAL.name.toUpperCase()}</p>
+            <p style="font-size:12.5px;color:rgba(255,255,255,.65);line-height:1.6;">${LITURGICAL.paywallMsg}</p>
+          </div>
+        </div>
+      `
+    }
+
     lucide.createIcons()
     show('s-paywall')
   }
@@ -1028,6 +1147,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   // Init
   lucide.createIcons()
+  initSeasonalBanner()
 </script>
 </body>
 </html>
