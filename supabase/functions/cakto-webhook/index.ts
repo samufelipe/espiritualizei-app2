@@ -15,6 +15,13 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Integração Cakto desativada — pagamentos migrados para Stripe
+  console.log('⚠️ cakto-webhook desativado — nenhuma ação executada');
+  return new Response(JSON.stringify({ message: 'Webhook desativado' }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    status: 200,
+  });
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
