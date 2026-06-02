@@ -33,8 +33,51 @@ serve(async (req) => {
 
     if (error) throw error
 
-    console.log(`✅ Quiz session salva: ${data.id} para ${email}`)
-    return new Response(JSON.stringify({ id: data.id }), {
+    // Agendar 3 e-mails de recuperação de carrinho (idempotente via UNIQUE)
+    const sessionId = data.id
+    const challenge = quizData?.answers?.challenge || 'anxiety'
+    const firstName = (name || '').split(' ')[0] || 'Caminhante'
+    const now       = new Date()
+
+    const recoveryRecords = [
+      {
+        quiz_session_id: sessionId,
+        email,
+        name:          firstName,
+        challenge,
+        sequence_step: 1,
+        scheduled_at:  new Date(now.getTime() + 10 * 60 * 1000).toISOString(),      // +10min
+      },
+      {
+        quiz_session_id: sessionId,
+        email,
+        name:          firstName,
+        challenge,
+        sequence_step: 2,
+        scheduled_at:  new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), // +24h
+      },
+      {
+        quiz_session_id: sessionId,
+        email,
+        name:          firstName,
+        challenge,
+        sequence_step: 3,
+        scheduled_at:  new Date(now.getTime() + 72 * 60 * 60 * 1000).toISOString(), // +72h
+      },
+    ]
+
+    const { error: recoveryError } = await supabase
+      .from('quiz_recovery_emails')
+      .upsert(recoveryRecords, { onConflict: 'quiz_session_id,sequence_step', ignoreDuplicates: true })
+
+    if (recoveryError) {
+      console.warn('Aviso: falha ao agendar recuperação:', recoveryError.message)
+    } else {
+      console.log(`📅 3 e-mails de recuperação agendados para ${email}`)
+    }
+
+    console.log(`✅ Quiz session salva: ${sessionId} para ${email}`)
+    return new Response(JSON.stringify({ id: sessionId }), {
       headers: { ...cors, 'Content-Type': 'application/json' }, status: 200,
     })
   } catch (err: any) {

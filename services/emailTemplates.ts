@@ -385,6 +385,123 @@ export const getQuizDayEmail = (params: {
 </html>`
 }
 
+/**
+ * E-MAILS DE RECUPERAÇÃO DE CARRINHO ABANDONADO (QUIZ)
+ * 3 steps: +10min, +24h, +72h após o lead entrar o e-mail sem comprar.
+ */
+
+const CHALLENGE_LABELS_RECOVERY: Record<string, string> = {
+  anxiety:   'ansiedade e inquietação interior',
+  laziness:  'falta de constância na vida espiritual',
+  dryness:   'a oração que parece vazia e distante',
+  ignorance: 'dúvidas e questionamentos na fé',
+  pride:     'orgulho e impaciência interior',
+  lust:      'lutas com hábitos e vícios',
+}
+
+export const getRecoveryEmail = (params: {
+  step:      1 | 2 | 3
+  name:      string
+  challenge: string
+  ctaUrl:    string
+}): string => {
+  const { step, name, challenge, ctaUrl } = params
+  const firstName     = name.split(' ')[0] || name
+  const challengeText = CHALLENGE_LABELS_RECOVERY[challenge] || 'sua jornada espiritual'
+
+  const subjects: Record<number, string> = {
+    1: `${firstName}, seu diagnóstico espiritual está aqui`,
+    2: `${firstName}, você ainda está carregando isso?`,
+    3: `${firstName}, uma última coisa antes de você ir...`,
+  }
+
+  const contents: Record<number, { headline: string; body: string; cta: string; ps?: string }> = {
+    1: {
+      headline: 'Seu diagnóstico está esperando por você.',
+      body: `Você respondeu 3 perguntas honestas sobre sua vida espiritual e revelou algo importante sobre onde está agora. Seu diagnóstico personalizado e o Plano de 21 Dias criado para o seu momento estão prontos e aguardando.`,
+      cta: 'Acessar meu diagnóstico &rarr;',
+    },
+    2: {
+      headline: `Você ainda está carregando ${challengeText}?`,
+      body: `${firstName}, esse peso não desaparece sozinho. O Plano de 21 Dias que criamos foi pensado especificamente para o desafio que você revelou — não um plano genérico, mas um caminho feito para o seu momento real. Ele está esperando por você.`,
+      cta: 'Ver meu plano personalizado &rarr;',
+      ps: `R$19,90 — pagamento único, acesso permanente. Menos de R$1 por dia.`,
+    },
+    3: {
+      headline: 'Uma última coisa antes de você ir.',
+      body: `${firstName}, você fez as perguntas certas. Revelou onde está. Existe um caminho de 21 dias esperando por você — com intenção, oração e tarefa para cada dia, criados para o seu desafio específico. Não é uma promessa vaga. É um plano real para um começo real.`,
+      cta: 'Quero meu plano de 21 dias &rarr;',
+      ps: `Garantia de 7 dias. Se não valer cada centavo, devolvemos tudo.`,
+    },
+  }
+
+  const c = contents[step]
+  const previewText = subjects[step]
+
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${previewText}</title>
+</head>
+<body style="margin:0;padding:0;background:#0F1419;font-family:Arial,Helvetica,sans-serif;color:#ffffff;">
+<div style="display:none;max-height:0;overflow:hidden;">${previewText}</div>
+<div style="max-width:560px;margin:0 auto;padding:40px 20px;">
+
+  <div style="text-align:center;margin-bottom:36px;">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="#A78BFA">
+      <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
+    </svg>
+    <p style="color:rgba(167,139,250,.6);font-size:10px;letter-spacing:2.5px;margin:6px 0 0;text-transform:uppercase;">Espiritualizei</p>
+  </div>
+
+  <div style="background:#1A2530;border-radius:20px;padding:32px 28px;border:1px solid rgba(167,139,250,.15);">
+
+    <p style="font-size:14px;color:rgba(255,255,255,.5);margin:0 0 20px;">Olá, ${firstName}.</p>
+
+    <h1 style="font-size:22px;font-weight:800;margin:0 0 20px;line-height:1.25;color:#fff;">
+      ${c.headline}
+    </h1>
+
+    <div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:20px;"></div>
+
+    <p style="font-size:15px;color:rgba(255,255,255,.75);line-height:1.75;margin:0 0 28px;">
+      ${c.body}
+    </p>
+
+    ${step === 3 ? `
+    <div style="background:rgba(167,139,250,.08);border:1.5px solid rgba(167,139,250,.2);border-radius:14px;padding:16px 18px;margin-bottom:28px;text-align:center;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(167,139,250,.7);margin:0 0 6px;">PAGAMENTO ÚNICO</p>
+      <p style="font-size:28px;font-weight:900;color:#fff;margin:0;">R$19,90</p>
+      <p style="font-size:12px;color:rgba(255,255,255,.4);margin:4px 0 0;">Acesso permanente. Menos de R$1 por dia.</p>
+    </div>` : ''}
+
+    <div style="text-align:center;margin-bottom:${c.ps ? '20px' : '0'};">
+      <a href="${ctaUrl}" style="display:inline-block;background:rgba(167,139,250,1);color:#1A2530;text-decoration:none;padding:16px 36px;border-radius:14px;font-weight:800;font-size:16px;">
+        ${c.cta}
+      </a>
+    </div>
+
+    ${c.ps ? `
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07);text-align:center;">
+      <p style="font-size:12px;color:rgba(255,255,255,.35);margin:0;font-style:italic;">${c.ps}</p>
+    </div>` : ''}
+
+  </div>
+
+  <div style="text-align:center;padding-top:28px;">
+    <p style="font-size:11px;color:rgba(255,255,255,.2);margin:0 0 6px;">Você recebe este e-mail porque iniciou o Diagnóstico Espiritual do Espiritualizei.</p>
+    <p style="font-size:11px;margin:0;">
+      <a href="mailto:espiritualizeiapp@gmail.com?subject=Cancelar%20e-mails%20do%20diagn%C3%B3stico" style="color:rgba(255,255,255,.2);text-decoration:underline;">Não quero mais receber</a>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>`
+}
+
 export const getLibrarySuggestionEmail = (userName: string) => {
     const firstName = userName.split(' ')[0];
     const content = `

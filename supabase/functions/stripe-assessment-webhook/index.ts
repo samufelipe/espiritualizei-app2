@@ -73,6 +73,21 @@ serve(async (req) => {
     }
 
     console.log(`Quiz pago registrado: session=${session.id} quiz_session=${quizSessionId} email=${customerEmail} nome=${customerName}`)
+
+    // Cancelar sequência de recuperação — lead converteu, sai da jornada de abandono
+    if (customerEmail) {
+      const { error: cancelErr } = await supabase
+        .from('quiz_recovery_emails')
+        .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+        .eq('email', customerEmail)
+        .eq('status', 'pending')
+
+      if (cancelErr) {
+        console.warn('Aviso: falha ao cancelar recuperação:', cancelErr.message)
+      } else {
+        console.log(`🚫 Recuperação cancelada para ${customerEmail} — lead converteu`)
+      }
+    }
   }
 
   return new Response(JSON.stringify({ received: true }), {
