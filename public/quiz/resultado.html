@@ -1117,6 +1117,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       _plan = plan
       renderDashboard(data, plan)
 
+      // Deep link: ?day=N navega direto para o dia do e-mail
+      const dayParam = urlParams.get('day')
+      if (dayParam) {
+        const n = parseInt(dayParam, 10)
+        if (n >= 1 && n <= 21) setTimeout(() => goToDay(n), 400)
+      }
+
     } catch(e) {
       console.error('[resultado] init falhou:', e.message)
       const d = stored ? (() => { try { return JSON.parse(stored) } catch(_){return null} })() : null

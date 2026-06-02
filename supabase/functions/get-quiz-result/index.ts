@@ -398,6 +398,26 @@ serve(async (req: any) => {
       }
     }
 
+    // 7. Agendar drip de 21 dias (fire-and-forget, idempotente via UNIQUE constraint)
+    if (!qs.drip_scheduled) {
+      fetch(`${supabaseUrl}/functions/v1/schedule-quiz-drip`, {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+          'apikey':        serviceKey,
+        },
+        body: JSON.stringify({
+          quiz_session_id:   qs.id,
+          stripe_session_id,
+          email:             qs.email,
+          name:              qs.quiz_data?.name || '',
+          plan_data:         plan,
+          quiz_data:         qs.quiz_data,
+        }),
+      }).catch((e: any) => console.warn('schedule-quiz-drip (fire-and-forget):', e.message))
+    }
+
     console.log(`✅ Resultado entregue para ${qs.email}`)
     return ok({ quizData: qs.quiz_data, plan })
 

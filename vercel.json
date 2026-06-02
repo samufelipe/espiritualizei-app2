@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path":     "/api/send-quiz-drip",
+      "schedule": "0 10 * * *"
+    }
+  ],
   "redirects": [
     {
       "source": "/:path*",
