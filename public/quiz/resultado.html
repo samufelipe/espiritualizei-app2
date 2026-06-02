@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
 
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -132,6 +133,104 @@
       .step-text { color: #333 !important; }
       .verse-block { border-color: #888 !important; color: #555 !important; background: #f0f0f0 !important; }
     }
+
+    /* ═══ DESIGN PREMIUM ═══════════════════════════════════════════ */
+
+    /* Intenção do dia — coração de cada jornada */
+    .intention-block {
+      font-family: 'Lora', Georgia, serif;
+      font-size: clamp(17px, 5vw, 21px);
+      font-style: italic;
+      line-height: 1.78;
+      color: rgba(255,255,255,.93);
+    }
+
+    /* Versículo bíblico */
+    .verse-sacred {
+      font-family: 'Lora', Georgia, serif;
+      font-size: clamp(15px, 4.5vw, 17px);
+      font-style: italic;
+      line-height: 1.72;
+      color: rgba(255,255,255,.85);
+    }
+
+    /* Label de seção */
+    .section-overline {
+      display: block;
+      font-size: 9px; font-weight: 800;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: rgba(255,255,255,.28); margin-bottom: 5px;
+    }
+
+    /* Cards de seção do dia */
+    .day-card {
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid rgba(255,255,255,.08);
+      border-radius: 20px; padding: 20px 22px; margin-bottom: 14px;
+    }
+    .day-card.violet {
+      background: rgba(167,139,250,.07);
+      border-color: rgba(167,139,250,.22);
+    }
+
+    /* Steps premium */
+    .step-row { display: flex; gap: 12px; align-items: flex-start; }
+    .step-num-circle {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(167,139,250,.18); border: 1.5px solid rgba(167,139,250,.35);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; color: #A78BFA;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .step-body { font-size: 13.5px; color: rgba(255,255,255,.72); line-height: 1.62; }
+
+    /* Novena card */
+    .novena-card {
+      background: linear-gradient(135deg, rgba(167,139,250,.1) 0%, rgba(124,58,237,.06) 100%);
+      border: 1.5px solid rgba(167,139,250,.28);
+      border-radius: 20px; padding: 20px 22px; margin-bottom: 28px;
+    }
+
+    /* Botão YouTube */
+    .yt-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25);
+      border-radius: 8px; padding: 7px 12px; text-decoration: none;
+      color: #FCA5A5; font-size: 11.5px; font-weight: 600; white-space: nowrap;
+      transition: background .2s ease; flex-shrink: 0;
+    }
+    .yt-link:hover { background: rgba(239,68,68,.18); }
+
+    /* Botão concluir */
+    .btn-mark-done {
+      width: 100%;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      border: none; border-radius: 16px; padding: 18px 24px;
+      color: #fff; font-size: 16px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 8px 32px rgba(16,185,129,.28);
+      transition: all .2s ease; margin-bottom: 20px; font-family: 'Inter', sans-serif;
+    }
+    .btn-mark-done:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(16,185,129,.42); }
+    .btn-mark-done:active { transform: scale(.99); }
+
+    /* Número do dia em background decorativo */
+    .day-num-bg {
+      font-size: 96px; font-weight: 900; line-height: 1;
+      color: rgba(167,139,250,.06); letter-spacing: -6px;
+      position: absolute; right: 12px; top: -8px;
+      pointer-events: none; user-select: none;
+    }
+
+    /* Animação escalonada para seções do dia */
+    .day-card:nth-child(1) { animation-delay: .05s; }
+    .day-card:nth-child(2) { animation-delay: .12s; }
+    .day-card:nth-child(3) { animation-delay: .19s; }
+    .day-card:nth-child(4) { animation-delay: .26s; }
+
+    @media print {
+      .btn-mark-done, .yt-link { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -144,13 +243,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- Loading screen -->
 <div id="loading-screen">
-  <div class="anim-heartbeat">
-    <svg width="44" height="44" viewBox="0 0 24 24" fill="#A78BFA">
-      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-    </svg>
+  <div style="text-align:center;max-width:300px;padding:0 24px;">
+    <div class="anim-heartbeat" style="display:flex;justify-content:center;margin-bottom:28px;">
+      <div style="width:72px;height:72px;border-radius:50%;background:rgba(167,139,250,.1);border:1.5px solid rgba(167,139,250,.22);display:flex;align-items:center;justify-content:center;box-shadow:0 0 32px rgba(167,139,250,.2);">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="#A78BFA">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </div>
+    </div>
+    <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.55);margin-bottom:16px;">Espiritualizei</p>
+    <div class="spinner" style="margin:0 auto 20px;"></div>
+    <p id="loading-msg" style="font-size:14px;color:rgba(255,255,255,.45);line-height:1.65;">Carregando seu diagnóstico...</p>
   </div>
-  <div class="spinner"></div>
-  <p id="loading-msg" style="font-size:14px;color:rgba(255,255,255,.5);">Carregando seu diagnóstico...</p>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -190,6 +294,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p id="personal-letter" style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.8);line-height:1.7;"></p>
     </div>
   </div>
+
+  <!-- Novena card — populado via JS com dados do desafio -->
+  <div id="novena-card-wrapper" class="anim-fade-up"></div>
 
   <!-- Mapa Espiritual -->
   <div class="anim-fade-up" style="margin-bottom:36px;">
@@ -540,13 +647,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // ── Render helpers ────────────────────────────────────
   function stepsHtml(steps, fallback) {
     if (!steps || !steps.length) {
-      return fallback ? `<p style="font-size:14px;color:rgba(255,255,255,.6);line-height:1.6;padding:4px 0;">${fallback}</p>` : ''
+      return fallback ? `<p style="font-size:13.5px;color:rgba(255,255,255,.55);line-height:1.65;padding:2px 0;">${fallback}</p>` : ''
     }
-    return `<ul class="step-list">${steps.map((s,i)=>`
-      <li class="step-item">
-        <span class="step-num">${i+1}</span>
-        <span class="step-text">${s}</span>
-      </li>`).join('')}</ul>`
+    return `<div style="display:flex;flex-direction:column;gap:10px;">${steps.map((s,i)=>`
+      <div class="step-row">
+        <span class="step-num-circle">${i+1}</span>
+        <span class="step-body">${s}</span>
+      </div>`).join('')}</div>`
   }
 
   function parseVerse(raw) {
@@ -597,78 +704,80 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.getElementById('day-counter').textContent = `DIA ${n} / 21`
 
     document.getElementById('day-content').innerHTML = `
-      <!-- Cabeçalho do dia -->
-      <div class="anim-fade-up" style="margin-bottom:28px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-          <div style="width:32px;height:32px;border-radius:9px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i data-lucide="${week.lucideIcon||'leaf'}" style="width:16px;height:16px;color:#A78BFA;"></i>
+
+      <!-- Header do dia com número decorativo -->
+      <div class="anim-fade-up" style="position:relative;overflow:hidden;padding:8px 0 22px;">
+        <span class="day-num-bg">${String(n).padStart(2,'0')}</span>
+        <div style="display:flex;align-items:center;gap:12px;position:relative;">
+          <div style="width:42px;height:42px;border-radius:12px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="${week.lucideIcon||'leaf'}" style="width:18px;height:18px;color:#A78BFA;"></i>
           </div>
           <div>
-            <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:1px;">SEMANA ${weekIdx} · ${week.theme}</p>
-            <p style="font-size:12px;color:rgba(255,255,255,.4);">~${duration} minutos</p>
+            <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:3px;">SEMANA ${weekIdx} · ${week.theme}</p>
+            <p style="font-size:14px;font-weight:700;color:#A78BFA;">Dia ${n} <span style="color:rgba(255,255,255,.28);font-weight:400;font-size:13px;">de 21 · ~${duration} min</span></p>
           </div>
         </div>
       </div>
 
-      <!-- Intenção -->
-      <div class="glass-violet anim-fade-up" style="border-radius:18px;padding:22px;margin-bottom:20px;">
-        <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#A78BFA;margin-bottom:10px;">INTENÇÃO DO DIA</p>
-        <p style="font-size:clamp(15px,4.5vw,17px);font-style:italic;color:rgba(255,255,255,.9);line-height:1.65;">"${day.intention || ''}"</p>
+      <!-- Intenção do dia — bloco sagrado principal (Lora) -->
+      <div class="day-card violet anim-fade-up" style="margin-bottom:20px;">
+        <span class="section-overline" style="color:rgba(167,139,250,.65);">INTENÇÃO DO DIA</span>
+        <p class="intention-block">"${day.intention || ''}"</p>
       </div>
 
-      <!-- Oração -->
-      <div class="glass anim-fade-up" style="border-radius:18px;padding:22px;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <i data-lucide="heart" style="width:14px;height:14px;color:#A78BFA;"></i>
+      <!-- Oração do dia -->
+      <div class="day-card anim-fade-up">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="heart" style="width:16px;height:16px;color:#A78BFA;"></i>
             </div>
-            <div>
-              <p style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:1px;">ORAÇÃO DO DIA</p>
-              <p style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9);">${day.prayer || ''}</p>
+            <div style="min-width:0;">
+              <span class="section-overline">ORAÇÃO DO DIA</span>
+              <p style="font-size:15px;font-weight:700;color:rgba(255,255,255,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${day.prayer || ''}</p>
             </div>
           </div>
-          <a href="${ytUrl}" target="_blank" rel="noopener"
-             style="display:flex;align-items:center;gap:6px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:8px 12px;text-decoration:none;color:#FCA5A5;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <a href="${ytUrl}" target="_blank" rel="noopener" class="yt-link no-print">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Ver no YouTube
           </a>
         </div>
-        ${stepsHtml(day.prayer_steps, 'Dedique um momento em silêncio para esta prática, com calma e abertura de coração.')}
+        ${stepsHtml(day.prayer_steps, 'Dedique um momento de silêncio para esta prática, com calma e abertura de coração.')}
       </div>
 
       <!-- Prática do dia -->
-      <div class="glass anim-fade-up" style="border-radius:18px;padding:22px;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-          <div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i data-lucide="pencil" style="width:14px;height:14px;color:#A78BFA;"></i>
+      <div class="day-card anim-fade-up">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="pencil-line" style="width:16px;height:16px;color:#A78BFA;"></i>
           </div>
           <div>
-            <p style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:1px;">PRÁTICA DO DIA</p>
-            <p style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9);">${day.task || ''}</p>
+            <span class="section-overline">PRÁTICA DO DIA</span>
+            <p style="font-size:15px;font-weight:700;color:rgba(255,255,255,.92);">${day.task || ''}</p>
           </div>
         </div>
         ${stepsHtml(day.task_steps, 'Realize esta prática no seu ritmo, oferecendo cada momento a Deus.')}
       </div>
 
-      <!-- Versículo -->
+      <!-- Versículo sagrado (Lora) -->
       ${(() => { const v = parseVerse(day.verse); return `
-      <div class="glass anim-fade-up" style="border-radius:18px;padding:20px;margin-bottom:28px;border-color:rgba(167,139,250,.25);">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-          <i data-lucide="book-open" style="width:15px;height:15px;color:#A78BFA;flex-shrink:0;"></i>
-          <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3);">VERSÍCULO DO DIA</span>
+      <div class="day-card anim-fade-up" style="border-color:rgba(167,139,250,.22);margin-bottom:28px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px;">
+          <i data-lucide="book-open" style="width:14px;height:14px;color:#A78BFA;flex-shrink:0;"></i>
+          <span class="section-overline" style="margin-bottom:0;">VERSÍCULO DO DIA</span>
         </div>
-        ${v.ref ? `<p style="font-size:13px;font-weight:800;color:#A78BFA;margin-bottom:8px;">${v.ref}</p>` : ''}
-        <p style="font-size:clamp(14px,4vw,16px);font-style:italic;color:rgba(255,255,255,.85);line-height:1.65;">"${v.text || day.verse || ''}"</p>
+        ${v.ref ? `<p style="font-size:12px;font-weight:800;color:#A78BFA;margin-bottom:10px;letter-spacing:.5px;">${v.ref}</p>` : ''}
+        <p class="verse-sacred">"${v.text || day.verse || ''}"</p>
       </div>` })()}
 
       <!-- Botão concluir -->
       ${isDone
-        ? `<div style="text-align:center;padding:16px;background:rgba(110,231,183,.06);border:1.5px solid rgba(110,231,183,.2);border-radius:14px;margin-bottom:20px;">
-             <p style="font-size:14px;font-weight:700;color:#6EE7B7;">✓ Dia ${n} concluído!</p>
+        ? `<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;background:rgba(110,231,183,.06);border:1.5px solid rgba(110,231,183,.22);border-radius:16px;margin-bottom:20px;">
+             <i data-lucide="check-circle-2" style="width:18px;height:18px;color:#6EE7B7;flex-shrink:0;"></i>
+             <p style="font-size:14px;font-weight:700;color:#6EE7B7;">Dia ${n} concluído!</p>
            </div>`
-        : `<button class="btn-primary no-print" onclick="markDone(${n})" style="margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;">
-             <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
+        : `<button class="btn-mark-done no-print" onclick="markDone(${n})">
+             <i data-lucide="check-circle-2" style="width:20px;height:20px;"></i>
              Marcar dia ${n} como concluído
            </button>`
       }
@@ -685,7 +794,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <!-- Imprimir -->
       <div class="no-print" style="text-align:center;padding-bottom:8px;">
-        <button class="print-btn" onclick="window.print()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;font-weight:600;cursor:pointer;padding:8px 16px;">
+        <button onclick="window.print()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:rgba(255,255,255,.28);font-size:12px;font-weight:600;cursor:pointer;padding:8px 16px;transition:color .2s;font-family:'Inter',sans-serif;" onmouseover="this.style.color='rgba(255,255,255,.55)'" onmouseout="this.style.color='rgba(255,255,255,.28)'">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           Imprimir este dia
         </button>
@@ -769,12 +878,46 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.getElementById('community-headline').textContent = `${name}, você acabou de descobrir onde está.`
 
     const badge = document.getElementById('level-badge')
-    badge.style.background = level.color + '18'
-    badge.style.border = `1.5px solid ${level.color}44`
+    badge.style.background = level.color + '1A'
+    badge.style.border = `1.5px solid ${level.color}55`
+    badge.style.boxShadow = `0 0 28px ${level.color}38, 0 0 8px ${level.color}1A`
     document.getElementById('badge-heart').style.fill = level.color
     document.getElementById('badge-level-name').textContent  = level.name
     document.getElementById('badge-level-name').style.color  = level.color
     document.getElementById('level-subtitle').textContent = level.sub
+
+    // Novena card — destaque do produto comprado
+    const NOVENA_NAMES = {
+      anxiety:'Novena da Paz Interior', laziness:'Novena da Constância',
+      dryness:'Novena do Reencontro', ignorance:'Novena da Luz na Fé',
+      pride:'Novena do Esvaziamento', lust:'Novena da Libertação',
+    }
+    const novenaWrapper = document.getElementById('novena-card-wrapper')
+    if (novenaWrapper) {
+      const nName = NOVENA_NAMES[a.challenge] || 'Novena Personalizada'
+      novenaWrapper.innerHTML = `
+        <div class="novena-card">
+          <div style="display:flex;align-items:flex-start;gap:14px;">
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(167,139,250,.15);border:1.5px solid rgba(167,139,250,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="book-open" style="width:20px;height:20px;color:#A78BFA;"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <p style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:5px;">BÔNUS INCLUSO · PDF</p>
+              <p style="font-size:16px;font-weight:800;color:rgba(255,255,255,.95);margin-bottom:5px;">${nName}</p>
+              <p style="font-size:12.5px;color:rgba(255,255,255,.45);line-height:1.55;">Os primeiros 9 dias formam sua novena personalizada. Use o botão <em>Imprimir</em> em cada dia para salvar em PDF.</p>
+            </div>
+          </div>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(167,139,250,.15);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <p style="font-size:11px;color:rgba(255,255,255,.3);">9 dias de oração criados para o seu desafio</p>
+            <button onclick="goToDay(1)" style="display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:9px;padding:9px 16px;color:#A78BFA;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s;" onmouseover="this.style.background='rgba(167,139,250,.25)'" onmouseout="this.style.background='rgba(167,139,250,.15)'">
+              <i data-lucide="play-circle" style="width:14px;height:14px;"></i>
+              Começar Dia 1
+            </button>
+          </div>
+        </div>
+      `
+      lucide.createIcons()
+    }
 
     const challengeLabel = CHALLENGE_LABELS[a.challenge] || 'sua jornada espiritual'
     const goalLabel      = GOAL_LABELS[a.goal] || 'crescimento espiritual'
