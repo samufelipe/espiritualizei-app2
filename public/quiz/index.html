@@ -231,58 +231,56 @@
       width: 7px; height: 7px; border-radius: 50%; background: #A78BFA; display: inline-block;
     }
 
-    /* ── MINI VSL ───────────────────────────────────────────────── */
+    /* ── MINI VSL (vídeo) ───────────────────────────────────────── */
     #s-vsl { background: #0D1520; }
 
-    .vsl-block {
-      opacity: 0; transform: translateY(20px);
-      transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
-      margin-bottom: 32px;
-    }
-    .vsl-block.vsl-visible { opacity: 1; transform: translateY(0); }
-
-    .vsl-line { display: block; margin-bottom: 10px; }
-    .vsl-line.vsl-strong { font-weight: 800; color: #fff; }
-    .vsl-line.vsl-italic { font-style: italic; color: rgba(255,255,255,.65); }
-    .vsl-line.vsl-accent { color: #A78BFA; font-weight: 700; }
-    .vsl-line.vsl-quote {
-      font-family: 'Inter', sans-serif;
-      font-style: italic;
-      color: rgba(255,255,255,.75);
-      padding-left: 16px;
-      border-left: 2px solid rgba(167,139,250,.4);
-      margin: 4px 0;
-      display: block;
+    .vsl-stage {
+      position: relative; width: 100%; max-width: 480px;
+      aspect-ratio: 9 / 16; max-height: 100vh;
+      margin: 0 auto; overflow: hidden; background: #0D1520;
     }
 
     .vsl-progress-wrap {
       position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-      height: 2px; background: rgba(255,255,255,.06);
+      height: 3px; background: rgba(255,255,255,.06);
     }
     .vsl-progress-fill {
       height: 100%; background: #A78BFA;
-      transition: width .8s linear;
+      transition: width .25s linear;
     }
 
     .vsl-skip-btn {
-      display: none; position: fixed; top: 16px; right: 16px; z-index: 200;
-      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
-      color: rgba(255,255,255,.5); font-size: 12px; font-weight: 600;
-      padding: 6px 14px; border-radius: 20px; cursor: pointer;
+      display: none; position: fixed; top: 14px; right: 14px; z-index: 210;
+      background: rgba(13,21,32,.6); border: 1px solid rgba(255,255,255,.15);
+      color: rgba(255,255,255,.7); font-size: 12px; font-weight: 600;
+      padding: 7px 16px; border-radius: 20px; cursor: pointer;
       font-family: 'Inter', sans-serif; transition: background .2s;
+      backdrop-filter: blur(8px);
     }
-    .vsl-skip-btn:hover { background: rgba(255,255,255,.15); color: rgba(255,255,255,.8); }
+    .vsl-skip-btn:hover { background: rgba(13,21,32,.85); color: #fff; }
 
-    .vsl-cta-btn {
-      display: none; width: 100%;
-      background: linear-gradient(135deg, #A78BFA, #7C3AED);
-      color: #fff; font-size: 17px; font-weight: 800;
-      padding: 18px 24px; border-radius: 16px; border: none;
-      cursor: pointer; font-family: 'Inter', sans-serif;
-      box-shadow: 0 8px 32px rgba(167,139,250,.35);
-      transition: all .2s ease;
+    /* Overlay "Ativar som" */
+    .vsl-sound-overlay {
+      position: absolute; inset: 0; z-index: 50;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; cursor: pointer;
+      background: rgba(13,21,32,.45);
+      backdrop-filter: blur(1px);
+      transition: opacity .3s ease;
     }
-    .vsl-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(167,139,250,.5); }
+    .vsl-sound-btn {
+      display: flex; align-items: center; gap: 10px;
+      background: #fff; color: #1A2530;
+      font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 800;
+      padding: 16px 28px; border-radius: 50px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.4);
+      animation: pulseSlow 2s ease-in-out infinite;
+    }
+    .vsl-sound-hint {
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      color: rgba(255,255,255,.85); text-align: center; padding: 0 32px;
+      text-shadow: 0 2px 8px rgba(0,0,0,.6);
+    }
   </style>
 </head>
 <body>
@@ -446,99 +444,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- TELA 4B — MINI VSL ANIMADA -->
+<!-- TELA 4B — MINI VSL (vídeo real) -->
 <div id="s-vsl" class="screen" style="position:relative;z-index:1;">
   <div class="vsl-progress-wrap"><div class="vsl-progress-fill" id="vsl-progress" style="width:0%"></div></div>
   <button class="vsl-skip-btn" id="vsl-skip-btn" onclick="skipVSL()">Pular →</button>
 
-  <div style="max-width:480px;margin:0 auto;padding:60px 24px 48px;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-start;">
+  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+    <div class="vsl-stage">
+      <video id="vsl-video" playsinline muted preload="auto" poster="/quiz/vsl-poster.jpg"
+             style="width:100%;height:100%;object-fit:cover;background:#0D1520;">
+        <source src="/quiz/vsl.mp4" type="video/mp4">
+      </video>
 
-    <!-- Bloco 1 — Abertura -->
-    <div class="vsl-block" id="vsl-b1" style="text-align:center;padding-top:40px;">
-      <p style="font-size:clamp(22px,6vw,30px);font-weight:900;color:#fff;line-height:1.2;letter-spacing:-.3px;">Você não está aqui por acaso.</p>
+      <!-- Overlay "Ativar som" -->
+      <div id="vsl-sound-overlay" class="vsl-sound-overlay" onclick="vslUnmute()">
+        <div class="vsl-sound-btn">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1A2530" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>
+          <span>Tocar com som</span>
+        </div>
+        <p class="vsl-sound-hint">Seu diagnóstico está pronto. Toque para ouvir.</p>
+      </div>
     </div>
-
-    <!-- Bloco 2 — Identidade -->
-    <div class="vsl-block" id="vsl-b2">
-      <p style="font-size:clamp(16px,4.5vw,20px);color:rgba(255,255,255,.8);line-height:1.75;">
-        <span class="vsl-line">Se você respondeu essas três perguntas com honestidade...</span>
-        <span class="vsl-line">você é a pessoa que sabe que quer mais da sua fé.</span>
-        <span class="vsl-line">Que sente que devia estar mais próxima de Deus.</span>
-        <span class="vsl-line vsl-strong">E que, por algum motivo, não consegue.</span>
-      </p>
-    </div>
-
-    <!-- Bloco 3 — Dor real -->
-    <div class="vsl-block" id="vsl-b3">
-      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.75);line-height:1.8;">
-        <span class="vsl-line" style="color:rgba(255,255,255,.5);font-size:.9em;">Não a dor que você conta pra outras pessoas.</span>
-        <span class="vsl-line vsl-strong" style="font-size:1.1em;">A que você sente sozinho.</span>
-        <span class="vsl-line">Aquele momento à noite, quando você vai deitar</span>
-        <span class="vsl-line">e sabe que não rezou hoje.</span>
-        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Não porque esqueceu.</span>
-        <span class="vsl-line">Porque o dia simplesmente aconteceu.</span>
-        <span class="vsl-line">E a fé foi ficando pra depois.</span>
-        <span class="vsl-line vsl-accent" style="font-size:1.05em;">Sempre pra depois.</span>
-      </p>
-    </div>
-
-    <!-- Bloco 4 — Linguagem -->
-    <div class="vsl-block" id="vsl-b4">
-      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.75);line-height:1.8;">
-        <span class="vsl-line">Se você já disse pra si mesmo:</span>
-        <span class="vsl-quote">"Semana que vem eu começo de verdade."</span>
-        <span class="vsl-quote">"Essa novena eu termino."</span>
-        <span class="vsl-quote">"Dessa vez vai."</span>
-        <span class="vsl-line" style="margin-top:8px;">... isso diz mais sobre onde você está</span>
-        <span class="vsl-line">do que qualquer teste poderia revelar.</span>
-      </p>
-    </div>
-
-    <!-- Bloco 5 — Contexto de vida -->
-    <div class="vsl-block" id="vsl-b5">
-      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.75);line-height:1.8;">
-        <span class="vsl-line">A sua vida não tem espaço</span>
-        <span class="vsl-line">para mais um compromisso que parece obrigação.</span>
-        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Você já tem trabalho, família, contas,</span>
-        <span class="vsl-line" style="color:rgba(255,255,255,.5);">grupos de WhatsApp, e uma fé que fica esperando.</span>
-        <span class="vsl-line" style="margin-top:8px;">Não porque ela importa menos.</span>
-        <span class="vsl-line vsl-strong">Mas porque nunca houve um caminho feito pra sua realidade.</span>
-      </p>
-    </div>
-
-    <!-- Bloco 6 — Frustrações -->
-    <div class="vsl-block" id="vsl-b6">
-      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.75);line-height:1.8;">
-        <span class="vsl-line vsl-strong">Você já tentou.</span>
-        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Já baixou aplicativo de oração.</span>
-        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Já comprou livro espiritual.</span>
-        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Já começou novena e parou no terceiro dia.</span>
-        <span class="vsl-line" style="margin-top:8px;">Não porque você não quer.</span>
-        <span class="vsl-line vsl-strong">Porque nenhum desses caminhos foi feito <em>para você.</em></span>
-        <span class="vsl-line">Para o que você carrega agora.</span>
-        <span class="vsl-line">Para onde você realmente está.</span>
-      </p>
-    </div>
-
-    <!-- Bloco 7 — A virada -->
-    <div class="vsl-block" id="vsl-b7">
-      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.8);line-height:1.8;">
-        <span class="vsl-line">O que você fez aqui foi diferente.</span>
-        <span class="vsl-line" style="color:rgba(255,255,255,.55);">Três respostas honestas.</span>
-        <span class="vsl-line" style="margin-top:8px;">E com elas, preparamos algo</span>
-        <span class="vsl-line">que não existe em nenhum outro lugar:</span>
-        <span class="vsl-line vsl-accent vsl-strong" style="font-size:1.05em;">um diagnóstico e um caminho</span>
-        <span class="vsl-line vsl-accent vsl-strong" style="font-size:1.05em;">feito especificamente para o seu momento.</span>
-      </p>
-    </div>
-
-    <!-- Bloco 8 — CTA -->
-    <div class="vsl-block" id="vsl-b8" style="text-align:center;margin-top:16px;">
-      <p id="vsl-cta-text" style="font-size:clamp(18px,5.5vw,24px);font-weight:800;color:#fff;line-height:1.3;margin-bottom:28px;"></p>
-      <button class="vsl-cta-btn" id="vsl-cta-btn" onclick="skipVSL()"></button>
-      <p style="font-size:12px;color:rgba(255,255,255,.25);margin-top:16px;">2 minutos · Sem compromisso</p>
-    </div>
-
   </div>
 </div>
 
@@ -1226,67 +1154,80 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     show('s-paywall')
   }
 
-  // ── MINI VSL: progressão dos blocos ─────────────────────────────
-  const VSL_BLOCKS  = ['vsl-b1','vsl-b2','vsl-b3','vsl-b4','vsl-b5','vsl-b6','vsl-b7','vsl-b8']
-  // tempos (ms) para revelar cada bloco a partir do início
-  const VSL_TIMINGS = [400, 4000, 11000, 26000, 38000, 52000, 68000, 82000]
-  const VSL_TOTAL   = 92000
-  let _vslTimers = []
+  // ── MINI VSL (vídeo real) ───────────────────────────────────────
+  // Janela (em segundos) antes do fim em que o botão "Pular" aparece.
+  const VSL_SKIP_WINDOW = 15
+  let _vslAdvanced = false
+
+  function _vslGoToPaywall() {
+    if (_vslAdvanced) return
+    _vslAdvanced = true
+    showPaywall()
+  }
 
   function startVSL() {
+    _vslAdvanced = false
+    const v       = document.getElementById('vsl-video')
+    const overlay = document.getElementById('vsl-sound-overlay')
+    const skipBtn = document.getElementById('vsl-skip-btn')
+    const fill    = document.getElementById('vsl-progress')
+
+    // Sem vídeo disponível → não trava o lead, vai direto à paywall
+    if (!v) { _vslGoToPaywall(); return }
+
     show('s-vsl')
-    // resetar
-    VSL_BLOCKS.forEach(id => {
-      const el = document.getElementById(id)
-      if (el) el.classList.remove('vsl-visible')
-    })
-    document.getElementById('vsl-progress').style.width = '0%'
-    document.getElementById('vsl-skip-btn').style.display = 'none'
-    document.getElementById('vsl-cta-btn').style.display = 'none'
 
-    // texto dinâmico do CTA final
-    document.getElementById('vsl-cta-text').textContent = `${S.name}, seu diagnóstico está pronto.`
-    document.getElementById('vsl-cta-btn').textContent = `Ver meu diagnóstico, ${S.name} →`
+    // reset visual
+    fill.style.width = '0%'
+    skipBtn.style.display = 'none'
+    if (overlay) overlay.style.display = 'flex'
 
-    _vslTimers.forEach(clearTimeout)
-    _vslTimers = []
+    // autoplay mudo (permitido pelos navegadores)
+    v.muted = true
+    v.currentTime = 0
+    const playP = v.play()
+    if (playP && playP.catch) playP.catch(() => {/* aguarda gesto do usuário */})
 
-    // revelar blocos progressivamente + auto-scroll suave
-    VSL_BLOCKS.forEach((id, idx) => {
-      _vslTimers.push(setTimeout(() => {
-        const el = document.getElementById(id)
-        if (!el) return
-        el.classList.add('vsl-visible')
-        if (idx > 0) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }, VSL_TIMINGS[idx]))
-    })
+    // progresso + revelar "Pular" só nos últimos segundos
+    v.ontimeupdate = () => {
+      if (!v.duration) return
+      const pct = (v.currentTime / v.duration) * 100
+      fill.style.width = pct + '%'
+      if (v.duration - v.currentTime <= VSL_SKIP_WINDOW) {
+        skipBtn.style.display = 'block'
+      }
+    }
 
-    // botão pular após 12s
-    _vslTimers.push(setTimeout(() => {
-      document.getElementById('vsl-skip-btn').style.display = 'block'
-    }, 12000))
+    // terminou → paywall
+    v.onended = () => _vslGoToPaywall()
 
-    // CTA final aparece com o último bloco
-    _vslTimers.push(setTimeout(() => {
-      const cta = document.getElementById('vsl-cta-btn')
-      cta.style.display = 'block'
-      cta.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, VSL_TIMINGS[7] + 1500))
+    // erro ao carregar o arquivo (ainda não existe) → paywall direto
+    v.onerror = () => _vslGoToPaywall()
+    const srcEl = v.querySelector('source')
+    if (srcEl) srcEl.onerror = () => _vslGoToPaywall()
 
-    // barra de progresso (atualiza a cada 800ms)
-    const startT = Date.now()
-    const progI = setInterval(() => {
-      const pct = Math.min(100, ((Date.now() - startT) / VSL_TOTAL) * 100)
-      document.getElementById('vsl-progress').style.width = pct + '%'
-      if (pct >= 100) clearInterval(progI)
-    }, 800)
-    _vslTimers.push({ _interval: progI })
+    // backstop: se em 2.5s o vídeo não carregou nenhum dado (arquivo ausente),
+    // seguir para a paywall — nunca deixar o lead numa tela preta
+    setTimeout(() => {
+      if (!_vslAdvanced && v.readyState === 0) _vslGoToPaywall()
+    }, 2500)
+  }
+
+  function vslUnmute() {
+    const v = document.getElementById('vsl-video')
+    const overlay = document.getElementById('vsl-sound-overlay')
+    if (!v) return
+    v.muted = false
+    v.currentTime = 0
+    const p = v.play()
+    if (p && p.catch) p.catch(() => {})
+    if (overlay) overlay.style.display = 'none'
   }
 
   function skipVSL() {
-    _vslTimers.forEach(t => { if (t && t._interval) clearInterval(t._interval); else clearTimeout(t) })
-    _vslTimers = []
-    showPaywall()
+    const v = document.getElementById('vsl-video')
+    if (v) { try { v.pause() } catch(_) {} }
+    _vslGoToPaywall()
   }
 
   async function startCheckout() {
