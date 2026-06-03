@@ -1,4 +1,10 @@
 {
+  "functions": {
+    "api/generate-novena-pdf.js": {
+      "maxDuration": 60,
+      "memory": 1536
+    }
+  },
   "crons": [
     {
       "path":     "/api/send-quiz-drip",

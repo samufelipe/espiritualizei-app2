@@ -230,6 +230,59 @@
     .dot-loader span {
       width: 7px; height: 7px; border-radius: 50%; background: #A78BFA; display: inline-block;
     }
+
+    /* ── MINI VSL ───────────────────────────────────────────────── */
+    #s-vsl { background: #0D1520; }
+
+    .vsl-block {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
+      margin-bottom: 32px;
+    }
+    .vsl-block.vsl-visible { opacity: 1; transform: translateY(0); }
+
+    .vsl-line { display: block; margin-bottom: 10px; }
+    .vsl-line.vsl-strong { font-weight: 800; color: #fff; }
+    .vsl-line.vsl-italic { font-style: italic; color: rgba(255,255,255,.65); }
+    .vsl-line.vsl-accent { color: #A78BFA; font-weight: 700; }
+    .vsl-line.vsl-quote {
+      font-family: 'Inter', sans-serif;
+      font-style: italic;
+      color: rgba(255,255,255,.75);
+      padding-left: 16px;
+      border-left: 2px solid rgba(167,139,250,.4);
+      margin: 4px 0;
+      display: block;
+    }
+
+    .vsl-progress-wrap {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: 2px; background: rgba(255,255,255,.06);
+    }
+    .vsl-progress-fill {
+      height: 100%; background: #A78BFA;
+      transition: width .8s linear;
+    }
+
+    .vsl-skip-btn {
+      display: none; position: fixed; top: 16px; right: 16px; z-index: 200;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.5); font-size: 12px; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: background .2s;
+    }
+    .vsl-skip-btn:hover { background: rgba(255,255,255,.15); color: rgba(255,255,255,.8); }
+
+    .vsl-cta-btn {
+      display: none; width: 100%;
+      background: linear-gradient(135deg, #A78BFA, #7C3AED);
+      color: #fff; font-size: 17px; font-weight: 800;
+      padding: 18px 24px; border-radius: 16px; border: none;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      box-shadow: 0 8px 32px rgba(167,139,250,.35);
+      transition: all .2s ease;
+    }
+    .vsl-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(167,139,250,.5); }
   </style>
 </head>
 <body>
@@ -393,6 +446,102 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
+<!-- TELA 4B — MINI VSL ANIMADA -->
+<div id="s-vsl" class="screen" style="position:relative;z-index:1;">
+  <div class="vsl-progress-wrap"><div class="vsl-progress-fill" id="vsl-progress" style="width:0%"></div></div>
+  <button class="vsl-skip-btn" id="vsl-skip-btn" onclick="skipVSL()">Pular →</button>
+
+  <div style="max-width:480px;margin:0 auto;padding:60px 24px 48px;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-start;">
+
+    <!-- Bloco 1 — Abertura -->
+    <div class="vsl-block" id="vsl-b1" style="text-align:center;padding-top:40px;">
+      <p style="font-size:clamp(22px,6vw,30px);font-weight:900;color:#fff;line-height:1.2;letter-spacing:-.3px;">Você não está aqui por acaso.</p>
+    </div>
+
+    <!-- Bloco 2 — Identidade -->
+    <div class="vsl-block" id="vsl-b2">
+      <p style="font-size:clamp(16px,4.5vw,20px);color:rgba(255,255,255,.8);line-height:1.75;">
+        <span class="vsl-line">Se você respondeu essas três perguntas com honestidade...</span>
+        <span class="vsl-line">você é a pessoa que sabe que quer mais da sua fé.</span>
+        <span class="vsl-line">Que sente que devia estar mais próxima de Deus.</span>
+        <span class="vsl-line vsl-strong">E que, por algum motivo, não consegue.</span>
+      </p>
+    </div>
+
+    <!-- Bloco 3 — Dor real -->
+    <div class="vsl-block" id="vsl-b3">
+      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.75);line-height:1.8;">
+        <span class="vsl-line" style="color:rgba(255,255,255,.5);font-size:.9em;">Não a dor que você conta pra outras pessoas.</span>
+        <span class="vsl-line vsl-strong" style="font-size:1.1em;">A que você sente sozinho.</span>
+        <span class="vsl-line">Aquele momento à noite, quando você vai deitar</span>
+        <span class="vsl-line">e sabe que não rezou hoje.</span>
+        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Não porque esqueceu.</span>
+        <span class="vsl-line">Porque o dia simplesmente aconteceu.</span>
+        <span class="vsl-line">E a fé foi ficando pra depois.</span>
+        <span class="vsl-line vsl-accent" style="font-size:1.05em;">Sempre pra depois.</span>
+      </p>
+    </div>
+
+    <!-- Bloco 4 — Linguagem -->
+    <div class="vsl-block" id="vsl-b4">
+      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.75);line-height:1.8;">
+        <span class="vsl-line">Se você já disse pra si mesmo:</span>
+        <span class="vsl-quote">"Semana que vem eu começo de verdade."</span>
+        <span class="vsl-quote">"Essa novena eu termino."</span>
+        <span class="vsl-quote">"Dessa vez vai."</span>
+        <span class="vsl-line" style="margin-top:8px;">... isso diz mais sobre onde você está</span>
+        <span class="vsl-line">do que qualquer teste poderia revelar.</span>
+      </p>
+    </div>
+
+    <!-- Bloco 5 — Contexto de vida -->
+    <div class="vsl-block" id="vsl-b5">
+      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.75);line-height:1.8;">
+        <span class="vsl-line">A sua vida não tem espaço</span>
+        <span class="vsl-line">para mais um compromisso que parece obrigação.</span>
+        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Você já tem trabalho, família, contas,</span>
+        <span class="vsl-line" style="color:rgba(255,255,255,.5);">grupos de WhatsApp, e uma fé que fica esperando.</span>
+        <span class="vsl-line" style="margin-top:8px;">Não porque ela importa menos.</span>
+        <span class="vsl-line vsl-strong">Mas porque nunca houve um caminho feito pra sua realidade.</span>
+      </p>
+    </div>
+
+    <!-- Bloco 6 — Frustrações -->
+    <div class="vsl-block" id="vsl-b6">
+      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.75);line-height:1.8;">
+        <span class="vsl-line vsl-strong">Você já tentou.</span>
+        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Já baixou aplicativo de oração.</span>
+        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Já comprou livro espiritual.</span>
+        <span class="vsl-line" style="color:rgba(255,255,255,.5);">Já começou novena e parou no terceiro dia.</span>
+        <span class="vsl-line" style="margin-top:8px;">Não porque você não quer.</span>
+        <span class="vsl-line vsl-strong">Porque nenhum desses caminhos foi feito <em>para você.</em></span>
+        <span class="vsl-line">Para o que você carrega agora.</span>
+        <span class="vsl-line">Para onde você realmente está.</span>
+      </p>
+    </div>
+
+    <!-- Bloco 7 — A virada -->
+    <div class="vsl-block" id="vsl-b7">
+      <p style="font-size:clamp(15px,4.3vw,18px);color:rgba(255,255,255,.8);line-height:1.8;">
+        <span class="vsl-line">O que você fez aqui foi diferente.</span>
+        <span class="vsl-line" style="color:rgba(255,255,255,.55);">Três respostas honestas.</span>
+        <span class="vsl-line" style="margin-top:8px;">E com elas, preparamos algo</span>
+        <span class="vsl-line">que não existe em nenhum outro lugar:</span>
+        <span class="vsl-line vsl-accent vsl-strong" style="font-size:1.05em;">um diagnóstico e um caminho</span>
+        <span class="vsl-line vsl-accent vsl-strong" style="font-size:1.05em;">feito especificamente para o seu momento.</span>
+      </p>
+    </div>
+
+    <!-- Bloco 8 — CTA -->
+    <div class="vsl-block" id="vsl-b8" style="text-align:center;margin-top:16px;">
+      <p id="vsl-cta-text" style="font-size:clamp(18px,5.5vw,24px);font-weight:800;color:#fff;line-height:1.3;margin-bottom:28px;"></p>
+      <button class="vsl-cta-btn" id="vsl-cta-btn" onclick="skipVSL()"></button>
+      <p style="font-size:12px;color:rgba(255,255,255,.25);margin-top:16px;">2 minutos · Sem compromisso</p>
+    </div>
+
+  </div>
+</div>
+
 <!-- TELA 5 — PAYWALL -->
 <div id="s-paywall" class="screen" style="position:relative;z-index:1;">
   <div style="max-width:460px;margin:0 auto;width:100%;padding:20px 16px 48px;">
@@ -405,114 +554,58 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
     </div>
 
-    <!-- ÂNCORA NARRATIVA -->
-    <div class="anim-fade-up" style="text-align:center;margin-bottom:28px;padding:20px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;">
-      <p style="font-size:clamp(14px,4vw,16px);color:rgba(255,255,255,.6);line-height:1.8;font-style:italic;">
-        "Toda semana, alguém decide que a partir de segunda vai rezar mais.<br>
-        Na quarta, a rotina engoliu tudo.<br>
-        <span style="color:rgba(255,255,255,.85);font-weight:600;font-style:normal;">Isso não é falta de fé.</span><br>
-        É falta de um caminho feito para o seu momento real."
-      </p>
-    </div>
-
-    <!-- ZONA 1: Nível revelado -->
-    <div class="anim-fade-up" style="text-align:center;margin-bottom:28px;">
-      <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:16px;">SEU DIAGNÓSTICO</p>
-
-      <div id="pw-badge" class="level-badge-glow" style="display:inline-flex;align-items:center;gap:10px;padding:10px 20px;border-radius:40px;margin-bottom:18px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.25);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="#A78BFA">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-        </svg>
-        <span id="pw-level-name" style="font-size:14px;font-weight:700;color:#A78BFA;"></span>
-      </div>
-
-      <h2 id="pw-level-subtitle" style="font-size:clamp(18px,5vw,22px);font-weight:700;margin-bottom:12px;font-style:italic;color:rgba(255,255,255,.75);"></h2>
-
-      <p id="pw-personal-text" style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.65);line-height:1.65;max-width:360px;margin:0 auto 16px;"></p>
-
-      <!-- TRANSFORMAÇÃO PROMETIDA -->
-      <div id="pw-transformation" style="font-size:clamp(13px,3.8vw,14.5px);font-weight:600;color:#A78BFA;line-height:1.7;padding:14px 18px;background:rgba(167,139,250,.08);border:1.5px solid rgba(167,139,250,.25);border-radius:14px;max-width:380px;margin:0 auto;text-align:left;"></div>
-    </div>
-
-    <!-- ZONA 2: O que descobrimos sobre você -->
+    <!-- ZONA 1: Diagnóstico em uma frase -->
     <div class="anim-fade-up" style="margin-bottom:28px;">
-      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:12px;">O QUE DESCOBRIMOS SOBRE VOCÊ</p>
-      <div id="pw-insights" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <!-- Card A: Dom Espiritual (visível) -->
-        <div id="pw-gift" style="background:rgba(167,139,250,.08);border:1.5px solid rgba(167,139,250,.2);border-radius:16px;padding:14px;">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-            <i data-lucide="sparkles" style="width:14px;height:14px;color:#A78BFA;flex-shrink:0;"></i>
-            <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#A78BFA;text-transform:uppercase;">SEU DOM</span>
+      <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:14px;text-align:center;">SEU DIAGNÓSTICO</p>
+      <h2 id="pw-main-headline" style="font-size:clamp(20px,5.5vw,26px);font-weight:800;line-height:1.25;margin-bottom:20px;text-align:center;"></h2>
+      <div style="background:rgba(167,139,250,.07);border:1.5px solid rgba(167,139,250,.2);border-radius:18px;padding:22px;">
+        <p id="pw-personal-text" style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.8);line-height:1.75;margin:0 0 14px;"></p>
+        <div id="pw-transformation" style="font-size:clamp(13px,3.8vw,14.5px);font-weight:600;color:#A78BFA;line-height:1.7;padding:12px 16px;background:rgba(167,139,250,.1);border:1.5px solid rgba(167,139,250,.25);border-radius:12px;"></div>
+      </div>
+    </div>
+
+    <!-- ZONA 2: Antes / Depois -->
+    <div class="anim-fade-up" id="pw-before-after" style="margin-bottom:28px;">
+      <!-- populado via JS -->
+    </div>
+
+    <!-- ZONA 3: O que você leva (3 itens) -->
+    <div class="anim-fade-up" style="margin-bottom:28px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:14px;">O QUE VOCÊ LEVA</p>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+
+        <div style="background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(124,58,237,.06));border:1.5px solid rgba(167,139,250,.25);border-radius:16px;padding:16px 18px;display:flex;align-items:flex-start;gap:14px;">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(167,139,250,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="book-open" style="width:18px;height:18px;color:#A78BFA;"></i>
           </div>
-          <p id="pw-gift-text" style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;"></p>
-        </div>
-        <!-- Card B: Bloqueio Principal (visível) -->
-        <div id="pw-block" style="background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.18);border-radius:16px;padding:14px;">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-            <i data-lucide="target" style="width:14px;height:14px;color:#f87171;flex-shrink:0;"></i>
-            <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#f87171;text-transform:uppercase;">SEU BLOQUEIO</span>
-          </div>
-          <p id="pw-block-text" style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;"></p>
-        </div>
-        <!-- Card C: Próximos Passos (bloqueado, coluna dupla) -->
-        <div style="grid-column:1/-1;position:relative;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:16px;padding:14px;overflow:hidden;">
-          <div style="filter:blur(4px);pointer-events:none;user-select:none;">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-              <i data-lucide="list-checks" style="width:14px;height:14px;color:#A78BFA;flex-shrink:0;"></i>
-              <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#A78BFA;text-transform:uppercase;">SEUS 3 PRÓXIMOS PASSOS</span>
-            </div>
-            <p style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.5;">Passo 1 · Passo 2 · Passo 3 concretos para avançar</p>
-          </div>
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(26,37,48,.4);">
-            <i data-lucide="lock" style="width:14px;height:14px;color:#A78BFA;"></i>
-            <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6);">Incluído no seu plano</span>
+          <div>
+            <p style="font-size:14px;font-weight:700;color:rgba(255,255,255,.92);margin:0 0 4px;">Novena dos 9 Dias em PDF</p>
+            <p style="font-size:12px;color:rgba(255,255,255,.5);margin:0;line-height:1.5;">Criada para o seu desafio. Para baixar, rezar e guardar para sempre.</p>
           </div>
         </div>
+
+        <div style="background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 18px;display:flex;align-items:flex-start;gap:14px;">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="calendar-check-2" style="width:18px;height:18px;color:#A78BFA;"></i>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:700;color:rgba(255,255,255,.92);margin:0 0 4px;">Plano de 21 dias personalizado</p>
+            <p style="font-size:12px;color:rgba(255,255,255,.5);margin:0;line-height:1.5;">Intenção, oração e tarefa concreta para cada dia. Você nunca mais acorda sem saber o que fazer.</p>
+          </div>
+        </div>
+
+        <div style="background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 18px;display:flex;align-items:flex-start;gap:14px;">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="compass" style="width:18px;height:18px;color:#A78BFA;"></i>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:700;color:rgba(255,255,255,.92);margin:0 0 4px;">Diagnóstico completo</p>
+            <p style="font-size:12px;color:rgba(255,255,255,.5);margin:0;line-height:1.5;">Seu mapa espiritual completo, seus 3 próximos passos e acesso permanente ao seu plano.</p>
+          </div>
+        </div>
+
       </div>
     </div>
-
-    <!-- ZONA 3: Mapa Espiritual parcial -->
-    <div class="anim-fade-up" style="margin-bottom:28px;">
-      <div style="background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:20px;padding:20px;">
-        <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px;">SEU MAPA ESPIRITUAL</p>
-        <div id="pw-dims" style="display:flex;flex-direction:column;gap:10px;">
-          <!-- preenchido via JS -->
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);">
-          <i data-lucide="lock" style="width:12px;height:12px;color:rgba(255,255,255,.3);"></i>
-          <span style="font-size:11px;color:rgba(255,255,255,.3);">Mapa completo disponível no seu plano</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ZONA 4: Dia 1 específico por desafio -->
-    <div class="anim-fade-up" style="margin-bottom:28px;">
-      <div class="day-preview">
-        <div class="day-preview-content">
-          <p style="font-size:11px;font-weight:700;color:#A78BFA;margin-bottom:6px;">DIA 1 DO SEU PLANO</p>
-          <p id="pw-day1-intention" style="font-size:13px;font-style:italic;color:rgba(255,255,255,.75);margin-bottom:10px;line-height:1.5;"></p>
-          <p id="pw-day1-meta" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
-        </div>
-        <div class="day-preview-overlay">
-          <i data-lucide="lock" style="width:20px;height:20px;color:#A78BFA;margin-bottom:6px;"></i>
-          <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6);">Todo o plano disponível após acesso</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ZONA 5: 3 semanas condensadas (prova do plano) -->
-    <div class="anim-fade-up" style="margin-bottom:28px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px;">
-        <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);">SEU PLANO DE 21 DIAS</p>
-        <span style="font-size:10px;font-weight:700;color:#A78BFA;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);border-radius:20px;padding:2px 10px;">+ Novena dos 9 Dias em PDF</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;" id="pw-weeks-preview">
-        <!-- preenchido via JS -->
-      </div>
-    </div>
-
-    <!-- ZONA LITÚRGICA: contexto do tempo da Igreja (preenchida via JS) -->
-    <div id="pw-seasonal" class="anim-fade-up" style="margin-bottom:20px;"></div>
 
     <!-- ZONA DEPOIMENTOS -->
     <!-- ⚠️ AÇÃO NECESSÁRIA: Substitua os 3 depoimentos abaixo por depoimentos REAIS
@@ -583,47 +676,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- ZONA 6: CTA pagamento único -->
     <div style="background:rgba(167,139,250,.06);border:1.5px solid rgba(167,139,250,.2);border-radius:20px;padding:24px;text-align:center;">
 
-      <p id="pw-cta-headline" style="font-size:clamp(16px,4.5vw,19px);font-weight:700;line-height:1.35;margin-bottom:16px;"></p>
-
-      <!-- O que você recebe -->
-      <div style="background:rgba(255,255,255,.04);border-radius:14px;padding:16px;margin-bottom:20px;text-align:left;">
-        <p style="font-size:10px;font-weight:800;letter-spacing:1.5px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:10px;">O QUE MUDA NA SUA VIDA</p>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#10B981;flex-shrink:0;margin-top:3px;"></i>
-            <div>
-              <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.92);">Novena dos 9 Dias personalizada em PDF</span>
-              <span style="font-size:11px;color:rgba(255,255,255,.45);display:block;margin-top:2px;">Criada para o seu desafio específico. Reze mesmo nos dias em que não sabe por onde começar.</span>
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#10B981;flex-shrink:0;margin-top:3px;"></i>
-            <div>
-              <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.92);">Plano de 21 dias feito para você, não para todo mundo</span>
-              <span style="font-size:11px;color:rgba(255,255,255,.45);display:block;margin-top:2px;">Cada semana tem um foco ligado ao que você revelou no diagnóstico. Nada genérico.</span>
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#10B981;flex-shrink:0;margin-top:3px;"></i>
-            <div>
-              <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.92);">Rotina diária completa para cada um dos 21 dias</span>
-              <span style="font-size:11px;color:rgba(255,255,255,.45);display:block;margin-top:2px;">Intenção, oração e tarefa concreta. Você nunca mais acorda sem saber o que fazer com sua fé.</span>
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#10B981;flex-shrink:0;margin-top:3px;"></i>
-            <div>
-              <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.92);">Diagnóstico completo com mapa espiritual e próximos passos</span>
-              <span style="font-size:11px;color:rgba(255,255,255,.45);display:block;margin-top:2px;">Entenda de verdade onde você está e o que precisa mudar, com clareza e sem julgamento.</span>
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#10B981;flex-shrink:0;margin-top:3px;"></i>
-            <div>
-              <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.92);">Acesso permanente, sem prazo de expiração</span>
-              <span style="font-size:11px;color:rgba(255,255,255,.45);display:block;margin-top:2px;">Volte quando precisar recomeçar. Sem culpa. Seu plano te espera.</span>
-            </div>
-          </div>
+      <p id="pw-cta-headline" style="font-size:clamp(16px,4.5vw,19px);font-weight:700;line-height:1.35;margin-bottom:20px;"></p>
         </div>
       </div>
 
@@ -897,6 +950,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     's-name':    '/quiz/nome',
     's-email':   '/quiz/email',
     's-loading': '/quiz/analisando',
+    's-vsl':     '/quiz/revelacao',
     's-paywall': '/quiz/diagnostico',
   }
 
@@ -1045,7 +1099,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         clearInterval(t)
       }
     }, 1400)
-    setTimeout(() => { clearInterval(t); showPaywall() }, 7000)
+    setTimeout(() => { clearInterval(t); startVSL() }, 7000)
   }
 
   function calcScore(a) {
@@ -1067,22 +1121,81 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     return { dims, avg, level: LEVELS[lvl], levelIndex: lvl }
   }
 
+  // ── Estados ANTES (dor presente, por desafio) ──────────────────
+  const TODAY_STATES = {
+    anxiety:   'Você acorda com a mente já acelerada, e a oração fica para "quando der".',
+    laziness:  'Você começa cheio de vontade na segunda e para na quarta. Toda semana.',
+    dryness:   'Você reza, mas sente um vazio. Como se ninguém estivesse do outro lado.',
+    ignorance: 'Você tem dúvidas que travam sua fé, e não sabe a quem perguntar.',
+    pride:     'Você sabe que precisa se entregar, mas o controle sempre fala mais alto.',
+    lust:      'Você luta sozinho, recomeça, cai, e a culpa pesa cada vez mais.',
+  }
+  // ── Estados DEPOIS (transformação curta, por desafio) ──────────
+  const AFTER_STATES = {
+    anxiety:   'Você começa o dia ancorado em Deus, antes do barulho do mundo.',
+    laziness:  'Você tem uma rotina que dura, porque foi feita para o seu ritmo real.',
+    dryness:   'Você reencontra a presença de Deus no silêncio do dia a dia.',
+    ignorance: 'Você reza com clareza e segurança, sabendo no que acredita.',
+    pride:     'Você experimenta o alívio de se entregar, um passo de cada vez.',
+    lust:      'Você caminha em graça e liberdade, um dia de cada vez.',
+  }
+  const MAIN_HEADLINES = {
+    anxiety:   n => `${n}, sua ansiedade tem uma raiz espiritual — e um caminho de saída.`,
+    laziness:  n => `${n}, descobrimos por que você sempre recomeça e nunca termina.`,
+    dryness:   n => `${n}, identificamos por que sua oração tem parecido vazia.`,
+    ignorance: n => `${n}, suas dúvidas não são fraqueza — são o começo do caminho.`,
+    pride:     n => `${n}, identificamos o que está travando seu crescimento.`,
+    lust:      n => `${n}, existe um caminho de liberdade para o que você carrega.`,
+  }
+
   function showPaywall() {
-    const { dims, level, levelIndex } = S.score
     const a = S.answers
 
-    // Badge
-    document.getElementById('pw-level-name').textContent = level.name
-    document.getElementById('pw-badge').style.borderColor = level.color + '55'
-    document.getElementById('pw-level-subtitle').textContent = level.sub
+    // ZONA 1 — Headline + diagnóstico em uma frase
+    const hlFn = MAIN_HEADLINES[a.challenge]
+    document.getElementById('pw-main-headline').textContent =
+      hlFn ? hlFn(S.name) : `${S.name}, identificamos o que está bloqueando sua fé.`
 
-    // Texto pessoal
     const textFn = PERSONAL_TEXTS[a.challenge]
     document.getElementById('pw-personal-text').textContent = textFn
       ? textFn(S.name)
       : `${S.name}, seus dados revelam um coração que busca e que quer crescer. Existe um caminho concreto para avançar.`
 
-    // CTA headline — personalizado por desafio
+    const TRANSFORMATIONS = {
+      anxiety:   `Em 21 dias, você sai de acordar com ansiedade para ter um começo de dia que ancora em Deus, antes de qualquer barulho do mundo.`,
+      laziness:  `Em 21 dias, você sai de recomeçar toda semana para ter uma rotina que dura porque foi feita para o seu ritmo real.`,
+      dryness:   `Em 21 dias, você sai de rezar no vazio para voltar a sentir a presença de Deus no silêncio do dia a dia.`,
+      ignorance: `Em 21 dias, você sai das dúvidas que travam para rezar com mais clareza, segurança e conhecimento real da sua fé.`,
+      pride:     `Em 21 dias, você sai da luta interna constante para o esvaziamento que liberta, com passos concretos e sem forçar.`,
+      lust:      `Em 21 dias, você sai da batalha solitária para um caminho estruturado de graça e liberdade interior, dia por dia.`,
+    }
+    const transEl = document.getElementById('pw-transformation')
+    if (transEl) transEl.textContent = TRANSFORMATIONS[a.challenge] || `Em 21 dias, você sai de onde está para onde seu coração realmente quer estar.`
+
+    // ZONA 2 — Antes / Depois
+    const todayTxt = TODAY_STATES[a.challenge] || 'Você quer rezar mais, mas a rotina sempre engole a sua fé.'
+    const afterTxt = AFTER_STATES[a.challenge] || 'Você vive uma fé constante, no seu ritmo, todos os dias.'
+    document.getElementById('pw-before-after').innerHTML = `
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:14px;">A SUA VIRADA EM 21 DIAS</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:rgba(239,68,68,.05);border:1.5px solid rgba(239,68,68,.18);border-radius:16px;padding:16px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+            <i data-lucide="cloud-rain" style="width:14px;height:14px;color:#f87171;flex-shrink:0;"></i>
+            <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#f87171;text-transform:uppercase;">HOJE</span>
+          </div>
+          <p style="font-size:12.5px;color:rgba(255,255,255,.75);line-height:1.6;">${todayTxt}</p>
+        </div>
+        <div style="background:rgba(16,185,129,.06);border:1.5px solid rgba(16,185,129,.22);border-radius:16px;padding:16px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+            <i data-lucide="sunrise" style="width:14px;height:14px;color:#10B981;flex-shrink:0;"></i>
+            <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#10B981;text-transform:uppercase;">EM 21 DIAS</span>
+          </div>
+          <p style="font-size:12.5px;color:rgba(255,255,255,.85);line-height:1.6;">${afterTxt}</p>
+        </div>
+      </div>
+    `
+
+    // ZONA 4 — CTA headline personalizado
     const ctaHooks = {
       anxiety:   `${S.name}, criamos uma Novena e um Plano para levar sua ansiedade ao único lugar onde ela encontra descanso.`,
       laziness:  `${S.name}, sua Novena dos 9 Dias e seu Plano de 21 Dias estão prontos. Um único passo para começar de verdade.`,
@@ -1093,98 +1206,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
     document.getElementById('pw-cta-headline').textContent =
       ctaHooks[a.challenge] || `${S.name}, seu próximo passo está aqui.`
-
-    // Transformação prometida — antes/depois por desafio
-    const TRANSFORMATIONS = {
-      anxiety:   `Em 21 dias, você sai de acordar com ansiedade para ter um começo de dia que ancora em Deus, antes de qualquer barulho do mundo.`,
-      laziness:  `Em 21 dias, você sai de recomeçar toda semana para ter uma rotina que dura porque foi feita para o seu ritmo real, não para um ideal impossível.`,
-      dryness:   `Em 21 dias, você sai de rezar no vazio para voltar a sentir a presença de Deus no silêncio do dia a dia.`,
-      ignorance: `Em 21 dias, você sai das dúvidas que travam para rezar com mais clareza, segurança e conhecimento real da sua fé.`,
-      pride:     `Em 21 dias, você sai da luta interna constante para o esvaziamento que liberta, com passos concretos e sem forçar.`,
-      lust:      `Em 21 dias, você sai da batalha solitária para um caminho estruturado de graça e liberdade interior, dia por dia.`,
-    }
-    const transEl = document.getElementById('pw-transformation')
-    if (transEl) transEl.textContent = TRANSFORMATIONS[a.challenge] || `Em 21 dias, você sai de onde está para onde seu coração realmente quer estar.`
-
-    // Dom e Bloqueio
-    document.getElementById('pw-gift-text').textContent = GIFTS_SHORT[a.challenge] || 'Dom espiritual identificado pelo seu perfil único'
-    document.getElementById('pw-block-text').textContent = BLOCKS_SHORT[a.challenge] || 'Bloqueio principal identificado pelo diagnóstico'
-
-    // Dia 1 específico
-    const d1 = DAY1_PREVIEW[a.challenge] || { intention:'Hoje escolho abrir meu coração a Deus com humildade e confiança.', prayer:'Oração de abertura', task:'5 minutos de silêncio interior' }
-    document.getElementById('pw-day1-intention').textContent = `"${d1.intention}"`
-    document.getElementById('pw-day1-meta').textContent = `Oração: ${d1.prayer} · Tarefa: ${d1.task}`
-
-    // Mapa Espiritual parcial (2 barras visíveis, 3 borradas)
-    const DIM_LABELS = ['Oração','Sacramento','Formação','Comunidade','Missão']
-    const strongIdx = dims.indexOf(Math.max(...dims))
-    const weakIdx   = dims.indexOf(Math.min(...dims))
-    document.getElementById('pw-dims').innerHTML = dims.map((v, i) => {
-      const isStrong = i === strongIdx
-      const isWeak   = i === weakIdx
-      const visible  = isStrong || isWeak
-      const barColor = isStrong ? '#A78BFA' : isWeak ? 'rgba(239,68,68,.7)' : '#A78BFA'
-      const pct      = Math.round(v)
-      return `
-        <div style="${visible ? '' : 'filter:blur(5px);pointer-events:none;user-select:none;'}">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:12px;color:rgba(255,255,255,.7);">${DIM_LABELS[i]}</span>
-            <span style="font-size:12px;font-weight:700;color:${visible ? barColor : 'rgba(255,255,255,.3)'};">${visible ? pct + '%' : '·'}</span>
-          </div>
-          <div style="height:6px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;">
-            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;"></div>
-          </div>
-        </div>`
-    }).join('')
-
-    // Semanas condensadas
-    const w1 = WEEK_THEMES.challenge[a.challenge]         || { theme:'Regularidade na oração',         icon:'heart'     }
-    const w2 = WEEK_THEMES.goal[a.goal]                   || { theme:'Aprofundamento da fé',            icon:'lightbulb' }
-    const w3 = WEEK_THEMES.prayerReality[a.prayerReality] || { theme:'Integração da oração na rotina', icon:'calendar'  }
-
-    const novenaName = {
-      anxiety:'Novena da Paz Interior', laziness:'Novena da Constância',
-      dryness:'Novena do Reencontro', ignorance:'Novena da Luz na Fé',
-      pride:'Novena do Esvaziamento', lust:'Novena da Libertação',
-    }
-    const nName = novenaName[a.challenge] || 'Novena Personalizada'
-
-    document.getElementById('pw-weeks-preview').innerHTML =
-      `<div style="background:linear-gradient(135deg,rgba(167,139,250,.12),rgba(16,185,129,.08));border:1.5px solid rgba(167,139,250,.3);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:4px;">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <i data-lucide="book-open" style="width:18px;height:18px;color:#A78BFA;"></i>
-        </div>
-        <div style="flex:1;">
-          <p style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#A78BFA;text-transform:uppercase;margin-bottom:3px;">BÔNUS INCLUSO · PDF PARA IMPRIMIR</p>
-          <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">${nName}</p>
-          <p style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">9 dias de oração criados para o seu desafio</p>
-        </div>
-        <i data-lucide="download" style="width:16px;height:16px;color:#10B981;flex-shrink:0;"></i>
-      </div>` +
-      [w1,w2,w3].map((w,i)=>`
-      <div class="week-preview-card">
-        <div class="week-num">S${i+1}</div>
-        <div>
-          <p style="font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:3px;">SEMANA ${i+1}</p>
-          <p style="font-size:14px;font-weight:600;color:rgba(255,255,255,.85);">${w.theme}</p>
-        </div>
-        <i data-lucide="${w.icon}" style="width:18px;height:18px;color:#A78BFA;margin-left:auto;flex-shrink:0;"></i>
-      </div>
-    `).join('')
-
-    // Zona litúrgica — tempo real da Igreja
-    const pwSeasonal = document.getElementById('pw-seasonal')
-    if (pwSeasonal) {
-      pwSeasonal.innerHTML = `
-        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:16px 18px;display:flex;align-items:flex-start;gap:13px;">
-          <i data-lucide="${LITURGICAL.icon}" style="width:20px;height:20px;color:${LITURGICAL.color};flex-shrink:0;margin-top:1px;"></i>
-          <div>
-            <p style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:${LITURGICAL.color};margin-bottom:5px;">TEMPO LITÚRGICO ATUAL · ${LITURGICAL.name.toUpperCase()}</p>
-            <p style="font-size:12.5px;color:rgba(255,255,255,.65);line-height:1.6;">${LITURGICAL.paywallMsg}</p>
-          </div>
-        </div>
-      `
-    }
 
     // CTA botão dinâmica por desafio
     const CTA_BTN_LABELS = {
@@ -1203,6 +1224,69 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     lucide.createIcons()
     show('s-paywall')
+  }
+
+  // ── MINI VSL: progressão dos blocos ─────────────────────────────
+  const VSL_BLOCKS  = ['vsl-b1','vsl-b2','vsl-b3','vsl-b4','vsl-b5','vsl-b6','vsl-b7','vsl-b8']
+  // tempos (ms) para revelar cada bloco a partir do início
+  const VSL_TIMINGS = [400, 4000, 11000, 26000, 38000, 52000, 68000, 82000]
+  const VSL_TOTAL   = 92000
+  let _vslTimers = []
+
+  function startVSL() {
+    show('s-vsl')
+    // resetar
+    VSL_BLOCKS.forEach(id => {
+      const el = document.getElementById(id)
+      if (el) el.classList.remove('vsl-visible')
+    })
+    document.getElementById('vsl-progress').style.width = '0%'
+    document.getElementById('vsl-skip-btn').style.display = 'none'
+    document.getElementById('vsl-cta-btn').style.display = 'none'
+
+    // texto dinâmico do CTA final
+    document.getElementById('vsl-cta-text').textContent = `${S.name}, seu diagnóstico está pronto.`
+    document.getElementById('vsl-cta-btn').textContent = `Ver meu diagnóstico, ${S.name} →`
+
+    _vslTimers.forEach(clearTimeout)
+    _vslTimers = []
+
+    // revelar blocos progressivamente + auto-scroll suave
+    VSL_BLOCKS.forEach((id, idx) => {
+      _vslTimers.push(setTimeout(() => {
+        const el = document.getElementById(id)
+        if (!el) return
+        el.classList.add('vsl-visible')
+        if (idx > 0) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, VSL_TIMINGS[idx]))
+    })
+
+    // botão pular após 12s
+    _vslTimers.push(setTimeout(() => {
+      document.getElementById('vsl-skip-btn').style.display = 'block'
+    }, 12000))
+
+    // CTA final aparece com o último bloco
+    _vslTimers.push(setTimeout(() => {
+      const cta = document.getElementById('vsl-cta-btn')
+      cta.style.display = 'block'
+      cta.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, VSL_TIMINGS[7] + 1500))
+
+    // barra de progresso (atualiza a cada 800ms)
+    const startT = Date.now()
+    const progI = setInterval(() => {
+      const pct = Math.min(100, ((Date.now() - startT) / VSL_TOTAL) * 100)
+      document.getElementById('vsl-progress').style.width = pct + '%'
+      if (pct >= 100) clearInterval(progI)
+    }, 800)
+    _vslTimers.push({ _interval: progI })
+  }
+
+  function skipVSL() {
+    _vslTimers.forEach(t => { if (t && t._interval) clearInterval(t._interval); else clearTimeout(t) })
+    _vslTimers = []
+    showPaywall()
   }
 
   async function startCheckout() {
