@@ -314,10 +314,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div id="seasonal-banner" style="margin-bottom:22px;margin-top:-16px;display:flex;justify-content:center;"></div>
 
       <!-- Headline -->
-      <h1 style="font-size:clamp(24px,6.5vw,36px);font-weight:900;line-height:1.22;margin-bottom:14px;letter-spacing:-.5px;text-wrap:balance;">
+      <h1 id="landing-headline" style="font-size:clamp(24px,6.5vw,36px);font-weight:900;line-height:1.22;margin-bottom:14px;letter-spacing:-.5px;text-wrap:balance;">
         Por que toda tentativa de <span style="color:#A78BFA;">rezar mais dura menos de uma semana?</span>
       </h1>
-      <p style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.58);line-height:1.65;margin-bottom:22px;">
+      <p id="landing-sub" style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.58);line-height:1.65;margin-bottom:22px;">
         3 perguntas honestas revelam o que está bloqueando sua vida espiritual. Você recebe um Plano de 21 Dias e uma Novena criados para o <em>seu</em> desafio real, não um plano genérico para todo mundo.
       </p>
 
@@ -336,7 +336,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(249,168,212,.1);color:#F9A8D4;border:1px solid rgba(249,168,212,.2);">Maduro</span>
       </div>
 
-      <button class="btn-primary" onclick="show('s-name')" style="font-size:16px;font-weight:700;color:#1A2530;padding:18px 24px;">
+      <button id="landing-cta" class="btn-primary" onclick="show('s-name')" style="font-size:16px;font-weight:700;color:#1A2530;padding:18px 24px;">
         Descobrir o Que Me Bloqueia
       </button>
 
@@ -1326,6 +1326,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     .catch(() => {}) // fallback: usuário faz o quiz normalmente
   }
   // ── FIM Resume URL ────────────────────────────────────────────────────────────
+
+  // ── Variante de landing por ângulo (?foco=ansiedade) ─────────────────────────
+  // Funil dedicado vindo dos anúncios Meta de ansiedade. Troca só a copy da
+  // landing; o quiz, VSL e paywall seguem iguais (personalizam por challenge).
+  const LANDING_ANGLES = {
+    ansiedade: {
+      headline: 'Não é falta de fé. <span style="color:#A78BFA;">É ansiedade. E existe um caminho católico pra ela.</span>',
+      sub: 'Responda 3 perguntas honestas e descubra o que mantém sua mente sem paz, e o caminho de 21 dias para entregar sua ansiedade a Deus, no seu ritmo.',
+      cta: 'Quero encontrar paz',
+    },
+  }
+  const foco = new URLSearchParams(window.location.search).get('foco')
+  if (foco && LANDING_ANGLES[foco]) {
+    const a = LANDING_ANGLES[foco]
+    const hEl = document.getElementById('landing-headline')
+    const sEl = document.getElementById('landing-sub')
+    const cEl = document.getElementById('landing-cta')
+    if (hEl) hEl.innerHTML = a.headline
+    if (sEl) sEl.textContent = a.sub
+    if (cEl) cEl.textContent = a.cta
+  }
+  // ── FIM Variante de landing ───────────────────────────────────────────────────
 
   // Init
   lucide.createIcons()
