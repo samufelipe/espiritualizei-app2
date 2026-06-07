@@ -10,10 +10,10 @@ interface PaywallProps {
 }
 
 const Paywall: React.FC<PaywallProps> = ({ onCheckout, title, description, isTrialExpired }) => {
-  const defaultTitle = isTrialExpired ? "Seu Trial Gratuito Encerrou" : "Funcionalidade Premium";
+  const defaultTitle = isTrialExpired ? "Não pare agora. E não pare sozinha." : "Continue sua caminhada";
   const defaultDesc = isTrialExpired
-    ? "Seus 7 dias de acesso gratuito chegaram ao fim. Assine para continuar sua jornada espiritual com acesso completo."
-    : "Aprofunde sua vida espiritual com acesso total aos tesouros da Igreja e direção personalizada.";
+    ? "Seu plano teve um fim, mas a sua caminhada não. Aqui você continua todos os dias, com uma comunidade rezando ao seu lado."
+    : "O começo você já deu. Agora siga em frente com gente do seu lado, no seu ritmo, todos os dias.";
 
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in min-h-[60vh] bg-white dark:bg-brand-dark rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-2xl relative overflow-hidden">
@@ -38,10 +38,10 @@ const Paywall: React.FC<PaywallProps> = ({ onCheckout, title, description, isTri
 
         <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-4 space-y-3 text-left">
           {[
-            'Biblioteca completa de formação',
-            'Chat com Direção Espiritual (IA)',
-            'Chat da Comunidade e Ranking',
-            'Plano de vida adaptável mensal'
+            'Uma comunidade rezando por você todos os dias',
+            'Sua caminhada continua, adaptada à sua vida',
+            'Formação: santos, liturgia e os tesouros da fé',
+            'Direção espiritual sempre que precisar'
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
               <Check size={14} className="text-green-500 shrink-0" strokeWidth={3} />
@@ -54,7 +54,7 @@ const Paywall: React.FC<PaywallProps> = ({ onCheckout, title, description, isTri
           onClick={onCheckout}
           className="w-full bg-brand-violet text-white font-black py-4 rounded-2xl shadow-xl shadow-brand-violet/20 hover:bg-purple-600 transition-all flex items-center justify-center gap-2 active:scale-95 group"
         >
-          Liberar Acesso Agora <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          Quero continuar minha caminhada <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
         </button>
 
         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
