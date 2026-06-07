@@ -85,6 +85,10 @@ function buildDayEmailHtml(p: {
       &ldquo;${intention}&rdquo;
     </p>
 
+    ${(dayNumber === 7 || dayNumber === 14) ? `<div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.18);border-radius:12px;padding:14px 16px;margin:0 0 24px;">
+      <p style="font-size:12.5px;color:rgba(255,255,255,.6);line-height:1.6;margin:0;">Voc&ecirc; sabia? Milhares de cat&oacute;licos rezam todos os dias no app do Espiritualizei, uns pelos outros. Quando seus 21 dias terminarem, voc&ecirc; n&atilde;o vai precisar caminhar sozinha.</p>
+    </div>` : ''}
+
     <div style="text-align:center;">
       <a href="${ctaUrl}" style="display:inline-block;background:linear-gradient(135deg,#10B981,#059669);color:#fff;text-decoration:none;padding:16px 36px;border-radius:14px;font-weight:800;font-size:16px;">
         Come&ccedil;ar o Dia ${dayNumber} &rarr;
@@ -98,6 +102,75 @@ function buildDayEmailHtml(p: {
     <p style="font-size:11px;margin:0;">
       <a href="${dashboardUrl}" style="color:rgba(167,139,250,.5);text-decoration:underline;">Ver meu plano completo</a>
       &nbsp;&middot;&nbsp;
+      <a href="mailto:espiritualizeiapp@gmail.com?subject=Cancelar%20e-mails%20do%20desafio" style="color:rgba(255,255,255,.2);text-decoration:underline;">Cancelar e-mails</a>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>`
+}
+
+// ── E-mail de fechamento (Dia 21): oferta forte do app ─────────────────────────
+
+function buildDay21CloseHtml(name: string): string {
+  const appUrl = 'https://www.espiritualizei.com/?from=drip21'
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Você concluiu os 21 dias | Espiritualizei</title>
+</head>
+<body style="margin:0;padding:0;background:#0F1419;font-family:Arial,Helvetica,sans-serif;color:#fff;">
+<div style="max-width:560px;margin:0 auto;padding:40px 20px;">
+
+  <div style="text-align:center;margin-bottom:32px;">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="#A78BFA">
+      <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
+    </svg>
+    <p style="color:rgba(167,139,250,.6);font-size:10px;letter-spacing:2.5px;margin:6px 0 0;text-transform:uppercase;">Espiritualizei</p>
+  </div>
+
+  <div style="background:#1A2530;border-radius:20px;padding:32px 28px;border:1px solid rgba(167,139,250,.15);">
+
+    <div style="display:inline-block;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:40px;padding:6px 16px;margin-bottom:16px;">
+      <span style="font-size:11px;font-weight:700;color:#10B981;letter-spacing:1.5px;text-transform:uppercase;">21 DE 21 &middot; CONCLU&Iacute;DO</span>
+    </div>
+
+    <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;line-height:1.25;">${name}, voc&ecirc; foi at&eacute; o fim. Que orgulho da sua const&acirc;ncia.</h1>
+
+    <div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:20px;"></div>
+
+    <p style="font-size:15px;color:rgba(255,255,255,.78);line-height:1.75;margin:0 0 18px;">
+      Em 21 dias voc&ecirc; provou pra si mesma uma coisa: a paz &eacute; poss&iacute;vel quando existe um caminho.
+    </p>
+    <p style="font-size:15px;color:rgba(255,255,255,.78);line-height:1.75;margin:0 0 18px;">
+      Mas hoje &eacute; o dia 21. E amanh&atilde; &eacute; o dia 22. A ansiedade n&atilde;o avisa quando vai voltar, e o pior jeito de enfrentar isso &eacute; sozinha.
+    </p>
+    <p style="font-size:15px;color:rgba(255,255,255,.9);line-height:1.75;margin:0 0 28px;font-weight:600;">
+      No app do Espiritualizei a sua caminhada continua, e voc&ecirc; nunca mais reza sozinha: milhares de cat&oacute;licos rezando todos os dias, uns pelos outros.
+    </p>
+
+    <div style="background:rgba(167,139,250,.07);border:1.5px solid rgba(167,139,250,.2);border-radius:14px;padding:18px;margin-bottom:28px;">
+      <p style="font-size:10px;font-weight:800;letter-spacing:1.5px;color:rgba(167,139,250,.7);text-transform:uppercase;margin:0 0 10px;">O QUE CONTINUA NO APP</p>
+      <p style="font-size:13.5px;color:rgba(255,255,255,.75);line-height:1.7;margin:0;">
+        &bull; Uma comunidade rezando com voc&ecirc;, todos os dias<br>
+        &bull; Sua caminhada que se adapta &agrave; sua vida e ao tempo da Igreja<br>
+        &bull; Forma&ccedil;&atilde;o: santos, liturgia e os tesouros da f&eacute;
+      </p>
+    </div>
+
+    <div style="text-align:center;">
+      <p style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#A78BFA;margin:0 0 10px;">7 DIAS GR&Aacute;TIS &middot; SEM CART&Atilde;O AGORA</p>
+      <a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;text-decoration:none;padding:16px 36px;border-radius:14px;font-weight:800;font-size:16px;">
+        Continuar minha caminhada &rarr;
+      </a>
+    </div>
+
+  </div>
+
+  <div style="text-align:center;padding-top:28px;">
+    <p style="font-size:11px;color:rgba(255,255,255,.2);margin:0;">
       <a href="mailto:espiritualizeiapp@gmail.com?subject=Cancelar%20e-mails%20do%20desafio" style="color:rgba(255,255,255,.2);text-decoration:underline;">Cancelar e-mails</a>
     </p>
   </div>
@@ -161,24 +234,30 @@ serve(async (req: any) => {
         const ctaUrl     = `https://www.espiritualizei.com/quiz/resultado?session=${record.stripe_session_id}&day=${record.day_number}`
 
         let subject: string
-        if (record.day_number === 1) {
-          subject = `${record.name}, seu Desafio de 21 Dias começa hoje 🙏`
-        } else if (record.day_number <= 9) {
-          subject = `${record.name}, Dia ${record.day_number} da sua Novena te espera ✨`
+        let html: string
+        if (record.day_number === 21) {
+          // Fechamento: oferta forte do app (continuação)
+          subject = `${record.name}, você concluiu os 21 dias 🎉 e agora?`
+          html = buildDay21CloseHtml(record.name)
         } else {
-          subject = `${record.name}, Dia ${record.day_number} do seu Desafio Espiritual 🙏`
+          if (record.day_number === 1) {
+            subject = `${record.name}, seu Desafio de 21 Dias começa hoje 🙏`
+          } else if (record.day_number <= 9) {
+            subject = `${record.name}, Dia ${record.day_number} da sua Novena te espera ✨`
+          } else {
+            subject = `${record.name}, Dia ${record.day_number} do seu Desafio Espiritual 🙏`
+          }
+          html = buildDayEmailHtml({
+            name:            record.name,
+            dayNumber:       record.day_number,
+            weekNumber,
+            weekTheme:       record.week_theme || '',
+            intention:       record.intention  || '',
+            challenge:       record.challenge  || 'anxiety',
+            ctaUrl,
+            stripeSessionId: record.stripe_session_id,
+          })
         }
-
-        const html = buildDayEmailHtml({
-          name:            record.name,
-          dayNumber:       record.day_number,
-          weekNumber,
-          weekTheme:       record.week_theme || '',
-          intention:       record.intention  || '',
-          challenge:       record.challenge  || 'anxiety',
-          ctaUrl,
-          stripeSessionId: record.stripe_session_id,
-        })
 
         const sendRes = await fetch('https://api.resend.com/emails', {
           method:  'POST',

@@ -17,6 +17,7 @@ import AdminPanel from './components/AdminPanel';
 import AdminLogin, { checkAdminSession, clearAdminSession, getAdminSecret } from './components/AdminLogin';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
+import { fetchQuizSessionByEmail } from './services/quizImportService';
 import { requestNotificationPermission } from './services/notificationService';
 import { registerUser, getSession, logoutUser, updateUserProfile, syncUserFromServer, isUserInTrial, trialDaysLeft, hasFullAccess, SUPABASE_URL, SUPABASE_KEY } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -654,15 +655,32 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
           {viewState === 'onboarding' && (
             <Suspense fallback={<TabLoader />}>
               <Onboarding 
-                onComplete={async (data) => { 
+                onComplete={async (data) => {
                   setViewState('generating');
                   try {
-                    const session = await registerUser(data);
+                    // UNIFICAÇÃO QUIZ -> APP (aditiva, nunca bloqueia o cadastro):
+                    // se o e-mail já comprou o quiz, a diagnose do quiz é a fonte da
+                    // verdade e alinha o perfil + a rotina. Falha = segue normal.
+                    let onboardingData = data;
+                    try {
+                      const qi = await fetchQuizSessionByEmail(data.email);
+                      if (qi && qi.found) {
+                        onboardingData = {
+                          ...data,
+                          primaryStruggle: qi.primaryStruggle || data.primaryStruggle,
+                          spiritualGoal: qi.spiritualGoal || data.spiritualGoal,
+                        };
+                        if (qi.plan) localStorage.setItem('espiritualizei_quiz_plan', JSON.stringify(qi.plan));
+                        localStorage.setItem('espiritualizei_from_quiz', '1');
+                      }
+                    } catch (_) { /* não-bloqueante */ }
+
+                    const session = await registerUser(onboardingData);
                     if (session && session.user) {
                       setUser(session.user);
-                      
-                      // Gerar rotina inicial baseada nos dados do onboarding
-                      const result = await generateSpiritualRoutine(data);
+
+                      // Gerar rotina inicial alinhada à diagnose (quiz quando existir)
+                      const result = await generateSpiritualRoutine(onboardingData);
                       const initialRoutine = result.routine;
                       
                       // Salvar rotina no servidor
