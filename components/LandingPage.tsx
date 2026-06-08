@@ -372,7 +372,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                      <span className="text-slate-400 text-sm">/mês</span>
                   </div>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Jornada Diária com IA</li>
+                     <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Jornada Diária personalizada</li>
                      <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Comunidade de Orações</li>
                      <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Biblioteca da Fé Completa</li>
                      <li className="flex items-center gap-3 text-sm font-medium text-white"><CheckCircle2 size={18} className="text-brand-violet" /> Liturgia Diária</li>

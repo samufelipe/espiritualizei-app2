@@ -724,7 +724,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                 <BrandLogo size={64} variant="fill" className="text-brand-violet" />
               </div>
               <h2 className="text-3xl font-bold mb-4 text-white">Preparando sua Jornada...</h2>
-              <p className="text-slate-400 max-w-md mx-auto mb-12">Nossa inteligência está analisando seu perfil para criar uma rotina única e equilibrada.</p>
+              <p className="text-slate-400 max-w-md mx-auto mb-12">Estamos preparando sua jornada com cuidado, a partir do que você compartilhou.</p>
               <div className="w-full max-w-xs h-1.5 bg-white/5 rounded-full overflow-hidden">
                 <div className="h-full bg-brand-violet animate-progress-loading" />
               </div>

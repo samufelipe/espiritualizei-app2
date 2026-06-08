@@ -507,8 +507,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <i data-lucide="book-open" style="width:18px;height:18px;color:#A78BFA;"></i>
           </div>
           <div>
-            <p style="font-size:14px;font-weight:700;color:rgba(255,255,255,.92);margin:0 0 4px;">Novena dos 9 Dias em PDF</p>
-            <p style="font-size:12px;color:rgba(255,255,255,.5);margin:0;line-height:1.5;">Criada para o seu desafio. Para baixar, rezar e guardar para sempre.</p>
+            <p id="pw-novena-name" style="font-size:14px;font-weight:700;color:rgba(255,255,255,.92);margin:0 0 4px;">Sua Novena personalizada de 9 dias</p>
+            <p style="font-size:12px;color:rgba(255,255,255,.5);margin:0;line-height:1.5;">Feita especialmente para o seu momento, para rezar e guardar para sempre.</p>
           </div>
         </div>
 
@@ -634,7 +634,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <button id="pay-btn" class="btn-primary" onclick="startCheckout()" style="font-size:17px;font-weight:800;color:#1A2530;padding:18px 24px;margin-bottom:8px;">
-        Quero Meu Plano + Novena em PDF →
+        Quero meu Plano e minha Novena →
       </button>
       <p id="checkout-error" style="display:none;color:#f87171;font-size:13px;margin-bottom:10px;text-align:center;"></p>
 
@@ -772,12 +772,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       text: n => `${n}, todo coração carrega um peso.<br>Qual é o seu desafio espiritual mais real hoje?`,
       sub: 'Não há resposta certa. Seja honesto consigo mesmo.',
       opts: [
-        {i:'brain',       l:'Ansiedade e inquietação interior',        v:'anxiety'},
-        {i:'clock',       l:'Falta de constância e motivação',         v:'laziness'},
-        {i:'cloud',       l:'A oração parece vazia ou distante',       v:'dryness'},
-        {i:'help-circle', l:'Dúvidas e questionamentos sobre a fé',    v:'ignorance'},
-        {i:'shield',      l:'Orgulho, impaciência ou julgamento',      v:'pride'},
-        {i:'eye-off',     l:'Lutas com hábitos e vícios',              v:'lust'},
+        {i:'brain',       l:'Ansiedade e medo',                        v:'anxiety'},
+        {i:'cloud-rain',  l:'Tristeza, desânimo e vazio',              v:'sadness'},
+        {i:'users',       l:'Relacionamentos e conflitos',             v:'relationships'},
+        {i:'eye-off',     l:'Vícios e dependências',                   v:'lust'},
+        {i:'heart-crack', l:'Mágoa, raiva e falta de perdão',          v:'pride'},
+        {i:'clock',       l:'Recomeço sem fim, falta de constância',   v:'laziness'},
       ],
       micro: n => `Obrigado por essa honestidade, <span>${n}</span>.`,
     },
@@ -809,12 +809,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   const WEEK_THEMES = {
     challenge: {
-      anxiety:   { theme:'Aprender a descansar em Deus',        icon:'wind'     },
-      laziness:  { theme:'Construindo o hábito da presença',    icon:'anchor'   },
-      dryness:   { theme:'Reencontrar Deus no silêncio',        icon:'cloud'    },
-      ignorance: { theme:'Conhecer para amar com mais força',   icon:'book-open'},
-      pride:     { theme:'O caminho do esvaziamento interior',  icon:'feather'  },
-      lust:      { theme:'Ordenando o coração com misericórdia',icon:'heart'    },
+      anxiety:       { theme:'Aprender a descansar em Deus',          icon:'wind'        },
+      sadness:       { theme:'Reencontrar a alegria que vem de Deus', icon:'sun'         },
+      relationships: { theme:'Curar e reconciliar os laços do coração', icon:'users'     },
+      laziness:      { theme:'Construindo o hábito da presença',      icon:'anchor'      },
+      dryness:       { theme:'Reencontrar Deus no silêncio',          icon:'cloud'       },
+      ignorance:     { theme:'Conhecer para amar com mais força',     icon:'book-open'   },
+      pride:         { theme:'O caminho do perdão e da paz interior', icon:'heart-crack' },
+      lust:          { theme:'Libertação e ordem no coração',         icon:'heart'       },
     },
     goal: {
       peace:      { theme:'Cultivando a paz que o mundo não dá', icon:'sun'        },
@@ -832,46 +834,55 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   const CHALLENGE_LABELS = {
-    anxiety:'ansiedade e inquietação interior', laziness:'falta de constância',
-    dryness:'a oração que parece distante',     ignorance:'questionamentos e dúvidas na fé',
-    pride:'orgulho e impaciência interior',     lust:'lutas com hábitos e vícios',
+    anxiety:'ansiedade e medo',                       sadness:'a tristeza e o desânimo que pesam',
+    relationships:'as feridas e conflitos nos relacionamentos', laziness:'a falta de constância e o recomeço sem fim',
+    dryness:'a oração que parece distante',           ignorance:'questionamentos e dúvidas na fé',
+    pride:'a mágoa, a raiva e a dificuldade de perdoar', lust:'os vícios e dependências que prendem',
   }
   const GOAL_LABELS = {
     peace:'paz interior', truth:'conhecer mais a fé', discipline:'disciplina e constância',
     love:'amar mais ao próximo', healing:'cura emocional e libertação',
   }
   const PERSONAL_TEXTS = {
-    anxiety: n => `${n}, seus dados revelam que carregar ansiedade no coração é um convite para aprender a descansar em Deus. Isso é mais comum do que parece, e existe um caminho prático para avançar.`,
+    anxiety: n => `${n}, carregar ansiedade e medo no coração é um convite para aprender a descansar em Deus. Isso é mais comum do que parece, e existe um caminho concreto para encontrar paz.`,
+    sadness: n => `${n}, a tristeza que você carrega não é o fim da história. Mesmo no vazio, existe um caminho de volta à esperança, um passo de cada vez.`,
+    relationships: n => `${n}, as feridas de um relacionamento doem fundo. Existe um caminho de cura e reconciliação, e ele começa no seu próprio coração.`,
     laziness: n => `${n}, a falta de constância que você sente não é fraqueza. É o ponto de partida de quem finalmente decide começar de verdade.`,
     dryness: n => `${n}, sentir a oração vazia é um sinal de que seu coração ainda busca. Quem para de buscar é quem desistiu, e você não desistiu.`,
     ignorance: n => `${n}, suas dúvidas mostram que você leva a fé a sério. Quem não questiona, não cresce. Vamos aprofundar isso juntos.`,
-    pride: n => `${n}, reconhecer o orgulho ou a impaciência já é um ato de humildade enorme. A partir daqui, só cresce.`,
-    lust: n => `${n}, lutar com hábitos difíceis é parte da jornada de todos. Não há condenação aqui, apenas um caminho de graça.`,
+    pride: n => `${n}, reconhecer a mágoa e a dificuldade de perdoar já é um ato de coragem enorme. A partir daqui, o coração só alivia.`,
+    lust: n => `${n}, lutar com vícios e dependências é parte da jornada de muita gente. Não há condenação aqui, apenas um caminho real de libertação.`,
   }
 
   const GIFTS_SHORT = {
-    anxiety:   'Sensibilidade espiritual profunda e desejo genuíno de paz interior',
-    laziness:  'Potencial contemplativo latente e coração que sabe esperar em Deus',
-    dryness:   'Sede autêntica do transcendente. Fé que persevera mesmo no silêncio',
-    ignorance: 'Sede de verdade e abertura genuína para crescer na fé',
-    pride:     'Liderança interior e capacidade de influenciar positivamente os que estão ao redor',
-    lust:      'Intensidade afetiva e capacidade de amar com profundidade e entrega',
+    anxiety:       'Sensibilidade espiritual profunda e desejo genuíno de paz interior',
+    sadness:       'Coração que sente fundo e uma sede verdadeira de sentido e esperança',
+    relationships: 'Capacidade de amar e de se doar com profundidade aos outros',
+    laziness:      'Potencial contemplativo latente e coração que sabe esperar em Deus',
+    dryness:       'Sede autêntica do transcendente. Fé que persevera mesmo no silêncio',
+    ignorance:     'Sede de verdade e abertura genuína para crescer na fé',
+    pride:         'Força interior e coragem para encarar a verdade sobre si mesmo',
+    lust:          'Intensidade afetiva e capacidade de amar com profundidade e entrega',
   }
   const BLOCKS_SHORT = {
-    anxiety:   'Ansiedade e inquietação que impedem o descanso e a confiança em Deus',
-    laziness:  'Falta de constância: o hábito de adiar o que o coração realmente quer fazer',
-    dryness:   'Oração que parece vazia: um silêncio que pede uma fé mais profunda e real',
-    ignorance: 'Dúvidas que nublam a clareza e a segurança no caminho da fé',
-    pride:     'Ego e orgulho: a batalha de se esvaziar para ser preenchido por Deus',
-    lust:      'Desordem dos afetos: coração buscando amor no lugar e na forma certos',
+    anxiety:       'Ansiedade e medo que impedem o descanso e a confiança em Deus',
+    sadness:       'Tristeza e desânimo que roubam a esperança e a vontade de seguir',
+    relationships: 'Conflitos e mágoas que afastam você de quem ama',
+    laziness:      'Falta de constância: o hábito de adiar o que o coração realmente quer fazer',
+    dryness:       'Oração que parece vazia: um silêncio que pede uma fé mais profunda e real',
+    ignorance:     'Dúvidas que nublam a clareza e a segurança no caminho da fé',
+    pride:         'Mágoa e ressentimento: o peso de não conseguir perdoar e seguir leve',
+    lust:          'Vícios e dependências que prendem o coração e roubam a liberdade',
   }
   const DAY1_PREVIEW = {
-    anxiety:   { intention:'Hoje escolho pausar o barulho e abrir meu coração ao silêncio de Deus.', prayer:'Lectio Divina', task:'Momento de silêncio total: 10 minutos' },
-    laziness:  { intention:'Hoje escolho dar um primeiro passo: pequeno, mas real e concreto.', prayer:'Oração Matinal de Oferta', task:'Definir e cumprir um horário fixo de oração' },
-    dryness:   { intention:'Hoje escolho rezar mesmo sem sentir. A fé não depende do sentimento.', prayer:'Salmo 63 meditado', task:'Escrever uma carta honesta para Deus' },
-    ignorance: { intention:'Hoje escolho aprender algo novo sobre a fé com mente e coração abertos.', prayer:'Lectio com o Evangelho do Dia', task:'Meditar um parágrafo do Catecismo' },
-    pride:     { intention:'Hoje escolho me esvaziar: menos eu, mais Deus em cada gesto.', prayer:'Exame de Consciência guiado', task:'Um gesto concreto e silencioso de serviço' },
-    lust:      { intention:'Hoje escolho oferecer meu coração a Deus com misericórdia comigo mesmo.', prayer:'Rosário meditado', task:'Oração de consagração do coração' },
+    anxiety:       { intention:'Hoje escolho pausar o barulho e abrir meu coração ao silêncio de Deus.', prayer:'Lectio Divina', task:'Momento de silêncio total: 10 minutos' },
+    sadness:       { intention:'Hoje escolho acreditar que a luz volta, mesmo quando ainda não sinto.', prayer:'Salmo 42 meditado', task:'Escrever três motivos pelos quais ainda posso agradecer' },
+    relationships: { intention:'Hoje escolho entregar a Deus a pessoa e a relação que mais me dói.', prayer:'Oração pela família', task:'Rezar pelo nome de quem está em conflito comigo' },
+    laziness:      { intention:'Hoje escolho dar um primeiro passo: pequeno, mas real e concreto.', prayer:'Oração Matinal de Oferta', task:'Definir e cumprir um horário fixo de oração' },
+    dryness:       { intention:'Hoje escolho rezar mesmo sem sentir. A fé não depende do sentimento.', prayer:'Salmo 63 meditado', task:'Escrever uma carta honesta para Deus' },
+    ignorance:     { intention:'Hoje escolho aprender algo novo sobre a fé com mente e coração abertos.', prayer:'Lectio com o Evangelho do Dia', task:'Meditar um parágrafo do Catecismo' },
+    pride:         { intention:'Hoje escolho começar a soltar a mágoa que venho carregando.', prayer:'Oração do perdão', task:'Escrever o nome de quem preciso perdoar e rezar por ele' },
+    lust:          { intention:'Hoje escolho oferecer meu coração a Deus com misericórdia comigo mesmo.', prayer:'Rosário meditado', task:'Oração de consagração e um passo concreto de liberdade' },
   }
 
   const SCREEN_PATHS = {
@@ -1034,7 +1045,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const pray  = { consistent:90, occasional:60, struggling:35, distant:18 }
     const goalF = { truth:78, discipline:70, peace:58, love:55, healing:52  }
     // Sacramental sensitivity derived from challenge (proxy de disposição interior)
-    const chalS = { anxiety:72, laziness:45, dryness:38, ignorance:65, pride:60, lust:52 }
+    const chalS = { anxiety:72, sadness:42, relationships:50, laziness:45, dryness:38, ignorance:65, pride:60, lust:52 }
 
     const prayer    = Math.min(100, pray[a.prayerReality] || 40)
     const sacrament = Math.min(100, chalS[a.challenge] || 55)
@@ -1051,29 +1062,35 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   // ── Estados ANTES (dor presente, por desafio) ──────────────────
   const TODAY_STATES = {
-    anxiety:   'Você acorda com a mente já acelerada, e a oração fica para "quando der".',
-    laziness:  'Você começa cheio de vontade na segunda e para na quarta. Toda semana.',
-    dryness:   'Você reza, mas sente um vazio. Como se ninguém estivesse do outro lado.',
-    ignorance: 'Você tem dúvidas que travam sua fé, e não sabe a quem perguntar.',
-    pride:     'Você sabe que precisa se entregar, mas o controle sempre fala mais alto.',
-    lust:      'Você luta sozinho, recomeça, cai, e a culpa pesa cada vez mais.',
+    anxiety:       'Você acorda com a mente já acelerada, e a oração fica para "quando der".',
+    sadness:       'Você acorda sem vontade, como se faltasse cor e sentido nas coisas.',
+    relationships: 'Os conflitos com quem você ama tiram a sua paz todos os dias.',
+    laziness:      'Você começa cheio de vontade na segunda e para na quarta. Toda semana.',
+    dryness:       'Você reza, mas sente um vazio. Como se ninguém estivesse do outro lado.',
+    ignorance:     'Você tem dúvidas que travam sua fé, e não sabe a quem perguntar.',
+    pride:         'A mágoa fica remoendo por dentro, e perdoar parece impossível.',
+    lust:          'Você luta sozinho, recomeça, cai, e a culpa pesa cada vez mais.',
   }
   // ── Estados DEPOIS (transformação curta, por desafio) ──────────
   const AFTER_STATES = {
-    anxiety:   'Você começa o dia ancorado em Deus, antes do barulho do mundo.',
-    laziness:  'Você tem uma rotina que dura, porque foi feita para o seu ritmo real.',
-    dryness:   'Você reencontra a presença de Deus no silêncio do dia a dia.',
-    ignorance: 'Você reza com clareza e segurança, sabendo no que acredita.',
-    pride:     'Você experimenta o alívio de se entregar, um passo de cada vez.',
-    lust:      'Você caminha em graça e liberdade, um dia de cada vez.',
+    anxiety:       'Você começa o dia ancorado em Deus, antes do barulho do mundo.',
+    sadness:       'Você reencontra pequenos motivos de esperança, e a luz volta aos poucos.',
+    relationships: 'Você encontra serenidade para amar e perdoar, mesmo nas relações difíceis.',
+    laziness:      'Você tem uma rotina que dura, porque foi feita para o seu ritmo real.',
+    dryness:       'Você reencontra a presença de Deus no silêncio do dia a dia.',
+    ignorance:     'Você reza com clareza e segurança, sabendo no que acredita.',
+    pride:         'Você sente o alívio de soltar a mágoa e seguir mais leve.',
+    lust:          'Você caminha em graça e liberdade, um dia de cada vez.',
   }
   const MAIN_HEADLINES = {
-    anxiety:   n => `${n}, sua ansiedade tem uma raiz espiritual — e um caminho de saída.`,
-    laziness:  n => `${n}, descobrimos por que você sempre recomeça e nunca termina.`,
-    dryness:   n => `${n}, identificamos por que sua oração tem parecido vazia.`,
-    ignorance: n => `${n}, suas dúvidas não são fraqueza — são o começo do caminho.`,
-    pride:     n => `${n}, identificamos o que está travando seu crescimento.`,
-    lust:      n => `${n}, existe um caminho de liberdade para o que você carrega.`,
+    anxiety:       n => `${n}, sua ansiedade tem uma raiz espiritual, e um caminho de saída.`,
+    sadness:       n => `${n}, a sua tristeza tem uma saída, e ela começa por dentro.`,
+    relationships: n => `${n}, a cura dos seus relacionamentos começa de um jeito que poucos imaginam.`,
+    laziness:      n => `${n}, descobrimos por que você sempre recomeça e nunca termina.`,
+    dryness:       n => `${n}, identificamos por que sua oração tem parecido vazia.`,
+    ignorance:     n => `${n}, suas dúvidas não são fraqueza, são o começo do caminho.`,
+    pride:         n => `${n}, a mágoa que você carrega tem um caminho de alívio.`,
+    lust:          n => `${n}, existe um caminho de liberdade para o que você carrega.`,
   }
 
   function showPaywall() {
@@ -1090,12 +1107,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       : `${S.name}, seus dados revelam um coração que busca e que quer crescer. Existe um caminho concreto para avançar.`
 
     const TRANSFORMATIONS = {
-      anxiety:   `Em 21 dias, você sai de acordar com ansiedade para ter um começo de dia que ancora em Deus, antes de qualquer barulho do mundo.`,
-      laziness:  `Em 21 dias, você sai de recomeçar toda semana para ter uma rotina que dura porque foi feita para o seu ritmo real.`,
-      dryness:   `Em 21 dias, você sai de rezar no vazio para voltar a sentir a presença de Deus no silêncio do dia a dia.`,
-      ignorance: `Em 21 dias, você sai das dúvidas que travam para rezar com mais clareza, segurança e conhecimento real da sua fé.`,
-      pride:     `Em 21 dias, você sai da luta interna constante para o esvaziamento que liberta, com passos concretos e sem forçar.`,
-      lust:      `Em 21 dias, você sai da batalha solitária para um caminho estruturado de graça e liberdade interior, dia por dia.`,
+      anxiety:       `Em 21 dias, você sai de acordar com ansiedade para ter um começo de dia que ancora em Deus, antes de qualquer barulho do mundo.`,
+      sadness:       `Em 21 dias, você sai do vazio e do desânimo para reencontrar a esperança e o sentido, um dia de cada vez.`,
+      relationships: `Em 21 dias, você sai do peso dos conflitos para uma paz que transforma a forma como você ama e perdoa.`,
+      laziness:      `Em 21 dias, você sai de recomeçar toda semana para ter uma rotina que dura porque foi feita para o seu ritmo real.`,
+      dryness:       `Em 21 dias, você sai de rezar no vazio para voltar a sentir a presença de Deus no silêncio do dia a dia.`,
+      ignorance:     `Em 21 dias, você sai das dúvidas que travam para rezar com mais clareza, segurança e conhecimento real da sua fé.`,
+      pride:         `Em 21 dias, você sai do peso da mágoa para a leveza de quem aprende a perdoar, com passos concretos.`,
+      lust:          `Em 21 dias, você sai da batalha solitária para um caminho estruturado de graça e liberdade interior, dia por dia.`,
     }
     const transEl = document.getElementById('pw-transformation')
     if (transEl) transEl.textContent = TRANSFORMATIONS[a.challenge] || `Em 21 dias, você sai de onde está para onde seu coração realmente quer estar.`
@@ -1125,28 +1144,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     // ZONA 4 — CTA headline personalizado
     const ctaHooks = {
-      anxiety:   `${S.name}, criamos uma Novena e um Plano para levar sua ansiedade ao único lugar onde ela encontra descanso.`,
-      laziness:  `${S.name}, sua Novena dos 9 Dias e seu Plano de 21 Dias estão prontos. Um único passo para começar de verdade.`,
-      dryness:   `${S.name}, a presença de Deus que parece distante está mais perto do que você imagina. Sua Novena abre esse caminho.`,
-      ignorance: `${S.name}, suas perguntas merecem respostas reais. Sua Novena e seu Plano incluem isso, passo a passo.`,
-      pride:     `${S.name}, o caminho do esvaziamento que liberta tem um ponto de partida. Sua Novena foi criada para ele.`,
-      lust:      `${S.name}, existe um caminho de graça e liberdade esperando por você. Sua Novena começa aí.`,
+      anxiety:       `${S.name}, preparamos uma Novena e um Plano para levar sua ansiedade ao único lugar onde ela encontra descanso.`,
+      sadness:       `${S.name}, preparamos uma Novena e um Plano para reacender a esperança no seu coração, no seu tempo.`,
+      relationships: `${S.name}, preparamos uma Novena e um Plano para levar cura aos seus relacionamentos, começando por dentro.`,
+      laziness:      `${S.name}, sua Novena e seu Plano de 21 Dias estão prontos. Um único passo para começar de verdade.`,
+      dryness:       `${S.name}, a presença de Deus que parece distante está mais perto do que você imagina. Sua Novena abre esse caminho.`,
+      ignorance:     `${S.name}, suas perguntas merecem respostas reais. Sua Novena e seu Plano incluem isso, passo a passo.`,
+      pride:         `${S.name}, soltar a mágoa é possível, e tem um ponto de partida. Sua Novena foi preparada para ele.`,
+      lust:          `${S.name}, existe um caminho de graça e liberdade esperando por você. Sua Novena começa aí.`,
     }
     document.getElementById('pw-cta-headline').textContent =
       ctaHooks[a.challenge] || `${S.name}, seu próximo passo está aqui.`
 
+    // Nome temático da Novena por desafio (sem citar formato)
+    const NOVENA_NAMES = {
+      anxiety:'Novena da Paz Interior',   sadness:'Novena da Esperança',
+      relationships:'Novena da Reconciliação', laziness:'Novena da Constância',
+      dryness:'Novena do Reencontro',     ignorance:'Novena da Luz na Fé',
+      pride:'Novena do Perdão',           lust:'Novena da Libertação',
+    }
+    const novEl = document.getElementById('pw-novena-name')
+    if (novEl) novEl.textContent = `${NOVENA_NAMES[a.challenge] || 'Sua Novena personalizada'} · 9 dias de oração`
+
     // CTA botão dinâmica por desafio
     const CTA_BTN_LABELS = {
-      anxiety:   'Quero meu plano para a ansiedade →',
-      laziness:  'Quero parar de recomeçar →',
-      dryness:   'Quero reencontrar Deus →',
-      ignorance: 'Quero rezar com mais clareza →',
-      pride:     'Quero o caminho do esvaziamento →',
-      lust:      'Quero meu caminho de liberdade →',
+      anxiety:       'Quero meu plano para a ansiedade →',
+      sadness:       'Quero reencontrar a esperança →',
+      relationships: 'Quero curar meus relacionamentos →',
+      laziness:      'Quero parar de recomeçar →',
+      dryness:       'Quero reencontrar Deus →',
+      ignorance:     'Quero rezar com mais clareza →',
+      pride:         'Quero soltar essa mágoa →',
+      lust:          'Quero meu caminho de liberdade →',
     }
     const payBtn = document.getElementById('pay-btn')
     if (payBtn) {
-      S.ctaBtnText = CTA_BTN_LABELS[a.challenge] || 'Quero Meu Plano + Novena em PDF →'
+      S.ctaBtnText = CTA_BTN_LABELS[a.challenge] || 'Quero meu Plano e minha Novena →'
       payBtn.textContent = S.ctaBtnText
     }
 
@@ -1292,7 +1325,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       window.location.href = d.url
     } catch(e) {
       btn.disabled = false
-      btn.textContent = S.ctaBtnText || 'Quero Meu Plano + Novena em PDF →'
+      btn.textContent = S.ctaBtnText || 'Quero meu Plano e minha Novena →'
       console.error('[checkout] falha:', e.message)
       const errEl = document.getElementById('checkout-error')
       if (errEl) { errEl.textContent = `Não foi possível iniciar o pagamento: ${e.message}. Tente novamente.`; errEl.style.display = 'block' }

@@ -34,21 +34,25 @@ const FALLBACK_INTENTIONS = [
 ]
 
 const WEEK_THEMES: Record<string, string[]> = {
-  anxiety:   ['Aprender a descansar em Deus',          'Cultivando a paz que o mundo não dá',   'Integração com a vida cotidiana'],
-  laziness:  ['Construindo o hábito da presença',       'A disciplina como ato de amor',          'Constância no cotidiano'],
-  dryness:   ['Reencontrar Deus no silêncio',           'Formação e aprofundamento da fé',        'Fé viva e integrada'],
-  ignorance: ['Conhecer para amar com mais força',      'Formação e aprofundamento da fé',        'Vivendo o que aprendi'],
-  pride:     ['O caminho do esvaziamento interior',     'Amar como Deus ama',                     'Serviço e doação'],
-  lust:      ['Ordenando o coração com misericórdia',   'Cura e libertação pelo amor divino',     'Integração e liberdade'],
+  anxiety:       ['Aprender a descansar em Deus',          'Cultivando a paz que o mundo não dá',   'Integração com a vida cotidiana'],
+  sadness:       ['Reencontrar a alegria que vem de Deus', 'Esperança que se renova a cada dia',     'Viver com sentido renovado'],
+  relationships: ['Curar e reconciliar os laços',          'Amar como Deus ama',                     'Paz nas relações do dia a dia'],
+  laziness:      ['Construindo o hábito da presença',       'A disciplina como ato de amor',          'Constância no cotidiano'],
+  dryness:       ['Reencontrar Deus no silêncio',           'Formação e aprofundamento da fé',        'Fé viva e integrada'],
+  ignorance:     ['Conhecer para amar com mais força',      'Formação e aprofundamento da fé',        'Vivendo o que aprendi'],
+  pride:         ['O caminho do perdão e da paz interior',  'Amar como Deus ama',                     'Leveza de quem perdoa'],
+  lust:          ['Libertação e ordem no coração',          'Cura e libertação pelo amor divino',     'Integração e liberdade'],
 }
 
 const NOVENA_NAMES: Record<string, string> = {
-  anxiety:   'Novena da Paz Interior',
-  laziness:  'Novena da Constância',
-  dryness:   'Novena do Reencontro',
-  ignorance: 'Novena da Luz na Fé',
-  pride:     'Novena do Esvaziamento',
-  lust:      'Novena da Libertação',
+  anxiety:       'Novena da Paz Interior',
+  sadness:       'Novena da Esperança',
+  relationships: 'Novena da Reconciliação',
+  laziness:      'Novena da Constância',
+  dryness:       'Novena do Reencontro',
+  ignorance:     'Novena da Luz na Fé',
+  pride:         'Novena do Perdão',
+  lust:          'Novena da Libertação',
 }
 
 // ── HTML builder (duplicado em send-quiz-drip.js para Vercel) ─────────────────

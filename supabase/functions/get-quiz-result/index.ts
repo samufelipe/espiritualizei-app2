@@ -91,7 +91,7 @@ function buildWeekPrompt(
 Gere os dias ${days} de um plano espiritual personalizado para ${displayName} (nível: ${displayLevel}).
 
 Perfil:
-- Desafio: ${answers?.challenge || 'N/A'}
+- Desafio: ${answers?.challengeLabel || answers?.challenge || 'N/A'}
 - Oração: ${PRAYER_REALITY_LABELS[answers?.prayerReality] || answers?.prayer || 'N/A'}
 - Objetivo: ${answers?.goal || 'N/A'}
 - Fase de vida: ${answers?.state || answers?.lifeStage || 'N/A'}
@@ -160,12 +160,21 @@ async function generatePlan(quizData: any): Promise<any | null> {
   const displayLevel = levelName || 'Buscando'
 
   const CHALLENGE_THEMES: Record<string, { theme: string; icon: string }> = {
-    anxiety:   { theme: 'Aprender a descansar em Deus',         icon: 'wind'      },
-    laziness:  { theme: 'Construindo o hábito da presença',     icon: 'anchor'    },
-    dryness:   { theme: 'Reencontrar Deus no silêncio',         icon: 'cloud'     },
-    ignorance: { theme: 'Conhecer para amar com mais força',    icon: 'book-open' },
-    pride:     { theme: 'O caminho do esvaziamento interior',   icon: 'feather'   },
-    lust:      { theme: 'Ordenando o coração com misericórdia', icon: 'heart'     },
+    anxiety:       { theme: 'Aprender a descansar em Deus',           icon: 'wind'        },
+    sadness:       { theme: 'Reencontrar a alegria que vem de Deus',  icon: 'sun'         },
+    relationships: { theme: 'Curar e reconciliar os laços do coração', icon: 'users'      },
+    laziness:      { theme: 'Construindo o hábito da presença',       icon: 'anchor'      },
+    dryness:       { theme: 'Reencontrar Deus no silêncio',           icon: 'cloud'       },
+    ignorance:     { theme: 'Conhecer para amar com mais força',      icon: 'book-open'   },
+    pride:         { theme: 'O caminho do perdão e da paz interior',  icon: 'heart-crack' },
+    lust:          { theme: 'Libertação e ordem no coração',          icon: 'heart'       },
+  }
+  // Rótulo PT do desafio para o prompt (evita passar a chave crua em inglês)
+  const CHALLENGE_PT: Record<string, string> = {
+    anxiety: 'ansiedade e medo', sadness: 'tristeza, desânimo e vazio',
+    relationships: 'feridas e conflitos nos relacionamentos', laziness: 'falta de constância',
+    dryness: 'aridez e distância de Deus', ignorance: 'dúvidas na fé',
+    pride: 'mágoa, raiva e dificuldade de perdoar', lust: 'vícios e dependências',
   }
   const GOAL_THEMES: Record<string, { theme: string; icon: string }> = {
     peace:      { theme: 'Cultivando a paz que o mundo não dá', icon: 'sun'       },
@@ -188,10 +197,13 @@ async function generatePlan(quizData: any): Promise<any | null> {
 
   console.log(`Gerando plano para ${displayName} (${displayLevel}) — 3 semanas em paralelo`)
 
+  // Enriquecer com rótulo PT do desafio (o prompt usa isso, não a chave crua)
+  const answersForPrompt = { ...answers, challengeLabel: CHALLENGE_PT[answers?.challenge] || answers?.challenge }
+
   const [raw1, raw2, raw3] = await Promise.all([
-    callClaude(anthroKey, buildWeekPrompt(1,  1, 'desafio principal',   answers?.challenge || 'regularidade', w1.theme, w1.icon, displayName, displayLevel, answers, dims)),
-    callClaude(anthroKey, buildWeekPrompt(2,  8, 'objetivo espiritual', answers?.goal      || 'crescimento',  w2.theme, w2.icon, displayName, displayLevel, answers, dims)),
-    callClaude(anthroKey, buildWeekPrompt(3, 15, 'fase de vida',        answers?.state     || 'cotidiano',    w3.theme, w3.icon, displayName, displayLevel, answers, dims)),
+    callClaude(anthroKey, buildWeekPrompt(1,  1, 'desafio principal',   answersForPrompt.challengeLabel || 'regularidade', w1.theme, w1.icon, displayName, displayLevel, answersForPrompt, dims)),
+    callClaude(anthroKey, buildWeekPrompt(2,  8, 'objetivo espiritual', answers?.goal      || 'crescimento',  w2.theme, w2.icon, displayName, displayLevel, answersForPrompt, dims)),
+    callClaude(anthroKey, buildWeekPrompt(3, 15, 'fase de vida',        answers?.state     || 'cotidiano',    w3.theme, w3.icon, displayName, displayLevel, answersForPrompt, dims)),
   ])
 
   const week1 = parseWeekJson(raw1, 1)

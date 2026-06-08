@@ -19,12 +19,14 @@ const cors = {
 }
 
 const CHALLENGE_LABELS: Record<string, string> = {
-  anxiety:   'ansiedade e inquietação interior',
-  laziness:  'falta de constância na vida espiritual',
-  dryness:   'a oração que parece vazia e distante',
-  ignorance: 'dúvidas e questionamentos na fé',
-  pride:     'orgulho e impaciência interior',
-  lust:      'lutas com hábitos e vícios',
+  anxiety:       'ansiedade e medo',
+  sadness:       'a tristeza e o desânimo que pesam',
+  relationships: 'as feridas e conflitos nos relacionamentos',
+  laziness:      'falta de constância na vida espiritual',
+  dryness:       'a oração que parece vazia e distante',
+  ignorance:     'dúvidas e questionamentos na fé',
+  pride:         'a mágoa, a raiva e a dificuldade de perdoar',
+  lust:          'os vícios e dependências que prendem',
 }
 
 // ── HTML builder ──────────────────────────────────────────────────────────────

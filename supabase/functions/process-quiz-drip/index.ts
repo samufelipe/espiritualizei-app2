@@ -19,12 +19,14 @@ const cors = {
 }
 
 const NOVENA_NAMES: Record<string, string> = {
-  anxiety:   'Novena da Paz Interior',
-  laziness:  'Novena da Constância',
-  dryness:   'Novena do Reencontro',
-  ignorance: 'Novena da Luz na Fé',
-  pride:     'Novena do Esvaziamento',
-  lust:      'Novena da Libertação',
+  anxiety:       'Novena da Paz Interior',
+  sadness:       'Novena da Esperança',
+  relationships: 'Novena da Reconciliação',
+  laziness:      'Novena da Constância',
+  dryness:       'Novena do Reencontro',
+  ignorance:     'Novena da Luz na Fé',
+  pride:         'Novena do Perdão',
+  lust:          'Novena da Libertação',
 }
 
 // ── HTML builder ──────────────────────────────────────────────────────────────

@@ -506,27 +506,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const DIMS_LABELS = ['Oração','Sacramento','Formação','Comunidade','Missão']
 
   const GIFTS_MAP = {
-    anxiety:   ['Sensibilidade espiritual profunda','Desejo genuíno de paz interior','Capacidade de interiorização'],
-    laziness:  ['Potencial contemplativo latente','Humildade na busca','Coração que sabe esperar'],
-    dryness:   ['Sede autêntica do transcendente','Perseverança na fé difícil','Fidelidade mesmo no silêncio'],
-    ignorance: ['Sede de verdade e sentido','Abertura para aprender e crescer','Honestidade intelectual'],
-    pride:     ['Liderança e força interior','Capacidade de influenciar positivamente','Determinação e coragem'],
-    lust:      ['Intensidade afetiva','Capacidade de amar com profundidade','Coração que busca o bem'],
+    anxiety:       ['Sensibilidade espiritual profunda','Desejo genuíno de paz interior','Capacidade de interiorização'],
+    sadness:       ['Coração que sente fundo','Sede verdadeira de sentido','Sensibilidade para o sagrado'],
+    relationships: ['Capacidade de amar e se doar','Coração que valoriza os laços','Desejo sincero de reconciliação'],
+    laziness:      ['Potencial contemplativo latente','Humildade na busca','Coração que sabe esperar'],
+    dryness:       ['Sede autêntica do transcendente','Perseverança na fé difícil','Fidelidade mesmo no silêncio'],
+    ignorance:     ['Sede de verdade e sentido','Abertura para aprender e crescer','Honestidade intelectual'],
+    pride:         ['Força interior e coragem','Senso de justiça','Capacidade de recomeçar'],
+    lust:          ['Intensidade afetiva','Capacidade de amar com profundidade','Coração que busca o bem'],
   }
 
   const BLOCKS_MAP = {
-    anxiety:   'Ansiedade e inquietação interior: seu coração precisa aprender a descansar em Deus.',
-    laziness:  'Falta de constância: o hábito de adiar o que o coração realmente quer.',
-    dryness:   'A oração parece vazia: um silêncio que convida a uma fé mais profunda e real.',
-    ignorance: 'Dúvidas na fé: um coração que quer crer com mais clareza e segurança.',
-    pride:     'Ego e orgulho: a batalha de se esvaziar para ser preenchido pelo que importa.',
-    lust:      'Desordem dos afetos: o coração que busca amor no lugar e na forma certos.',
+    anxiety:       'Ansiedade e medo: seu coração precisa aprender a descansar em Deus.',
+    sadness:       'Tristeza e desânimo: um vazio que pede esperança e sentido novamente.',
+    relationships: 'Conflitos e mágoas: laços feridos que pedem cura e reconciliação.',
+    laziness:      'Falta de constância: o hábito de adiar o que o coração realmente quer.',
+    dryness:       'A oração parece vazia: um silêncio que convida a uma fé mais profunda e real.',
+    ignorance:     'Dúvidas na fé: um coração que quer crer com mais clareza e segurança.',
+    pride:         'Mágoa e ressentimento: o peso de não conseguir perdoar e seguir leve.',
+    lust:          'Vícios e dependências: o coração que busca liberdade e ordem nos afetos.',
   }
 
   const CHALLENGE_LABELS = {
-    anxiety:'ansiedade e inquietação interior', laziness:'falta de constância',
-    dryness:'a oração que parece distante',     ignorance:'questionamentos e dúvidas',
-    pride:'orgulho e impaciência interior',     lust:'lutas com hábitos e vícios',
+    anxiety:'ansiedade e medo',                  sadness:'a tristeza e o desânimo que pesam',
+    relationships:'as feridas nos relacionamentos', laziness:'falta de constância',
+    dryness:'a oração que parece distante',      ignorance:'questionamentos e dúvidas',
+    pride:'a mágoa e a dificuldade de perdoar',  lust:'os vícios e dependências',
   }
   const GOAL_LABELS = {
     peace:'paz interior', truth:'conhecer mais a fé', discipline:'disciplina e constância',
@@ -535,12 +540,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   const WEEK_THEMES = {
     challenge: {
-      anxiety:   { theme:'Aprender a descansar em Deus',        icon:'wind'      },
-      laziness:  { theme:'Construindo o hábito da presença',    icon:'anchor'    },
-      dryness:   { theme:'Reencontrar Deus no silêncio',        icon:'cloud'     },
-      ignorance: { theme:'Conhecer para amar com mais força',   icon:'book-open' },
-      pride:     { theme:'O caminho do esvaziamento interior',  icon:'feather'   },
-      lust:      { theme:'Ordenando o coração com misericórdia',icon:'heart'     },
+      anxiety:       { theme:'Aprender a descansar em Deus',          icon:'wind'        },
+      sadness:       { theme:'Reencontrar a alegria que vem de Deus', icon:'sun'         },
+      relationships: { theme:'Curar e reconciliar os laços do coração', icon:'users'     },
+      laziness:      { theme:'Construindo o hábito da presença',      icon:'anchor'      },
+      dryness:       { theme:'Reencontrar Deus no silêncio',          icon:'cloud'       },
+      ignorance:     { theme:'Conhecer para amar com mais força',     icon:'book-open'   },
+      pride:         { theme:'O caminho do perdão e da paz interior', icon:'heart-crack' },
+      lust:          { theme:'Libertação e ordem no coração',         icon:'heart'       },
     },
     goal: {
       peace:      { theme:'Cultivando a paz que o mundo não dá', icon:'sun'       },
@@ -888,9 +895,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     // Novena card — destaque do produto comprado
     const NOVENA_NAMES = {
-      anxiety:'Novena da Paz Interior', laziness:'Novena da Constância',
-      dryness:'Novena do Reencontro', ignorance:'Novena da Luz na Fé',
-      pride:'Novena do Esvaziamento', lust:'Novena da Libertação',
+      anxiety:'Novena da Paz Interior',     sadness:'Novena da Esperança',
+      relationships:'Novena da Reconciliação', laziness:'Novena da Constância',
+      dryness:'Novena do Reencontro',       ignorance:'Novena da Luz na Fé',
+      pride:'Novena do Perdão',             lust:'Novena da Libertação',
     }
     const novenaWrapper = document.getElementById('novena-card-wrapper')
     if (novenaWrapper) {
@@ -902,15 +910,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <i data-lucide="book-open" style="width:20px;height:20px;color:#A78BFA;"></i>
             </div>
             <div style="flex:1;min-width:0;">
-              <p style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:5px;">BÔNUS INCLUSO · PDF</p>
+              <p style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:5px;">SUA NOVENA PERSONALIZADA</p>
               <p style="font-size:16px;font-weight:800;color:rgba(255,255,255,.95);margin-bottom:5px;">${nName}</p>
-              <p style="font-size:12.5px;color:rgba(255,255,255,.45);line-height:1.55;">Os primeiros 9 dias formam sua novena personalizada, pronta para baixar em PDF, imprimir e rezar onde quiser.</p>
+              <p style="font-size:12.5px;color:rgba(255,255,255,.45);line-height:1.55;">Os primeiros 9 dias formam a sua novena, preparada especialmente para você rezar e guardar.</p>
             </div>
           </div>
           <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(167,139,250,.15);display:flex;flex-direction:column;gap:10px;">
             <button id="novena-download-btn" onclick="downloadNovena()" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:12px;padding:14px 18px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 6px 20px rgba(16,185,129,.28);transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
-              <i data-lucide="download" style="width:16px;height:16px;"></i>
-              Baixar Novena em PDF
+              <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
+              Acessar minha Novena
             </button>
             <button onclick="goToDay(1)" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:12px;padding:12px 16px;color:#A78BFA;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s;" onmouseover="this.style.background='rgba(167,139,250,.2)'" onmouseout="this.style.background='rgba(167,139,250,.12)'">
               <i data-lucide="play-circle" style="width:14px;height:14px;"></i>
@@ -1025,12 +1033,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (!sessionId) { alert('Não foi possível identificar sua compra. Recarregue a página pelo link do seu e-mail.'); return }
 
     const original = btn ? btn.innerHTML : ''
-    if (btn) { btn.disabled = true; btn.style.opacity = '.7'; btn.innerHTML = 'Gerando seu PDF...' }
+    if (btn) { btn.disabled = true; btn.style.opacity = '.7'; btn.innerHTML = 'Preparando sua Novena...' }
 
     try {
       const res = await fetch(`/api/generate-novena-pdf?session=${encodeURIComponent(sessionId)}`)
       if (!res.ok) {
-        let msg = 'Não foi possível gerar o PDF agora.'
+        let msg = 'Não foi possível abrir sua Novena agora.'
         try { const e = await res.json(); if (e.error) msg = e.error } catch(_) {}
         throw new Error(msg)
       }
@@ -1038,7 +1046,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const url  = URL.createObjectURL(blob)
       const a    = document.createElement('a')
       a.href = url
-      a.download = 'Novena-Espiritualizei.pdf'
+      a.download = 'Minha-Novena-Espiritualizei.pdf'
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -1125,7 +1133,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       // Step 5: gerar plano diretamente se ainda não temos
       if (!plan) {
-        setLoadingMsg(`${data.name || 'Caminhante'}, gerando seu plano personalizado...`)
+        setLoadingMsg(`${data.name || 'Caminhante'}, preparando seu plano a partir das suas respostas...`)
         try {
           const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-quiz-plan`, {
             method: 'POST',

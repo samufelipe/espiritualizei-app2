@@ -75,10 +75,10 @@ const Checkout: React.FC<CheckoutProps> = ({ onSuccess, onVerifyPayment, userNam
 
            <div className="space-y-4 mb-10">
               {[
-                { icon: Zap, color: 'text-amber-500', t: 'Direção Espiritual com IA', d: 'Converse e tire dúvidas 24h por dia.' },
+                { icon: Zap, color: 'text-amber-500', t: 'Direção Espiritual', d: 'Converse e tire dúvidas 24h por dia.' },
                 { icon: Users, color: 'text-purple-500', t: 'Comunidade e Ranking', d: 'Reze em conjunto e interceda por irmãos.' },
                 { icon: BookOpen, color: 'text-blue-500', t: 'Biblioteca Completa', d: 'Doutrina, Liturgia e Vida dos Santos.' },
-                { icon: Star, color: 'text-green-500', t: 'Regra de Vida Mensal', d: 'Sua rotina ajustada pela IA todo mês.' }
+                { icon: Star, color: 'text-green-500', t: 'Regra de Vida Mensal', d: 'Sua rotina ajustada para você todo mês.' }
               ].map((item, idx) => (
                 <div key={idx} className="flex gap-4 items-start">
                    <div className={`w-8 h-8 rounded-lg bg-slate-50 dark:bg-white/5 ${item.color} flex items-center justify-center shrink-0`}>

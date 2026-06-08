@@ -18,12 +18,14 @@ const SUPABASE_URL  = 'https://anoqhwpdrztaqmlocnzx.supabase.co'
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFub3Fod3Bkcnp0YXFtbG9jbnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2ODM3OTQsImV4cCI6MjA3OTI1OTc5NH0.eUg9hLctWst7nolKxk5OUgka6s8xUaaBNH3dP6kCduY'
 
 const NOVENA_NAMES = {
-  anxiety:   'Novena da Paz Interior',
-  laziness:  'Novena da Constância',
-  dryness:   'Novena do Reencontro',
-  ignorance: 'Novena da Luz na Fé',
-  pride:     'Novena do Esvaziamento',
-  lust:      'Novena da Libertação',
+  anxiety:       'Novena da Paz Interior',
+  sadness:       'Novena da Esperança',
+  relationships: 'Novena da Reconciliação',
+  laziness:      'Novena da Constância',
+  dryness:       'Novena do Reencontro',
+  ignorance:     'Novena da Luz na Fé',
+  pride:         'Novena do Perdão',
+  lust:          'Novena da Libertação',
 }
 
 function esc(s) {
@@ -180,6 +182,6 @@ export default async function handler(req, res) {
 
   } catch (e) {
     console.error('[generate-novena-pdf]', e.message)
-    return res.status(500).json({ error: 'Não foi possível gerar o PDF agora. Tente novamente.' })
+    return res.status(500).json({ error: 'Não foi possível abrir sua Novena agora. Tente novamente.' })
   }
 }
