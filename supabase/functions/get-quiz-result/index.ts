@@ -100,21 +100,54 @@ Dimensões (0-100): Oração ${dimLabels.oracao} | Sacramento ${dimLabels.sacram
 
 Esta é a SEMANA ${weekNum}. Tema: "${weekThemeHint}". Foco: ${weekFocus} ("${weekFocusLabel}").
 
+BANCO DE VERSÍCULOS (use SOMENTE versículos desta lista, copiando referência e texto EXATAMENTE como estão, sem alterar nenhuma palavra):
+- "Mt 11,28: Vinde a mim, todos vós que estais cansados e sobrecarregados, e eu vos aliviarei."
+- "Jo 14,27: Deixo-vos a paz, dou-vos a minha paz; não vo-la dou como o mundo a dá."
+- "Fl 4,6: Não andeis ansiosos por coisa alguma; em tudo, pela oração, apresentai os vossos pedidos a Deus."
+- "1Pd 5,7: Lançai sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós."
+- "Sl 23,1: O Senhor é o meu pastor; nada me faltará."
+- "Sl 46,11: Parai e sabei que eu sou Deus."
+- "Sl 34,19: O Senhor está perto dos que têm o coração atribulado."
+- "Is 41,10: Não temas, porque eu estou contigo; não te assustes, porque eu sou o teu Deus."
+- "Mt 6,33: Buscai primeiro o Reino de Deus e a sua justiça, e tudo o mais vos será dado em acréscimo."
+- "Jo 15,5: Eu sou a videira, vós os ramos; sem mim nada podeis fazer."
+- "Mt 5,4: Bem-aventurados os que choram, porque serão consolados."
+- "Sl 30,6: O choro pode durar uma noite, mas a alegria vem pela manhã."
+- "Sl 51,12: Criai em mim, ó Deus, um coração puro."
+- "Ef 4,32: Sede bondosos uns para com os outros, perdoando-vos mutuamente, como Deus vos perdoou em Cristo."
+- "Cl 3,13: Suportai-vos uns aos outros e perdoai-vos mutuamente."
+- "Mt 6,14: Se perdoardes às pessoas as suas faltas, também vosso Pai celeste vos perdoará."
+- "1Cor 13,4: O amor é paciente, o amor é prestativo; não é invejoso."
+- "Pr 3,5: Confia no Senhor de todo o teu coração e não te apoies na tua própria inteligência."
+- "Sl 121,2: O meu socorro vem do Senhor, que fez o céu e a terra."
+- "Mt 7,7: Pedi, e vos será dado; buscai, e achareis; batei, e abrir-se-vos-á."
+- "2Cor 12,9: A minha graça te basta, pois a força manifesta-se na fraqueza."
+- "Jo 8,12: Eu sou a luz do mundo; quem me segue não andará nas trevas."
+- "Mt 11,29: Aprendei de mim, que sou manso e humilde de coração."
+- "Lc 1,37: Para Deus nada é impossível."
+
+DEVOÇÕES PERMITIDAS (o campo "prayer" deve ser SOMENTE uma destas devoções católicas reais, nunca invente):
+Lectio Divina, Santo Terço, Rosário, Exame de Consciência, Adoração ao Santíssimo, Via-Sacra, Laudes (Oração da Manhã), Vésperas (Oração da Tarde), Oração de Abandono, Salmo meditado, Ladainha de Nossa Senhora, Ato de Contrição, Terço da Misericórdia, Oração do Perdão
+
 Para cada um dos 7 dias (${days}), forneça:
 - day: número do dia (${startDay} a ${startDay + 6})
 - intention: frase em 1ª pessoa ("Hoje escolho..."), pessoal e empática, máximo 20 palavras
-- prayer: nome da prática espiritual (ex: "Lectio Divina", "Rosário", "Exame de consciência")
-- prayer_steps: array de 3 strings — passos didáticos curtos (max 15 palavras cada) ensinando a prática
+- prayer: UMA devoção da lista DEVOÇÕES PERMITIDAS (exatamente como escrita)
+- prayer_steps: array de 3 strings, passos didáticos curtos (max 15 palavras cada) ensinando a prática
 - task: nome curto da tarefa prática
-- task_steps: array de 3 strings — passos concretos curtos (max 15 palavras cada)
-- verse: "Referência — Texto do versículo." (ex: "Jo 15,5 — Sem mim, nada podeis fazer.")
+- task_steps: array de 3 strings, passos concretos curtos (max 15 palavras cada)
+- verse: UM item do BANCO DE VERSÍCULOS, copiado EXATAMENTE (formato "Ref: Texto.")
 - resource_search: termo de busca YouTube em português para a prática do dia
 - duration_minutes: inteiro entre 10 e 30
 
-REGRAS: Cada dia deve ter oração, versículo e prática DIFERENTES dos outros dias. Linguagem acessível, conteúdo católico.
+REGRAS CRÍTICAS:
+- NUNCA invente versículos, nunca altere o texto bíblico, nunca cite referência fora do BANCO. Copie exatamente.
+- NUNCA invente devoções: use apenas as da lista permitida.
+- Cada dia deve ter devoção, versículo e prática DIFERENTES dos outros dias da semana.
+- Linguagem acessível e fiel à fé católica.
 
 Retorne APENAS JSON válido:
-{"theme":"${weekThemeHint}","weekSummary":"Frase inspiradora de até 10 palavras.","lucideIcon":"${weekIconHint}","days":[{"day":${startDay},"intention":"...","prayer":"...","prayer_steps":["...","...","..."],"task":"...","task_steps":["...","...","..."],"verse":"Ref — Texto.","resource_search":"...","duration_minutes":15}]}`
+{"theme":"${weekThemeHint}","weekSummary":"Frase inspiradora de até 10 palavras.","lucideIcon":"${weekIconHint}","days":[{"day":${startDay},"intention":"...","prayer":"Lectio Divina","prayer_steps":["...","...","..."],"task":"...","task_steps":["...","...","..."],"verse":"Sl 23,1: O Senhor é o meu pastor; nada me faltará.","resource_search":"...","duration_minutes":15}]}`
 }
 
 async function callClaude(apiKey: string, prompt: string): Promise<string | null> {
