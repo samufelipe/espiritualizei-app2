@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Cartas para Deus | Espiritualizei</title>
+  <link rel="icon" type="image/png" href="/favicon-32x32.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <script>
+    tailwind = { config: {
+      darkMode: 'class',
+      theme: { extend: { colors: { brand: { dark: '#1A2530', violet: '#A78BFA' } }, fontFamily: { sans: ['Inter','sans-serif'] } } }
+    }};
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #1A2530; font-family: 'Inter', sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+    @keyframes bgPulse  { 0%,100% { opacity:1; } 50% { opacity:.7; } }
+    @keyframes spin     { to { transform:rotate(360deg); } }
+    @keyframes cardIn   { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes checkIn  { from { transform:scale(0); } to { transform:scale(1); } }
+
+    .anim-fade-up  { animation: fadeUp .5s cubic-bezier(.22,1,.36,1) forwards; }
+    .anim-fade-in  { animation: fadeIn .4s ease forwards; }
+
+    .bg-animated {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(167,139,250,.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 90%, rgba(167,139,250,.05) 0%, transparent 55%);
+      animation: bgPulse 7s ease-in-out infinite;
+    }
+
+    .glass        { background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.08); backdrop-filter: blur(12px); }
+    .glass-violet { background: rgba(167,139,250,.06); border: 1.5px solid rgba(167,139,250,.18); }
+
+    #loading-screen {
+      position: fixed; inset: 0; z-index: 200;
+      background: #1A2530;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      transition: opacity .4s ease;
+    }
+    .spinner { width: 32px; height: 32px; border: 3px solid rgba(167,139,250,.2); border-top-color: #A78BFA; border-radius: 50%; animation: spin 1s linear infinite; }
+
+    .content-wrap { max-width: 520px; margin: 0 auto; padding: 0 16px 100px; position: relative; z-index: 1; }
+
+    /* Buttons */
+    .btn-primary {
+      background: #A78BFA; border-radius: 14px; border: none;
+      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px;
+      color: #1A2530; cursor: pointer; min-height: 52px; width: 100%;
+      padding: 14px 24px; transition: all .2s ease;
+      box-shadow: 0 8px 32px rgba(167,139,250,.28);
+    }
+    .btn-primary:hover { background: #9370f5; transform: translateY(-1px); box-shadow: 0 12px 40px rgba(167,139,250,.4); }
+    .btn-primary:active { transform: scale(.98); }
+
+    .btn-ghost {
+      background: rgba(167,139,250,.08); border: 1.5px solid rgba(167,139,250,.22);
+      border-radius: 12px; cursor: pointer; font-family: 'Inter', sans-serif;
+      color: #A78BFA; font-weight: 600; font-size: 13px; padding: 11px 18px;
+      transition: all .2s ease; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-ghost:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.4); }
+
+    .btn-ghost-done {
+      background: rgba(167,139,250,.14); border: 1.5px solid rgba(167,139,250,.35);
+      border-radius: 12px; cursor: pointer; font-family: 'Inter', sans-serif;
+      color: #A78BFA; font-weight: 600; font-size: 13px; padding: 11px 18px;
+      transition: all .2s ease; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-ghost-done:hover { background: rgba(167,139,250,.22); }
+
+    /* Sticky header */
+    .sticky-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(26,37,48,.9); backdrop-filter: blur(20px);
+      border-bottom: 1.5px solid rgba(255,255,255,.06);
+      padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .progress-pill {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(167,139,250,.1); border: 1.5px solid rgba(167,139,250,.2);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 12px; font-weight: 700; color: #A78BFA;
+    }
+
+    /* Progress dots */
+    .progress-dots { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; margin: 20px 0 8px; }
+    .pdot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: rgba(255,255,255,.1); transition: all .35s ease;
+      cursor: default;
+    }
+    .pdot.done   { background: #A78BFA; box-shadow: 0 0 7px rgba(167,139,250,.55); }
+
+    /* Verse block */
+    .verse-block {
+      border-left: 3px solid #A78BFA;
+      padding: 10px 14px;
+      background: rgba(167,139,250,.05);
+      border-radius: 0 10px 10px 0;
+      font-family: 'Lora', serif; font-size: 13px; font-style: italic;
+      color: rgba(255,255,255,.5); line-height: 1.65;
+      margin-bottom: 14px;
+    }
+
+    /* Day card */
+    .day-card {
+      position: relative; overflow: hidden;
+      background: rgba(255,255,255,.025);
+      border: 1.5px solid rgba(255,255,255,.07);
+      border-radius: 22px; padding: 26px;
+      transition: border-color .25s ease, background .25s ease;
+      animation: cardIn .45s cubic-bezier(.22,1,.36,1) both;
+    }
+    .day-card:hover { border-color: rgba(167,139,250,.18); }
+    .day-card.has-letter {
+      border-color: rgba(167,139,250,.28);
+      background: rgba(167,139,250,.04);
+    }
+
+    .day-num-bg {
+      position: absolute; top: -12px; right: 10px;
+      font-family: 'Inter', sans-serif; font-weight: 900;
+      font-size: 96px; line-height: 1; letter-spacing: -5px;
+      color: rgba(255,255,255,.028); pointer-events: none; user-select: none;
+    }
+
+    .day-label {
+      font-size: 10px; font-weight: 800; letter-spacing: 2px;
+      color: rgba(167,139,250,.55);
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .written-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700; letter-spacing: .5px;
+      color: rgba(167,139,250,.9);
+      background: rgba(167,139,250,.14); border-radius: 20px; padding: 3px 10px;
+      animation: checkIn .25s cubic-bezier(.22,1,.36,1);
+    }
+
+    .card-title {
+      font-family: 'Lora', serif; font-weight: 700;
+      font-size: clamp(17px, 4.5vw, 20px); line-height: 1.3;
+      color: #fff; margin-bottom: 14px;
+    }
+
+    .prompt-text {
+      font-size: 14px; line-height: 1.7;
+      color: rgba(255,255,255,.55); margin-bottom: 20px;
+    }
+
+    /* Writing area */
+    .writing-area {
+      display: none;
+      border-top: 1.5px solid rgba(255,255,255,.06);
+      padding-top: 20px; margin-top: 4px;
+    }
+    .writing-area.open {
+      display: block;
+      animation: fadeUp .3s cubic-bezier(.22,1,.36,1) forwards;
+    }
+
+    .area-label {
+      font-size: 10px; font-weight: 800; letter-spacing: 2px;
+      color: rgba(167,139,250,.5); display: block; margin-bottom: 10px;
+    }
+
+    .letter-textarea {
+      width: 100%; min-height: 200px;
+      background: rgba(255,255,255,.03);
+      border: 1.5px solid rgba(255,255,255,.09);
+      border-radius: 16px; padding: 18px 16px;
+      font-family: 'Lora', serif; font-size: 14.5px;
+      font-style: italic; line-height: 1.8;
+      color: rgba(255,255,255,.88);
+      resize: none; outline: none; overflow-y: hidden;
+      transition: border-color .2s ease, background .2s ease;
+    }
+    .letter-textarea::placeholder { color: rgba(255,255,255,.18); font-style: italic; }
+    .letter-textarea:focus {
+      border-color: rgba(167,139,250,.38);
+      background: rgba(167,139,250,.04);
+    }
+
+    .char-count {
+      font-size: 11px; color: rgba(255,255,255,.18);
+      text-align: right; margin-top: 7px; margin-bottom: 16px;
+    }
+
+    /* Save button feedback */
+    .save-feedback {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    /* Completion */
+    #completion-section {
+      display: none; text-align: center;
+      padding: 56px 0 24px;
+    }
+
+    /* How-to steps */
+    .how-step {
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .how-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(167,139,250,.18); border: 1.5px solid rgba(167,139,250,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: #A78BFA; flex-shrink: 0;
+    }
+
+    @media (max-width: 400px) {
+      .day-num-bg { font-size: 72px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading-screen">
+  <div style="width:52px;height:52px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.25);border-radius:16px;display:flex;align-items:center;justify-content:center;">
+    <i data-lucide="feather" style="width:24px;height:24px;color:#A78BFA;"></i>
+  </div>
+  <div class="spinner"></div>
+  <p style="font-size:13px;color:rgba(255,255,255,.35);letter-spacing:.5px;">Preparando suas cartas...</p>
+</div>
+
+<div class="bg-animated"></div>
+
+<div id="app" style="display:none;opacity:0;transition:opacity .5s ease;">
+
+  <!-- Sticky header -->
+  <div class="sticky-header">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:28px;height:28px;background:rgba(167,139,250,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+        <i data-lucide="feather" style="width:13px;height:13px;color:#A78BFA;"></i>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">Espiritualizei</span>
+    </div>
+    <div class="progress-pill">
+      <i data-lucide="pen-line" style="width:12px;height:12px;"></i>
+      <span id="progress-text">0 de 15</span>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+
+    <!-- Hero -->
+    <div style="padding-top:44px;padding-bottom:16px;text-align:center;" class="anim-fade-up">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:68px;height:68px;background:rgba(167,139,250,.1);border:1.5px solid rgba(167,139,250,.22);border-radius:20px;margin-bottom:22px;">
+        <i data-lucide="feather" style="width:30px;height:30px;color:#A78BFA;"></i>
+      </div>
+      <p style="font-size:10px;font-weight:800;letter-spacing:3px;color:rgba(167,139,250,.6);margin-bottom:10px;">SEU PRESENTE ESPECIAL</p>
+      <h1 style="font-family:'Lora',serif;font-size:clamp(28px,7vw,36px);font-weight:700;line-height:1.2;margin-bottom:14px;">
+        Cartas para Deus
+      </h1>
+      <p id="hero-subtitle" style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;max-width:380px;margin:0 auto 28px;"></p>
+
+      <!-- Progress dots -->
+      <div class="progress-dots" id="progress-dots"></div>
+      <p style="font-size:11px;color:rgba(255,255,255,.25);margin-top:10px;" id="dots-label">0 de 15 cartas escritas</p>
+    </div>
+
+    <!-- Divider -->
+    <div style="height:1.5px;background:rgba(255,255,255,.05);margin-bottom:28px;"></div>
+
+    <!-- Intro card -->
+    <div class="glass-violet" style="border-radius:20px;padding:22px;margin-bottom:32px;">
+      <p style="font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(167,139,250,.6);margin-bottom:12px;">COMO FUNCIONA</p>
+      <p style="font-size:14px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:18px;">
+        Cada dia traz um convite: uma pergunta, uma passagem das Escrituras e um espaço para escrever uma carta honesta para Deus. Sem filtros. Sem a pressão de soar bem.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="how-step">
+          <div class="how-num">1</div>
+          <p style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.55;">Leia o convite com calma. Deixe a passagem das Escrituras pousar.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">2</div>
+          <p style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.55;">Escreva como se fosse uma conversa real. Você não vai chocar a Deus.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">3</div>
+          <p style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.55;">Suas cartas ficam salvas aqui. Você pode reler, continuar e crescer a qualquer momento.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day cards -->
+    <div id="days-container" style="display:flex;flex-direction:column;gap:16px;"></div>
+
+    <!-- Completion -->
+    <div id="completion-section">
+      <div style="width:72px;height:72px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.28);border-radius:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+        <i data-lucide="heart" style="width:32px;height:32px;color:#A78BFA;"></i>
+      </div>
+      <p style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(167,139,250,.65);margin-bottom:10px;">JORNADA CONCLUIDA</p>
+      <h2 style="font-family:'Lora',serif;font-size:clamp(20px,5vw,26px);font-weight:700;line-height:1.3;margin-bottom:14px;">
+        Você escreveu 15 cartas para Deus.
+      </h2>
+      <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:30px;max-width:380px;margin-left:auto;margin-right:auto;">
+        Cada palavra foi um passo de volta para Ele. Continue essa intimidade com a comunidade do App Espiritualizei.
+      </p>
+      <button class="btn-primary" style="max-width:340px;margin:0 auto;" onclick="window.open('https://www.espiritualizei.com','_blank')">
+        Continuar no App Espiritualizei
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// -----------------------------------------------
+// CONTENT DATA
+// -----------------------------------------------
+
+const HERO_SUBTITLES = {
+  anxiety:       'Um espaço para conversar com Deus sobre a ansiedade, com honestidade e sem pressa.',
+  sadness:       'Um espaço para levar sua tristeza para Deus, sem disfarces e sem a pressão de estar bem.',
+  relationships: 'Um espaço para conversar com Deus sobre as relações que pesam e precisam de cura.',
+  lust:          'Um espaço para levar para Deus o que parece difícil dizer em voz alta, com liberdade.',
+  pride:         'Um espaço para conversar com Deus sobre as mágoas que você guarda e o perdão que parece impossível.',
+  laziness:      'Um espaço para falar com Deus sobre a falta de constância e pedir o que você não consegue sozinho.',
+};
+
+const PROMPTS = {
+  anxiety: [
+    { title: 'O peso que eu carrego',            verse: '"Lançai sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós." (1Pe 5,7)',             prompt: 'Escreva para Deus sobre o que mais pesa no seu coração hoje. Não filtre. Não organize. Só escreva como você fala consigo mesmo nas madrugadas.' },
+    { title: 'O medo que não consigo nomear',    verse: '"Não temas, porque eu sou contigo." (Is 41,10)',                                                   prompt: 'Existe um medo que você carrega e dificilmente consegue dizer em voz alta. Escreva para Deus sobre ele. Dê-lhe um nome nesta carta.' },
+    { title: 'Quando a mente não para',          verse: '"E a paz de Deus, que excede todo o entendimento, guardará os vossos corações." (Fp 4,7)',         prompt: 'Descreva para Deus como é a sensação quando a ansiedade chega. O que acontece no seu corpo, na sua mente, no seu coração. Ele quer saber.' },
+    { title: 'O que eu precisaria ouvir de Ti',  verse: '"Vinde a mim, todos os que estais cansados e sobrecarregados." (Mt 11,28)',                        prompt: 'Se Deus pudesse te falar diretamente hoje, o que você mais precisaria ouvir? Escreva essa carta para Ele e deixe espaço para imaginar a resposta.' },
+    { title: 'Onde eu Te encontrei sem perceber',verse: '"Eis que estou à porta e bato." (Ap 3,20)',                                                          prompt: 'Pense nos últimos dias. Em qual momento, por menor que seja, você sentiu algo que poderia ser a presença de Deus? Escreva sobre isso. Não precisa ter certeza.' },
+    { title: 'O que eu preciso soltar',          verse: '"O Senhor é o meu pastor; nada me faltará." (Sl 23,1)',                                             prompt: 'Existe algo que você está tentando controlar que não é seu para controlar? Escreva sobre isso para Deus. O que seria diferente se você confiasse esse peso a Ele?' },
+    { title: 'O que não é meu carregar',         verse: '"Lançai o vosso cuidado sobre ele." (1Pe 5,7)',                                                     prompt: 'Você carrega preocupações que são dos outros? Ansiedades que vieram de fora? Escreva para Deus listando o que você precisa devolver para os braços dEle.' },
+    { title: 'Como seria se eu confiasse',       verse: '"Confia no Senhor de todo o teu coração." (Pr 3,5)',                                                prompt: 'Imagine como seria um dia na sua vida se a ansiedade não controlasse suas decisões. Descreva esse dia para Deus. Em seguida, peça a Ele que te ajude a construí-lo.' },
+    { title: 'O momento em que mais senti Ti',   verse: '"Onde estão dois ou três reunidos em meu nome, ali estou." (Mt 18,20)',                              prompt: 'Pense no momento da sua vida em que mais sentiu Deus próximo. Pode ser recente ou antigo. Escreva sobre ele com detalhes. O que você sentiu? O que mudou?' },
+    { title: 'O que ainda não Te falei',         verse: '"Buscai-me e vivereis." (Am 5,4)',                                                                   prompt: 'Existe algo que você nunca disse a Deus? Uma mágoa, uma dúvida, uma queixa? Esta carta é o lugar. Você não vai chocá-Lo. Escreva com honestidade total.' },
+    { title: 'O que eu tenho medo de ouvir',     verse: '"Fala, Senhor, porque o teu servo ouve." (1Sm 3,10)',                                               prompt: 'O que você acha que Deus quer te dizer e você ainda não quis ouvir? Escreva essa conversa como se fosse real. Deixe-O falar, mesmo que seja difícil.' },
+    { title: 'Amar quando estou sofrendo',       verse: '"Amai-vos uns aos outros como eu vos amei." (Jo 15,12)',                                             prompt: 'Quando estamos ansiosos, amar o próximo fica mais difícil. Pense em alguém na sua vida que precisa de você agora. Escreva para Deus sobre essa pessoa e peça forças para amá-la mesmo no seu limite.' },
+    { title: 'O que a ansiedade me impediu',     verse: '"Tudo posso naquele que me fortalece." (Fp 4,13)',                                                   prompt: 'O que você gostaria de ter feito, tentado ou vivido, mas a ansiedade impediu? Escreva para Deus sobre esses sonhos. Pergunte a Ele se ainda há tempo.' },
+    { title: 'A paz que eu preciso',             verse: '"Deixo-vos a paz, dou-vos a minha paz." (Jo 14,27)',                                                prompt: 'Quando você pensa em paz, o que imagina? Não a paz genérica. A sua paz específica. Descreva-a para Deus com detalhes. Peça-lhe que te guie até ela.' },
+    { title: 'O que quero construir com Ti',     verse: '"Porque eu bem sei os planos que tenho a vosso respeito." (Jr 29,11)',                               prompt: 'Esta é a última carta desta jornada. Escreva para Deus sobre quem você quer ser daqui a um ano. O que quer ter construído, sentido, mudado. E convide-O a caminhar com você.' },
+  ],
+
+  sadness: [
+    { title: 'O vazio que me acompanha',         verse: '"O Senhor está próximo dos que têm o coração quebrantado." (Sl 34,18)',                             prompt: 'Descreva para Deus essa tristeza específica. Não a tristeza genérica. A sua. Como ela se parece hoje, neste exato momento?' },
+    { title: 'O que me roubou a alegria',        verse: '"Restaura-me a alegria da tua salvação." (Sl 51,12)',                                               prompt: 'Quando foi a última vez que você sentiu alegria genuína? O que aconteceu depois? Escreva para Deus sobre o que mudou.' },
+    { title: 'O choro que eu guardo',            verse: '"Deus enxugará toda lágrima dos seus olhos." (Ap 21,4)',                                            prompt: 'Existe um choro que você guarda e que ainda não chorou de verdade? Esta carta é o lugar. Escreva para Deus sobre o que esse choro carrega.' },
+    { title: 'Quem eu era antes',                verse: '"Eis que eu faço novas todas as coisas." (Ap 21,5)',                                                 prompt: 'Como você era antes desse peso chegar? Escreva para Deus sobre essa versão de você. O que você quer recuperar?' },
+    { title: 'O dia mais difícil',               verse: '"Na tribulação, ele me socorreu." (Sl 4,1)',                                                         prompt: 'Descreva para Deus o dia mais difícil que você passou recentemente. Com detalhes. Onde Ele estava nesse dia?' },
+    { title: 'O que eu preciso ouvir',           verse: '"Não te abandonarei nem te deixarei." (Hb 13,5)',                                                   prompt: 'O que você mais precisa ouvir agora? Escreva essa carta para Deus e peça que Ele te responda.' },
+    { title: 'O que eu não consigo mais',        verse: '"Quando sou fraco, então é que sou forte." (2Cor 12,10)',                                           prompt: 'O que você perdeu a vontade de fazer? O que parece impossível agora? Seja honesto com Deus sobre seus limites.' },
+    { title: 'Onde Tu estavas',                  verse: '"Mesmo que eu andasse pelo vale da sombra da morte, não temeria." (Sl 23,4)',                        prompt: 'Houve um momento em que você se perguntou onde Deus estava? Escreva essa pergunta para Ele. Sem filtro.' },
+    { title: 'Alguém que eu perdi',              verse: '"Bem-aventurados os que choram, porque serão consolados." (Mt 5,4)',                                 prompt: 'Existe alguém ou algo que você perdeu e ainda carrega? Uma pessoa, um sonho, uma fase da vida. Escreva uma carta para Deus sobre essa perda.' },
+    { title: 'O que ainda me faz sorrir',        verse: '"Este é o dia que o Senhor fez." (Sl 118,24)',                                                      prompt: 'Por menor que seja, existe algo que ainda te faz sorrir? Escreva para Deus com gratidão sobre esse algo. Deixe-o crescer nesta carta.' },
+    { title: 'O que eu não disse',               verse: '"Toda a vossa ansiedade lançai sobre ele." (1Pe 5,7)',                                              prompt: 'Existe algo que você queria ter dito e não disse? Para Deus, para alguém, para você mesmo? Esta carta é o lugar.' },
+    { title: 'O que eu peço mas duvido receber', verse: '"Pedi e recebereis." (Jo 16,24)',                                                                    prompt: 'Existe um pedido que você faz a Deus mas no fundo acha que não vai receber? Escreva sobre esse pedido e sobre essa dúvida.' },
+    { title: 'O que me dá esperança',            verse: '"A esperança não decepciona." (Rm 5,5)',                                                             prompt: 'Mesmo no peso, existe uma centelha de esperança? Escreva para Deus sobre ela. Peça que Ele a proteja e a faça crescer.' },
+    { title: 'Quem eu quero ser depois disso',   verse: '"Tudo concorre para o bem daqueles que amam a Deus." (Rm 8,28)',                                    prompt: 'Quando esse tempo passar, quem você quer ter se tornado? Escreva para Deus sobre essa versão futura de você.' },
+    { title: 'Minha carta de entrega',           verse: '"Eis-me aqui, Senhor." (Is 6,8)',                                                                    prompt: 'Esta é a sua última carta. Entregue para Deus o que você não consegue carregar mais: com todas as palavras, sem guardar nada.' },
+  ],
+
+  relationships: [
+    { title: 'A relação que mais pesa',          verse: '"Suportai-vos uns aos outros com amor." (Ef 4,2)',                                                   prompt: 'Existe uma relação específica que está pesando agora? Escreva para Deus sobre ela com honestidade. Não precisa ser justo na carta.' },
+    { title: 'O que eu não consigo dizer',       verse: '"A verdade vos libertará." (Jo 8,32)',                                                               prompt: 'O que você gostaria de falar para alguém na sua vida mas ainda não conseguiu? Escreva primeiro para Deus.' },
+    { title: 'A mágoa que carrego',              verse: '"Sede bondosos uns para com os outros, compassivos." (Ef 4,32)',                                     prompt: 'Alguém te magoou de um jeito que ainda dói. Escreva para Deus sobre essa mágoa, com todos os detalhes que você nunca falou.' },
+    { title: 'Onde essa relação quebrou',        verse: '"O amor cobre uma multidão de pecados." (1Pe 4,8)',                                                  prompt: 'Pense no momento em que essa relação começou a mudar ou a quebrar. Escreva para Deus sobre o que aconteceu naquele momento.' },
+    { title: 'O que Deus veria nessa pessoa',    verse: '"Amai os vossos inimigos." (Mt 5,44)',                                                               prompt: 'O que você acha que Deus enxergaria nessa pessoa que você ainda não consegue ver? Escreva como se Ele estivesse te explicando.' },
+    { title: 'Como eu contribuí',                verse: '"Por que vês o argueiro no olho do teu irmão?" (Mt 7,3)',                                            prompt: 'Com honestidade: de que forma você também contribuiu para o problema nessa relação? Escreva para Deus sem se defender.' },
+    { title: 'O que eu queria que fosse diferente',verse: '"Que todos sejam um, como tu, Pai, és em mim." (Jo 17,21)',                                       prompt: 'Se você pudesse reescrever parte dessa relação, o que seria diferente? Descreva para Deus essa versão.' },
+    { title: 'Se eu perdoasse de verdade',       verse: '"Perdoai como o Senhor vos perdoou." (Cl 3,13)',                                                     prompt: 'Imagine que você perdoasse de verdade. Como seria? O que mudaria em você? Escreva essa cena para Deus.' },
+    { title: 'O que eu peço por essa pessoa',    verse: '"Orai uns pelos outros para que sejais curados." (Tg 5,16)',                                         prompt: 'Escreva uma carta para Deus pedindo algo específico por essa pessoa. Mesmo que seja difícil.' },
+    { title: 'O limite que eu preciso colocar',  verse: '"Seja o vosso falar: sim, sim; não, não." (Mt 5,37)',                                               prompt: 'Existe um limite que você sabe que precisa estabelecer? Escreva para Deus sobre esse limite. Peça coragem para colocá-lo.' },
+    { title: 'O que essa relação me ensinou',    verse: '"Em tudo dai graças." (1Ts 5,18)',                                                                   prompt: 'Por mais difícil que seja, o que essa relação te ensinou? Escreva para Deus com gratidão, mesmo que a gratidão venha com custo.' },
+    { title: 'Quem eu quero ser nessa relação',  verse: '"Sede imitadores de Deus, como filhos amados." (Ef 5,1)',                                            prompt: 'Quem você quer ser nessa relação? Não quem você deveria ser. Quem você genuinamente quer ser. Escreva para Deus sobre essa versão.' },
+    { title: 'O que não posso fazer sozinho',    verse: '"Sem mim nada podeis fazer." (Jo 15,5)',                                                              prompt: 'O que nessa relação você sabe que não consegue resolver com a própria força? Peça isso especificamente a Deus.' },
+    { title: 'Como eu quero ser lembrado',       verse: '"Sede o sal da terra." (Mt 5,13)',                                                                   prompt: 'Quando essa fase passar, como você quer que essa pessoa se lembre de você? Escreva para Deus sobre o legado que você quer deixar.' },
+    { title: 'Minha carta de intenção',          verse: '"O amor é paciente, o amor é bondoso." (1Cor 13,4)',                                                prompt: 'Esta é a última carta. Escreva para Deus suas intenções para essa relação a partir de hoje. O que você escolhe, com a ajuda dEle.' },
+  ],
+
+  lust: [
+    { title: 'O que carrego com vergonha',       verse: '"Se confessarmos os nossos pecados, ele é fiel e justo para nos perdoar." (1Jo 1,9)',               prompt: 'Esta carta é um espaço seguro. Escreva para Deus sobre o que você carrega com vergonha. Ele já sabe. Mas dizer em palavras é o primeiro passo.' },
+    { title: 'Quando isso começou',              verse: '"Permanecei em mim e eu em vós." (Jo 15,4)',                                                         prompt: 'Quando você percebe que isso entrou na sua vida? Escreva para Deus sobre o início. Sem julgamento. Só com honestidade.' },
+    { title: 'O que sinto depois',               verse: '"Se o Filho vos libertar, sereis verdadeiramente livres." (Jo 8,36)',                                prompt: 'Como você se sente depois de ceder? Descreva essa sensação para Deus. O peso, a vergonha, o cansaço de recomeçar.' },
+    { title: 'O que esse padrão me custou',      verse: '"Vim para que tenham vida e a tenham em abundância." (Jo 10,10)',                                   prompt: 'O que esse ciclo te custou? Escreva para Deus sobre o que você perdeu ou deixou de viver por causa disso.' },
+    { title: 'O que eu realmente busco',         verse: '"Minha alma tem sede de ti." (Sl 63,1)',                                                             prompt: 'Por baixo desse desejo, o que você está buscando de verdade? Intimidade? Conforto? Escape? Escreva para Deus sobre a sede real.' },
+    { title: 'Onde Deus estava nos meus piores momentos', verse: '"Eis que estou contigo em todos os lugares." (Gn 28,15)',                                  prompt: 'Pense nos momentos mais difíceis desse ciclo. Onde você acha que Deus estava? Escreva essa pergunta para Ele. Pode ser com raiva.' },
+    { title: 'Como seria a liberdade',           verse: '"Para a liberdade foi que Cristo nos libertou." (Gl 5,1)',                                           prompt: 'Imagine um dia inteiro livre. Como seria? O que você faria? Como se sentiria? Descreva essa visão para Deus.' },
+    { title: 'Quem eu afeto sem querer',         verse: '"Amai-vos uns aos outros." (Jo 15,12)',                                                              prompt: 'Esse ciclo afeta alguém além de você? Escreva para Deus sobre essa pessoa. E sobre o que você quer diferente.' },
+    { title: 'O que eu peço no momento fraco',   verse: '"Quando sou fraco, então é que sou forte." (2Cor 12,10)',                                           prompt: 'No momento em que a tentação é mais forte, o que você gostaria de poder pedir a Deus? Escreva esse pedido agora, enquanto está em paz.' },
+    { title: 'Uma vitória, por menor que seja',  verse: '"Graças a Deus que nos dá a vitória." (1Cor 15,57)',                                                prompt: 'Houve algum momento em que você resistiu? Escreva para Deus sobre essa vitória. Por menor que seja, ela merece uma carta.' },
+    { title: 'O que eu quero que mude',          verse: '"Sede transformados pela renovação do vosso entendimento." (Rm 12,2)',                               prompt: 'O que você quer que seja diferente daqui a seis meses? Escreva para Deus com clareza sobre o que especificamente você está pedindo.' },
+    { title: 'Quem eu quero ser',                verse: '"Criado para a justiça e para a santidade da verdade." (Ef 4,24)',                                   prompt: 'Descreva para Deus quem você quer ser. Não o perfeito. O autêntico. Quem você seria se esse peso não existisse?' },
+    { title: 'O que eu precisaria receber',      verse: '"Tudo o que pedirdes ao Pai em meu nome, ele vos dará." (Jo 16,23)',                                prompt: 'Escreva uma carta pedindo o que você mais precisa. Força? Paz? Um caminho concreto? Seja específico.' },
+    { title: 'O que prometo tentar',             verse: '"Posso tudo naquele que me fortalece." (Fp 4,13)',                                                   prompt: 'O que você está disposto a tentar de diferente? Escreva para Deus uma promessa real, com honestidade sobre o que é possível.' },
+    { title: 'Minha carta de entrega',           verse: '"Senhor, em tuas mãos entrego o meu espírito." (Sl 31,5)',                                          prompt: 'Esta é a última carta. Entregue para Deus o que você não consegue carregar mais. Com todas as palavras. Sem guardar nada.' },
+  ],
+
+  pride: [
+    { title: 'A mágoa que ainda dói',            verse: '"O Senhor sarará o coração quebrantado." (Sl 147,3)',                                               prompt: 'Quem te magoou de um jeito que ainda dói hoje? Escreva para Deus sobre essa mágoa, com todos os detalhes que você guarda.' },
+    { title: 'O que eu não consegui perdoar',    verse: '"Perdoai e sereis perdoados." (Lc 6,37)',                                                           prompt: 'Existe alguém que você tentou perdoar mas não conseguiu de verdade? Escreva para Deus sobre essa pessoa. Sem fingir.' },
+    { title: 'O peso de carregar isso',          verse: '"O meu jugo é suave e o meu fardo é leve." (Mt 11,30)',                                             prompt: 'O que significa carregar essa mágoa dia após dia? Descreva para Deus o cansaço disso.' },
+    { title: 'O que eu queria que ela entendesse',verse: '"Se for possível, quanto depender de vós, vivei em paz com todos." (Rm 12,18)',                    prompt: 'Se essa pessoa pudesse entender exatamente como você se sentiu, o que você gostaria que ela soubesse? Escreva isso para Deus.' },
+    { title: 'O que fico repassando na cabeça',  verse: '"Tudo o que é verdadeiro... pensai nestas coisas." (Fp 4,8)',                                       prompt: 'Qual cena ou palavra dessa história você continua repassando? Escreva para Deus sobre esse loop. Peça ajuda para sair dele.' },
+    { title: 'O que essa mágoa fez comigo',      verse: '"Sois filhos de Deus." (1Jo 3,2)',                                                                  prompt: 'Essa mágoa mudou a forma como você se vê? Escreva para Deus sobre o que ela fez com a sua autoimagem.' },
+    { title: 'O que o perdão parece exigir',     verse: '"Sede bondosos e misericordiosos." (Ef 4,32)',                                                      prompt: 'O que te impede de perdoar? Escreva para Deus sobre o que o perdão parece exigir que você ainda não está pronto para dar.' },
+    { title: 'Se eu realmente deixasse ir',      verse: '"Não seja o vosso coração perturbado." (Jo 14,1)',                                                  prompt: 'Imagine deixar essa mágoa de verdade. O que mudaria? O que você teria de volta? Descreva essa vida para Deus.' },
+    { title: 'O que eu peço por quem me magoou', verse: '"Orai pelos que vos perseguem." (Mt 5,44)',                                                         prompt: 'Por mais difícil que seja, escreva uma oração para Deus por essa pessoa. Não precisa ser generosa. Precisa ser honesta.' },
+    { title: 'Onde eu também errei',             verse: '"Todos pecaram e carecem da glória de Deus." (Rm 3,23)',                                            prompt: 'Com coragem: existe algum jeito em que você também contribuiu ou errou nessa história? Escreva para Deus com honestidade.' },
+    { title: 'O que a mágoa me ensinou',         verse: '"A tribulação produz paciência." (Rm 5,3)',                                                          prompt: 'Por mais difícil que seja, o que essa experiência te ensinou sobre você, sobre o amor ou sobre a vida? Escreva isso para Deus.' },
+    { title: 'Quem eu quero ser depois disso',   verse: '"Sede misericordiosos como vosso Pai é misericordioso." (Lc 6,36)',                                 prompt: 'Quem você quer ser depois que essa mágoa passar? Escreva para Deus sobre essa versão de você.' },
+    { title: 'O que preciso que Deus faça em mim',verse: '"Cria em mim um coração puro." (Sl 51,12)',                                                       prompt: 'O que você não consegue fazer sozinho? O que você está pedindo especificamente para Deus operar dentro de você?' },
+    { title: 'Uma palavra para quem me magoou',  verse: '"Como eu vos amei, que também vos ameis uns aos outros." (Jo 13,34)',                               prompt: 'Se você pudesse dizer algo para essa pessoa agora, nesta carta, diante de Deus, o que seria? Escreva.' },
+    { title: 'Minha carta de libertação',        verse: '"Se o Filho vos libertar, sereis verdadeiramente livres." (Jo 8,36)',                               prompt: 'Esta é a sua última carta. Declare para Deus o que você escolhe soltar, o que você escolhe guardar e quem você escolhe ser a partir de hoje.' },
+  ],
+
+  laziness: [
+    { title: 'Por que eu fico recomeçando',      verse: '"O que começou em vós a boa obra a completará." (Fp 1,6)',                                          prompt: 'Você já recomeçou tantas vezes. Escreva para Deus sobre por que acha que é tão difícil continuar. Sem se julgar.' },
+    { title: 'A última vez que eu tentei',       verse: '"Sede firmes, imóveis." (1Cor 15,58)',                                                              prompt: 'Pense na última vez que você começou algo com intenção e parou. O que aconteceu? Escreva para Deus sobre esse momento.' },
+    { title: 'O que sinto quando falho',         verse: '"Misericórdias do Senhor não têm fim." (Lm 3,22)',                                                  prompt: 'Como você se sente quando não cumpre o que prometeu a si mesmo ou a Deus? Escreva essa sensação com honestidade.' },
+    { title: 'O que me distrai',                 verse: '"Sede vigilantes e orai." (Mt 26,41)',                                                              prompt: 'O que te afasta da sua vida espiritual? Você consegue nomear as distrações? Escreva para Deus sobre elas.' },
+    { title: 'O que eu realmente quero',         verse: '"Uma coisa pedi ao Senhor... habitar na casa do Senhor todos os dias." (Sl 27,4)',                  prompt: 'Por baixo de toda a inconstância, o que você genuinamente quer na sua vida espiritual? Escreva para Deus sobre esse desejo real.' },
+    { title: 'O que me faz continuar',           verse: '"O Senhor firmará os teus passos." (Sl 37,23)',                                                     prompt: 'Pense nos momentos em que você conseguiu manter algo. O que foi diferente? O que te ajudou? Escreva para Deus sobre isso.' },
+    { title: 'O que espero de Deus nisso',       verse: '"Deus é fiel e não permitirá que sejais tentados acima das vossas forças." (1Cor 10,13)',           prompt: 'O que você espera que Deus faça pela sua constância? Seja específico. Não generalize.' },
+    { title: 'O período mais constante que tive',verse: '"Este é o dia que o Senhor fez." (Sl 118,24)',                                                     prompt: 'Pense no melhor período da sua vida espiritual. Como era? O que sustentava aquela constância? Descreva esse tempo para Deus.' },
+    { title: 'O que eu precisaria de Ti para manter',verse: '"O meu Deus suprirá todas as vossas necessidades." (Fp 4,19)',                                 prompt: 'O que você precisaria receber de Deus para não parar dessa vez? Escreva esse pedido com detalhes.' },
+    { title: 'Por que isso importa para mim',   verse: '"Buscai primeiro o reino de Deus." (Mt 6,33)',                                                      prompt: 'Por que a vida espiritual importa para você? Não o que deveria importar. O que de fato importa. Escreva isso para Deus.' },
+    { title: 'O que mudaria com constância',     verse: '"A árvore boa dá bons frutos." (Mt 7,17)',                                                          prompt: 'Se você tivesse uma rotina espiritual real nos próximos seis meses, o que mudaria na sua vida? Descreva para Deus com detalhes.' },
+    { title: 'Minha promessa de hoje',           verse: '"Hoje, se ouvirdes a sua voz, não endureçais os vossos corações." (Hb 3,15)',                      prompt: 'Escreva uma promessa honesta para Deus sobre o que você vai tentar nos próximos dias. Realista. Não perfeita.' },
+    { title: 'Quem eu quero ser',                verse: '"Bem-aventurado o homem que suporta a provação." (Tg 1,12)',                                        prompt: 'Quem você quer ser espiritualmente daqui a um ano? Escreva para Deus essa versão de você com o máximo de detalhe possível.' },
+    { title: 'O que aceito não conseguir sozinho',verse: '"Sem mim nada podeis fazer." (Jo 15,5)',                                                           prompt: 'O que você finalmente aceita que não consegue sem ajuda? Escreva essa entrega para Deus com humildade e honestidade.' },
+    { title: 'Minha carta de compromisso',       verse: '"Eis-me aqui, Senhor." (Is 6,8)',                                                                   prompt: 'Esta é a sua última carta. Escreva para Deus um compromisso real: o que você escolhe tentar, o que pede que Ele faça e quem você quer ser.' },
+  ],
+};
+
+// -----------------------------------------------
+// STATE
+// -----------------------------------------------
+let userName  = 'Caminhante';
+let challenge = 'anxiety';
+let letters   = {};
+const LS_KEY  = 'espiritualizei_cartas_v1';
+
+// -----------------------------------------------
+// INIT
+// -----------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(window.location.search);
+  userName  = (p.get('name')      || 'Caminhante').trim();
+  challenge = (p.get('challenge') || 'anxiety').trim();
+  if (!PROMPTS[challenge]) challenge = 'anxiety';
+
+  try {
+    const raw = localStorage.getItem(LS_KEY + '_' + challenge);
+    if (raw) letters = JSON.parse(raw);
+  } catch(_) {}
+
+  document.getElementById('hero-subtitle').textContent =
+    HERO_SUBTITLES[challenge] || HERO_SUBTITLES.anxiety;
+
+  buildProgressDots();
+  buildDayCards();
+  updateProgress();
+  lucide.createIcons();
+
+  setTimeout(() => {
+    const ls = document.getElementById('loading-screen');
+    ls.style.opacity = '0';
+    setTimeout(() => { ls.style.display = 'none'; }, 400);
+    const app = document.getElementById('app');
+    app.style.display = 'block';
+    requestAnimationFrame(() => { app.style.opacity = '1'; });
+  }, 900);
+});
+
+// -----------------------------------------------
+// BUILD
+// -----------------------------------------------
+function buildProgressDots() {
+  const c = document.getElementById('progress-dots');
+  for (let i = 1; i <= 15; i++) {
+    const d = document.createElement('div');
+    d.className = 'pdot';
+    d.id = 'pdot-' + i;
+    c.appendChild(d);
+  }
+}
+
+function buildDayCards() {
+  const container = document.getElementById('days-container');
+  const prompts   = PROMPTS[challenge];
+
+  prompts.forEach((p, idx) => {
+    const day    = idx + 1;
+    const key    = 'day_' + day;
+    const saved  = (letters[key] || '').trim();
+    const done   = saved.length > 0;
+    const dayStr = String(day).padStart(2, '0');
+
+    const card = document.createElement('div');
+    card.className = 'day-card' + (done ? ' has-letter' : '');
+    card.id = 'card-' + day;
+    card.style.animationDelay = Math.min(idx * 0.03, 0.45) + 's';
+
+    card.innerHTML = `
+      <div class="day-num-bg">${dayStr}</div>
+
+      <div class="day-label">
+        <span>DIA ${dayStr}</span>
+        <span id="badge-${day}" class="written-badge" style="display:${done ? 'inline-flex' : 'none'};">
+          <i data-lucide="check" style="width:10px;height:10px;"></i>&nbsp;Carta escrita
+        </span>
+      </div>
+
+      <h2 class="card-title">${p.title}</h2>
+      <div class="verse-block">${p.verse}</div>
+      <p class="prompt-text">${p.prompt}</p>
+
+      <button class="${done ? 'btn-ghost-done' : 'btn-ghost'}" id="toggle-btn-${day}" onclick="toggleDay(${day})">
+        <i data-lucide="${done ? 'pen-line' : 'feather'}" style="width:14px;height:14px;"></i>
+        <span>${done ? 'Ver e editar minha carta' : 'Escrever esta carta'}</span>
+      </button>
+
+      <div class="writing-area" id="area-${day}">
+        <span class="area-label">SUA CARTA</span>
+        <textarea
+          class="letter-textarea"
+          id="ta-${day}"
+          placeholder="Querido Deus..."
+          oninput="onType(this, ${day})"
+        >${letters[key] || ''}</textarea>
+        <div class="char-count" id="cc-${day}">${saved.length} caracteres</div>
+        <button class="btn-primary" onclick="save(${day})">
+          <span id="sl-${day}">Salvar carta</span>
+        </button>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+// -----------------------------------------------
+// INTERACTIONS
+// -----------------------------------------------
+function toggleDay(day) {
+  const area = document.getElementById('area-' + day);
+  const open = area.classList.contains('open');
+
+  document.querySelectorAll('.writing-area.open').forEach(a => a.classList.remove('open'));
+
+  if (!open) {
+    area.classList.add('open');
+    setTimeout(() => {
+      const ta = document.getElementById('ta-' + day);
+      if (ta) { autoGrow(ta); ta.focus(); }
+      document.getElementById('card-' + day).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
+  }
+}
+
+let _timers = {};
+function onType(el, day) {
+  autoGrow(el);
+  const cc = document.getElementById('cc-' + day);
+  if (cc) cc.textContent = el.value.length + ' caracteres';
+  clearTimeout(_timers[day]);
+  _timers[day] = setTimeout(() => save(day, true), 1800);
+}
+
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.max(200, el.scrollHeight) + 'px';
+}
+
+function save(day, silent = false) {
+  const key = 'day_' + day;
+  const ta  = document.getElementById('ta-' + day);
+  if (!ta) return;
+
+  letters[key] = ta.value;
+  try { localStorage.setItem(LS_KEY + '_' + challenge, JSON.stringify(letters)); } catch(_) {}
+
+  const done  = ta.value.trim().length > 0;
+  const card  = document.getElementById('card-' + day);
+  const badge = document.getElementById('badge-' + day);
+  const btn   = document.getElementById('toggle-btn-' + day);
+
+  card.classList.toggle('has-letter', done);
+  if (badge) badge.style.display = done ? 'inline-flex' : 'none';
+
+  if (btn) {
+    btn.className = done ? 'btn-ghost-done' : 'btn-ghost';
+    btn.innerHTML = `<i data-lucide="${done ? 'pen-line' : 'feather'}" style="width:14px;height:14px;"></i><span>${done ? 'Ver e editar minha carta' : 'Escrever esta carta'}</span>`;
+  }
+
+  if (!silent) {
+    const sl = document.getElementById('sl-' + day);
+    if (sl) { sl.textContent = 'Salvo!'; setTimeout(() => { if (sl) sl.textContent = 'Salvar carta'; }, 2000); }
+  }
+
+  lucide.createIcons();
+  updateProgress();
+}
+
+function updateProgress() {
+  let count = 0;
+  for (let i = 1; i <= 15; i++) {
+    const done = !!(letters['day_' + i] && letters['day_' + i].trim().length > 0);
+    const dot  = document.getElementById('pdot-' + i);
+    if (dot) dot.classList.toggle('done', done);
+    if (done) count++;
+  }
+  const pt = document.getElementById('progress-text');
+  if (pt) pt.textContent = count + ' de 15';
+  const dl = document.getElementById('dots-label');
+  if (dl) dl.textContent = count + ' de 15 cartas escritas';
+
+  if (count === 15) {
+    const cs = document.getElementById('completion-section');
+    if (cs && cs.style.display === 'none') {
+      cs.style.display = 'block';
+      cs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+}
+</script>
+</body>
+</html>
