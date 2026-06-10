@@ -69,6 +69,14 @@ const App: React.FC = () => {
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
   const [completedToday, setCompletedToday] = useState<Set<string>>(new Set());
   const [xpToast, setXpToast] = useState<{show: boolean, xp: number}>({show: false, xp: 0});
+  const [isFromQuiz, setIsFromQuiz] = useState(() => localStorage.getItem('espiritualizei_from_quiz') === '1');
+
+  // Redirecionar usuários do quiz para fora da aba de Rotina (funcionalidade oculta)
+  useEffect(() => {
+    if (isFromQuiz && currentTab === Tab.ROUTINE) {
+      setCurrentTab(Tab.DASHBOARD);
+    }
+  }, [isFromQuiz, currentTab]);
 
   // Controlar classe do body para scroll na LP vs app
   useEffect(() => {
@@ -672,6 +680,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                         };
                         if (qi.plan) localStorage.setItem('espiritualizei_quiz_plan', JSON.stringify(qi.plan));
                         localStorage.setItem('espiritualizei_from_quiz', '1');
+                        setIsFromQuiz(true);
                       }
                     } catch (_) { /* não-bloqueante */ }
 
@@ -695,6 +704,9 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                       // Transição para o app
                       setViewState('app');
                       setShowTutorial(true);
+                      fetchGlobalChallenge().then((global) => {
+                        if (global) setChallenges([global]);
+                      });
                     }
                   } catch (e: any) {
                     console.error("Erro no onboarding:", e);
@@ -804,7 +816,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
           {viewState === 'app' && renderContent()}
       </main>
 
-      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!hasFullAccess(user)} /></div>}
+      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!hasFullAccess(user)} isFromQuiz={isFromQuiz} /></div>}
       
       {showTutorial && <Tutorial user={user} onComplete={() => {
         localStorage.setItem('espiritualizei_tutorial_completed', 'true');
