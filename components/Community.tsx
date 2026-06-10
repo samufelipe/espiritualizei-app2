@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PrayerIntention, CommunityChallenge, UserProfile } from '../types';
-import { Heart, Image, Trophy, Plus, Flame, Share2, CheckCircle2 } from 'lucide-react';
-import LiturgicalEvents from './LiturgicalEvents';
+import { Flame, Share2, ChevronDown, ChevronUp, Zap, Trophy, CheckCircle2 } from 'lucide-react';
 import CommunityFeed from './CommunityFeed';
+import LiturgicalEvents from './LiturgicalEvents';
 import LeaderboardWidget from './LeaderboardWidget';
 
 interface CommunityProps {
@@ -18,207 +18,252 @@ interface CommunityProps {
   user: UserProfile;
 }
 
-const Community: React.FC<CommunityProps> = ({ 
-  intentions, 
-  challenges, 
-  onPray, 
-  onJoinChallenge, 
-  onOpenCreateModal, 
-  onTestify, 
+const Community: React.FC<CommunityProps> = ({
+  intentions,
+  challenges,
+  onPray,
+  onJoinChallenge,
+  onTestify,
   feedInitialContent,
-  initialTab,
-  user
+  user,
 }) => {
-  const [activeTab, setActiveTab] = useState<'comunidade' | 'feed'>('comunidade');
-
-  // Este efeito é crucial para que o redirecionamento via App.tsx funcione
-  useEffect(() => {
-     if (initialTab) {
-        setActiveTab(initialTab);
-     }
-  }, [initialTab, feedInitialContent]); // Depender também do conteúdo inicial ajuda no reset
+  const [showIntentions, setShowIntentions] = useState(false);
 
   const handleShareApp = () => {
-    const text = encodeURIComponent("Olá! Queria te convidar para conhecer o Espiritualizei, um app incrível que está me ajudando muito a organizar minha jornada diária e vida espiritual. 💜\n\nConheça aqui: https://www.espiritualizei.com/");
+    const text = encodeURIComponent(
+      'Olá! Queria te convidar para conhecer o Espiritualizei, um app que está me ajudando muito na minha caminhada espiritual.\n\nConheça aqui: https://www.espiritualizei.com/'
+    );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black/20 pb-32 animate-fade-in">
-        
-	      {/* Liturgical Events Banner - SEMPRE VISÍVEL quando houver desafios */}
-      {challenges.length > 0 && (
-        <div className="p-4 sm:p-6 pb-2 animate-fade-in">
-           <LiturgicalEvents 
-              challenges={challenges} 
-              onJoin={onJoinChallenge} 
-              onTestify={onTestify}
-           />
-        </div>
-      )}
+  const activeChallenge = challenges.find(c => c.status === 'active');
 
-      {/* Tabs Navigation */}
-      <div className="px-4 sm:px-6 sticky top-0 z-30 bg-slate-50/95 dark:bg-[#0F1115]/95 backdrop-blur-xl py-2">
-          <div className="flex p-1.5 bg-slate-200/50 dark:bg-white/5 rounded-2xl mx-auto max-w-lg relative overflow-x-auto shadow-sm border border-slate-200/50 dark:border-white/5">
-              <button 
-                onClick={() => setActiveTab('comunidade')} 
-                className={`flex-1 py-3 px-2 text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all relative z-10 whitespace-nowrap ${activeTab === 'comunidade' ? 'bg-white dark:bg-[#2A2E35] text-brand-violet shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-              >
-                <Heart size={16} /> Comunidade
-              </button>
-              <button 
-                onClick={() => setActiveTab('feed')} 
-                className={`flex-1 py-3 px-2 text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all relative z-10 whitespace-nowrap ${activeTab === 'feed' ? 'bg-white dark:bg-[#2A2E35] text-brand-violet shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-              >
-                <Image size={16} /> Feed da Comunidade
-              </button>
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0D1117] pb-32 animate-fade-in">
+
+      {/* ── Hero Header ── */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-violet/20 via-purple-900/8 to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 w-56 h-56 bg-brand-violet/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+        <div className="relative z-10 px-4 sm:px-6 pt-6 pb-6">
+          <div className="max-w-2xl lg:max-w-none mx-auto flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                </span>
+                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Ao vivo</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">Comunidade</h1>
+              <p className="text-sm text-slate-400 mt-0.5">Partilhe, ore e cresça junto</p>
+            </div>
+            <button
+              onClick={handleShareApp}
+              className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white/90 px-3 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 shrink-0"
+            >
+              <Share2 size={13} /> Convidar
+            </button>
+          </div>
+        </div>
+        <div className="h-px bg-gradient-to-r from-transparent via-brand-violet/25 to-transparent" />
+      </div>
+
+      {/* ── Main Layout ── */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8">
+
+          {/* ── Main Column ── */}
+          <div className="lg:col-span-8 space-y-5">
+
+            {/* Desafio Comunitário em destaque */}
+            {activeChallenge && (
+              <div className="animate-fade-in">
+                <div className="flex items-center gap-2 mb-3 px-0.5">
+                  <div className="w-5 h-5 rounded-full bg-amber-400/15 border border-amber-400/25 flex items-center justify-center">
+                    <Zap size={10} className="text-amber-400" fill="currentColor" />
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Desafio da Comunidade</span>
+                </div>
+
+                {/* Challenge card */}
+                <div
+                  className={`relative overflow-hidden rounded-3xl border p-5 cursor-pointer transition-all active:scale-[0.99] shadow-sm
+                    ${activeChallenge.isUserParticipating
+                      ? 'bg-gradient-to-br from-emerald-500/10 to-green-500/5 border-emerald-500/20'
+                      : 'bg-gradient-to-br from-brand-violet/12 to-purple-500/5 border-brand-violet/25 hover:border-brand-violet/45'
+                    }`}
+                  onClick={() => onJoinChallenge(activeChallenge.id)}
+                >
+                  <div className="absolute top-0 right-0 w-28 h-28 bg-brand-violet/8 rounded-full blur-2xl -mr-8 -mt-8" />
+
+                  <div className="flex justify-between items-start mb-3 relative z-10">
+                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center
+                      ${activeChallenge.isUserParticipating ? 'bg-emerald-500/15 text-emerald-400' : 'bg-brand-violet/15 text-brand-violet'}`}>
+                      {activeChallenge.isUserParticipating
+                        ? <CheckCircle2 size={26} strokeWidth={2.5} />
+                        : <Trophy size={26} strokeWidth={2} />
+                      }
+                    </div>
+                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide
+                      ${activeChallenge.isUserParticipating
+                        ? 'bg-emerald-500/15 text-emerald-400'
+                        : 'bg-brand-violet/15 text-brand-violet'
+                      }`}>
+                      {activeChallenge.participants} participando
+                    </span>
+                  </div>
+
+                  <h4 className="font-black text-white text-base sm:text-lg mb-1.5 relative z-10 leading-snug">
+                    {activeChallenge.title}
+                  </h4>
+                  <p className="text-xs text-slate-400 mb-4 line-clamp-2 relative z-10 leading-relaxed">
+                    {activeChallenge.description}
+                  </p>
+
+                  <button
+                    onClick={e => { e.stopPropagation(); onJoinChallenge(activeChallenge.id); }}
+                    className={`w-full text-white text-sm font-black py-3.5 rounded-2xl shadow-lg active:scale-95 transition-all relative z-10
+                      ${activeChallenge.isUserParticipating ? 'bg-emerald-500' : 'bg-brand-violet'}`}
+                  >
+                    {activeChallenge.isUserParticipating ? 'Ver Desafio de Hoje' : 'Participar do Desafio'}
+                  </button>
+                </div>
+
+                {/* LiturgicalEvents interactive banner */}
+                <div className="mt-3">
+                  <LiturgicalEvents
+                    challenges={challenges}
+                    onJoin={onJoinChallenge}
+                    onTestify={onTestify}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Divider + label */}
+            <div className="flex items-center gap-3 py-1">
+              <div className="h-px flex-1 bg-slate-200 dark:bg-white/5" />
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
+                Mural da Comunidade
+              </span>
+              <div className="h-px flex-1 bg-slate-200 dark:bg-white/5" />
+            </div>
+
+            {/* Community Feed — sempre visível, nunca mais escondido */}
+            <CommunityFeed user={user} initialContent={feedInitialContent} />
 
           </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
-         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Main Content Column */}
-            <div className="lg:col-span-8">
-               
-               {activeTab === 'comunidade' && (
-                  <div className="space-y-6 animate-slide-up">
+          {/* ── Desktop Sidebar ── */}
+          <div className="hidden lg:block lg:col-span-4">
+            <div className="sticky top-24 space-y-5">
 
-                     {/* Desafios Comunitários em Destaque (Mobile/PWA) */}
-                     <div className="space-y-4 mb-8">
-                        <div className="flex items-center justify-between px-1">
-                           <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Desafios Ativos</h3>
-                           <span className="text-[10px] font-bold text-brand-violet bg-brand-violet/10 px-2 py-0.5 rounded-full">Comunitário</span>
+              {intentions.length > 0 && (
+                <div className="bg-white dark:bg-[#1A1F26] rounded-2xl border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
+                  <div className="px-5 py-4 border-b border-slate-100 dark:border-white/5">
+                    <h3 className="text-sm font-bold text-brand-dark dark:text-white flex items-center gap-2">
+                      <Flame size={14} className="text-brand-violet" /> Intenções de Oração
+                    </h3>
+                  </div>
+                  <div className="divide-y divide-slate-50 dark:divide-white/5 max-h-72 overflow-y-auto">
+                    {intentions.slice(0, 6).map(intention => (
+                      <div key={intention.id} className="px-4 py-3 flex items-start gap-3">
+                        <div className="w-7 h-7 rounded-full bg-brand-violet/10 flex items-center justify-center text-brand-violet font-bold text-xs shrink-0 mt-0.5 overflow-hidden">
+                          {intention.authorAvatar
+                            ? <img src={intention.authorAvatar} className="w-full h-full object-cover" alt={intention.author} />
+                            : intention.author.charAt(0)
+                          }
                         </div>
-                        {challenges.length > 0 ? (
-                           <div className="grid grid-cols-1 gap-4">
-                              {challenges.filter(c => c.status === 'active').map(challenge => (
-	                                 <div 
-	                                    key={challenge.id} 
-	                                    onClick={() => {
-                                          if (challenge.isUserParticipating) {
-                                             // Se já participa, abre o banner de desafio (LiturgicalEvents)
-                                             const banner = document.querySelector('[data-challenge-banner="true"]') as HTMLElement;
-                                             if (banner) banner.click();
-                                          } else {
-                                             onJoinChallenge(challenge.id);
-                                          }
-                                       }}
-	                                    className={`bg-gradient-to-br border p-5 rounded-3xl relative overflow-hidden cursor-pointer transition-all active:scale-[0.99] shadow-sm ${challenge.isUserParticipating ? 'from-green-500/10 to-emerald-500/5 border-green-500/20' : 'from-brand-violet/10 to-purple-500/5 border-brand-violet/20 hover:border-brand-violet/40'}`}
-	                                 >
-	                                    <div className="absolute top-0 right-0 w-24 h-24 bg-brand-violet/5 rounded-full blur-2xl -mr-8 -mt-8" />
-	                                    <div className="flex justify-between items-start mb-3 relative z-10">
-	                                       <div className={`w-10 h-10 flex items-center justify-center ${challenge.isUserParticipating ? 'text-green-500' : 'text-brand-violet'}`}>
-	                                          {challenge.isUserParticipating ? <CheckCircle2 size={28} /> : <Trophy size={28} />}
-	                                       </div>
-	                                       <div className={`${challenge.isUserParticipating ? 'bg-green-500/20 text-green-500' : 'bg-brand-violet/20 text-brand-violet'} text-[10px] font-bold px-2 py-1 rounded-lg uppercase`}>
-	                                          {challenge.participants} Participando
-	                                       </div>
-	                                    </div>
-	                                    <h4 className="font-bold text-brand-dark dark:text-white text-base mb-1 relative z-10">{challenge.title}</h4>
-	                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 relative z-10">{challenge.description}</p>
-	                                    <button 
-	                                       onClick={(e) => { 
-                                             e.stopPropagation(); 
-                                             if (challenge.isUserParticipating) {
-                                                const banner = document.querySelector('[data-challenge-banner="true"]') as HTMLElement;
-                                                if (banner) banner.click();
-                                             } else {
-                                                onJoinChallenge(challenge.id);
-                                             }
-                                          }}
-	                                       className={`w-full text-white text-xs font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all relative z-10 ${challenge.isUserParticipating ? 'bg-green-500' : 'bg-brand-violet'}`}
-	                                    >
-	                                       {challenge.isUserParticipating ? 'Ver Desafio de Hoje' : 'Participar do Desafio'}
-	                                    </button>
-	                                 </div>
-                              ))}
-                           </div>
-                        ) : (
-                           <div className="bg-slate-100 dark:bg-white/5 p-8 rounded-3xl border border-dashed border-slate-300 dark:border-white/10 text-center">
-                              <p className="text-xs text-slate-500">Nenhum desafio ativo no momento. Volte em breve!</p>
-                           </div>
-                        )}
-                     </div>
-
-                     <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">Comunidade de Orações</h3>
-                        {intentions.map((intention) => (
-                           <div key={intention.id} className="bg-white dark:bg-[#1A1F26] p-6 rounded-[2rem] shadow-card border border-slate-100 dark:border-white/5 relative overflow-hidden group hover:shadow-lg transition-all">
-                              <div className="flex justify-between items-start mb-3">
-                                 <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                       <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-300 overflow-hidden border border-slate-200 dark:border-white/5">
-                                          {intention.authorAvatar ? <img src={intention.authorAvatar} className="w-full h-full object-cover" /> : intention.author.charAt(0)}
-                                       </div>
-                                       <span className="font-bold text-brand-dark dark:text-white text-sm">{intention.author}</span>
-                                       <span className="text-[10px] text-slate-400">• {new Date(intention.timestamp).toLocaleDateString()}</span>
-                                    </div>
-                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide border ${
-                                       intention.category === 'health' ? 'bg-red-100 dark:bg-red-900/20 text-red-600 border-red-200 dark:border-red-900/30' :
-                                       intention.category === 'family' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 border-blue-200 dark:border-blue-900/30' :
-                                       'bg-slate-100 dark:bg-white/10 text-slate-500 border-slate-200 dark:border-white/20'
-                                    }`}>
-                                       {intention.category === 'health' ? 'Saúde' : intention.category === 'family' ? 'Família' : intention.category || 'Intenção'}
-                                    </span>
-                                 </div>
-                                 <button 
-                                    onClick={() => onPray(intention.id)}
-                                    className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${intention.isPrayedByUser ? 'text-brand-violet' : 'text-slate-400 hover:text-brand-violet'}`}
-                                 >
-                                    <Flame size={24} fill={intention.isPrayedByUser ? "currentColor" : "none"} className={intention.isPrayedByUser ? "animate-pulse" : ""} />
-                                    <span className="text-[10px] font-bold">{intention.prayingCount}</span>
-                                 </button>
-                              </div>
-                              <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-medium">
-                                 "{intention.content}"
-                              </p>
-                              <div className="mt-4 pt-4 border-t border-slate-50 dark:border-white/5 flex items-center justify-between">
-                                 <div className="flex -space-x-2">
-                                    {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full bg-slate-200 dark:bg-white/10 border-2 border-white dark:border-[#1A1F26]" />)}
-                                 </div>
-                                 <button 
-                                    onClick={() => onPray(intention.id)}
-                                    className={`text-xs font-bold px-4 py-2 rounded-xl transition-all ${intention.isPrayedByUser ? 'bg-brand-violet/10 text-brand-violet' : 'bg-slate-50 dark:bg-white/5 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'}`}
-                                 >
-                                    {intention.isPrayedByUser ? 'Em oração' : 'Rezar agora'}
-                                 </button>
-                              </div>
-                           </div>
-                        ))}
-                     </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-brand-dark dark:text-white truncate">{intention.author}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mt-0.5">{intention.content}</p>
+                        </div>
+                        <button
+                          onClick={() => onPray(intention.id)}
+                          className={`shrink-0 transition-all active:scale-90 pt-0.5 ${intention.isPrayedByUser ? 'text-brand-violet' : 'text-slate-300 hover:text-brand-violet'}`}
+                        >
+                          <Flame size={17} fill={intention.isPrayedByUser ? 'currentColor' : 'none'} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-               )}
+                </div>
+              )}
 
-               {activeTab === 'feed' && (
-                  <div className="animate-slide-up">
-                     <CommunityFeed user={user} initialContent={feedInitialContent} />
-                  </div>
-               )}
+              <LeaderboardWidget user={user} />
 
-
+              <div className="bg-gradient-to-br from-brand-violet to-purple-800 rounded-2xl p-5 text-white relative overflow-hidden shadow-xl">
+                <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
+                <h3 className="font-bold text-base mb-1.5 relative z-10">Convide amigos</h3>
+                <p className="text-purple-100 text-xs mb-4 relative z-10 leading-relaxed">A fé cresce quando é partilhada. Traga alguém para caminhar com você.</p>
+                <button
+                  onClick={handleShareApp}
+                  className="w-full bg-white text-brand-violet font-black py-3 rounded-xl text-xs shadow-lg hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-2 relative z-10"
+                >
+                  <Share2 size={14} /> Compartilhar App
+                </button>
+              </div>
 
             </div>
+          </div>
 
-            <div className="hidden lg:block lg:col-span-4 space-y-6">
-               <div className="sticky top-24">
-                  <LeaderboardWidget user={user} />
-                  <div className="mt-6 bg-gradient-to-br from-brand-violet to-purple-800 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl">
-                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
-                     <h3 className="font-bold text-lg mb-2 relative z-10">Convide amigos</h3>
-                     <p className="text-purple-100 text-xs mb-4 relative z-10 leading-relaxed">A fé cresce quando é partilhada. Traga alguém para caminhar com você.</p>
-                     <button 
-                        onClick={handleShareApp}
-                        className="w-full bg-white text-brand-violet font-bold py-3 rounded-xl text-xs shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-2"
-                     >
-                        <Share2 size={14} /> Compartilhar App
-                     </button>
-                  </div>
-               </div>
-            </div>
-         </div>
+        </div>
       </div>
+
+      {/* ── Mobile: Prayer Intentions Collapsible ── */}
+      <div className="lg:hidden mt-6 px-4 sm:px-6">
+        {intentions.length > 0 && (
+          <div className="bg-white dark:bg-[#1A1F26] rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+            <button
+              onClick={() => setShowIntentions(v => !v)}
+              className="w-full px-5 py-4 flex items-center justify-between active:bg-slate-50 dark:active:bg-white/5 transition-colors"
+            >
+              <span className="text-sm font-bold text-brand-dark dark:text-white flex items-center gap-2">
+                <Flame size={14} className="text-brand-violet" />
+                Intenções de Oração
+                <span className="text-[10px] font-black text-brand-violet bg-brand-violet/10 px-1.5 py-0.5 rounded-full">
+                  {intentions.length}
+                </span>
+              </span>
+              {showIntentions
+                ? <ChevronUp size={16} className="text-slate-400 shrink-0" />
+                : <ChevronDown size={16} className="text-slate-400 shrink-0" />
+              }
+            </button>
+
+            {showIntentions && (
+              <div className="divide-y divide-slate-50 dark:divide-white/5 animate-slide-up">
+                {intentions.map(intention => (
+                  <div key={intention.id} className="px-5 py-4 flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-brand-violet/10 flex items-center justify-center text-brand-violet font-bold text-xs shrink-0 mt-0.5 overflow-hidden">
+                      {intention.authorAvatar
+                        ? <img src={intention.authorAvatar} className="w-full h-full object-cover rounded-full" alt={intention.author} />
+                        : intention.author.charAt(0)
+                      }
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-xs font-bold text-brand-dark dark:text-white">{intention.author}</p>
+                        <span className="text-[9px] text-slate-400">{new Date(intention.timestamp).toLocaleDateString('pt-BR')}</span>
+                      </div>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">"{intention.content}"</p>
+                    </div>
+                    <button
+                      onClick={() => onPray(intention.id)}
+                      className={`flex flex-col items-center gap-0.5 transition-all active:scale-90 shrink-0 ${intention.isPrayedByUser ? 'text-brand-violet' : 'text-slate-300 hover:text-brand-violet'}`}
+                    >
+                      <Flame size={22} fill={intention.isPrayedByUser ? 'currentColor' : 'none'} className={intention.isPrayedByUser ? 'animate-pulse' : ''} />
+                      <span className="text-[10px] font-bold">{intention.prayingCount}</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };
