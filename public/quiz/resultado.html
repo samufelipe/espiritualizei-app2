@@ -191,6 +191,36 @@
       border-radius: 20px; padding: 20px 22px; margin-bottom: 28px;
     }
 
+    /* Deliverable cards — área de membros */
+    .deliverable-card {
+      background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.08);
+      border-radius: 20px; padding: 20px 22px;
+      display: flex; align-items: flex-start; gap: 16px; transition: border-color .2s;
+    }
+    .deliverable-card:hover { border-color: rgba(167,139,250,.3); }
+    .deliverable-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: rgba(167,139,250,.12); border: 1.5px solid rgba(167,139,250,.2);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .deliverable-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.25);
+      border-radius: 20px; padding: 3px 10px;
+      font-size: 10px; font-weight: 800; color: #6EE7B7;
+      letter-spacing: .5px; text-transform: uppercase; margin-bottom: 8px;
+    }
+    .btn-deliverable {
+      width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border: none; border-radius: 12px; padding: 14px 18px;
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all .2s; margin-top: 14px;
+    }
+    .btn-deliverable.primary { background: #A78BFA; color: #1A2530; box-shadow: 0 6px 20px rgba(167,139,250,.28); }
+    .btn-deliverable.primary:hover { background: #9370f5; transform: translateY(-1px); }
+    .btn-deliverable.outline { background: transparent; border: 1.5px solid rgba(255,255,255,.15); color: rgba(255,255,255,.6); }
+    .btn-deliverable.outline:hover { border-color: rgba(167,139,250,.4); color: #A78BFA; }
+
     /* Botão YouTube */
     .yt-link {
       display: inline-flex; align-items: center; gap: 6px;
@@ -486,6 +516,127 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <div style="text-align:center;padding-bottom:20px;">
     <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(167,139,250,.4);">ESPIRITUALIZEI · Feito com amor para a glória de Deus</p>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TELA 0: ÁREA DE MEMBROS
+     ══════════════════════════════════════════════════════ -->
+<div id="screen-members" class="screen">
+<div class="content-wrap">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:center;padding:28px 0 32px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#A78BFA">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+      <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(167,139,250,.6);margin-left:8px;">MINHA AREA</span>
+    </div>
+  </div>
+
+  <!-- Welcome hero -->
+  <div class="anim-fade-up" style="margin-bottom:36px;text-align:center;">
+    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:20px;padding:6px 16px;margin-bottom:20px;">
+      <i data-lucide="check-circle-2" style="width:13px;height:13px;color:#6EE7B7;"></i>
+      <span style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#6EE7B7;">Pagamento confirmado</span>
+    </div>
+    <h1 style="font-size:clamp(22px,7vw,32px);font-weight:900;line-height:1.2;margin-bottom:12px;letter-spacing:-.5px;">
+      Bem-vindo a sua jornada,<br><span id="members-name" style="color:#A78BFA;"></span>
+    </h1>
+    <p style="font-size:clamp(14px,4vw,16px);color:rgba(255,255,255,.5);line-height:1.6;max-width:400px;margin:0 auto;">
+      Preparamos tudo para voce. Abaixo estao os seus entregaveis, liberados e prontos para comecar.
+    </p>
+  </div>
+
+  <!-- Entregaveis -->
+  <div class="anim-fade-up" style="margin-bottom:36px;">
+    <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:18px;">SEUS ENTREGAVEIS</p>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <!-- Card 1: Plano 21 Dias -->
+      <div class="deliverable-card">
+        <div class="deliverable-icon">
+          <i data-lucide="calendar-days" style="width:22px;height:22px;color:#A78BFA;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <span class="deliverable-badge">
+            <i data-lucide="unlock" style="width:9px;height:9px;"></i>Liberado
+          </span>
+          <p style="font-size:16px;font-weight:800;color:rgba(255,255,255,.95);margin-bottom:5px;">Diagnostico + Plano de 21 Dias</p>
+          <p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.55;">Seu plano espiritual personalizado, dia a dia, com intencao, oracao e pratica para cada momento da sua jornada.</p>
+          <button class="btn-deliverable primary" onclick="showScreen('screen-dashboard')">
+            <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+            Acessar meu plano
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2: Novena -->
+      <div class="deliverable-card">
+        <div class="deliverable-icon">
+          <i data-lucide="book-open" style="width:22px;height:22px;color:#A78BFA;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <span class="deliverable-badge">
+            <i data-lucide="unlock" style="width:9px;height:9px;"></i>Liberado
+          </span>
+          <p id="members-novena-title" style="font-size:16px;font-weight:800;color:rgba(255,255,255,.95);margin-bottom:5px;">Novena Personalizada</p>
+          <p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.55;">9 dias de oracao profunda, criados especialmente para a sua dor. Para rezar no seu ritmo e guardar para sempre.</p>
+          <button class="btn-deliverable primary" id="novena-btn-members">
+            <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
+            Acessar minha Novena
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 3: Cartas para Deus -->
+      <div class="deliverable-card">
+        <div class="deliverable-icon">
+          <i data-lucide="pen-line" style="width:22px;height:22px;color:#A78BFA;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <span class="deliverable-badge">
+            <i data-lucide="unlock" style="width:9px;height:9px;"></i>Liberado
+          </span>
+          <p style="font-size:16px;font-weight:800;color:rgba(255,255,255,.95);margin-bottom:5px;">Cartas para Deus (15 dias)</p>
+          <p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.55;">15 prompts diarios para escrever ao Senhor. Cada carta guiada por um versiculo sagrado, no seu tema especifico.</p>
+          <button class="btn-deliverable primary" id="cartas-btn-members">
+            <i data-lucide="pen-line" style="width:16px;height:16px;"></i>
+            Acessar as Cartas para Deus
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 4: App -->
+      <div class="deliverable-card">
+        <div class="deliverable-icon">
+          <i data-lucide="smartphone" style="width:22px;height:22px;color:#A78BFA;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <span class="deliverable-badge">
+            <i data-lucide="unlock" style="width:9px;height:9px;"></i>Liberado
+          </span>
+          <p style="font-size:16px;font-weight:800;color:rgba(255,255,255,.95);margin-bottom:5px;">App Espiritualizei - 7 dias gratis</p>
+          <p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.55;">Comunidade de oracoes, biblioteca de estudos liturgicos e desafios comunitarios. Nao caminhe sozinho.</p>
+          <button class="btn-deliverable outline" onclick="window.open('https://www.espiritualizei.com','_blank')">
+            <i data-lucide="external-link" style="width:15px;height:15px;"></i>
+            Acessar o App
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Rodape -->
+  <div style="text-align:center;padding:8px 0 40px;">
+    <p style="font-size:12px;color:rgba(255,255,255,.2);font-style:italic;">
+      Feito com amor para a gloria de Deus
+    </p>
   </div>
 
 </div>
@@ -977,7 +1128,44 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     lucide.createIcons()
     document.getElementById('loading-screen').style.display = 'none'
-    showScreen('screen-dashboard')
+  }
+
+  // ── Members Area ──────────────────────────────────────
+  function showMembersArea(data, sessionId) {
+    const name = data.name || 'Caminhante'
+    const a    = data.answers || {}
+    const NOVENA_NAMES = {
+      anxiety:'Novena da Paz Interior',       sadness:'Novena da Esperanca',
+      relationships:'Novena da Reconciliacao', laziness:'Novena da Constancia',
+      dryness:'Novena do Reencontro',          ignorance:'Novena da Luz na Fe',
+      pride:'Novena do Perdao',                lust:'Novena da Libertacao',
+    }
+    const nameEl = document.getElementById('members-name')
+    if (nameEl) nameEl.textContent = name
+
+    const nTitle = document.getElementById('members-novena-title')
+    if (nTitle) nTitle.textContent = NOVENA_NAMES[a.challenge] || 'Novena Personalizada'
+
+    const novenaBtn = document.getElementById('novena-btn-members')
+    if (novenaBtn) {
+      if (sessionId) {
+        novenaBtn.onclick = () => { window.location.href = `/quiz/minha-novena.html?session=${encodeURIComponent(sessionId)}` }
+      } else {
+        novenaBtn.onclick = () => goToDay(1)
+      }
+    }
+
+    const cartasBtn = document.getElementById('cartas-btn-members')
+    if (cartasBtn) {
+      cartasBtn.onclick = () => window.open(
+        `/quiz/cartas-para-deus.html?name=${encodeURIComponent(name)}&challenge=${encodeURIComponent(a.challenge || 'anxiety')}`,
+        '_blank'
+      )
+    }
+
+    document.getElementById('loading-screen').style.display = 'none'
+    showScreen('screen-members')
+    lucide.createIcons()
   }
 
   // ── Render: Completion ────────────────────────────────
@@ -1158,6 +1346,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       _data = data
       _plan = plan
       renderDashboard(data, plan)
+      showMembersArea(data, stripeSessionId)
 
       // Deep link: ?day=N navega direto para o dia do e-mail
       const dayParam = urlParams.get('day')
@@ -1174,6 +1363,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         const p = cachedPlanRaw ? (() => { try { return JSON.parse(cachedPlanRaw) } catch(_){return null} })() : null
         _plan = (p && isPlanRich(p)) ? p : buildFallbackPlan(d)
         renderDashboard(d, _plan)
+        showMembersArea(d, stripeSessionId)
       } else {
         document.getElementById('loading-screen').innerHTML = `
           <div style="text-align:center;padding:40px 24px;max-width:400px;margin:0 auto;">

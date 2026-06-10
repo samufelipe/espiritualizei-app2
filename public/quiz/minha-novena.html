@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Minha Novena | Espiritualizei</title>
+  <link rel="icon" type="image/png" href="/favicon-32x32.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind = { config: {
+      darkMode:'class',
+      theme:{ extend:{ colors:{ brand:{ dark:'#1A2530', violet:'#A78BFA' } }, fontFamily:{ sans:['Inter','sans-serif'] } } }
+    }};
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #1A2530; font-family: 'Inter', sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes bgPulse { 0%,100% { opacity:1; } 50% { opacity:.7; } }
+    @keyframes heartbeat { 0%,100% { transform:scale(1); } 14% { transform:scale(1.12); } 28% { transform:scale(1); } 42% { transform:scale(1.07); } 70% { transform:scale(1); } }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes confetti { 0% { transform:translateY(-10px) rotate(0deg); opacity:1; } 100% { transform:translateY(60px) rotate(360deg); opacity:0; } }
+
+    .anim-fade-up { animation: fadeUp .5s cubic-bezier(.22,1,.36,1) forwards; }
+    .anim-heartbeat { animation: heartbeat 2.2s ease-in-out infinite; }
+
+    .bg-animated {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(167,139,250,.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 90%, rgba(167,139,250,.05) 0%, transparent 55%);
+      animation: bgPulse 7s ease-in-out infinite;
+    }
+
+    .glass { background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.08); backdrop-filter: blur(12px); }
+    .glass-violet { background: rgba(167,139,250,.06); border: 1.5px solid rgba(167,139,250,.18); }
+
+    #loading-screen {
+      position: fixed; inset: 0; z-index: 100;
+      background: #1A2530;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+    }
+    .spinner { width: 36px; height: 36px; border: 3px solid rgba(167,139,250,.2); border-top-color: #A78BFA; border-radius: 50%; animation: spin 1s linear infinite; }
+
+    .btn-primary { background: #A78BFA; border-radius: 14px; transition: all .2s ease; cursor: pointer; border: none; font-family: 'Inter', sans-serif; min-height: 56px; width: 100%; box-shadow: 0 8px 32px rgba(167,139,250,.28); color: #1A2530; font-weight: 700; font-size: 15px; padding: 17px 24px; }
+    .btn-primary:hover { background: #9370f5; transform: translateY(-1px); box-shadow: 0 12px 40px rgba(167,139,250,.4); }
+    .btn-ghost { background: rgba(167,139,250,.1); border: 1.5px solid rgba(167,139,250,.25); border-radius: 12px; cursor: pointer; font-family: 'Inter', sans-serif; color: #A78BFA; font-weight: 600; font-size: 13px; padding: 12px 20px; transition: all .2s ease; }
+    .btn-ghost:hover { background: rgba(167,139,250,.18); }
+    .btn-ghost:disabled { opacity: .35; cursor: not-allowed; }
+
+    .content-wrap { max-width: 520px; margin: 0 auto; padding: 0 16px 80px; position: relative; z-index: 1; }
+
+    .progress-track { background: rgba(255,255,255,.08); border-radius: 4px; height: 4px; overflow: hidden; flex: 1; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #A78BFA, #c4b5fd); border-radius: 4px; transition: width .4s ease; }
+
+    .intention-block {
+      font-family: 'Lora', Georgia, serif;
+      font-size: clamp(17px, 5vw, 21px);
+      font-style: italic;
+      line-height: 1.78;
+      color: rgba(255,255,255,.93);
+    }
+
+    .verse-sacred {
+      font-family: 'Lora', Georgia, serif;
+      font-size: clamp(15px, 4.5vw, 17px);
+      font-style: italic;
+      line-height: 1.72;
+      color: rgba(255,255,255,.85);
+    }
+
+    .section-overline {
+      display: block;
+      font-size: 9px; font-weight: 800;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: rgba(255,255,255,.28); margin-bottom: 5px;
+    }
+
+    .day-card {
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid rgba(255,255,255,.08);
+      border-radius: 20px; padding: 20px 22px; margin-bottom: 14px;
+    }
+    .day-card.violet {
+      background: rgba(167,139,250,.07);
+      border-color: rgba(167,139,250,.22);
+    }
+
+    .step-row { display: flex; gap: 12px; align-items: flex-start; }
+    .step-num-circle {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(167,139,250,.18); border: 1.5px solid rgba(167,139,250,.35);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; color: #A78BFA;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .step-body { font-size: 13.5px; color: rgba(255,255,255,.72); line-height: 1.62; }
+
+    .day-num-bg {
+      font-size: 96px; font-weight: 900; line-height: 1;
+      color: rgba(167,139,250,.06); letter-spacing: -6px;
+      position: absolute; right: 12px; top: -8px;
+      pointer-events: none; user-select: none;
+    }
+
+    .progress-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      transition: all .3s ease;
+    }
+    .progress-dot.done { background: #A78BFA; }
+    .progress-dot.current { background: #A78BFA; box-shadow: 0 0 0 3px rgba(167,139,250,.25); }
+    .progress-dot.pending { background: transparent; border: 1.5px solid rgba(255,255,255,.2); }
+
+    .confetti-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; animation: confetti 1.6s ease-out forwards; }
+
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: none; color: rgba(255,255,255,.5);
+      font-size: 13px; font-weight: 600; cursor: pointer; padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-back:hover { color: rgba(255,255,255,.8); }
+  </style>
+</head>
+<body>
+
+<div class="bg-animated"></div>
+
+<!-- Loading screen -->
+<div id="loading-screen">
+  <div style="text-align:center;max-width:300px;padding:0 24px;">
+    <div class="anim-heartbeat" style="display:flex;justify-content:center;margin-bottom:28px;">
+      <div style="width:72px;height:72px;border-radius:50%;background:rgba(167,139,250,.1);border:1.5px solid rgba(167,139,250,.22);display:flex;align-items:center;justify-content:center;box-shadow:0 0 32px rgba(167,139,250,.2);">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="#A78BFA">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </div>
+    </div>
+    <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.55);margin-bottom:16px;">Espiritualizei</p>
+    <div class="spinner" style="margin:0 auto 20px;"></div>
+    <p id="loading-msg" style="font-size:14px;color:rgba(255,255,255,.45);line-height:1.65;">Carregando sua Novena...</p>
+  </div>
+</div>
+
+<!-- Novena View -->
+<div id="novena-view" style="display:none;">
+<div class="content-wrap" style="padding-top:0;">
+
+  <!-- Top bar sticky -->
+  <div id="nav-bar" style="display:flex;align-items:center;gap:12px;padding:20px 0 16px;position:sticky;top:0;z-index:10;background:#1A2530;">
+    <button class="btn-back" id="back-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Minha Area
+    </button>
+    <div class="progress-track">
+      <div class="progress-fill" id="novena-progress-fill" style="width:0%;"></div>
+    </div>
+    <span id="day-counter" style="font-size:12px;font-weight:800;color:#A78BFA;white-space:nowrap;"></span>
+  </div>
+
+  <!-- Day content -->
+  <div id="day-content"></div>
+
+  <!-- Dots de progresso -->
+  <div id="progress-dots" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:24px 0;"></div>
+
+  <!-- Navegacao -->
+  <div style="display:flex;gap:10px;margin-bottom:24px;">
+    <button class="btn-ghost" id="btn-prev" style="flex:1;" disabled>
+      Dia anterior
+    </button>
+    <button class="btn-ghost" id="btn-next" style="flex:1;">
+      Proximo dia
+    </button>
+  </div>
+
+</div>
+</div>
+
+<!-- Tela de celebracao (dia 9 concluido) -->
+<div id="celebration-view" style="display:none;">
+<div class="content-wrap">
+  <div style="text-align:center;padding:60px 0 40px;position:relative;overflow:hidden;">
+    <div id="confetti-container" style="position:absolute;inset:0;pointer-events:none;"></div>
+
+    <div class="anim-heartbeat" style="margin-bottom:24px;">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="#A78BFA">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    </div>
+
+    <p style="font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#A78BFA;margin-bottom:12px;">NOVENA CONCLUIDA</p>
+    <h1 id="celebration-title" style="font-size:clamp(24px,7vw,34px);font-weight:900;line-height:1.2;margin-bottom:16px;letter-spacing:-.5px;"></h1>
+    <p style="font-size:clamp(14px,4vw,16px);color:rgba(255,255,255,.6);line-height:1.7;max-width:380px;margin:0 auto 36px;">
+      Voce rezou por 9 dias com o coracao aberto. Isso nao e pouca coisa. Carregue essa graca.
+    </p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;">
+    <button class="btn-primary" id="celebration-back-btn">
+      Voltar a minha area
+    </button>
+    <a id="celebration-plan-btn" href="#" style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(167,139,250,.1);border:1.5px solid rgba(167,139,250,.25);border-radius:14px;padding:17px 24px;color:#A78BFA;font-weight:700;font-size:14px;text-decoration:none;transition:background .2s;" onmouseover="this.style.background='rgba(167,139,250,.18)'" onmouseout="this.style.background='rgba(167,139,250,.1)'">
+      <i data-lucide="calendar-days" style="width:16px;height:16px;"></i>
+      Continuar meu Plano de 21 Dias
+    </a>
+  </div>
+
+  <div style="text-align:center;padding-bottom:20px;">
+    <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(167,139,250,.4);">ESPIRITUALIZEI · Feito com amor para a gloria de Deus</p>
+  </div>
+</div>
+</div>
+
+<script>
+  const NOVENA_NAMES = {
+    anxiety:'Novena da Paz Interior',       sadness:'Novena da Esperanca',
+    relationships:'Novena da Reconciliacao', laziness:'Novena da Constancia',
+    dryness:'Novena do Reencontro',          ignorance:'Novena da Luz na Fe',
+    pride:'Novena do Perdao',                lust:'Novena da Libertacao',
+  }
+
+  let _days      = []
+  let _name      = ''
+  let _challenge = 'anxiety'
+  let _sessionId = null
+  let _currentDay = 1
+  let _completed  = new Set()
+
+  function getCompleted() {
+    try { return new Set(JSON.parse(localStorage.getItem('esp_novena_progress') || '[]')) }
+    catch(_) { return new Set() }
+  }
+  function saveCompleted(s) {
+    localStorage.setItem('esp_novena_progress', JSON.stringify([...s]))
+  }
+
+  function parseVerse(raw) {
+    if (!raw) return { ref:'', text:'' }
+    if (raw.includes(' — ')) {
+      const idx = raw.indexOf(' — ')
+      return { ref: raw.substring(0, idx).trim(), text: raw.substring(idx + 3).trim() }
+    }
+    if (raw.includes(' - ')) {
+      const idx = raw.indexOf(' - ')
+      return { ref: raw.substring(0, idx).trim(), text: raw.substring(idx + 3).trim() }
+    }
+    const colonIdx = raw.indexOf(': ')
+    if (colonIdx !== -1 && colonIdx < 15) {
+      return { ref: raw.substring(0, colonIdx).trim(), text: raw.substring(colonIdx + 2).trim() }
+    }
+    return { ref:'', text: raw }
+  }
+
+  function stepsHtml(steps, fallback) {
+    if (!steps || !steps.length) {
+      return fallback ? `<p style="font-size:13.5px;color:rgba(255,255,255,.55);line-height:1.65;padding:2px 0;">${fallback}</p>` : ''
+    }
+    return `<div style="display:flex;flex-direction:column;gap:10px;">${steps.map((s,i)=>`
+      <div class="step-row">
+        <span class="step-num-circle">${i+1}</span>
+        <span class="step-body">${s}</span>
+      </div>`).join('')}</div>`
+  }
+
+  function renderDots(current) {
+    const dotsEl = document.getElementById('progress-dots')
+    if (!dotsEl) return
+    dotsEl.innerHTML = _days.map((_, i) => {
+      const n = i + 1
+      let cls = 'progress-dot pending'
+      if (_completed.has(n)) cls = 'progress-dot done'
+      else if (n === current) cls = 'progress-dot current'
+      return `<div class="${cls}" title="Dia ${n}"></div>`
+    }).join('')
+  }
+
+  function renderDay(n) {
+    _currentDay = n
+    const day = _days[n - 1]
+    if (!day) return
+
+    document.getElementById('novena-progress-fill').style.width = `${(n / 9) * 100}%`
+    document.getElementById('day-counter').textContent = `DIA ${n} / 9`
+
+    const novenaTitle = NOVENA_NAMES[_challenge] || 'Novena Personalizada'
+    const duration = day.duration_minutes || 15
+    const ytSearch = day.resource_search || `${day.prayer || 'oracao catolica'} passo a passo`
+    const ytUrl    = `https://www.youtube.com/results?search_query=${encodeURIComponent(ytSearch)}`
+    const v = parseVerse(day.verse)
+    const isDone = _completed.has(n)
+
+    document.getElementById('day-content').innerHTML = `
+      <!-- Header do dia -->
+      <div class="anim-fade-up" style="padding:8px 0 22px;position:relative;overflow:hidden;">
+        <span class="day-num-bg">${String(n).padStart(2,'0')}</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="book-open" style="width:18px;height:18px;color:#A78BFA;"></i>
+          </div>
+          <div>
+            <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:3px;">${novenaTitle}</p>
+            <p style="font-size:14px;font-weight:700;color:#A78BFA;">Dia ${n} <span style="color:rgba(255,255,255,.28);font-weight:400;font-size:13px;">de 9 &middot; ~${duration} min</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intencao do dia -->
+      <div class="day-card violet anim-fade-up" style="margin-bottom:20px;">
+        <span class="section-overline" style="color:rgba(167,139,250,.65);">INTENCAO DO DIA</span>
+        <p class="intention-block">"${day.intention || ''}"</p>
+      </div>
+
+      <!-- Oracao do dia -->
+      <div class="day-card anim-fade-up">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="heart" style="width:16px;height:16px;color:#A78BFA;"></i>
+            </div>
+            <div style="min-width:0;">
+              <span class="section-overline">ORACAO DO DIA</span>
+              <p style="font-size:15px;font-weight:700;color:rgba(255,255,255,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${day.prayer || ''}</p>
+            </div>
+          </div>
+          <a href="${ytUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:7px 12px;text-decoration:none;color:#FCA5A5;font-size:11.5px;font-weight:600;white-space:nowrap;transition:background .2s;flex-shrink:0;" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.1)'">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Ver no YouTube
+          </a>
+        </div>
+        ${stepsHtml(day.prayer_steps, 'Dedique um momento de silencio para esta pratica, com calma e abertura de coracao.')}
+      </div>
+
+      <!-- Pratica do dia -->
+      <div class="day-card anim-fade-up">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="pencil-line" style="width:16px;height:16px;color:#A78BFA;"></i>
+          </div>
+          <div>
+            <span class="section-overline">PRATICA DO DIA</span>
+            <p style="font-size:15px;font-weight:700;color:rgba(255,255,255,.92);">${day.task || ''}</p>
+          </div>
+        </div>
+        ${stepsHtml(day.task_steps, 'Realize esta pratica no seu ritmo, oferecendo cada momento a Deus.')}
+      </div>
+
+      <!-- Versiculo -->
+      <div class="day-card anim-fade-up" style="border-color:rgba(167,139,250,.22);margin-bottom:28px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px;">
+          <i data-lucide="book-open" style="width:14px;height:14px;color:#A78BFA;flex-shrink:0;"></i>
+          <span class="section-overline" style="margin-bottom:0;">VERSICULO DO DIA</span>
+        </div>
+        ${v.ref ? `<p style="font-size:12px;font-weight:800;color:#A78BFA;margin-bottom:10px;letter-spacing:.5px;">${v.ref}</p>` : ''}
+        <p class="verse-sacred">"${v.text || day.verse || ''}"</p>
+      </div>
+
+      <!-- Botao concluir -->
+      ${isDone
+        ? `<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;background:rgba(110,231,183,.06);border:1.5px solid rgba(110,231,183,.22);border-radius:16px;margin-bottom:20px;">
+             <i data-lucide="check-circle-2" style="width:18px;height:18px;color:#6EE7B7;flex-shrink:0;"></i>
+             <p style="font-size:14px;font-weight:700;color:#6EE7B7;">Dia ${n} concluido!</p>
+           </div>`
+        : `<button onclick="markDone(${n})" style="width:100%;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:16px;padding:18px 24px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 32px rgba(16,185,129,.28);transition:all .2s;margin-bottom:20px;font-family:'Inter',sans-serif;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+             <i data-lucide="check-circle-2" style="width:20px;height:20px;"></i>
+             Marcar dia ${n} como concluido
+           </button>`
+      }
+    `
+
+    // atualizar botoes de navegacao
+    const btnPrev = document.getElementById('btn-prev')
+    const btnNext = document.getElementById('btn-next')
+    if (btnPrev) btnPrev.disabled = (n <= 1)
+    if (btnNext) {
+      if (n >= 9) {
+        btnNext.textContent = 'Ver celebracao'
+        btnNext.onclick = showCelebration
+      } else {
+        btnNext.textContent = 'Proximo dia'
+        btnNext.onclick = () => renderDay(n + 1)
+      }
+    }
+    if (btnPrev) btnPrev.onclick = () => renderDay(n - 1)
+
+    renderDots(n)
+    lucide.createIcons()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function markDone(n) {
+    _completed.add(n)
+    saveCompleted(_completed)
+    if (n >= 9) {
+      showCelebration()
+    } else {
+      renderDay(n + 1)
+    }
+  }
+
+  function showCelebration() {
+    document.getElementById('novena-view').style.display = 'none'
+    document.getElementById('celebration-view').style.display = 'block'
+
+    const novenaTitle = NOVENA_NAMES[_challenge] || 'Novena Personalizada'
+    const el = document.getElementById('celebration-title')
+    if (el) el.textContent = `${_name}, voce completou a ${novenaTitle}!`
+
+    // botao voltar
+    const backBtn = document.getElementById('celebration-back-btn')
+    if (backBtn) {
+      backBtn.onclick = () => {
+        if (_sessionId) {
+          window.location.href = `/quiz/resultado?session=${encodeURIComponent(_sessionId)}`
+        } else {
+          window.history.back()
+        }
+      }
+    }
+
+    // link para o plano completo
+    const planBtn = document.getElementById('celebration-plan-btn')
+    if (planBtn && _sessionId) {
+      planBtn.href = `/quiz/resultado?session=${encodeURIComponent(_sessionId)}`
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    spawnConfetti()
+    lucide.createIcons()
+  }
+
+  function spawnConfetti() {
+    const colors = ['#A78BFA','#6EE7B7','#FCD34D','#F9A8D4','#93C5FD']
+    const container = document.getElementById('confetti-container')
+    if (!container) return
+    container.innerHTML = ''
+    for (let i = 0; i < 18; i++) {
+      const dot = document.createElement('div')
+      dot.className = 'confetti-dot'
+      dot.style.cssText = `
+        left:${Math.random()*100}%;
+        top:${Math.random()*40}%;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        animation-delay:${Math.random()*0.8}s;
+        animation-duration:${1.2+Math.random()*0.8}s;
+      `
+      container.appendChild(dot)
+    }
+  }
+
+  function setLoadingMsg(msg) {
+    const el = document.getElementById('loading-msg')
+    if (el) el.textContent = msg
+  }
+
+  async function init() {
+    const urlParams = new URLSearchParams(window.location.search)
+    const sessionId = urlParams.get('session')
+
+    if (!sessionId) {
+      window.location.href = '/quiz?error=access'
+      return
+    }
+
+    _sessionId = sessionId
+
+    try {
+      setLoadingMsg('Verificando seu pagamento...')
+      const localQuizData = (() => {
+        try { return JSON.parse(localStorage.getItem('espiritualizei_quiz') || 'null') } catch(_) { return null }
+      })()
+
+      const res = await fetch('/api/quiz-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stripe_session_id: sessionId, quiz_data_fallback: localQuizData })
+      })
+
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}))
+        throw new Error(e.error || `Erro ${res.status}`)
+      }
+
+      setLoadingMsg('Preparando sua Novena...')
+      const result = await res.json()
+
+      const data = result.quizData
+      const plan = result.plan
+
+      if (!data || !plan) throw new Error('Dados incompletos')
+
+      const allDays = []
+      if (plan.weeks && plan.weeks.length > 0) {
+        const week1Days = plan.weeks[0].days || []
+        for (const d of week1Days) {
+          allDays.push(d)
+          if (allDays.length >= 9) break
+        }
+      }
+
+      if (!allDays.length) throw new Error('Novena nao encontrada no plano')
+
+      _days      = allDays
+      _name      = data.name || 'Caminhante'
+      _challenge = (data.answers && data.answers.challenge) || 'anxiety'
+      _completed = getCompleted()
+
+      // configurar botao voltar no header
+      const backBtn = document.getElementById('back-btn')
+      if (backBtn) {
+        backBtn.onclick = () => {
+          window.location.href = `/quiz/resultado?session=${encodeURIComponent(sessionId)}`
+        }
+      }
+
+      document.getElementById('loading-screen').style.display = 'none'
+      document.getElementById('novena-view').style.display = 'block'
+
+      const startDay = _completed.size >= 9 ? 9 : (Math.min(_completed.size + 1, 9))
+      renderDay(startDay)
+
+    } catch(e) {
+      console.error('[novena] init falhou:', e.message)
+      document.getElementById('loading-screen').innerHTML = `
+        <div style="text-align:center;padding:40px 24px;max-width:400px;margin:0 auto;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="#A78BFA" style="margin-bottom:20px;">
+            <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
+          </svg>
+          <h2 style="font-size:20px;font-weight:800;margin-bottom:12px;">Sua Novena esta no seu e-mail</h2>
+          <p style="color:rgba(255,255,255,.5);font-size:14px;line-height:1.6;margin-bottom:24px;">
+            Nao conseguimos carregar sua Novena agora. Acesse pelo link enviado ao seu e-mail ou tente novamente.
+          </p>
+          <button onclick="window.location.reload()" style="background:#A78BFA;border:none;border-radius:12px;padding:14px 28px;color:#1A2530;font-weight:700;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;">
+            Tentar novamente
+          </button>
+        </div>`
+    }
+  }
+
+  init()
+</script>
+</body>
+</html>
