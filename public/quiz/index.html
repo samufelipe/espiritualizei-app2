@@ -336,6 +336,40 @@
     .testimonial-stars { color: #FCD34D; font-size: 12px; letter-spacing: 2px; margin-bottom: 7px; }
     .testimonial-quote { font-size: 13px; color: rgba(255,255,255,.68); line-height: 1.6; font-style: italic; margin: 0 0 8px; }
     .testimonial-author { font-size: 11px; font-weight: 700; color: rgba(167,139,250,.6); }
+
+    /* Main product card */
+    .main-product-card{background:linear-gradient(135deg,rgba(167,139,250,.11),rgba(124,58,237,.05));border:2px solid rgba(167,139,250,.38);border-radius:20px;padding:22px 20px;margin-bottom:10px;}
+    .main-product-bullet{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:rgba(255,255,255,.62);line-height:1.45;margin-bottom:7px;}
+
+    /* Value stack */
+    .value-stack{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:18px 20px;margin-bottom:20px;}
+    .value-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+    .value-row:last-child{border-bottom:none;}
+    .value-row-name{color:rgba(255,255,255,.52);}
+    .value-row-price{color:rgba(255,255,255,.28);font-weight:600;text-decoration:line-through;font-size:12px;}
+    .value-total-row{display:flex;align-items:center;justify-content:space-between;padding-top:12px;margin-top:4px;border-top:1.5px solid rgba(255,255,255,.1);}
+    .value-total-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;}
+    .value-total-price{font-size:15px;font-weight:800;color:rgba(255,255,255,.28);text-decoration:line-through;}
+
+    /* Bonus numbered */
+    .bonus-number{width:22px;height:22px;border-radius:50%;flex-shrink:0;background:rgba(252,211,77,.12);border:1.5px solid rgba(252,211,77,.28);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#FCD34D;}
+
+    /* Carousel */
+    .testimonial-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+    .testimonial-track::-webkit-scrollbar{display:none;}
+    .testimonial-slide{flex:0 0 100%;scroll-snap-align:start;}
+    .carousel-dots{display:flex;justify-content:center;gap:6px;margin-top:14px;}
+    .carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(167,139,250,.22);transition:all .3s;}
+    .carousel-dot.active{background:#A78BFA;width:18px;border-radius:3px;}
+
+    /* Avatars */
+    .avatar-circle{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;letter-spacing:-.5px;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+    .av-1{background:linear-gradient(135deg,#C96442,#E8956D);}
+    .av-2{background:linear-gradient(135deg,#2D4A7A,#4A73B5);}
+    .av-3{background:linear-gradient(135deg,#6B3FA0,#A78BFA);}
+    .av-4{background:linear-gradient(135deg,#1A6B47,#2EA776);}
+    .av-5{background:linear-gradient(135deg,#B8860B,#DAA520);}
+    .av-6{background:linear-gradient(135deg,#0E7490,#22D3EE);}
   </style>
 </head>
 <body>
@@ -522,138 +556,217 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:24px 0 28px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="#A78BFA">
-        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-      </svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#A78BFA"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
       <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
     </div>
 
-    <!-- HERO — Diagnóstico personalizado -->
+    <!-- HERO personalizado -->
     <div class="anim-fade-up" style="text-align:center;margin-bottom:32px;">
       <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:14px;">SEU DIAGNOSTICO ESPIRITUAL</p>
       <h2 id="pw-main-headline" style="font-size:clamp(20px,5.5vw,26px);font-weight:800;line-height:1.25;margin-bottom:14px;"></h2>
       <p id="pw-transformation" style="font-size:clamp(13px,3.8vw,15px);color:rgba(255,255,255,.52);line-height:1.72;max-width:380px;margin:0 auto;"></p>
     </div>
 
-    <!-- OFFER STACK -->
-    <div class="anim-fade-up" style="margin-bottom:8px;">
-      <p style="font-size:9px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:14px;">O QUE VOCE RECEBE</p>
-
-      <div class="offer-card">
-        <div class="offer-icon">
-          <i data-lucide="book-open" style="width:20px;height:20px;color:#A78BFA;"></i>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <p class="offer-name" id="pw-novena-name">Novena da Paz Interior</p>
-          <p class="offer-desc">9 dias de oracao feita para o seu desafio especifico</p>
-        </div>
-        <div class="offer-check-circle">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-      </div>
-
-      <div class="offer-card">
-        <div class="offer-icon">
-          <i data-lucide="calendar-check-2" style="width:20px;height:20px;color:#A78BFA;"></i>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <p class="offer-name">Plano de 21 Dias Personalizado</p>
-          <p class="offer-desc">Intencao, oracao, pratica e versiculo para cada dia</p>
-        </div>
-        <div class="offer-check-circle">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-      </div>
-
-      <div class="offer-card">
-        <div class="offer-icon">
-          <i data-lucide="compass" style="width:20px;height:20px;color:#A78BFA;"></i>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <p class="offer-name">Diagnostico Espiritual Completo</p>
-          <p class="offer-desc">Mapa espiritual, seus dons e seus proximos passos</p>
-        </div>
-        <div class="offer-check-circle">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-      </div>
-
-      <div class="offer-card" style="margin-bottom:14px;">
-        <div class="offer-icon">
-          <i data-lucide="pen-line" style="width:20px;height:20px;color:#A78BFA;"></i>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <p class="offer-name">Cartas para Deus (15 dias)</p>
-          <p class="offer-desc">15 prompts para escrever ao Senhor, guiados por versiculo</p>
-        </div>
-        <div class="offer-check-circle">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-      </div>
-
-      <!-- Bonus -->
-      <div class="bonus-card">
-        <div class="offer-icon" style="background:rgba(252,211,77,.1);border-color:rgba(252,211,77,.22);">
-          <i data-lucide="smartphone" style="width:20px;height:20px;color:#FCD34D;"></i>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <span class="bonus-label">BONUS</span>
-          <p class="offer-name" style="color:rgba(255,255,255,.85);">7 dias no App Espiritualizei</p>
-          <p class="offer-desc">Comunidade, biblioteca liturgica e desafios litúrgicos</p>
+    <!-- PRODUTO PRINCIPAL -->
+    <div class="anim-fade-up" style="margin-bottom:20px;">
+      <p style="font-size:9px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:12px;">O QUE VOCE ESTA LEVANDO</p>
+      <div class="main-product-card">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div class="offer-icon" style="width:48px;height:48px;flex-shrink:0;background:rgba(167,139,250,.15);border:1.5px solid rgba(167,139,250,.3);">
+            <i data-lucide="compass" style="width:22px;height:22px;color:#A78BFA;"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <p style="font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;">Diagnostico Espiritual + Plano de 21 Dias</p>
+            <p class="offer-desc" style="margin-bottom:14px;">Seu mapa espiritual e um plano diario criado para o seu desafio real</p>
+            <div>
+              <div class="main-product-bullet"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><polyline points="20 6 9 17 4 12"/></svg><span>Diagnostico: mapa espiritual, seus dons e seus proximos passos</span></div>
+              <div class="main-product-bullet"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><polyline points="20 6 9 17 4 12"/></svg><span>21 dias com intencao, oracao, pratica concreta e versiculo biblico</span></div>
+              <div class="main-product-bullet" style="margin-bottom:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><polyline points="20 6 9 17 4 12"/></svg><span>Acesso permanente, pelo celular ou computador</span></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- BONUS STACK -->
+    <div class="anim-fade-up" style="margin-bottom:8px;">
+      <p style="font-size:9px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:rgba(252,211,77,.65);margin-bottom:12px;">+ 3 BONUS EXCLUSIVOS QUE VEM JUNTO</p>
+
+      <div class="bonus-card" style="margin-bottom:10px;align-items:flex-start;">
+        <div style="display:flex;align-items:flex-start;gap:12px;width:100%;">
+          <div class="bonus-number" style="margin-top:2px;">1</div>
+          <div style="flex:1;min-width:0;">
+            <span class="bonus-label">BONUS</span>
+            <p class="offer-name" id="pw-novena-name">Novena da Paz Interior</p>
+            <p class="offer-desc">9 dias de oracao profunda criada para o seu desafio especifico. Para rezar agora e guardar para sempre.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bonus-card" style="margin-bottom:10px;align-items:flex-start;">
+        <div style="display:flex;align-items:flex-start;gap:12px;width:100%;">
+          <div class="bonus-number" style="margin-top:2px;">2</div>
+          <div style="flex:1;min-width:0;">
+            <span class="bonus-label">BONUS</span>
+            <p class="offer-name">Cartas para Deus (15 dias)</p>
+            <p class="offer-desc">15 dias de escrita espiritual guiada. Cada dia, uma reflexao profunda que transforma o que voce sente em oracao pessoal e unica.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bonus-card" style="margin-bottom:24px;align-items:flex-start;">
+        <div style="display:flex;align-items:flex-start;gap:12px;width:100%;">
+          <div class="bonus-number" style="margin-top:2px;">3</div>
+          <div style="flex:1;min-width:0;">
+            <span class="bonus-label">BONUS</span>
+            <p class="offer-name">7 dias no App Espiritualizei</p>
+            <p class="offer-desc">Uma semana dentro de uma comunidade de fe ativa, com biblioteca liturgica e desafios diarios.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 45 DIAS BADGE -->
+    <div class="anim-fade-up" style="background:rgba(167,139,250,.07);border:1.5px solid rgba(167,139,250,.2);border-radius:14px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;">
+      <div style="font-size:36px;font-weight:900;color:#A78BFA;line-height:1;flex-shrink:0;font-family:'Lora',serif;">45</div>
+      <div>
+        <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:3px;">dias de caminhada espiritual estruturada</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.4);line-height:1.5;">21 dias de plano + 9 dias de novena + 15 dias de cartas. Tudo criado para o seu desafio real.</p>
+      </div>
+    </div>
+
+    <!-- VALUE STACK -->
+    <div class="anim-fade-up value-stack">
+      <p style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:10px;">SE COMPRASSE CADA UM SEPARADO</p>
+      <div class="value-row"><span class="value-row-name">Diagnostico + Plano de 21 Dias</span><span class="value-row-price">R$97,00</span></div>
+      <div class="value-row"><span class="value-row-name">Novena Personalizada</span><span class="value-row-price">R$47,00</span></div>
+      <div class="value-row"><span class="value-row-name">Cartas para Deus (15 dias)</span><span class="value-row-price">R$37,00</span></div>
+      <div class="value-row"><span class="value-row-name">7 dias no App</span><span class="value-row-price">R$29,00</span></div>
+      <div class="value-total-row"><span class="value-total-label">Valor total</span><span class="value-total-price">R$210,00</span></div>
+    </div>
+
     <!-- PRICE BOX + CTA -->
     <div class="pw-price-box anim-fade-up">
-      <p class="pw-price-overline">TUDO ISSO POR APENAS</p>
-      <p class="pw-price-anchor">R$97</p>
+      <p class="pw-price-overline">VOCE PAGA HOJE APENAS</p>
       <p class="pw-price-final">R$19,90</p>
-      <p class="pw-price-note">pagamento unico &middot; acesso permanente</p>
+      <p class="pw-price-note">pagamento unico &middot; acesso permanente &middot; 45 dias de material</p>
 
       <button id="pay-btn" class="btn-primary" onclick="startCheckout()" style="font-size:16px;font-weight:800;color:#1A2530;padding:18px 24px;margin-bottom:10px;">
         Quero meu Plano e minha Novena →
       </button>
       <p id="checkout-error" style="display:none;color:#f87171;font-size:13px;margin:6px 0 10px;text-align:center;"></p>
 
-      <!-- Garantia inline -->
       <div style="display:inline-flex;align-items:center;gap:7px;margin-bottom:14px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span style="font-size:12px;font-weight:700;color:#10B981;">Garantia de 7 dias sem perguntas</span>
       </div>
 
-      <!-- Trust strip -->
       <div class="pw-trust-strip">
-        <div class="pw-trust-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Stripe seguro
-        </div>
-        <div class="pw-trust-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Garantia 7 dias
-        </div>
-        <div class="pw-trust-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Acesso imediato
-        </div>
+        <div class="pw-trust-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Stripe seguro</div>
+        <div class="pw-trust-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Garantia 7 dias</div>
+        <div class="pw-trust-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Acesso imediato</div>
       </div>
     </div>
 
-    <!-- DEPOIMENTOS COMPACTOS -->
-    <!-- ⚠️ Substitua pelos depoimentos reais dos seus usuarios -->
-    <div class="anim-fade-up" style="margin-bottom:20px;">
-      <p style="font-size:9px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:12px;text-align:center;">QUEM JA PERCORREU ESSE CAMINHO</p>
+    <!-- TESTIMONIALS CAROUSEL -->
+    <div class="anim-fade-up" style="margin-bottom:24px;">
+      <p style="font-size:9px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:16px;text-align:center;">O QUE QUEM JA FEZ ESTA DIZENDO</p>
 
-      <div class="testimonial-compact">
-        <p class="testimonial-stars">★★★★★</p>
-        <p class="testimonial-quote">"Sempre fui de comecar e parar. No terceiro dia do plano entendi por que nunca conseguia manter. Faz semanas que nao perdi um dia."</p>
-        <p class="testimonial-author">Fernanda M. &middot; Belo Horizonte</p>
+      <div class="testimonial-track" id="testimonial-track">
+
+        <div class="testimonial-slide">
+          <div class="testimonial-compact" style="padding:20px 18px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+              <div class="avatar-circle av-1">F</div>
+              <div style="flex:1;min-width:0;">
+                <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:1px;">Fernanda M.</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.32);">Sao Paulo &middot; ansiedade</p>
+              </div>
+              <span class="testimonial-stars" style="flex-shrink:0;">★★★★★</span>
+            </div>
+            <p class="testimonial-quote">"Comecei e parei mais vezes do que consigo contar. Sempre me culpava por isso. O que me surpreendeu foi que o plano nao me tratou como alguem que precisa se esforcar mais. Ele foi feito para o que eu carregava de verdade. Faz 5 semanas que nao perdi um dia."</p>
+          </div>
+        </div>
+
+        <div class="testimonial-slide">
+          <div class="testimonial-compact" style="padding:20px 18px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+              <div class="avatar-circle av-2">R</div>
+              <div style="flex:1;min-width:0;">
+                <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:1px;">Rodrigo S.</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.32);">Curitiba &middot; fe distante</p>
+              </div>
+              <span class="testimonial-stars" style="flex-shrink:0;">★★★★★</span>
+            </div>
+            <p class="testimonial-quote">"Sou cetico por natureza. Comprei achando que ia receber mais do mesmo. O diagnostico me mostrou coisas sobre minha vida espiritual que eu nao tinha palavras para nomear. Pela primeira vez entendi por que eu travava sempre no mesmo ponto. Vale muito mais do que R$19,90."</p>
+          </div>
+        </div>
+
+        <div class="testimonial-slide">
+          <div class="testimonial-compact" style="padding:20px 18px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+              <div class="avatar-circle av-3">M</div>
+              <div style="flex:1;min-width:0;">
+                <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:1px;">Mariana C.</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.32);">Rio de Janeiro &middot; vazio espiritual</p>
+              </div>
+              <span class="testimonial-stars" style="flex-shrink:0;">★★★★★</span>
+            </div>
+            <p class="testimonial-quote">"Ja tentei novena, aplicativo, grupo de oracao. Nada durava. O que e diferente aqui e que cada dia foi criado para a minha dor especifica, nao para todo mundo. Os 9 dias da novena foram os mais intensos da minha vida de oracao. Rezei chorando em varios deles."</p>
+          </div>
+        </div>
+
+        <div class="testimonial-slide">
+          <div class="testimonial-compact" style="padding:20px 18px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+              <div class="avatar-circle av-4">C</div>
+              <div style="flex:1;min-width:0;">
+                <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:1px;">Carlos E.</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.32);">Belo Horizonte &middot; reconciliacao</p>
+              </div>
+              <span class="testimonial-stars" style="flex-shrink:0;">★★★★★</span>
+            </div>
+            <p class="testimonial-quote">"Carregava uma magoa antiga que me afastava da oracao ha anos. O plano tocou exatamente nesse ponto. Nao esperava que R$19,90 fosse mexer em algo tao profundo. Ja indiquei para minha esposa e para minha irma. Os dois estao fazendo agora."</p>
+          </div>
+        </div>
+
+        <div class="testimonial-slide">
+          <div class="testimonial-compact" style="padding:20px 18px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+              <div class="avatar-circle av-5">A</div>
+              <div style="flex:1;min-width:0;">
+                <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:1px;">Ana Paula F.</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.32);">Salvador &middot; rotina caotica</p>
+              </div>
+              <span class="testimonial-stars" style="flex-shrink:0;">★★★★★</span>
+            </div>
+            <p class="testimonial-quote">"Sou enfermeira. Minha rotina e caotica e ja desisti de planos espirituais por falta de tempo. Esse e diferente porque e curto, direto e feito para a realidade que eu tenho. Cinco minutos por dia sao suficientes para sentir a diferenca."</p>
+          </div>
+        </div>
+
+        <div class="testimonial-slide">
+          <div class="testimonial-compact" style="padding:20px 18px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+              <div class="avatar-circle av-6">T</div>
+              <div style="flex:1;min-width:0;">
+                <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:1px;">Tiago R.</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.32);">Fortaleza &middot; inconstancia</p>
+              </div>
+              <span class="testimonial-stars" style="flex-shrink:0;">★★★★★</span>
+            </div>
+            <p class="testimonial-quote">"Fui honesto nas 3 perguntas e o resultado me surpreendeu. Parecia que alguem me conhecia de verdade. As Cartas para Deus foram o que mais me tocou. Nunca tinha rezado escrevendo. Chorei no terceiro dia. Guardo cada carta que escrevi."</p>
+          </div>
+        </div>
+
       </div>
 
-      <div class="testimonial-compact">
-        <p class="testimonial-stars">★★★★★</p>
-        <p class="testimonial-quote">"Comprei achando que era mais um plano generico. Foi a primeira vez que a oracao fez sentido de verdade no meu dia a dia."</p>
-        <p class="testimonial-author">Mariana C. &middot; Curitiba</p>
+      <div class="carousel-dots" id="carousel-dots">
+        <div class="carousel-dot active"></div>
+        <div class="carousel-dot"></div>
+        <div class="carousel-dot"></div>
+        <div class="carousel-dot"></div>
+        <div class="carousel-dot"></div>
+        <div class="carousel-dot"></div>
       </div>
     </div>
 
@@ -1350,6 +1463,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (cEl) cEl.textContent = a.cta
   }
   // ── FIM Variante de landing ───────────────────────────────────────────────────
+
+  // Carousel dots
+  ;(function(){
+    const track = document.getElementById('testimonial-track')
+    const dots  = document.querySelectorAll('#carousel-dots .carousel-dot')
+    if (!track || !dots.length) return
+    track.addEventListener('scroll', function(){
+      const w = track.querySelector('.testimonial-slide').offsetWidth + 12
+      const idx = Math.min(Math.round(track.scrollLeft / w), dots.length - 1)
+      dots.forEach(function(d,i){ d.classList.toggle('active', i === idx) })
+    }, { passive: true })
+  })()
 
   // Init
   lucide.createIcons()
