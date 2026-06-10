@@ -227,6 +227,21 @@
     @media (max-width: 400px) {
       .day-num-bg { font-size: 72px; }
     }
+    /* Single-card view extras */
+    .nav-btn-row { display: flex; gap: 10px; }
+    .btn-next-carta {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: #A78BFA; border: none; border-radius: 14px;
+      padding: 16px 24px; color: #1A2530; font-size: 15px; font-weight: 800;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      box-shadow: 0 8px 32px rgba(167,139,250,.28); transition: all .2s;
+      margin-bottom: 10px;
+    }
+    .btn-next-carta:hover { background: #9370f5; transform: translateY(-1px); }
+    .pdot { cursor: default; }
+    .pdot.done { cursor: pointer; }
+    .pdot.done:hover { transform: scale(1.3); }
+    .pdot.current { width: 22px; border-radius: 5px; }
   </style>
 </head>
 <body>
@@ -250,71 +265,45 @@
       <div style="width:28px;height:28px;background:rgba(167,139,250,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
         <i data-lucide="feather" style="width:13px;height:13px;color:#A78BFA;"></i>
       </div>
-      <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">Espiritualizei</span>
+      <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">Cartas para Deus</span>
     </div>
     <div class="progress-pill">
       <i data-lucide="pen-line" style="width:12px;height:12px;"></i>
-      <span id="progress-text">0 de 15</span>
+      <span id="progress-text">Dia 1 de 15</span>
     </div>
   </div>
 
-  <div class="content-wrap">
+  <div class="content-wrap" style="padding-top:24px;">
 
-    <!-- Hero -->
-    <div style="padding-top:44px;padding-bottom:16px;text-align:center;" class="anim-fade-up">
-      <div style="display:inline-flex;align-items:center;justify-content:center;width:68px;height:68px;background:rgba(167,139,250,.1);border:1.5px solid rgba(167,139,250,.22);border-radius:20px;margin-bottom:22px;">
-        <i data-lucide="feather" style="width:30px;height:30px;color:#A78BFA;"></i>
-      </div>
-      <p style="font-size:10px;font-weight:800;letter-spacing:3px;color:rgba(167,139,250,.6);margin-bottom:10px;">SEU PRESENTE ESPECIAL</p>
-      <h1 style="font-family:'Lora',serif;font-size:clamp(28px,7vw,36px);font-weight:700;line-height:1.2;margin-bottom:14px;">
-        Cartas para Deus
-      </h1>
-      <p id="hero-subtitle" style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;max-width:380px;margin:0 auto 28px;"></p>
+    <!-- Progress dots (top) -->
+    <div class="progress-dots" id="progress-dots" style="margin:0 0 28px;"></div>
 
-      <!-- Progress dots -->
-      <div class="progress-dots" id="progress-dots"></div>
-      <p style="font-size:11px;color:rgba(255,255,255,.25);margin-top:10px;" id="dots-label">0 de 15 cartas escritas</p>
+    <!-- Card view do dia atual -->
+    <div id="current-card"></div>
+
+    <!-- Navegacao prev/next -->
+    <div class="nav-btn-row" style="margin-top:4px;margin-bottom:40px;">
+      <button class="btn-ghost" id="btn-prev" disabled>
+        <i data-lucide="chevron-left" style="width:14px;height:14px;"></i>
+        Anterior
+      </button>
+      <button class="btn-ghost" id="btn-next" disabled>
+        Proxima
+        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+      </button>
     </div>
 
-    <!-- Divider -->
-    <div style="height:1.5px;background:rgba(255,255,255,.05);margin-bottom:28px;"></div>
-
-    <!-- Intro card -->
-    <div class="glass-violet" style="border-radius:20px;padding:22px;margin-bottom:32px;">
-      <p style="font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(167,139,250,.6);margin-bottom:12px;">COMO FUNCIONA</p>
-      <p style="font-size:14px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:18px;">
-        Cada dia traz um convite: uma pergunta, uma passagem das Escrituras e um espaço para escrever uma carta honesta para Deus. Sem filtros. Sem a pressão de soar bem.
-      </p>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div class="how-step">
-          <div class="how-num">1</div>
-          <p style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.55;">Leia o convite com calma. Deixe a passagem das Escrituras pousar.</p>
-        </div>
-        <div class="how-step">
-          <div class="how-num">2</div>
-          <p style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.55;">Escreva como se fosse uma conversa real. Você não vai chocar a Deus.</p>
-        </div>
-        <div class="how-step">
-          <div class="how-num">3</div>
-          <p style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.55;">Suas cartas ficam salvas aqui. Você pode reler, continuar e crescer a qualquer momento.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Day cards -->
-    <div id="days-container" style="display:flex;flex-direction:column;gap:16px;"></div>
-
-    <!-- Completion -->
-    <div id="completion-section">
+    <!-- Completion screen -->
+    <div id="completion-section" style="display:none;text-align:center;padding:40px 0;">
       <div style="width:72px;height:72px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.28);border-radius:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
         <i data-lucide="heart" style="width:32px;height:32px;color:#A78BFA;"></i>
       </div>
       <p style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(167,139,250,.65);margin-bottom:10px;">JORNADA CONCLUIDA</p>
       <h2 style="font-family:'Lora',serif;font-size:clamp(20px,5vw,26px);font-weight:700;line-height:1.3;margin-bottom:14px;">
-        Você escreveu 15 cartas para Deus.
+        Voce escreveu 15 cartas para Deus.
       </h2>
-      <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:30px;max-width:380px;margin-left:auto;margin-right:auto;">
-        Cada palavra foi um passo de volta para Ele. Continue essa intimidade com a comunidade do App Espiritualizei.
+      <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:30px;">
+        Cada palavra foi um passo de volta para Ele. Continue essa intimidade no App Espiritualizei.
       </p>
       <button class="btn-primary" style="max-width:340px;margin:0 auto;" onclick="window.open('https://www.espiritualizei.com','_blank')">
         Continuar no App Espiritualizei
@@ -451,10 +440,12 @@ const PROMPTS = {
 // -----------------------------------------------
 // STATE
 // -----------------------------------------------
-let userName  = 'Caminhante';
-let challenge = 'anxiety';
-let letters   = {};
-const LS_KEY  = 'espiritualizei_cartas_v1';
+let userName    = 'Caminhante';
+let challenge   = 'anxiety';
+let letters     = {};
+let _currentDay = 1;
+let _saveTimer  = null;
+const LS_KEY    = 'espiritualizei_cartas_v1';
 
 // -----------------------------------------------
 // INIT
@@ -470,12 +461,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (raw) letters = JSON.parse(raw);
   } catch(_) {}
 
-  document.getElementById('hero-subtitle').textContent =
-    HERO_SUBTITLES[challenge] || HERO_SUBTITLES.anxiety;
+  // comecar no primeiro dia nao escrito
+  const prompts = PROMPTS[challenge];
+  _currentDay = 1;
+  for (let i = 1; i <= prompts.length; i++) {
+    const written = !!(letters['day_' + i] && letters['day_' + i].trim().length > 0);
+    if (!written) { _currentDay = i; break; }
+    if (i === prompts.length) _currentDay = prompts.length; // todos feitos
+  }
 
   buildProgressDots();
-  buildDayCards();
-  updateProgress();
+  renderCurrentDay();
   lucide.createIcons();
 
   setTimeout(() => {
@@ -485,44 +481,91 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = document.getElementById('app');
     app.style.display = 'block';
     requestAnimationFrame(() => { app.style.opacity = '1'; });
-  }, 900);
+  }, 600);
 });
 
 // -----------------------------------------------
-// BUILD
+// PROGRESS DOTS
 // -----------------------------------------------
 function buildProgressDots() {
-  const c = document.getElementById('progress-dots');
-  for (let i = 1; i <= 15; i++) {
-    const d = document.createElement('div');
-    d.className = 'pdot';
-    d.id = 'pdot-' + i;
-    c.appendChild(d);
-  }
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  const prompts = PROMPTS[challenge];
+  prompts.forEach((_, i) => {
+    const n    = i + 1;
+    const done = !!(letters['day_' + n] && letters['day_' + n].trim().length > 0);
+    const d    = document.createElement('div');
+    d.id        = 'pdot-' + n;
+    d.className = 'pdot' + (done ? ' done' : '') + (n === _currentDay ? ' current' : '');
+    d.title     = 'Dia ' + n + (done ? ' (escrita)' : '');
+    if (done) d.onclick = () => goToDay(n);
+    container.appendChild(d);
+  });
 }
 
-function buildDayCards() {
-  const container = document.getElementById('days-container');
-  const prompts   = PROMPTS[challenge];
+function updateDots() {
+  const prompts = PROMPTS[challenge];
+  prompts.forEach((_, i) => {
+    const n    = i + 1;
+    const done = !!(letters['day_' + n] && letters['day_' + n].trim().length > 0);
+    const d    = document.getElementById('pdot-' + n);
+    if (!d) return;
+    d.className = 'pdot' + (done ? ' done' : '') + (n === _currentDay ? ' current' : '');
+    d.onclick   = done ? () => goToDay(n) : null;
+  });
 
-  prompts.forEach((p, idx) => {
-    const day    = idx + 1;
-    const key    = 'day_' + day;
-    const saved  = (letters[key] || '').trim();
-    const done   = saved.length > 0;
-    const dayStr = String(day).padStart(2, '0');
+  const count = countDone();
+  const pt = document.getElementById('progress-text');
+  if (pt) pt.textContent = `Dia ${_currentDay} de 15`;
+}
 
-    const card = document.createElement('div');
-    card.className = 'day-card' + (done ? ' has-letter' : '');
-    card.id = 'card-' + day;
-    card.style.animationDelay = Math.min(idx * 0.03, 0.45) + 's';
+function countDone() {
+  let c = 0;
+  for (let i = 1; i <= 15; i++) {
+    if (letters['day_' + i] && letters['day_' + i].trim().length > 0) c++;
+  }
+  return c;
+}
 
-    card.innerHTML = `
+// -----------------------------------------------
+// RENDER DAY
+// -----------------------------------------------
+function renderCurrentDay() {
+  const prompts = PROMPTS[challenge];
+  const n = _currentDay;
+  const p = prompts[n - 1];
+  if (!p) return;
+
+  const saved   = (letters['day_' + n] || '').trim();
+  const isDone  = saved.length > 0;
+  const dayStr  = String(n).padStart(2, '0');
+  const allDone = countDone() === prompts.length;
+
+  // atualizar header
+  const pt = document.getElementById('progress-text');
+  if (pt) pt.textContent = `Dia ${n} de 15`;
+
+  // atualizar botoes nav
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  if (btnPrev) btnPrev.disabled = (n <= 1);
+  if (btnNext) {
+    const nextDone = !!(letters['day_' + (n + 1)] && letters['day_' + (n + 1)].trim().length > 0);
+    btnNext.disabled = (n >= prompts.length || !isDone && !nextDone);
+    btnNext.onclick  = () => goToDay(n + 1);
+  }
+  if (btnPrev) btnPrev.onclick = () => goToDay(n - 1);
+
+  const card = document.getElementById('current-card');
+  if (!card) return;
+
+  card.innerHTML = `
+    <div class="day-card ${isDone ? 'has-letter' : ''} anim-fade-up" id="active-day-card">
       <div class="day-num-bg">${dayStr}</div>
 
       <div class="day-label">
         <span>DIA ${dayStr}</span>
-        <span id="badge-${day}" class="written-badge" style="display:${done ? 'inline-flex' : 'none'};">
+        <span id="written-badge" class="written-badge" style="display:${isDone ? 'inline-flex' : 'none'};">
           <i data-lucide="check" style="width:10px;height:10px;"></i>&nbsp;Carta escrita
         </span>
       </div>
@@ -531,56 +574,97 @@ function buildDayCards() {
       <div class="verse-block">${p.verse}</div>
       <p class="prompt-text">${p.prompt}</p>
 
-      <button class="${done ? 'btn-ghost-done' : 'btn-ghost'}" id="toggle-btn-${day}" onclick="toggleDay(${day})">
-        <i data-lucide="${done ? 'pen-line' : 'feather'}" style="width:14px;height:14px;"></i>
-        <span>${done ? 'Ver e editar minha carta' : 'Escrever esta carta'}</span>
+      <span class="area-label">SUA CARTA</span>
+      <textarea
+        class="letter-textarea"
+        id="letter-textarea"
+        placeholder="Querido Deus..."
+        oninput="onType(this)"
+      >${letters['day_' + n] || ''}</textarea>
+      <div class="char-count" id="char-count">${saved.length > 0 ? saved.length + ' caracteres' : ''}</div>
+    </div>
+
+    <div id="action-area" style="margin-top:14px;">
+      ${isDone ? renderNextAction(n, prompts.length) : renderSaveAction(n)}
+    </div>
+  `;
+
+  // auto-grow textarea
+  setTimeout(() => {
+    const ta = document.getElementById('letter-textarea');
+    if (ta) autoGrow(ta);
+  }, 50);
+
+  updateDots();
+  lucide.createIcons();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // mostrar completion se todos feitos
+  const cs = document.getElementById('completion-section');
+  if (cs) cs.style.display = allDone ? 'block' : 'none';
+}
+
+function renderSaveAction(n) {
+  return `
+    <button class="btn-primary" onclick="saveCurrent(${n})" id="save-btn">
+      <span id="save-label">Salvar carta</span>
+    </button>
+  `;
+}
+
+function renderNextAction(n, total) {
+  if (n >= total) {
+    return `
+      <button class="btn-next-carta" onclick="saveCurrent(${n}, true)">
+        <i data-lucide="check-circle-2" style="width:18px;height:18px;"></i>
+        Carta salva — jornada concluida
       </button>
-
-      <div class="writing-area" id="area-${day}">
-        <span class="area-label">SUA CARTA</span>
-        <textarea
-          class="letter-textarea"
-          id="ta-${day}"
-          placeholder="Querido Deus..."
-          oninput="onType(this, ${day})"
-        >${letters[key] || ''}</textarea>
-        <div class="char-count" id="cc-${day}">${saved.length} caracteres</div>
-        <button class="btn-primary" onclick="save(${day})">
-          <span id="sl-${day}">Salvar carta</span>
-        </button>
-      </div>
+      <button class="btn-ghost" style="width:100%;justify-content:center;" onclick="saveCurrent(${n})">
+        <i data-lucide="pen-line" style="width:14px;height:14px;"></i>
+        <span id="save-label">Editar e salvar</span>
+      </button>
     `;
+  }
+  return `
+    <button class="btn-next-carta" onclick="saveAndNext(${n})">
+      <i data-lucide="feather" style="width:18px;height:18px;"></i>
+      Proxima carta
+    </button>
+    <button class="btn-ghost" style="width:100%;justify-content:center;" onclick="saveCurrent(${n})">
+      <i data-lucide="pen-line" style="width:14px;height:14px;"></i>
+      <span id="save-label">Apenas salvar</span>
+    </button>
+  `;
+}
 
-    container.appendChild(card);
-  });
+function goToDay(n) {
+  const prompts = PROMPTS[challenge];
+  if (n < 1 || n > prompts.length) return;
+  _currentDay = n;
+  renderCurrentDay();
 }
 
 // -----------------------------------------------
 // INTERACTIONS
 // -----------------------------------------------
-function toggleDay(day) {
-  const area = document.getElementById('area-' + day);
-  const open = area.classList.contains('open');
-
-  document.querySelectorAll('.writing-area.open').forEach(a => a.classList.remove('open'));
-
-  if (!open) {
-    area.classList.add('open');
-    setTimeout(() => {
-      const ta = document.getElementById('ta-' + day);
-      if (ta) { autoGrow(ta); ta.focus(); }
-      document.getElementById('card-' + day).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 80);
-  }
-}
-
-let _timers = {};
-function onType(el, day) {
+function onType(el) {
   autoGrow(el);
-  const cc = document.getElementById('cc-' + day);
-  if (cc) cc.textContent = el.value.length + ' caracteres';
-  clearTimeout(_timers[day]);
-  _timers[day] = setTimeout(() => save(day, true), 1800);
+  const n   = _currentDay;
+  const cc  = document.getElementById('char-count');
+  if (cc) cc.textContent = el.value.length > 0 ? el.value.length + ' caracteres' : '';
+
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => autoSave(n), 1800);
+
+  // mostrar acao de "salvar" se nao tinha carta e usuario comecou a escrever
+  const isDone = !!(letters['day_' + n] && letters['day_' + n].trim().length > 0);
+  if (!isDone && el.value.trim().length > 0) {
+    const aa = document.getElementById('action-area');
+    if (aa && !document.getElementById('save-btn')) {
+      aa.innerHTML = renderSaveAction(n);
+      lucide.createIcons();
+    }
+  }
 }
 
 function autoGrow(el) {
@@ -588,56 +672,47 @@ function autoGrow(el) {
   el.style.height = Math.max(200, el.scrollHeight) + 'px';
 }
 
-function save(day, silent = false) {
-  const key = 'day_' + day;
-  const ta  = document.getElementById('ta-' + day);
+function autoSave(n) {
+  const ta = document.getElementById('letter-textarea');
   if (!ta) return;
-
-  letters[key] = ta.value;
+  letters['day_' + n] = ta.value;
   try { localStorage.setItem(LS_KEY + '_' + challenge, JSON.stringify(letters)); } catch(_) {}
-
-  const done  = ta.value.trim().length > 0;
-  const card  = document.getElementById('card-' + day);
-  const badge = document.getElementById('badge-' + day);
-  const btn   = document.getElementById('toggle-btn-' + day);
-
-  card.classList.toggle('has-letter', done);
-  if (badge) badge.style.display = done ? 'inline-flex' : 'none';
-
-  if (btn) {
-    btn.className = done ? 'btn-ghost-done' : 'btn-ghost';
-    btn.innerHTML = `<i data-lucide="${done ? 'pen-line' : 'feather'}" style="width:14px;height:14px;"></i><span>${done ? 'Ver e editar minha carta' : 'Escrever esta carta'}</span>`;
-  }
-
-  if (!silent) {
-    const sl = document.getElementById('sl-' + day);
-    if (sl) { sl.textContent = 'Salvo!'; setTimeout(() => { if (sl) sl.textContent = 'Salvar carta'; }, 2000); }
-  }
-
-  lucide.createIcons();
-  updateProgress();
 }
 
-function updateProgress() {
-  let count = 0;
-  for (let i = 1; i <= 15; i++) {
-    const done = !!(letters['day_' + i] && letters['day_' + i].trim().length > 0);
-    const dot  = document.getElementById('pdot-' + i);
-    if (dot) dot.classList.toggle('done', done);
-    if (done) count++;
-  }
-  const pt = document.getElementById('progress-text');
-  if (pt) pt.textContent = count + ' de 15';
-  const dl = document.getElementById('dots-label');
-  if (dl) dl.textContent = count + ' de 15 cartas escritas';
+function saveCurrent(n, reload = false) {
+  const ta = document.getElementById('letter-textarea');
+  if (!ta) return;
 
-  if (count === 15) {
-    const cs = document.getElementById('completion-section');
-    if (cs && cs.style.display === 'none') {
-      cs.style.display = 'block';
-      cs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  letters['day_' + n] = ta.value;
+  try { localStorage.setItem(LS_KEY + '_' + challenge, JSON.stringify(letters)); } catch(_) {}
+
+  const sl = document.getElementById('save-label');
+  if (sl) { sl.textContent = 'Salvo!'; setTimeout(() => { if (sl) sl.textContent = document.getElementById('save-btn') ? 'Salvar carta' : 'Editar e salvar'; }, 2000); }
+
+  updateDots();
+  if (reload) renderCurrentDay();
+  else {
+    // atualizar badge e action area sem re-render completo
+    const badge = document.getElementById('written-badge');
+    const card  = document.getElementById('active-day-card');
+    const done  = ta.value.trim().length > 0;
+    if (badge) badge.style.display = done ? 'inline-flex' : 'none';
+    if (card)  card.classList.toggle('has-letter', done);
+    if (done) {
+      const aa = document.getElementById('action-area');
+      if (aa) { aa.innerHTML = renderNextAction(n, PROMPTS[challenge].length); lucide.createIcons(); }
     }
+    // mostrar completion se todos feitos
+    const cs = document.getElementById('completion-section');
+    if (cs) cs.style.display = countDone() === PROMPTS[challenge].length ? 'block' : 'none';
   }
+}
+
+function saveAndNext(n) {
+  const ta = document.getElementById('letter-textarea');
+  if (!ta || ta.value.trim().length === 0) return;
+  autoSave(n);
+  goToDay(n + 1);
 }
 </script>
 </body>

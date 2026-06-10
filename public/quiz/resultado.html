@@ -325,9 +325,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </div>
 
-  <!-- Novena card — populado via JS com dados do desafio -->
-  <div id="novena-card-wrapper" class="anim-fade-up"></div>
-
   <!-- Mapa Espiritual -->
   <div class="anim-fade-up" style="margin-bottom:36px;">
     <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:18px;">SEU MAPA ESPIRITUAL</p>
@@ -379,61 +376,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
   </div>
 
-  <!-- Pitch do App -->
-  <div class="anim-fade-up" id="community-section" style="margin-bottom:40px;">
-    <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:14px;">DEPOIS DOS 21 DIAS</p>
-    <h2 id="community-headline" style="font-size:clamp(20px,6vw,26px);font-weight:900;line-height:1.2;margin-bottom:10px;"></h2>
-    <p style="font-size:clamp(13px,4vw,15px);color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:24px;">Seu plano tem um fim. A sua caminhada, não. E ela fica muito mais leve quando você não anda sozinha.</p>
-
-    <div class="glass-violet" style="border-radius:20px;padding:22px;margin-bottom:20px;">
-      <p style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.8);line-height:1.7;">
-        Quem passa por ansiedade conhece a parte mais difícil: sentir que ninguém entende. No Espiritualizei você encontra <strong>milhares de católicos</strong> rezando todos os dias, uns pelos outros. Você nunca mais reza sozinha.
-      </p>
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
-      <div class="feature-card">
-        <div class="feature-icon"><i data-lucide="users"></i></div>
-        <div>
-          <p style="font-size:14px;font-weight:700;margin-bottom:3px;">Uma comunidade rezando com você</p>
-          <p style="font-size:13px;color:rgba(255,255,255,.5);">Peça oração e reze pelos outros. Você não está sozinha nessa.</p>
-        </div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"><i data-lucide="infinity"></i></div>
-        <div>
-          <p style="font-size:14px;font-weight:700;margin-bottom:3px;">Sua caminhada continua</p>
-          <p style="font-size:13px;color:rgba(255,255,255,.5);">No dia 22 e além: um caminho que se adapta à sua vida e ao tempo da Igreja.</p>
-        </div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"><i data-lucide="book-open"></i></div>
-        <div>
-          <p style="font-size:14px;font-weight:700;margin-bottom:3px;">Formação completa</p>
-          <p style="font-size:13px;color:rgba(255,255,255,.5);">Santos, liturgia, virtudes e catequese sempre com você</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid-2" style="margin-bottom:24px;">
-      <div class="testimonial-card">
-        <p style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:8px;font-style:italic;">"Achei que era só comigo. Ver outras pessoas rezando pela mesma dor me deu força."</p>
-        <p style="font-size:11px;font-weight:700;color:rgba(167,139,250,.7);">Ana, São Paulo</p>
-      </div>
-      <div class="testimonial-card">
-        <p style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:8px;font-style:italic;">"Me sinto acompanhada todos os dias. Não parei mais depois que entrei."</p>
-        <p style="font-size:11px;font-weight:700;color:rgba(167,139,250,.7);">Carla, Minas Gerais</p>
-      </div>
-    </div>
-
+  <!-- App CTA compacto -->
+  <div class="anim-fade-up" id="community-section" style="margin-bottom:32px;">
     <div style="background:rgba(167,139,250,.06);border:1.5px solid rgba(167,139,250,.18);border-radius:20px;padding:24px;text-align:center;">
-      <p style="font-size:10px;font-weight:800;letter-spacing:2px;color:#A78BFA;margin-bottom:8px;">7 DIAS GRÁTIS · SEM CARTÃO AGORA</p>
-      <p style="font-size:clamp(15px,5vw,18px);font-weight:700;margin-bottom:18px;line-height:1.3;">Continue sua caminhada. E não caminhe sozinha.</p>
-      <button class="btn-primary" onclick="goToApp()" style="margin-bottom:12px;">
-        Quero continuar com a comunidade
+      <p style="font-size:10px;font-weight:800;letter-spacing:2px;color:#A78BFA;margin-bottom:8px;">DEPOIS DOS 21 DIAS</p>
+      <h2 id="community-headline" style="font-size:clamp(17px,5vw,22px);font-weight:800;line-height:1.3;margin-bottom:10px;"></h2>
+      <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:20px;">Comunidade de orações, biblioteca litúrgica e desafios comunitários. A sua caminhada não precisa acabar no dia 21.</p>
+      <button class="btn-primary" onclick="goToApp()" style="margin-bottom:10px;">
+        Conhecer o App — 7 dias grátis
       </button>
       <button class="btn-secondary" onclick="document.getElementById('community-section').style.display='none'">
-        Agora não, vou ficar só com meu plano
+        Agora não
       </button>
     </div>
   </div>
@@ -1033,7 +986,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     // Hero
     document.getElementById('hero-greeting').textContent  = `${name}, aqui está o que descobrimos sobre você:`
-    document.getElementById('community-headline').textContent = `${name}, e quando os 21 dias acabarem?`
+    document.getElementById('community-headline').textContent = `${name}, e depois dos 21 dias?`
 
     const badge = document.getElementById('level-badge')
     badge.style.background = level.color + '1A'
@@ -1043,43 +996,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.getElementById('badge-level-name').textContent  = level.name
     document.getElementById('badge-level-name').style.color  = level.color
     document.getElementById('level-subtitle').textContent = level.sub
-
-    // Novena card — destaque do produto comprado
-    const NOVENA_NAMES = {
-      anxiety:'Novena da Paz Interior',     sadness:'Novena da Esperança',
-      relationships:'Novena da Reconciliação', laziness:'Novena da Constância',
-      dryness:'Novena do Reencontro',       ignorance:'Novena da Luz na Fé',
-      pride:'Novena do Perdão',             lust:'Novena da Libertação',
-    }
-    const novenaWrapper = document.getElementById('novena-card-wrapper')
-    if (novenaWrapper) {
-      const nName = NOVENA_NAMES[a.challenge] || 'Novena Personalizada'
-      novenaWrapper.innerHTML = `
-        <div class="novena-card">
-          <div style="display:flex;align-items:flex-start;gap:14px;">
-            <div style="width:46px;height:46px;border-radius:13px;background:rgba(167,139,250,.15);border:1.5px solid rgba(167,139,250,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <i data-lucide="book-open" style="width:20px;height:20px;color:#A78BFA;"></i>
-            </div>
-            <div style="flex:1;min-width:0;">
-              <p style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:5px;">SUA NOVENA PERSONALIZADA</p>
-              <p style="font-size:16px;font-weight:800;color:rgba(255,255,255,.95);margin-bottom:5px;">${nName}</p>
-              <p style="font-size:12.5px;color:rgba(255,255,255,.45);line-height:1.55;">Os primeiros 9 dias formam a sua novena, preparada especialmente para você rezar e guardar.</p>
-            </div>
-          </div>
-          <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(167,139,250,.15);display:flex;flex-direction:column;gap:10px;">
-            <button id="novena-download-btn" onclick="downloadNovena()" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:12px;padding:14px 18px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 6px 20px rgba(16,185,129,.28);transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
-              <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
-              Acessar minha Novena
-            </button>
-            <button onclick="goToDay(1)" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:12px;padding:12px 16px;color:#A78BFA;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s;" onmouseover="this.style.background='rgba(167,139,250,.2)'" onmouseout="this.style.background='rgba(167,139,250,.12)'">
-              <i data-lucide="play-circle" style="width:14px;height:14px;"></i>
-              Ou começar o Dia 1 agora
-            </button>
-          </div>
-        </div>
-      `
-      lucide.createIcons()
-    }
 
     const challengeLabel = CHALLENGE_LABELS[a.challenge] || 'sua jornada espiritual'
     const goalLabel      = GOAL_LABELS[a.goal] || 'crescimento espiritual'
