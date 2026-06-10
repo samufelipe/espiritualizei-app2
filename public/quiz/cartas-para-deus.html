@@ -261,11 +261,15 @@
 
   <!-- Sticky header -->
   <div class="sticky-header">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <div style="width:28px;height:28px;background:rgba(167,139,250,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-        <i data-lucide="feather" style="width:13px;height:13px;color:#A78BFA;"></i>
+    <button id="home-btn" onclick="goHome()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;font-weight:700;cursor:pointer;padding:10px 0;min-height:44px;font-family:'Inter',sans-serif;transition:color .2s;" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.5)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Minha Area
+    </button>
+    <div style="display:flex;align-items:center;gap:7px;">
+      <div style="width:24px;height:24px;background:rgba(167,139,250,.12);border-radius:7px;display:flex;align-items:center;justify-content:center;">
+        <i data-lucide="feather" style="width:11px;height:11px;color:#A78BFA;"></i>
       </div>
-      <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">Cartas para Deus</span>
+      <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);">Cartas para Deus</span>
     </div>
     <div class="progress-pill">
       <i data-lucide="pen-line" style="width:12px;height:12px;"></i>
@@ -294,7 +298,7 @@
     </div>
 
     <!-- Completion screen -->
-    <div id="completion-section" style="display:none;text-align:center;padding:40px 0;">
+    <div id="completion-section" style="display:none;text-align:center;padding:40px 0 60px;">
       <div style="width:72px;height:72px;background:rgba(167,139,250,.12);border:1.5px solid rgba(167,139,250,.28);border-radius:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
         <i data-lucide="heart" style="width:32px;height:32px;color:#A78BFA;"></i>
       </div>
@@ -302,12 +306,18 @@
       <h2 style="font-family:'Lora',serif;font-size:clamp(20px,5vw,26px);font-weight:700;line-height:1.3;margin-bottom:14px;">
         Voce escreveu 15 cartas para Deus.
       </h2>
-      <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:30px;">
+      <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:28px;">
         Cada palavra foi um passo de volta para Ele. Continue essa intimidade no App Espiritualizei.
       </p>
-      <button class="btn-primary" style="max-width:340px;margin:0 auto;" onclick="window.open('https://www.espiritualizei.com','_blank')">
-        Continuar no App Espiritualizei
-      </button>
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:340px;margin:0 auto;">
+        <button class="btn-primary" onclick="window.open('https://www.espiritualizei.com','_blank')">
+          Continuar no App Espiritualizei
+        </button>
+        <button onclick="goHome()" style="display:inline-flex;align-items:center;justify-content:center;gap:7px;background:rgba(167,139,250,.07);border:1.5px solid rgba(167,139,250,.18);border-radius:14px;padding:15px 20px;color:rgba(255,255,255,.6);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;" onmouseover="this.style.color='rgba(255,255,255,.9)';this.style.borderColor='rgba(167,139,250,.4)'" onmouseout="this.style.color='rgba(255,255,255,.6)';this.style.borderColor='rgba(167,139,250,.18)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar para minha area
+        </button>
+      </div>
     </div>
 
   </div>
@@ -445,6 +455,7 @@ let challenge   = 'anxiety';
 let letters     = {};
 let _currentDay = 1;
 let _saveTimer  = null;
+let _sessionId  = null;
 const LS_KEY    = 'espiritualizei_cartas_v1';
 
 // -----------------------------------------------
@@ -452,8 +463,9 @@ const LS_KEY    = 'espiritualizei_cartas_v1';
 // -----------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(window.location.search);
-  userName  = (p.get('name')      || 'Caminhante').trim();
-  challenge = (p.get('challenge') || 'anxiety').trim();
+  userName   = (p.get('name')      || 'Caminhante').trim();
+  challenge  = (p.get('challenge') || 'anxiety').trim();
+  _sessionId = p.get('session') || null;
   if (!PROMPTS[challenge]) challenge = 'anxiety';
 
   try {
@@ -713,6 +725,16 @@ function saveAndNext(n) {
   if (!ta || ta.value.trim().length === 0) return;
   autoSave(n);
   goToDay(n + 1);
+}
+
+function goHome() {
+  if (_sessionId) {
+    window.location.href = `/quiz/resultado?session=${encodeURIComponent(_sessionId)}`;
+  } else if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.close();
+  }
 }
 </script>
 </body>

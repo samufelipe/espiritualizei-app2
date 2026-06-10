@@ -293,15 +293,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div id="screen-dashboard" class="screen">
 <div class="content-wrap">
 
-  <!-- Header -->
-  <div style="display:flex;align-items:center;justify-content:center;padding:28px 0 32px;">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="#A78BFA">
+  <!-- Header sticky com volta para membros -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;position:sticky;top:0;z-index:10;background:#1A2530;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:32px;">
+    <button onclick="showScreen('screen-members')" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;font-weight:700;cursor:pointer;padding:10px 0;min-height:44px;font-family:'Inter',sans-serif;transition:color .2s;" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.5)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Minha Area
+    </button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <svg width="17px" height="17px" viewBox="0 0 24 24" fill="#A78BFA">
         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
       </svg>
-      <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
-      <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(167,139,250,.6);margin-left:8px;">DIAGNÓSTICO</span>
+      <span style="font-size:12px;font-weight:800;color:rgba(255,255,255,.75);">Diagnostico</span>
     </div>
+    <div style="width:90px;"></div>
   </div>
 
   <!-- Hero -->
@@ -454,7 +458,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <button onclick="goToApp()" class="btn-secondary" style="border-color:rgba(167,139,250,.25);color:rgba(255,255,255,.7);">
       Conhecer o Espiritualizei App
     </button>
-    <button onclick="showScreen('screen-dashboard')" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:13px;cursor:pointer;padding:10px;">
+    <button onclick="showScreen('screen-members')" style="display:inline-flex;align-items:center;justify-content:center;gap:7px;background:rgba(167,139,250,.07);border:1.5px solid rgba(167,139,250,.18);border-radius:14px;padding:15px 20px;color:rgba(255,255,255,.7);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;width:100%;transition:all .2s;" onmouseover="this.style.color='rgba(255,255,255,.95)';this.style.borderColor='rgba(167,139,250,.4)'" onmouseout="this.style.color='rgba(255,255,255,.7)';this.style.borderColor='rgba(167,139,250,.18)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Minha Area
+    </button>
+    <button onclick="showScreen('screen-dashboard')" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;padding:10px;font-family:'Inter',sans-serif;" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">
       Rever meu plano completo
     </button>
   </div>
@@ -1074,7 +1082,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const cartasBtn = document.getElementById('cartas-btn-members')
     if (cartasBtn) {
       cartasBtn.onclick = () => window.open(
-        `/quiz/cartas-para-deus.html?name=${encodeURIComponent(name)}&challenge=${encodeURIComponent(a.challenge || 'anxiety')}`,
+        `/quiz/cartas-para-deus.html?name=${encodeURIComponent(name)}&challenge=${encodeURIComponent(a.challenge || 'anxiety')}&session=${encodeURIComponent(sessionId)}`,
         '_blank'
       )
     }
