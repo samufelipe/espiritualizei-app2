@@ -119,22 +119,6 @@
     .quiz-step-dot.active{ background:#A78BFA; width:36px; box-shadow:0 0 8px rgba(167,139,250,.5); }
     .quiz-step-dot.pending{ width:24px; }
 
-    /* Next button */
-    .next-btn {
-      display:none; width:100%; margin-top:18px;
-      padding:15px 20px; border:none; border-radius:14px;
-      background:linear-gradient(135deg,#A78BFA,#7C3AED);
-      color:#fff; font-size:15px; font-weight:700; letter-spacing:.3px;
-      cursor:pointer; align-items:center; justify-content:center; gap:8px;
-      transition:all .2s ease; animation:slideUpBtn .28s ease;
-    }
-    .next-btn.visible { display:flex; }
-    .next-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(167,139,250,.4); }
-    .next-btn:active { transform:scale(.98); }
-    @keyframes slideUpBtn {
-      from { opacity:0; transform:translateY(10px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
 
     /* Micro encouragement */
     .micro-text {
@@ -161,6 +145,8 @@
     .btn-primary:active { transform: translateY(0) scale(.99); }
     #pay-btn { background: linear-gradient(135deg,#10B981,#059669); box-shadow: 0 8px 32px rgba(16,185,129,.32); }
     #pay-btn:hover { background: linear-gradient(135deg,#059669,#047857); box-shadow: 0 8px 40px rgba(16,185,129,.5); }
+    #landing-cta { background: linear-gradient(135deg,#10B981,#059669); box-shadow: 0 8px 32px rgba(16,185,129,.32); }
+    #landing-cta:hover { background: linear-gradient(135deg,#059669,#047857); box-shadow: 0 8px 40px rgba(16,185,129,.5); }
     .btn-secondary {
       background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.1);
       transition: all .2s ease; cursor: pointer;
@@ -978,10 +964,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
           `).join('')}
         </div>
-        <button class="next-btn" id="next-btn" onclick="confirmAnswer()">
-          <span>Próxima pergunta</span>
-          <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
-        </button>
+        ${S.qIdx > 0 ? `<button onclick="prevQ()" style="margin-top:18px;background:none;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(255,255,255,.38);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;min-height:44px;transition:color .2s,border-color .2s;" onmouseover="this.style.color='rgba(255,255,255,.7)';this.style.borderColor='rgba(255,255,255,.25)'" onmouseout="this.style.color='rgba(255,255,255,.38)';this.style.borderColor='rgba(255,255,255,.1)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Voltar</button>` : ''}
       </div>
     `
     lucide.createIcons()
@@ -1002,8 +985,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     S.answers[q.id] = val
     document.querySelectorAll('.answer-card').forEach(c => c.classList.remove('selected'))
     el.classList.add('selected')
-    const btn = document.getElementById('next-btn')
-    if (btn) btn.classList.add('visible')
+    setTimeout(confirmAnswer, 360)
+  }
+
+  function prevQ() {
+    if (S.qIdx > 0) { S.qIdx--; renderQ() }
   }
 
   function confirmAnswer() {
