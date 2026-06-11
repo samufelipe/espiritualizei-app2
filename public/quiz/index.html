@@ -1429,15 +1429,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // personalizado sem refazer as 3 perguntas.
   const resumeId = new URLSearchParams(window.location.search).get('resume')
   if (resumeId) {
-    fetch(
-      `${SUPABASE_URL}/rest/v1/quiz_sessions?id=eq.${encodeURIComponent(resumeId)}&select=quiz_data,name,email`,
-      { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
-    )
-    .then(r => r.json())
-    .then(rows => {
-      const row = rows?.[0]
-      if (!row) return
-      const { quiz_data, name, email } = row
+    fetch(`${SUPABASE_URL}/functions/v1/get-quiz-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` },
+      body: JSON.stringify({ id: resumeId })
+    })
+    .then(r => r.ok ? r.json() : null)
+    .then(res => {
+      if (!res || !res.found) return
+      const { quiz_data, name, email } = res
       S.name    = name  || ''
       S.email   = email || ''
       S.answers = quiz_data?.answers || {}

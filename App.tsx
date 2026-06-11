@@ -18,7 +18,7 @@ import AdminLogin, { checkAdminSession, clearAdminSession, getAdminSecret } from
 import QuizWelcome from './components/QuizWelcome';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
-import { fetchQuizSessionByEmail, type QuizImport } from './services/quizImportService';
+import { fetchQuizSessionByEmail, fetchQuizSessionBySession, type QuizImport } from './services/quizImportService';
 import { requestNotificationPermission } from './services/notificationService';
 import { registerUser, loginUser, getSession, logoutUser, updateUserProfile, syncUserFromServer, isUserInTrial, trialDaysLeft, hasFullAccess, SUPABASE_URL, SUPABASE_KEY } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -734,7 +734,10 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
 
                   let onboardingData = data;
                   try {
-                    const qi = await fetchQuizSessionByEmail(data.email);
+                    // Alinhar o perfil à diagnose do quiz via stripe_session_id
+                    // (segredo de posse), sem leitura anônima da tabela.
+                    const storedSession = localStorage.getItem('espiritualizei_quiz_stripe_session') || '';
+                    const qi = storedSession ? await fetchQuizSessionBySession(storedSession) : null;
                     if (qi && qi.found) {
                       onboardingData = {
                         ...data,

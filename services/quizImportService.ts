@@ -64,48 +64,52 @@ const mapRow = (row: any, email: string): QuizImport | null => {
   };
 };
 
+/**
+ * Leitura por e-mail — APENAS autenticada (JWT do usuário logado), governada
+ * pela RLS `quiz_select_own_email` (só devolve a própria linha). É o caminho da
+ * aba "Meus Materiais". Pré-login retorna null (sem leitura anônima da tabela).
+ */
 export const fetchQuizSessionByEmail = async (rawEmail: string): Promise<QuizImport | null> => {
   const email = (rawEmail || '').trim().toLowerCase();
-  if (!email || !SUPABASE_URL) return null;
+  if (!email || !supabase) return null;
 
-  const SELECT = 'name,email,quiz_data,plan_data,stripe_session_id';
-
-  // Caminho autenticado (aba Meus Materiais): usa o JWT do usuário logado.
   try {
-    if (supabase) {
-      const { data: sess } = await supabase.auth.getSession();
-      if (sess?.session) {
-        const { data, error } = await supabase
-          .from('quiz_sessions')
-          .select(SELECT)
-          .eq('email', email)
-          .order('created_at', { ascending: false })
-          .limit(1);
-        if (!error && Array.isArray(data) && data[0]) {
-          return mapRow(data[0], email);
-        }
-        // Sem erro mas sem linha: cai para o fallback abaixo (caso o e-mail do
-        // perfil difira do e-mail da compra, o anon ainda pode achar).
-      }
-    }
-  } catch (_) { /* tenta o fallback anônimo */ }
+    const { data: sess } = await supabase.auth.getSession();
+    if (!sess?.session) return null; // sem sessão = sem leitura (segurança)
 
-  // Fallback anônimo (enriquecimento pré-login)
+    const { data, error } = await supabase
+      .from('quiz_sessions')
+      .select('name,email,quiz_data,plan_data,stripe_session_id')
+      .eq('email', email)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error || !Array.isArray(data) || !data[0]) return null;
+    return mapRow(data[0], email);
+  } catch (_) {
+    return null;
+  }
+};
+
+/**
+ * Leitura por stripe_session_id (segredo de posse, do link pós-compra). Usada
+ * para alinhar o perfil de quem veio do quiz ANTES do login, via edge function
+ * service-role — sem expor a tabela ao papel anônimo.
+ */
+export const fetchQuizSessionBySession = async (stripeSessionId: string): Promise<QuizImport | null> => {
+  const sid = (stripeSessionId || '').trim();
+  if (!sid || !SUPABASE_URL) return null;
+
   try {
-    const url = `${SUPABASE_URL}/rest/v1/quiz_sessions`
-      + `?email=eq.${encodeURIComponent(email)}`
-      + `&select=${encodeURIComponent(SELECT)}`
-      + `&order=created_at.desc&limit=1`;
-
-    const res = await fetch(url, {
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/get-quiz-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ stripe_session_id: sid }),
     });
     if (!res.ok) return null;
-
-    const rows = await res.json().catch(() => []);
-    const row = Array.isArray(rows) ? rows[0] : null;
-    return mapRow(row, email);
+    const data = await res.json().catch(() => null);
+    if (!data?.found) return null;
+    return mapRow(data, (data.email || '').trim().toLowerCase());
   } catch (_) {
-    return null; // nunca bloqueia o cadastro
+    return null;
   }
 };
