@@ -15,6 +15,7 @@ import NotificationPermissionModal from './components/NotificationPermissionModa
 import Paywall from './components/Paywall';
 import AdminPanel from './components/AdminPanel';
 import AdminLogin, { checkAdminSession, clearAdminSession, getAdminSecret } from './components/AdminLogin';
+import QuizWelcome from './components/QuizWelcome';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
 import { fetchQuizSessionByEmail } from './services/quizImportService';
@@ -45,7 +46,7 @@ const TabLoader = () => (
 );
 
 const App: React.FC = () => {
-  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'checkout' | 'verifying_payment' | 'welcome_premium' | 'app' | 'admin_login' | 'admin' | 'reset_password'>('landing');
+  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'quiz_welcome' | 'checkout' | 'verifying_payment' | 'welcome_premium' | 'app' | 'admin_login' | 'admin' | 'reset_password'>('landing');
   const [adminSecret, setAdminSecret] = useState('');
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.DASHBOARD);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -57,8 +58,11 @@ const App: React.FC = () => {
   const [showMonthlyReview, setShowMonthlyReview] = useState(false);
   const [socialInitialTab, setSocialInitialTab] = useState<'ranking' | 'chat'>('ranking');
   const [errorToast, setErrorToast] = useState('');
+  const [quizEmail, setQuizEmail] = useState('');
+  const [quizName, setQuizName] = useState('');
   const initializationRef = useRef(false);
   const paymentVerificationRef = useRef(false);
+  const quizWelcomeRef = useRef(false);
 
   const [user, setUser] = useState<UserProfile>({
     id: 'guest', name: 'Visitante', email: '', level: 1, currentXP: 0, nextLevelXP: 100, streakDays: 0, joinedDate: new Date()
@@ -161,26 +165,47 @@ const App: React.FC = () => {
     const path = window.location.pathname;
     const hash = window.location.hash;
     console.log('🔍 Verificando path:', path, 'hash:', hash);
-    
+
     // Verificar se é rota de reset-password (Supabase envia token no hash)
     if (path === '/reset-password' || path === '/reset-password/' || hash.includes('type=recovery')) {
       console.log('🔑 Rota de reset-password detectada!');
       setViewState('reset_password');
       return;
     }
-    
+
     if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
       console.log('✅ Rota admin detectada!');
-      // Verificar se já tem sessão admin válida
       if (checkAdminSession()) {
-        console.log('🔐 Sessão admin válida, redirecionando para painel');
         setAdminSecret(getAdminSecret());
         setViewState('admin');
       } else {
-        console.log('🔑 Sem sessão admin, mostrando login');
         setViewState('admin_login');
       }
       return;
+    }
+
+    // Detecção de lead vindo do quiz: ?source=quiz&email=...&name=...
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('source') === 'quiz') {
+      const emailParam = urlParams.get('email');
+      const nameParam = urlParams.get('name');
+      window.history.replaceState({}, '', '/');
+
+      // Se já tem sessão ativa, apenas marca como from_quiz e deixa o app abrir normalmente
+      const existingSession = getSession();
+      if (existingSession?.user?.id && existingSession.user.id !== 'guest' && Date.now() < existingSession.expiresAt) {
+        localStorage.setItem('espiritualizei_from_quiz', '1');
+        setIsFromQuiz(true);
+        return; // initSession irá abrir o app normalmente
+      }
+
+      // Novo usuário vindo do quiz — mostrar tela de boas-vindas com cadastro simplificado
+      if (emailParam) {
+        setQuizEmail(decodeURIComponent(emailParam));
+        setQuizName(decodeURIComponent(nameParam || ''));
+        quizWelcomeRef.current = true;
+        setViewState('quiz_welcome');
+      }
     }
   }, []);
 
@@ -260,6 +285,10 @@ const App: React.FC = () => {
       }
       if (paymentVerificationRef.current) {
         console.log('Pulando initSession - verificacao de pagamento em andamento');
+        return;
+      }
+      if (quizWelcomeRef.current) {
+        console.log('Pulando initSession - tela de boas-vindas do quiz ativa');
         return;
       }
       
@@ -660,6 +689,48 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
             />
           )}
           
+          {viewState === 'quiz_welcome' && (
+            <QuizWelcome
+              name={quizName}
+              email={quizEmail}
+              onComplete={async (data) => {
+                setViewState('generating');
+                try {
+                  localStorage.setItem('espiritualizei_from_quiz', '1');
+                  setIsFromQuiz(true);
+
+                  let onboardingData = data;
+                  try {
+                    const qi = await fetchQuizSessionByEmail(data.email);
+                    if (qi && qi.found) {
+                      onboardingData = {
+                        ...data,
+                        primaryStruggle: qi.primaryStruggle || data.primaryStruggle,
+                        spiritualGoal: qi.spiritualGoal || data.spiritualGoal,
+                      };
+                      if (qi.plan) localStorage.setItem('espiritualizei_quiz_plan', JSON.stringify(qi.plan));
+                    }
+                  } catch (_) { /* não-bloqueante */ }
+
+                  const session = await registerUser(onboardingData);
+                  if (session && session.user) {
+                    setUser(session.user);
+                    const result = await generateSpiritualRoutine(onboardingData);
+                    await saveUserRoutine(session.user.id, result.routine);
+                    setRoutineItems(result.routine);
+                    queueEngagementEmail(session.user.id, 'welcome', { userName: session.user.name });
+                    setViewState('app');
+                    setShowTutorial(true);
+                    fetchGlobalChallenge().then((global) => { if (global) setChallenges([global]); });
+                  }
+                } catch (e: any) {
+                  setViewState('quiz_welcome');
+                  throw e; // QuizWelcome captura e exibe o erro
+                }
+              }}
+            />
+          )}
+
           {viewState === 'onboarding' && (
             <Suspense fallback={<TabLoader />}>
               <Onboarding 
