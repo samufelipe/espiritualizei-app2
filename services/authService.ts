@@ -336,8 +336,13 @@ export const updateUserProfile = async (u: UserProfile): Promise<boolean> => {
 
 export const sendPasswordResetEmail = async (email: string) => {
   if (supabase) {
+    // Redirect dinâmico: usa a origem atual (funciona em produção, preview e
+    // local), com fallback para produção quando não há window (SSR/import).
+    const origin = (typeof window !== 'undefined' && window.location?.origin)
+      ? window.location.origin
+      : 'https://www.espiritualizei.com';
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-      redirectTo: 'https://www.espiritualizei.com/reset-password'
+      redirectTo: `${origin}/reset-password`
     });
     if (error) throw error;
     return true;

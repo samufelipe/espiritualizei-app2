@@ -1137,10 +1137,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   function goToApp() {
     const quizData = JSON.parse(localStorage.getItem('espiritualizei_quiz') || '{}')
+    const sessionId = new URLSearchParams(window.location.search).get('session')
     const params = new URLSearchParams()
     params.set('source', 'quiz')
     if (quizData.email) params.set('email', quizData.email)
     if (quizData.name) params.set('name', quizData.name)
+    if (sessionId) params.set('session', sessionId)
     window.open('https://www.espiritualizei.com/?' + params.toString(), '_blank')
   }
 

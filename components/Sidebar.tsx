@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, CheckCircle2, Book, User, Heart, LogOut, Trophy } from 'lucide-react';
+import { Home, CheckCircle2, Book, User, Heart, LogOut, Trophy, Sparkles } from 'lucide-react';
 import { Tab, UserProfile } from '../types';
 import BrandLogo from './BrandLogo';
 
@@ -9,17 +9,23 @@ interface SidebarProps {
   onTabChange: (tab: Tab) => void;
   user: UserProfile;
   onLogout: () => void;
+  isFromQuiz?: boolean;
+  hasMaterials?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, user, onLogout }) => {
-  const navItems = [
+const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, user, onLogout, isFromQuiz, hasMaterials }) => {
+  const allNavItems = [
     { tab: Tab.DASHBOARD, icon: Home, label: 'Início' },
     { tab: Tab.ROUTINE, icon: CheckCircle2, label: 'Minha Jornada' },
+    { tab: Tab.MATERIALS, icon: Sparkles, label: 'Meus Materiais' },
     { tab: Tab.COMMUNITY, icon: Heart, label: 'Comunidade' },
     { tab: Tab.SOCIAL, icon: Trophy, label: 'Ranking & Social' },
     { tab: Tab.KNOWLEDGE, icon: Book, label: 'Biblioteca' },
     { tab: Tab.PROFILE, icon: User, label: 'Perfil' },
   ];
+  let navItems = allNavItems;
+  if (!hasMaterials) navItems = navItems.filter(i => i.tab !== Tab.MATERIALS);
+  if (isFromQuiz) navItems = navItems.filter(i => i.tab !== Tab.ROUTINE);
 
   return (
     <div className="hidden md:flex flex-col w-[280px] h-screen sticky top-0 bg-[#15191E] border-r border-white/5 p-6 z-50">

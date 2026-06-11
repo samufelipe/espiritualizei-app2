@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, CheckCircle2, Book, Trophy, Heart, User, Lock } from 'lucide-react';
+import { Home, CheckCircle2, Book, Trophy, Heart, User, Lock, Sparkles } from 'lucide-react';
 import { Tab } from '../types';
 
 interface NavigationProps {
@@ -8,20 +8,25 @@ interface NavigationProps {
   onTabChange: (tab: Tab) => void;
   showLockOnPremium?: boolean;
   isFromQuiz?: boolean;
+  hasMaterials?: boolean;
 }
 
 const PREMIUM_TABS = new Set([Tab.KNOWLEDGE, Tab.SOCIAL]);
 
-const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange, showLockOnPremium, isFromQuiz }) => {
+const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange, showLockOnPremium, isFromQuiz, hasMaterials }) => {
   const allNavItems = [
     { tab: Tab.DASHBOARD, icon: Home, label: 'Início' },
     { tab: Tab.ROUTINE, icon: CheckCircle2, label: 'Jornada' },
+    { tab: Tab.MATERIALS, icon: Sparkles, label: 'Materiais' },
     { tab: Tab.COMMUNITY, icon: Heart, label: 'Comunidade' },
     { tab: Tab.SOCIAL, icon: Trophy, label: 'Ranking' },
     { tab: Tab.KNOWLEDGE, icon: Book, label: 'Biblioteca' },
     { tab: Tab.PROFILE, icon: User, label: 'Perfil' },
   ];
-  const navItems = isFromQuiz ? allNavItems.filter(i => i.tab !== Tab.ROUTINE) : allNavItems;
+  let navItems = allNavItems;
+  if (!hasMaterials) navItems = navItems.filter(i => i.tab !== Tab.MATERIALS);
+  if (isFromQuiz) navItems = navItems.filter(i => i.tab !== Tab.ROUTINE);
+  const gridClass = navItems.length === 5 ? 'grid-cols-5' : navItems.length === 7 ? 'grid-cols-7' : 'grid-cols-6';
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none md:hidden">
@@ -32,7 +37,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentTab, onTabChange, showLo
         aria-label="Navegação principal"
         className="w-full bg-white/90 dark:bg-[#15191E]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 pb-safe pt-1 px-1 pointer-events-auto shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]"
       >
-        <div className={`grid items-end w-full max-w-lg mx-auto ${navItems.length === 5 ? 'grid-cols-5' : 'grid-cols-6'}`}>
+        <div className={`grid items-end w-full max-w-lg mx-auto ${gridClass}`}>
           {navItems.map((item) => {
             const isActive = currentTab === item.tab;
             const isLocked = showLockOnPremium && PREMIUM_TABS.has(item.tab);

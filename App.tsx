@@ -18,9 +18,9 @@ import AdminLogin, { checkAdminSession, clearAdminSession, getAdminSecret } from
 import QuizWelcome from './components/QuizWelcome';
 import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, CommunityChallenge, MonthlyReviewData } from './types';
 import { generateSpiritualRoutine } from './services/geminiService';
-import { fetchQuizSessionByEmail } from './services/quizImportService';
+import { fetchQuizSessionByEmail, type QuizImport } from './services/quizImportService';
 import { requestNotificationPermission } from './services/notificationService';
-import { registerUser, getSession, logoutUser, updateUserProfile, syncUserFromServer, isUserInTrial, trialDaysLeft, hasFullAccess, SUPABASE_URL, SUPABASE_KEY } from './services/authService';
+import { registerUser, loginUser, getSession, logoutUser, updateUserProfile, syncUserFromServer, isUserInTrial, trialDaysLeft, hasFullAccess, SUPABASE_URL, SUPABASE_KEY } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
@@ -37,6 +37,7 @@ const SocialHub = lazy(() => import('./components/SocialHub'));
 const Profile = lazy(() => import('./components/Profile'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const KnowledgeBase = lazy(() => import('./components/KnowledgeBase'));
+const MeusMateriais = lazy(() => import('./components/MeusMateriais'));
 
 const TabLoader = () => (
   <div className="h-full w-full flex flex-col items-center justify-center animate-fade-in text-slate-400 py-20 bg-brand-dark">
@@ -74,6 +75,8 @@ const App: React.FC = () => {
   const [completedToday, setCompletedToday] = useState<Set<string>>(new Set());
   const [xpToast, setXpToast] = useState<{show: boolean, xp: number}>({show: false, xp: 0});
   const [isFromQuiz, setIsFromQuiz] = useState(() => localStorage.getItem('espiritualizei_from_quiz') === '1');
+  const [materials, setMaterials] = useState<QuizImport | null>(null);
+  const hasMaterials = !!materials?.stripeSessionId;
 
   // Redirecionar usuários do quiz para fora da aba de Rotina (funcionalidade oculta)
   useEffect(() => {
@@ -81,6 +84,26 @@ const App: React.FC = () => {
       setCurrentTab(Tab.DASHBOARD);
     }
   }, [isFromQuiz, currentTab]);
+
+  // Carregar "Meus Materiais" do usuário logado (compra ligada ao e-mail).
+  // Roda quando entra no app com um usuário real; leitura autenticada via RLS.
+  useEffect(() => {
+    if (viewState !== 'app' || !user?.email || user.id === 'guest') return;
+    let cancelled = false;
+    fetchQuizSessionByEmail(user.email)
+      .then(res => {
+        if (cancelled || !res?.found) return;
+        // Fallback: se o banco ainda não gravou o stripe_session_id (corrida com
+        // o webhook), usar o que veio pelo link do quiz.
+        if (!res.stripeSessionId) {
+          const stored = localStorage.getItem('espiritualizei_quiz_stripe_session');
+          if (stored) res.stripeSessionId = stored;
+        }
+        setMaterials(res);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [viewState, user?.id, user?.email]);
 
   // Controlar classe do body para scroll na LP vs app
   useEffect(() => {
@@ -184,12 +207,19 @@ const App: React.FC = () => {
       return;
     }
 
-    // Detecção de lead vindo do quiz: ?source=quiz&email=...&name=...
+    // Detecção de lead vindo do quiz: ?source=quiz&email=...&name=...&session=...
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('source') === 'quiz') {
       const emailParam = urlParams.get('email');
       const nameParam = urlParams.get('name');
+      const sessionParam = urlParams.get('session');
       window.history.replaceState({}, '', '/');
+
+      // Guardar a sessão do Stripe como fallback para abrir os materiais
+      // (a fonte primária é o quiz_sessions.stripe_session_id no banco).
+      if (sessionParam) {
+        try { localStorage.setItem('espiritualizei_quiz_stripe_session', sessionParam); } catch (_) {}
+      }
 
       // Se já tem sessão ativa, apenas marca como from_quiz e deixa o app abrir normalmente
       const existingSession = getSession();
@@ -591,10 +621,13 @@ const App: React.FC = () => {
           </Suspense>
         );
         
-      case Tab.KNOWLEDGE: 
+      case Tab.MATERIALS:
+        return <Suspense fallback={<TabLoader />}><MeusMateriais data={materials} /></Suspense>;
+
+      case Tab.KNOWLEDGE:
         return <Suspense fallback={<TabLoader />}><KnowledgeBase /></Suspense>;
-        
-      case Tab.COMMUNITY: 
+
+      case Tab.COMMUNITY:
         return (
           <Suspense fallback={<TabLoader />}>
             <Community 
@@ -661,7 +694,7 @@ const App: React.FC = () => {
         />
       )}
       
-      {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} /></div>}
+      {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} isFromQuiz={isFromQuiz} hasMaterials={hasMaterials} /></div>}
       
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark no-scrollbar">
           {viewState === 'landing' && (
@@ -726,6 +759,19 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                 } catch (e: any) {
                   setViewState('quiz_welcome');
                   throw e; // QuizWelcome captura e exibe o erro
+                }
+              }}
+              onLogin={async (loginEmail, password) => {
+                // Mesma credencial: o usuário já tem conta. Entra e abre o app.
+                const session = await loginUser(loginEmail, password);
+                if (session && session.user) {
+                  localStorage.setItem('espiritualizei_from_quiz', '1');
+                  setIsFromQuiz(true);
+                  setUser(session.user);
+                  fetchUserRoutine(session.user.id).then((db) => { if (db && db.length > 0) setRoutineItems(db); });
+                  fetchCommunityIntentions(session.user.id).then(setIntentions);
+                  fetchGlobalChallenge().then((global) => { if (global) setChallenges([global]); });
+                  setViewState('app');
                 }
               }}
             />
@@ -887,7 +933,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
           {viewState === 'app' && renderContent()}
       </main>
 
-      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!hasFullAccess(user)} isFromQuiz={isFromQuiz} /></div>}
+      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!hasFullAccess(user)} isFromQuiz={isFromQuiz} hasMaterials={hasMaterials} /></div>}
       
       {showTutorial && <Tutorial user={user} onComplete={() => {
         localStorage.setItem('espiritualizei_tutorial_completed', 'true');
