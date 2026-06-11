@@ -78,12 +78,13 @@ const App: React.FC = () => {
   const [materials, setMaterials] = useState<QuizImport | null>(null);
   const hasMaterials = !!materials?.stripeSessionId;
 
-  // Redirecionar usuários do quiz para fora da aba de Rotina (funcionalidade oculta)
+  // Redirecionar usuários do quiz para fora da aba de Rotina.
+  // Só aplica quando nao tem premium: quem assina depois do quiz ganha acesso à Rotina.
   useEffect(() => {
-    if (isFromQuiz && currentTab === Tab.ROUTINE) {
+    if (isFromQuiz && !hasFullAccess(user) && currentTab === Tab.ROUTINE) {
       setCurrentTab(Tab.DASHBOARD);
     }
-  }, [isFromQuiz, currentTab]);
+  }, [isFromQuiz, currentTab, user]);
 
   // Carregar "Meus Materiais" do usuário logado (compra ligada ao e-mail).
   // Roda quando entra no app com um usuário real; leitura autenticada via RLS.
@@ -235,6 +236,11 @@ const App: React.FC = () => {
         setQuizName(decodeURIComponent(nameParam || ''));
         quizWelcomeRef.current = true;
         setViewState('quiz_welcome');
+      } else {
+        // Email nao disponivel (localStorage limpo, aba privada etc.)
+        // Bloqueia initSession e mostra login para o usuario acessar com sua conta
+        quizWelcomeRef.current = true;
+        setViewState('login');
       }
     }
   }, []);
@@ -475,6 +481,10 @@ const App: React.FC = () => {
      setRoutineItems([]);
      setIntentions([]);
      setChallenges([]);
+     setIsFromQuiz(false);
+     setMaterials(null);
+     localStorage.removeItem('espiritualizei_from_quiz');
+     localStorage.removeItem('espiritualizei_quiz_stripe_session');
   };
 
   // Handler para atualização de usuário com persistência garantida
@@ -694,7 +704,7 @@ const App: React.FC = () => {
         />
       )}
       
-      {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} isFromQuiz={isFromQuiz} hasMaterials={hasMaterials} /></div>}
+      {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} isFromQuiz={isFromQuiz && !hasFullAccess(user)} hasMaterials={hasMaterials} /></div>}
       
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark no-scrollbar">
           {viewState === 'landing' && (
@@ -936,7 +946,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
           {viewState === 'app' && renderContent()}
       </main>
 
-      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!hasFullAccess(user)} isFromQuiz={isFromQuiz} hasMaterials={hasMaterials} /></div>}
+      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!hasFullAccess(user)} isFromQuiz={isFromQuiz && !hasFullAccess(user)} hasMaterials={hasMaterials} /></div>}
       
       {showTutorial && <Tutorial user={user} onComplete={() => {
         localStorage.setItem('espiritualizei_tutorial_completed', 'true');
