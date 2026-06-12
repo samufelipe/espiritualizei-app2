@@ -87,6 +87,25 @@ function buildWeekPrompt(
   }
   const days = Array.from({ length: 7 }, (_, i) => startDay + i).join(', ')
 
+  const FAMILY_PT: Record<string, string> = {
+    connected_closed: 'laços fortes, mas tende a se fechar emocionalmente',
+    tension:          'tensão não resolvida nos relacionamentos próximos',
+    old_wounds:       'mágoas antigas que ainda pesam',
+    motivated:        'família como maior motivação espiritual',
+  }
+  const PRAYER_OPENNESS_PT: Record<string, string> = {
+    open:     'consegue se abrir com Deus, mesmo que seja difícil',
+    selective:'evita os assuntos mais pesados com Deus',
+    shame:    'sente que precisa estar arrumado antes de falar com Deus',
+    closed:   'prefere guardar para si, não consegue se abrir',
+  }
+  const INTERCESSION_PT: Record<string, string> = {
+    active:    'ora regularmente por pessoas específicas',
+    occasional:'lembra de orar pelos outros sem constância',
+    rarely:    'quase não ora pelos outros',
+    doubtful:  'duvida que sua oração pelos outros faça diferença',
+  }
+
   return `Você é um diretor espiritual católico.
 Gere os dias ${days} de um plano espiritual personalizado para ${displayName} (nível: ${displayLevel}).
 
@@ -96,6 +115,9 @@ Perfil:
 - Objetivo: ${answers?.goal || 'N/A'}
 - Fase de vida: ${answers?.state || answers?.lifeStage || 'N/A'}
 - Impedimento: ${answers?.obstacle || 'N/A'}
+- Relação familiar: ${FAMILY_PT[answers?.family] || 'não informado'}
+- Abertura em oração: ${PRAYER_OPENNESS_PT[answers?.prayerOpenness] || 'não informado'}
+- Vida de intercessão: ${INTERCESSION_PT[answers?.intercession] || 'não informado'}
 Dimensões (0-100): Oração ${dimLabels.oracao} | Sacramento ${dimLabels.sacramento} | Formação ${dimLabels.formacao} | Comunidade ${dimLabels.comunidade} | Missão ${dimLabels.missao}
 
 Esta é a SEMANA ${weekNum}. Tema: "${weekThemeHint}". Foco: ${weekFocus} ("${weekFocusLabel}").

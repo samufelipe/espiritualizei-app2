@@ -337,6 +337,16 @@
     .testimonial-quote { font-size: 13px; color: rgba(255,255,255,.68); line-height: 1.6; font-style: italic; margin: 0 0 8px; }
     .testimonial-author { font-size: 11px; font-weight: 700; color: rgba(167,139,250,.6); }
 
+    /* Diagnostic insights */
+    .diag-card {
+      background: rgba(167,139,250,.05);
+      border: 1.5px solid rgba(167,139,250,.18);
+      border-radius: 14px; padding: 16px 18px;
+      margin-bottom: 10px;
+      font-size: 14px; color: rgba(255,255,255,.75);
+      line-height: 1.65; font-style: italic;
+    }
+
     /* Main product card */
     .main-product-card{background:linear-gradient(135deg,rgba(167,139,250,.11),rgba(124,58,237,.05));border:2px solid rgba(167,139,250,.38);border-radius:20px;padding:22px 20px;margin-bottom:10px;}
     .main-product-bullet{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:rgba(255,255,255,.62);line-height:1.45;margin-bottom:7px;}
@@ -504,6 +514,40 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
+<!-- TELA 3B — DEEPEN (ponte antes das perguntas pessoais) -->
+<div id="s-deepen" class="screen" style="position:relative;z-index:1;">
+  <div class="flex flex-col items-center justify-center min-h-screen px-5 py-12">
+    <div style="max-width:420px;width:100%;" class="anim-fade-up">
+
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:44px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#A78BFA">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
+      </div>
+
+      <div style="display:flex;justify-content:center;margin-bottom:28px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(167,139,250,.1);border:1.5px solid rgba(167,139,250,.25);display:flex;align-items:center;justify-content:center;">
+          <i data-lucide="lock" style="width:28px;height:28px;color:#A78BFA;"></i>
+        </div>
+      </div>
+
+      <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:14px;text-align:center;">QUASE LÁ</p>
+      <h2 style="font-size:clamp(22px,6vw,28px);font-weight:800;margin-bottom:14px;line-height:1.25;text-align:center;">Antes de analisar seu diagnóstico, mais três perguntas.</h2>
+      <p style="font-size:14px;color:rgba(255,255,255,.48);margin-bottom:32px;line-height:1.6;text-align:center;">São perguntas mais pessoais. Suas respostas ficam só entre você e Deus. Nada é compartilhado.</p>
+
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(167,139,250,.06);border:1.5px solid rgba(167,139,250,.15);border-radius:14px;padding:16px 20px;margin-bottom:32px;">
+        <i data-lucide="shield-check" style="width:20px;height:20px;color:#A78BFA;flex-shrink:0;"></i>
+        <p style="font-size:13px;color:rgba(255,255,255,.58);line-height:1.5;margin:0;">Suas respostas são privadas e protegidas. Tratamos sua sinceridade com o mesmo cuidado com que você a oferece.</p>
+      </div>
+
+      <button class="btn-primary" onclick="startDeepQuestions()" style="font-size:15px;font-weight:700;color:#1A2530;padding:17px 24px;">
+        Continuar com sinceridade
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- TELA 4 — LOADING -->
 <div id="s-loading" class="screen" style="position:relative;z-index:1;">
   <div class="flex flex-col items-center justify-center min-h-screen px-5 text-center">
@@ -560,6 +604,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
     </div>
 
+    <!-- DIAGNOSTICO INICIAL — secao espelho -->
+    <div id="diag-section" class="anim-fade-up" style="margin-bottom:32px;">
+      <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:16px;text-align:center;">SEU DIAGNOSTICO INICIAL</p>
+
+      <div style="display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+        <div id="diag-level-badge" style="display:inline-flex;align-items:center;gap:8px;border-radius:50px;padding:8px 18px;border:1.5px solid rgba(167,139,250,.3);background:rgba(167,139,250,.08);">
+          <div id="diag-level-dot" style="width:8px;height:8px;border-radius:50%;background:#A78BFA;flex-shrink:0;"></div>
+          <span id="diag-level-name" style="font-size:13px;font-weight:700;color:#A78BFA;"></span>
+        </div>
+      </div>
+
+      <h2 id="diag-name-line" style="font-size:clamp(18px,5vw,22px);font-weight:800;line-height:1.3;margin-bottom:8px;text-align:center;"></h2>
+      <p style="font-size:13px;color:rgba(255,255,255,.42);margin-bottom:22px;text-align:center;">Identificamos 3 padrões na sua caminhada</p>
+
+      <div id="diag-insight-1" class="diag-card"></div>
+      <div id="diag-insight-2" class="diag-card"></div>
+      <div id="diag-insight-3" class="diag-card"></div>
+
+      <button onclick="document.getElementById('pw-product-anchor').scrollIntoView({behavior:'smooth'})" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:none;border:1.5px solid rgba(167,139,250,.3);border-radius:14px;padding:14px 20px;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:rgba(167,139,250,.85);margin-top:20px;transition:all .2s;" onmouseover="this.style.background='rgba(167,139,250,.08)'" onmouseout="this.style.background='none'">
+        Ver meu plano completo
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+      </button>
+
+      <div style="height:1px;background:linear-gradient(to right,transparent,rgba(167,139,250,.2),transparent);margin:32px 0 0;"></div>
+    </div>
+
     <!-- HERO personalizado -->
     <div class="anim-fade-up" style="text-align:center;margin-bottom:32px;">
       <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:14px;">SEU DIAGNOSTICO ESPIRITUAL</p>
@@ -568,7 +638,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
 
     <!-- PRODUTO PRINCIPAL -->
-    <div class="anim-fade-up" style="margin-bottom:20px;">
+    <div id="pw-product-anchor" class="anim-fade-up" style="margin-bottom:20px;">
       <p style="font-size:9px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:12px;">O QUE VOCE ESTA LEVANDO</p>
       <div class="main-product-card">
         <div style="display:flex;align-items:flex-start;gap:14px;">
@@ -889,7 +959,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
   // ── FIM DO CALENDÁRIO LITÚRGICO ────────────────────────────────────────────
 
-  const S = { name:'', email:'', qIdx:0, answers:{}, score:null, chart:null }
+  const S = { name:'', email:'', qIdx:0, deepIdx:0, answers:{}, score:null, chart:null }
 
   const LEVELS = [
     { name:'Acordando',  color:'#6EE7B7', sub:'Dando os primeiros passos da fé',          desc:'Você está dando os primeiros passos da sua caminhada espiritual, e isso já é um ato de coragem. Muitos querem, poucos começam.' },
@@ -939,6 +1009,76 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       ],
     },
   ]
+
+  const DEEP_QUESTIONS = [
+    {
+      id: 'family', step: 4,
+      text: n => `Como está sua relação com quem você ama hoje, ${n}?`,
+      sub: 'Família, amigos próximos, casamento. Seja honesto.',
+      opts: [
+        {i:'heart-handshake', l:'Tenho laços fortes, mas às vezes me fecho',    v:'connected_closed'},
+        {i:'alert-triangle',  l:'Existe uma tensão que não sei como resolver',  v:'tension'},
+        {i:'heart-crack',     l:'Carrego mágoas antigas que ainda pesam',       v:'old_wounds'},
+        {i:'heart',           l:'Minha família é minha maior motivação de fé',  v:'motivated'},
+      ],
+    },
+    {
+      id: 'prayerOpenness', step: 5,
+      text: n => `Você consegue abrir seu coração de verdade para Deus, ${n}?`,
+      sub: 'Os medos, as fraquezas, o que você tem vergonha de falar.',
+      opts: [
+        {i:'door-open', l:'Sim, consigo me abrir, mesmo que seja difícil',       v:'open'},
+        {i:'filter',    l:'Às vezes, evito os assuntos mais pesados',             v:'selective'},
+        {i:'shield',    l:'Tenho dificuldade: preciso estar arrumado antes',      v:'shame'},
+        {i:'lock',      l:'Não consigo. Prefiro guardar para mim',                v:'closed'},
+      ],
+    },
+    {
+      id: 'intercession', step: 6,
+      text: n => `Como é sua oração pelos outros, ${n}?`,
+      sub: 'Familiares, amigos, situações que você carrega.',
+      opts: [
+        {i:'users',        l:'Oro regularmente por pessoas específicas',              v:'active'},
+        {i:'clock',        l:'Às vezes lembro de orar, mas sem constância',           v:'occasional'},
+        {i:'minus-circle', l:'Quase não oro pelos outros; mal consigo orar por mim', v:'rarely'},
+        {i:'help-circle',  l:'Sinto que minha oração não faz diferença',             v:'doubtful'},
+      ],
+    },
+  ]
+
+  const TOTAL_STEPS = QUESTIONS.length + DEEP_QUESTIONS.length + 2
+
+  const I_CHALLENGE = {
+    anxiety:       'Sua ansiedade não é falta de fé. É fé sem caminho. Você quer Deus, mas a mente não para de correr.',
+    sadness:       'O vazio que você sente não é ausência de Deus. É um coração que perdeu o canal para alcançá-Lo.',
+    relationships: 'As feridas nas relações que você ama pesam mais do que você mostra. E elas têm um caminho espiritual.',
+    lust:          'O que te prende não define quem você é. Você já sabe que há liberdade. Falta o caminho concreto.',
+    pride:         'Essa mágoa foi enterrada fundo. Mas enquanto ela estiver lá, vai continuar pesando em tudo.',
+    laziness:      'Você já recomeçou mais de uma vez. O problema não é vontade, é que nunca teve a estrutura certa.',
+    dryness:       'Você reza, mas sente que ninguém responde. Não é silêncio de Deus. É distância que tem caminho de volta.',
+    ignorance:     'Suas dúvidas mostram que você leva a fé a sério. Quem não questiona não cresce. Esse é seu ponto de partida.',
+  }
+
+  const I_PRAYER = {
+    consistent: 'Você já tem um hábito de oração. O que falta é uma direção mais clara para esse tempo com Deus.',
+    occasional: 'Sua fé está viva, mas pedindo ritmo. Você busca Deus, mas ainda não tem um caminho estruturado.',
+    struggling: 'Você quer rezar, mas algo trava. Não é fraqueza; nunca teve uma estrutura feita para o seu jeito.',
+    distant:    'Faz um tempo que você não se sente próximo de Deus. Esse distanciamento não é definitivo. Tem uma volta.',
+  }
+
+  const I_FAMILY = {
+    connected_closed: 'Seus laços são reais, mas você se fecha. Esse padrão aparece também na relação com Deus.',
+    tension:          'A tensão nas relações que você ama pesa na vida espiritual mais do que parece. O plano vai trabalhar isso.',
+    old_wounds:       'Mágoas antigas têm raiz funda. Seu plano vai trabalhar especificamente esse nó.',
+    motivated:        'Sua família é sua maior motivação. O plano vai ancorar sua espiritualidade nesse amor.',
+  }
+
+  const I_PRAYER_OPENNESS = {
+    open:     'Você consegue se abrir com Deus. Falta direção para transformar essa abertura em encontro real.',
+    selective:'Você se aproxima de Deus nos momentos que escolhe. O plano vai ampliar essa janela com segurança.',
+    shame:    'Você sente que precisa estar pronto para falar com Deus. Mas Ele espera exatamente como você está.',
+    closed:   'Você prefere guardar para si. O plano vai criar um espaço seguro para começar a se abrir.',
+  }
 
   const WEEK_THEMES = {
     challenge: {
@@ -1021,6 +1161,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const SCREEN_PATHS = {
     's-name':    '/quiz/nome',
     's-email':   '/quiz/email',
+    's-deepen':  '/quiz/aprofundamento',
     's-loading': '/quiz/analisando',
     's-vsl':     '/quiz/revelacao',
     's-paywall': '/quiz/diagnostico',
@@ -1060,7 +1201,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     S.qIdx = 0
     renderQ()
     show('s-quiz')
-    updateProgress(1, QUESTIONS.length + 2)
+    updateProgress(1, TOTAL_STEPS)
   }
 
   function renderQ() {
@@ -1090,7 +1231,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     `
     lucide.createIcons()
-    updateProgress(S.qIdx + 1, QUESTIONS.length + 2)
+    updateProgress(S.qIdx + 1, TOTAL_STEPS)
     _track('/quiz/pergunta-' + (S.qIdx + 1), 'quiz_question', { question_num: S.qIdx + 1 })
   }
 
@@ -1129,7 +1270,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (S.qIdx < QUESTIONS.length) {
       renderQ()
     } else {
-      updateProgress(QUESTIONS.length + 1, QUESTIONS.length + 2)
+      updateProgress(QUESTIONS.length + 1, TOTAL_STEPS)
       show('s-email')
     }
   }
@@ -1141,8 +1282,80 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'quiz_lead', page_path: '/quiz/email' })
     if (typeof fbq !== 'undefined') fbq('track', 'Lead')
-    updateProgress(QUESTIONS.length + 2, QUESTIONS.length + 2)
-    startLoading()
+    updateProgress(QUESTIONS.length + 1, TOTAL_STEPS)
+    lucide.createIcons()
+    show('s-deepen')
+  }
+
+  function startDeepQuestions() {
+    S.deepIdx = 0
+    renderDeepQ()
+    show('s-quiz')
+  }
+
+  function renderDeepQ() {
+    const q = DEEP_QUESTIONS[S.deepIdx]
+    const container = document.getElementById('quiz-container')
+    const allDots = [
+      ...QUESTIONS.map(() => 'done'),
+      ...DEEP_QUESTIONS.map((_, i) => i < S.deepIdx ? 'done' : i === S.deepIdx ? 'active' : 'pending'),
+    ]
+    const stepDots = allDots.map(cls => `<div class="quiz-step-dot ${cls}"></div>`).join('')
+    const backBtn = S.deepIdx > 0
+      ? `<button onclick="prevDeepQ()" style="margin-top:10px;background:none;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(255,255,255,.38);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;min-height:44px;transition:color .2s,border-color .2s;" onmouseover="this.style.color='rgba(255,255,255,.7)';this.style.borderColor='rgba(255,255,255,.25)'" onmouseout="this.style.color='rgba(255,255,255,.38)';this.style.borderColor='rgba(255,255,255,.1)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Voltar</button>`
+      : `<button onclick="show('s-deepen')" style="margin-top:10px;background:none;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(255,255,255,.38);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;min-height:44px;transition:color .2s,border-color .2s;" onmouseover="this.style.color='rgba(255,255,255,.7)';this.style.borderColor='rgba(255,255,255,.25)'" onmouseout="this.style.color='rgba(255,255,255,.38)';this.style.borderColor='rgba(255,255,255,.1)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Voltar</button>`
+    container.innerHTML = `
+      <div class="anim-slide">
+        <div class="quiz-steps">${stepDots}</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;margin-bottom:12px;">
+          <i data-lucide="lock" style="width:11px;height:11px;color:rgba(167,139,250,.6);"></i>
+          <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;">PERGUNTA ${q.step} DE 6</span>
+        </div>
+        <h2 style="font-size:clamp(19px,5.5vw,26px);font-weight:800;line-height:1.25;margin-bottom:8px;">${q.text(S.name)}</h2>
+        <p style="font-size:13px;color:rgba(255,255,255,.45);margin-bottom:24px;">${q.sub}</p>
+        <div style="display:grid;grid-template-columns:1fr;gap:10px;" id="opts-grid">
+          ${q.opts.map(o => `
+            <div class="answer-card glass" style="padding:15px 18px;display:flex;align-items:center;gap:14px;" onclick="selectDeepAnswer('${o.v}', this)">
+              <div class="icon-wrap" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(167,139,250,.12);flex-shrink:0;">
+                <i data-lucide="${o.i}" style="width:18px;height:18px;color:#A78BFA;"></i>
+              </div>
+              <span style="font-size:clamp(13px,3.8vw,15px);font-weight:600;line-height:1.3;">${o.l}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;justify-content:center;margin-top:14px;">
+          <i data-lucide="lock" style="width:10px;height:10px;color:rgba(167,139,250,.45);"></i>
+          <span style="font-size:11px;color:rgba(255,255,255,.28);">Privado</span>
+        </div>
+        ${backBtn}
+      </div>
+    `
+    lucide.createIcons()
+    updateProgress(QUESTIONS.length + 1 + S.deepIdx + 1, TOTAL_STEPS)
+    _track('/quiz/pergunta-' + (QUESTIONS.length + S.deepIdx + 1), 'quiz_question', { question_num: QUESTIONS.length + S.deepIdx + 1 })
+  }
+
+  function selectDeepAnswer(val, el) {
+    const q = DEEP_QUESTIONS[S.deepIdx]
+    S.answers[q.id] = val
+    document.querySelectorAll('.answer-card').forEach(c => c.classList.remove('selected'))
+    el.classList.add('selected')
+    setTimeout(nextDeepStep, 360)
+  }
+
+  function prevDeepQ() {
+    if (S.deepIdx > 0) { S.deepIdx--; renderDeepQ() }
+    else { show('s-deepen') }
+  }
+
+  function nextDeepStep() {
+    S.deepIdx++
+    if (S.deepIdx < DEEP_QUESTIONS.length) {
+      renderDeepQ()
+    } else {
+      updateProgress(TOTAL_STEPS, TOTAL_STEPS)
+      startLoading()
+    }
   }
 
   const LOADING_MSGS = [
@@ -1228,6 +1441,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   function showPaywall() {
     const a = S.answers
+
+    // DIAGNÓSTICO INICIAL — popula a seção espelho no topo do paywall
+    const diagNameEl = document.getElementById('diag-name-line')
+    if (diagNameEl) diagNameEl.textContent = `${S.name}, reconhecemos o que você carrega.`
+
+    const diagDot  = document.getElementById('diag-level-dot')
+    const diagName = document.getElementById('diag-level-name')
+    if (S.score) {
+      if (diagDot)  { diagDot.style.background = S.score.level.color; diagDot.style.boxShadow = `0 0 6px ${S.score.level.color}` }
+      if (diagName) diagName.textContent = S.score.level.name
+    }
+
+    const i1El = document.getElementById('diag-insight-1')
+    const i2El = document.getElementById('diag-insight-2')
+    const i3El = document.getElementById('diag-insight-3')
+
+    if (i1El) i1El.textContent = I_CHALLENGE[a.challenge] || ''
+    if (i2El) i2El.textContent = I_PRAYER[a.prayerReality] || ''
+    if (i3El) {
+      const i3 = a.family ? I_FAMILY[a.family] : (a.prayerOpenness ? I_PRAYER_OPENNESS[a.prayerOpenness] : null)
+      if (i3) i3El.textContent = i3
+      else i3El.style.display = 'none'
+    }
 
     // ZONA 1 — Headline + diagnóstico em uma frase
     const hlFn = MAIN_HEADLINES[a.challenge]
