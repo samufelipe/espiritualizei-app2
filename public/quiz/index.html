@@ -2112,6 +2112,41 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }, { passive: true })
   })()
 
+  // ── Roteamento SPA ──────────────────────────────────────────────────────────
+  // Rotas do quiz usam history.pushState para analytics, mas o estado JS é
+  // volátil. Se o lead chegar direto em /quiz/revelacao ou /quiz/diagnostico
+  // (por refresh, bookmark ou botão Voltar), deve ver a landing, não a VSL.
+  ;(function initSpaRouting() {
+    const path     = window.location.pathname
+    const hasResume = new URLSearchParams(window.location.search).has('resume')
+
+    // Ao carregar em sub-rota sem ?resume, limpar URL para /quiz
+    if (path !== '/quiz' && path !== '/quiz/' && !hasResume) {
+      history.replaceState({}, '', '/quiz')
+    }
+
+    // Botão Voltar do browser → reseta sempre para a landing
+    window.addEventListener('popstate', function() {
+      const active = document.querySelector('.screen.active')
+      if (!active || active.id === 's-landing') return
+
+      // Parar vídeo caso esteja tocando
+      try { const v = document.getElementById('vsl-video'); if (v) { v.pause(); v.currentTime = 0 } } catch(_) {}
+
+      // Resetar flags de controle de fluxo
+      _vslAdvanced = false
+
+      // Voltar para landing
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+      document.getElementById('s-landing').classList.add('active')
+      const wrap = document.getElementById('progress-bar-wrap')
+      if (wrap) wrap.style.display = 'none'
+      history.replaceState({}, '', '/quiz')
+      window.scrollTo(0, 0)
+    })
+  })()
+  // ── Fim Roteamento SPA ───────────────────────────────────────────────────────
+
   // Init
   lucide.createIcons()
   initSeasonalBanner()
