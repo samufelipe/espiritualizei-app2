@@ -250,12 +250,12 @@
       transition: width .25s linear;
     }
 
-    /* CTA que aparece nos últimos 20s */
+    /* CTA que aparece nos últimos 20s da VSL */
     .vsl-cta-btn {
       display: none;
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
       z-index: 210; width: calc(100% - 40px); max-width: 440px;
-      background: linear-gradient(135deg, #7C3AED, #A78BFA);
+      background: linear-gradient(135deg, #10B981, #059669);
       border: none; border-radius: 16px; padding: 19px 24px;
       cursor: pointer; font-family: 'Inter', sans-serif;
       font-size: 15px; font-weight: 800; color: #fff; letter-spacing: .3px;
@@ -264,9 +264,36 @@
     }
     .vsl-cta-btn:active { filter: brightness(.92); }
     @keyframes vslCtaGlow {
-      0%,100% { box-shadow: 0 8px 32px rgba(124,58,237,.55); }
-      50%      { box-shadow: 0 8px 52px rgba(124,58,237,.82), 0 0 0 5px rgba(167,139,250,.13); }
+      0%,100% { box-shadow: 0 8px 32px rgba(16,185,129,.55); }
+      50%      { box-shadow: 0 8px 52px rgba(16,185,129,.82), 0 0 0 5px rgba(52,211,153,.15); }
     }
+
+    /* Sticky CTA no diagnóstico — visível sempre que #s-paywall estiver ativo */
+    #sticky-buy {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 80;
+      background: rgba(8,12,20,.96); backdrop-filter: blur(14px);
+      border-top: 1px solid rgba(167,139,250,.1);
+      padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+    }
+    #sticky-buy-btn {
+      width: 100%; background: linear-gradient(135deg, #10B981, #059669);
+      border: none; border-radius: 14px; padding: 17px 20px;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      font-size: 15px; font-weight: 800; color: #fff; letter-spacing: .2px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      animation: stickyBuyGlow 2.2s ease-in-out infinite;
+    }
+    @keyframes stickyBuyGlow {
+      0%,100% { box-shadow: 0 6px 28px rgba(16,185,129,.4); }
+      50%      { box-shadow: 0 6px 44px rgba(16,185,129,.7), 0 0 0 4px rgba(52,211,153,.12); }
+    }
+    #sticky-buy-btn:active { filter: brightness(.92); }
+    #sticky-buy-price {
+      text-align: center; margin: 8px 0 0;
+      font-size: 12px; color: rgba(255,255,255,.48);
+    }
+    #sticky-buy-price s { color: rgba(255,255,255,.28); }
+    #sticky-buy-price strong { color: #34D399; font-weight: 800; }
 
     .vsl-sound-overlay {
       position: absolute; inset: 0; z-index: 50;
@@ -944,8 +971,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p class="pw-price-final">R$19,90</p>
       <p class="pw-price-note">pagamento unico &middot; acesso permanente &middot; 45 dias de material</p>
 
-      <button id="pay-btn" class="btn-primary" onclick="startCheckout()" style="font-size:16px;font-weight:800;color:#1A2530;padding:18px 24px;margin-bottom:10px;">
-        Quero meu Plano e minha Novena →
+      <button id="pay-btn" class="btn-primary" onclick="startCheckout()" style="font-size:15px;font-weight:800;color:#fff;padding:18px 24px;margin-bottom:10px;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;">
+        <span>QUERO MEU ACESSO AOS MATERIAIS</span>
+        <span style="font-size:11px;font-weight:500;opacity:.8;"><s style="opacity:.65;">R$210,00</s> por apenas R$19,90 - somente hoje</span>
       </button>
       <p id="checkout-error" style="display:none;color:#f87171;font-size:13px;margin:6px 0 10px;text-align:center;"></p>
 
@@ -1073,8 +1101,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
 
     <!-- Footer -->
-    <p style="text-align:center;font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(167,139,250,.28);padding-bottom:8px;">ESPIRITUALIZEI &middot; Feito com amor para a gloria de Deus</p>
+    <p style="text-align:center;font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(167,139,250,.28);padding-bottom:110px;">ESPIRITUALIZEI &middot; Feito com amor para a gloria de Deus</p>
 
+  </div>
+
+  <!-- Sticky CTA — aparece fixo enquanto o lead está no diagnóstico -->
+  <div id="sticky-buy">
+    <button id="sticky-buy-btn" onclick="startCheckout()">
+      QUERO MEU ACESSO AOS MATERIAIS
+    </button>
+    <p id="sticky-buy-price">
+      <s>R$210,00</s> por apenas <strong>R$19,90</strong> - somente hoje
+    </p>
   </div>
 </div>
 
@@ -1856,6 +1894,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (_vslAdvanced) return
     _vslAdvanced = true
     showPaywall()
+    // Rola até o primeiro card de insight após a tela renderizar
+    setTimeout(() => {
+      const el = document.getElementById('diag-insight-1')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 380)
   }
 
   function startVSL() {
