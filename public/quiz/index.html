@@ -380,6 +380,49 @@
     .av-4{background:linear-gradient(135deg,#1A6B47,#2EA776);}
     .av-5{background:linear-gradient(135deg,#B8860B,#DAA520);}
     .av-6{background:linear-gradient(135deg,#0E7490,#22D3EE);}
+
+    /* ── DIAGNOSTIC CAROUSEL ─────────────────────────────────── */
+    .diag-slide { min-width: 100%; flex-shrink: 0; }
+    .dic-card {
+      background: rgba(167,139,250,.06); border: 1.5px solid rgba(167,139,250,.16);
+      border-radius: 16px; padding: 16px 18px; margin-bottom: 10px;
+      transition: border-color .2s;
+    }
+    .dic-card:hover { border-color: rgba(167,139,250,.38); }
+    .dic-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .dic-icon {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+      background: rgba(167,139,250,.15); display: flex; align-items: center; justify-content: center;
+    }
+    .dic-icon i { width: 15px; height: 15px; color: #A78BFA; }
+    .dic-category { font-size: 9px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(167,139,250,.72); }
+    .dic-text { font-size: 14px; font-style: italic; line-height: 1.7; color: rgba(255,255,255,.85); margin: 0; }
+    .diag-dot { height: 4px; border-radius: 2px; background: rgba(255,255,255,.12); cursor: pointer; transition: all .35s cubic-bezier(.22,1,.36,1); }
+    .diag-dot.active { background: #A78BFA; box-shadow: 0 0 8px rgba(167,139,250,.5); }
+    /* Dimension bars */
+    .dim-row { margin-bottom: 14px; }
+    .dim-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .dim-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.7); }
+    .dim-pct { font-size: 12px; font-weight: 800; color: #A78BFA; }
+    .dim-track { height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden; }
+    .dim-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,#7C3AED,#A78BFA); width: 0%; transition: width 1.2s cubic-bezier(.22,1,.36,1); }
+    /* Gifts/Blocks grid */
+    .gb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .gb-card { border-radius: 14px; padding: 14px 16px; }
+    .gb-card.gifts { background: rgba(16,185,129,.05); border: 1.5px solid rgba(16,185,129,.22); }
+    .gb-card.blocks { background: rgba(245,158,11,.04); border: 1.5px solid rgba(245,158,11,.2); }
+    .gb-label { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; display: block; }
+    .gb-label.gifts { color: #10B981; }
+    .gb-label.blocks { color: #F59E0B; }
+    .gb-item { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; font-size: 12px; line-height: 1.45; color: rgba(255,255,255,.78); }
+    .gb-item:last-child { margin-bottom: 0; }
+    /* Week cards */
+    .wk-card { display: flex; align-items: center; gap: 14px; background: rgba(167,139,250,.05); border: 1.5px solid rgba(167,139,250,.14); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+    .wk-icon { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; background: rgba(167,139,250,.14); display: flex; align-items: center; justify-content: center; }
+    .wk-icon i { width: 18px; height: 18px; color: #A78BFA; }
+    .wk-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(167,139,250,.52); margin-bottom: 3px; }
+    .wk-theme { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9); line-height: 1.3; margin: 0; }
+    .wk-badge { margin-left: auto; font-size: 11px; font-weight: 700; color: rgba(167,139,250,.4); flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -604,38 +647,123 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
     </div>
 
-    <!-- DIAGNOSTICO INICIAL — secao espelho -->
-    <div id="diag-section" class="anim-fade-up" style="margin-bottom:32px;">
-      <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:16px;text-align:center;">SEU DIAGNOSTICO INICIAL</p>
+    <!-- ═══ DIAGNOSTICO CAROUSEL — 2 SLIDES ═══ -->
+    <div id="diag-carousel-wrap" class="anim-fade-up" style="margin-bottom:32px;">
+      <div style="overflow:hidden;width:100%;">
+        <div id="diag-track" style="display:flex;transition:transform .45s cubic-bezier(.22,1,.36,1);will-change:transform;">
 
-      <div style="display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
-        <div id="diag-level-badge" style="display:inline-flex;align-items:center;gap:8px;border-radius:50px;padding:8px 18px;border:1.5px solid rgba(167,139,250,.3);background:rgba(167,139,250,.08);">
-          <div id="diag-level-dot" style="width:8px;height:8px;border-radius:50%;background:#A78BFA;flex-shrink:0;"></div>
-          <span id="diag-level-name" style="font-size:13px;font-weight:700;color:#A78BFA;"></span>
+          <!-- SLIDE 1: O ESPELHO -->
+          <div class="diag-slide">
+
+            <!-- Level badge -->
+            <div style="display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+              <div id="diag-level-badge" style="display:inline-flex;align-items:center;gap:8px;border-radius:50px;padding:7px 16px;border:1.5px solid rgba(167,139,250,.3);background:rgba(167,139,250,.08);">
+                <div id="diag-level-dot" style="width:8px;height:8px;border-radius:50%;background:#A78BFA;box-shadow:0 0 6px #A78BFA;flex-shrink:0;"></div>
+                <span id="diag-level-name" style="font-size:12px;font-weight:700;color:#A78BFA;letter-spacing:.2px;"></span>
+              </div>
+            </div>
+
+            <!-- Title -->
+            <h2 id="diag-name-line" style="font-size:clamp(19px,5vw,23px);font-weight:800;line-height:1.3;margin-bottom:8px;text-align:center;"></h2>
+            <p style="font-size:13px;color:rgba(255,255,255,.32);margin-bottom:22px;text-align:center;letter-spacing:.2px;">Identificamos 3 padrões na sua caminhada</p>
+
+            <!-- Insight Card 1 (challenge) -->
+            <div id="diag-insight-1" class="dic-card">
+              <div class="dic-header">
+                <div class="dic-icon" id="dic-icon-1"></div>
+                <span class="dic-category" id="dic-cat-1"></span>
+              </div>
+              <p class="dic-text" id="dic-text-1"></p>
+            </div>
+
+            <!-- Insight Card 2 (prayer reality) -->
+            <div id="diag-insight-2" class="dic-card">
+              <div class="dic-header">
+                <div class="dic-icon" id="dic-icon-2"></div>
+                <span class="dic-category" id="dic-cat-2"></span>
+              </div>
+              <p class="dic-text" id="dic-text-2"></p>
+            </div>
+
+            <!-- Insight Card 3 (family / openness) -->
+            <div id="diag-insight-3" class="dic-card">
+              <div class="dic-header">
+                <div class="dic-icon" id="dic-icon-3"></div>
+                <span class="dic-category" id="dic-cat-3"></span>
+              </div>
+              <p class="dic-text" id="dic-text-3"></p>
+            </div>
+
+            <!-- Advance CTA -->
+            <button onclick="diagGoTo(1)" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:rgba(167,139,250,.08);border:1.5px solid rgba(167,139,250,.28);border-radius:14px;padding:15px 20px;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:#A78BFA;margin-top:8px;transition:background .2s;" onmouseover="this.style.background='rgba(167,139,250,.18)'" onmouseout="this.style.background='rgba(167,139,250,.08)'">
+              Ver meu diagnóstico espiritual completo
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+
+          </div>
+          <!-- /SLIDE 1 -->
+
+          <!-- SLIDE 2: O DIAGNÓSTICO COMPLETO -->
+          <div class="diag-slide" style="padding-top:4px;">
+
+            <!-- Back -->
+            <button onclick="diagGoTo(0)" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:rgba(255,255,255,.32);font-size:12px;font-weight:600;cursor:pointer;padding:0;margin-bottom:20px;font-family:'Inter',sans-serif;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Voltar
+            </button>
+
+            <!-- Label + headline + transformation -->
+            <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:12px;">SEU DIAGNÓSTICO ESPIRITUAL</p>
+            <h2 id="pw-main-headline" style="font-size:clamp(19px,5.2vw,24px);font-weight:800;line-height:1.25;margin-bottom:12px;"></h2>
+            <p id="pw-transformation" style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.72;margin-bottom:24px;"></p>
+
+            <!-- Divider -->
+            <div style="height:1px;background:linear-gradient(to right,transparent,rgba(167,139,250,.22),transparent);margin-bottom:22px;"></div>
+
+            <!-- Perfil espiritual: barras animadas -->
+            <p style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:14px;">PERFIL ESPIRITUAL</p>
+            <div class="dim-row"><div class="dim-label-row"><span class="dim-name">Oração</span><span class="dim-pct" id="dp-0">--</span></div><div class="dim-track"><div class="dim-fill" id="df-0"></div></div></div>
+            <div class="dim-row"><div class="dim-label-row"><span class="dim-name">Sacramento</span><span class="dim-pct" id="dp-1">--</span></div><div class="dim-track"><div class="dim-fill" id="df-1"></div></div></div>
+            <div class="dim-row"><div class="dim-label-row"><span class="dim-name">Formação</span><span class="dim-pct" id="dp-2">--</span></div><div class="dim-track"><div class="dim-fill" id="df-2"></div></div></div>
+            <div class="dim-row"><div class="dim-label-row"><span class="dim-name">Comunidade</span><span class="dim-pct" id="dp-3">--</span></div><div class="dim-track"><div class="dim-fill" id="df-3"></div></div></div>
+            <div class="dim-row" style="margin-bottom:22px;"><div class="dim-label-row"><span class="dim-name">Missão</span><span class="dim-pct" id="dp-4">--</span></div><div class="dim-track"><div class="dim-fill" id="df-4"></div></div></div>
+
+            <!-- Seus Dons / Bloqueio Principal -->
+            <div class="gb-grid">
+              <div class="gb-card gifts">
+                <span class="gb-label gifts">Seus Dons</span>
+                <div id="gb-gifts"></div>
+              </div>
+              <div class="gb-card blocks">
+                <span class="gb-label blocks">Bloqueio Principal</span>
+                <p id="gb-block" style="font-size:12px;line-height:1.55;color:rgba(255,255,255,.78);margin:0;"></p>
+              </div>
+            </div>
+
+            <!-- 21-day week preview -->
+            <p style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:14px;">SEU DESAFIO DE 21 DIAS</p>
+            <div id="week-cards-diag"></div>
+
+            <!-- Scroll CTA -->
+            <button onclick="document.getElementById('pw-product-anchor').scrollIntoView({behavior:'smooth'})" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:none;border:1.5px solid rgba(167,139,250,.28);border-radius:14px;padding:14px 20px;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:rgba(167,139,250,.85);margin-top:8px;transition:background .2s;" onmouseover="this.style.background='rgba(167,139,250,.08)'" onmouseout="this.style.background='none'">
+              Ver meu plano completo
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            </button>
+
+          </div>
+          <!-- /SLIDE 2 -->
+
         </div>
       </div>
 
-      <h2 id="diag-name-line" style="font-size:clamp(18px,5vw,22px);font-weight:800;line-height:1.3;margin-bottom:8px;text-align:center;"></h2>
-      <p style="font-size:13px;color:rgba(255,255,255,.42);margin-bottom:22px;text-align:center;">Identificamos 3 padrões na sua caminhada</p>
+      <!-- Navigation dots -->
+      <div style="display:flex;justify-content:center;gap:10px;padding:18px 0 4px;">
+        <div class="diag-dot active" id="dd-0" onclick="diagGoTo(0)" style="width:28px;"></div>
+        <div class="diag-dot" id="dd-1" onclick="diagGoTo(1)" style="width:28px;"></div>
+      </div>
 
-      <div id="diag-insight-1" class="diag-card"></div>
-      <div id="diag-insight-2" class="diag-card"></div>
-      <div id="diag-insight-3" class="diag-card"></div>
-
-      <button onclick="document.getElementById('pw-product-anchor').scrollIntoView({behavior:'smooth'})" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:none;border:1.5px solid rgba(167,139,250,.3);border-radius:14px;padding:14px 20px;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:rgba(167,139,250,.85);margin-top:20px;transition:all .2s;" onmouseover="this.style.background='rgba(167,139,250,.08)'" onmouseout="this.style.background='none'">
-        Ver meu plano completo
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-      </button>
-
-      <div style="height:1px;background:linear-gradient(to right,transparent,rgba(167,139,250,.2),transparent);margin:32px 0 0;"></div>
     </div>
-
-    <!-- HERO personalizado -->
-    <div class="anim-fade-up" style="text-align:center;margin-bottom:32px;">
-      <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:14px;">SEU DIAGNOSTICO ESPIRITUAL</p>
-      <h2 id="pw-main-headline" style="font-size:clamp(20px,5.5vw,26px);font-weight:800;line-height:1.25;margin-bottom:14px;"></h2>
-      <p id="pw-transformation" style="font-size:clamp(13px,3.8vw,15px);color:rgba(255,255,255,.52);line-height:1.72;max-width:380px;margin:0 auto;"></p>
-    </div>
+    <!-- /CAROUSEL -->
 
     <!-- PRODUTO PRINCIPAL -->
     <div id="pw-product-anchor" class="anim-fade-up" style="margin-bottom:20px;">
@@ -1439,13 +1567,56 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     lust:          n => `${n}, existe um caminho de liberdade para o que você carrega.`,
   }
 
+  // ── DIAGNOSTIC CAROUSEL ──────────────────────────────────────────
+  let _barsAnimated = false
+
+  function diagGoTo(idx) {
+    const track = document.getElementById('diag-track')
+    if (!track) return
+    track.style.transform = `translateX(-${idx * 100}%)`
+    ;[0, 1].forEach(i => {
+      const d = document.getElementById(`dd-${i}`)
+      if (d) d.classList.toggle('active', i === idx)
+    })
+    if (idx === 1) _animDimBars()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function _animDimBars() {
+    if (_barsAnimated || !S.score) return
+    _barsAnimated = true
+    ;(S.score.dims || []).forEach((v, i) => {
+      const fill = document.getElementById(`df-${i}`)
+      const pct  = document.getElementById(`dp-${i}`)
+      if (!fill || !pct) return
+      setTimeout(() => {
+        fill.style.width = v + '%'
+        pct.textContent = Math.round(v) + '%'
+      }, i * 120)
+    })
+  }
+
   function showPaywall() {
     const a = S.answers
 
-    // DIAGNÓSTICO INICIAL — popula a seção espelho no topo do paywall
-    const diagNameEl = document.getElementById('diag-name-line')
-    if (diagNameEl) diagNameEl.textContent = `${S.name}, reconhecemos o que você carrega.`
+    // Reset carousel to slide 1
+    _barsAnimated = false
+    diagGoTo(0)
 
+    // Wire up touch/swipe (idempotent)
+    ;(function() {
+      const wrap = document.getElementById('diag-carousel-wrap')
+      if (!wrap || wrap._swipeInit) return
+      wrap._swipeInit = true
+      let sx = 0
+      wrap.addEventListener('touchstart', e => { sx = e.touches[0].clientX }, { passive: true })
+      wrap.addEventListener('touchend',   e => {
+        const dx = e.changedTouches[0].clientX - sx
+        if (Math.abs(dx) > 50) diagGoTo(dx < 0 ? 1 : 0)
+      }, { passive: true })
+    })()
+
+    // Level badge
     const diagDot  = document.getElementById('diag-level-dot')
     const diagName = document.getElementById('diag-level-name')
     if (S.score) {
@@ -1453,22 +1624,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (diagName) diagName.textContent = S.score.level.name
     }
 
-    const i1El = document.getElementById('diag-insight-1')
-    const i2El = document.getElementById('diag-insight-2')
-    const i3El = document.getElementById('diag-insight-3')
+    // Slide 1: title
+    const diagNameEl = document.getElementById('diag-name-line')
+    if (diagNameEl) diagNameEl.textContent = `${S.name}, reconhecemos o que você carrega.`
 
-    if (i1El) i1El.textContent = I_CHALLENGE[a.challenge] || ''
-    if (i2El) i2El.textContent = I_PRAYER[a.prayerReality] || ''
-    if (i3El) {
-      const i3 = a.family ? I_FAMILY[a.family] : (a.prayerOpenness ? I_PRAYER_OPENNESS[a.prayerOpenness] : null)
-      if (i3) i3El.textContent = i3
-      else i3El.style.display = 'none'
+    // Slide 1: insight cards
+    const CHALLENGE_ICONS  = { anxiety:'wind', sadness:'cloud-rain', relationships:'users', laziness:'anchor', dryness:'droplets', ignorance:'book-open', pride:'shield', lust:'heart' }
+    const PRAYER_ICONS     = { consistent:'flame', occasional:'clock', struggling:'loader', distant:'moon' }
+    const FAMILY_ICONS     = { connected_closed:'heart', tension:'alert-triangle', old_wounds:'heart-crack', motivated:'home' }
+    const OPENNESS_ICONS   = { open:'door-open', selective:'filter', shame:'shield', closed:'lock' }
+
+    function setCard(n, iconName, category, text) {
+      const iconEl = document.getElementById(`dic-icon-${n}`)
+      const catEl  = document.getElementById(`dic-cat-${n}`)
+      const txtEl  = document.getElementById(`dic-text-${n}`)
+      if (iconEl) iconEl.innerHTML = `<i data-lucide="${iconName}"></i>`
+      if (catEl)  catEl.textContent = category
+      if (txtEl)  txtEl.textContent = text
     }
 
-    // ZONA 1 — Headline + diagnóstico em uma frase
+    setCard(1, CHALLENGE_ICONS[a.challenge] || 'heart', 'SEU MAIOR DESAFIO', I_CHALLENGE[a.challenge] || '')
+    setCard(2, PRAYER_ICONS[a.prayerReality] || 'sun',  'SUA VIDA DE ORAÇÃO', I_PRAYER[a.prayerReality] || '')
+
+    const i3text = a.family ? I_FAMILY[a.family] : (a.prayerOpenness ? I_PRAYER_OPENNESS[a.prayerOpenness] : null)
+    const i3icon = a.family ? (FAMILY_ICONS[a.family] || 'heart') : (OPENNESS_ICONS[a.prayerOpenness] || 'heart')
+    const i3cat  = a.family ? 'SEUS LAÇOS' : 'SEU CORAÇÃO'
+    if (i3text) {
+      setCard(3, i3icon, i3cat, i3text)
+    } else {
+      const c3 = document.getElementById('diag-insight-3')
+      if (c3) c3.style.display = 'none'
+    }
+
+    // Slide 2: headline + transformation
     const hlFn = MAIN_HEADLINES[a.challenge]
-    document.getElementById('pw-main-headline').textContent =
-      hlFn ? hlFn(S.name) : `${S.name}, identificamos o que está bloqueando sua fé.`
+    const hlEl = document.getElementById('pw-main-headline')
+    if (hlEl) hlEl.textContent = hlFn ? hlFn(S.name) : `${S.name}, identificamos o que está bloqueando sua fé.`
 
     const TRANSFORMATIONS = {
       anxiety:       `Em 21 dias, você sai de acordar com ansiedade para ter um começo de dia que ancora em Deus, antes de qualquer barulho do mundo.`,
@@ -1483,17 +1674,59 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const transEl = document.getElementById('pw-transformation')
     if (transEl) transEl.textContent = TRANSFORMATIONS[a.challenge] || `Em 21 dias, você sai de onde está para onde seu coração realmente quer estar.`
 
-    // Nome temático da Novena por desafio (sem citar formato)
+    // Slide 2: gifts (multi-item list)
+    const GIFTS_ITEMS = {
+      anxiety:       ['Sensibilidade espiritual profunda', 'Desejo genuíno de paz interior', 'Coração que sente com intensidade'],
+      sadness:       ['Coração que sente fundo', 'Sede de sentido e esperança', 'Sensibilidade ao sagrado'],
+      relationships: ['Capacidade de amar com profundidade', 'Generosidade com quem ama', 'Sensibilidade para os outros'],
+      laziness:      ['Potencial contemplativo latente', 'Coração que sabe esperar em Deus', 'Desejo real de crescer'],
+      dryness:       ['Fé que persevera no silêncio', 'Sede autêntica do transcendente', 'Fidelidade mesmo nas dúvidas'],
+      ignorance:     ['Sede genuína de verdade', 'Abertura para crescer na fé', 'Honestidade intelectual'],
+      pride:         ['Força interior e coragem', 'Profundidade emocional', 'Capacidade de encarar a verdade'],
+      lust:          ['Intensidade afetiva', 'Capacidade de amar com entrega', 'Desejo de liberdade real'],
+    }
+    const giftsEl = document.getElementById('gb-gifts')
+    if (giftsEl) {
+      const items = GIFTS_ITEMS[a.challenge] || ['Dom espiritual latente', 'Coração que busca a Deus']
+      giftsEl.innerHTML = items.map(t =>
+        `<div class="gb-item"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>${t}</span></div>`
+      ).join('')
+    }
+
+    // Slide 2: blocks
+    const blockEl = document.getElementById('gb-block')
+    if (blockEl) blockEl.textContent = BLOCKS_SHORT[a.challenge] || ''
+
+    // Slide 2: week preview cards
+    const weeksEl = document.getElementById('week-cards-diag')
+    if (weeksEl) {
+      const weeks = [
+        { label: 'SEMANA 1  ·  DIAS 1-7',   ...(WEEK_THEMES.challenge[a.challenge]        || { theme: 'Fundação espiritual',          icon: 'sun'      }) },
+        { label: 'SEMANA 2  ·  DIAS 8-14',  ...(WEEK_THEMES.goal[a.goal]                  || { theme: 'Aprofundamento da fé',          icon: 'target'   }) },
+        { label: 'SEMANA 3  ·  DIAS 15-21', ...(WEEK_THEMES.prayerReality[a.prayerReality] || { theme: 'Enraizamento e constância',    icon: 'anchor'   }) },
+      ]
+      weeksEl.innerHTML = weeks.map(w =>
+        `<div class="wk-card">
+          <div class="wk-icon"><i data-lucide="${w.icon}"></i></div>
+          <div style="flex:1;min-width:0;">
+            <p class="wk-label">${w.label}</p>
+            <p class="wk-theme">${w.theme}</p>
+          </div>
+          <span class="wk-badge">0/7</span>
+        </div>`
+      ).join('')
+    }
+
+    // Product section: novena name + CTA button
     const NOVENA_NAMES = {
-      anxiety:'Novena da Paz Interior',   sadness:'Novena da Esperança',
+      anxiety:'Novena da Paz Interior',       sadness:'Novena da Esperança',
       relationships:'Novena da Reconciliação', laziness:'Novena da Constância',
-      dryness:'Novena do Reencontro',     ignorance:'Novena da Luz na Fé',
-      pride:'Novena do Perdão',           lust:'Novena da Libertação',
+      dryness:'Novena do Reencontro',         ignorance:'Novena da Luz na Fé',
+      pride:'Novena do Perdão',               lust:'Novena da Libertação',
     }
     const novEl = document.getElementById('pw-novena-name')
     if (novEl) novEl.textContent = NOVENA_NAMES[a.challenge] || 'Sua Novena personalizada'
 
-    // CTA botão dinâmica por desafio
     const CTA_BTN_LABELS = {
       anxiety:       'Quero meu plano para a ansiedade →',
       sadness:       'Quero reencontrar a esperança →',
