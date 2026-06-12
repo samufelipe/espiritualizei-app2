@@ -382,21 +382,27 @@
     .av-6{background:linear-gradient(135deg,#0E7490,#22D3EE);}
 
     /* ── DIAGNOSTIC CAROUSEL ─────────────────────────────────── */
-    .diag-slide { min-width: 100%; flex-shrink: 0; }
+    /* Slides: hide by default, show active with fade-up animation */
+    .diag-slide { display: none; }
+    .diag-slide.active { display: block; animation: diagSlideIn .38s cubic-bezier(.22,1,.36,1); }
+    @keyframes diagSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    /* Insight cards */
     .dic-card {
-      background: rgba(167,139,250,.06); border: 1.5px solid rgba(167,139,250,.16);
-      border-radius: 16px; padding: 16px 18px; margin-bottom: 10px;
-      transition: border-color .2s;
+      background: rgba(167,139,250,.05);
+      border: 1.5px solid rgba(167,139,250,.14);
+      border-radius: 14px; padding: 18px 18px; margin-bottom: 12px;
+      box-shadow: inset 3px 0 0 rgba(167,139,250,.35);
+      transition: box-shadow .2s, background .2s, border-color .2s;
     }
-    .dic-card:hover { border-color: rgba(167,139,250,.38); }
+    .dic-card:hover { background: rgba(167,139,250,.09); border-color: rgba(167,139,250,.28); box-shadow: inset 3px 0 0 #A78BFA; }
     .dic-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .dic-icon {
-      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
-      background: rgba(167,139,250,.15); display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+      background: rgba(167,139,250,.18); display: flex; align-items: center; justify-content: center;
     }
-    .dic-icon i { width: 15px; height: 15px; color: #A78BFA; }
+    .dic-icon i { width: 16px; height: 16px; color: #A78BFA; }
     .dic-category { font-size: 9px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(167,139,250,.72); }
-    .dic-text { font-size: 14px; font-style: italic; line-height: 1.7; color: rgba(255,255,255,.85); margin: 0; }
+    .dic-text { font-size: 14.5px; font-style: italic; line-height: 1.72; color: rgba(255,255,255,.87); margin: 0; }
     .diag-dot { height: 4px; border-radius: 2px; background: rgba(255,255,255,.12); cursor: pointer; transition: all .35s cubic-bezier(.22,1,.36,1); }
     .diag-dot.active { background: #A78BFA; box-shadow: 0 0 8px rgba(167,139,250,.5); }
     /* Dimension bars */
@@ -404,8 +410,8 @@
     .dim-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .dim-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.7); }
     .dim-pct { font-size: 12px; font-weight: 800; color: #A78BFA; }
-    .dim-track { height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden; }
-    .dim-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,#7C3AED,#A78BFA); width: 0%; transition: width 1.2s cubic-bezier(.22,1,.36,1); }
+    .dim-track { height: 8px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; }
+    .dim-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg,#7C3AED,#A78BFA); width: 0%; transition: width 1.2s cubic-bezier(.22,1,.36,1); }
     /* Gifts/Blocks grid */
     .gb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
     .gb-card { border-radius: 14px; padding: 14px 16px; }
@@ -649,11 +655,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <!-- ═══ DIAGNOSTICO CAROUSEL — 2 SLIDES ═══ -->
     <div id="diag-carousel-wrap" class="anim-fade-up" style="margin-bottom:32px;">
-      <div style="overflow:hidden;width:100%;">
-        <div id="diag-track" style="display:flex;transition:transform .45s cubic-bezier(.22,1,.36,1);will-change:transform;">
 
           <!-- SLIDE 1: O ESPELHO -->
-          <div class="diag-slide">
+          <div class="diag-slide active" id="diag-slide-0">
 
             <!-- Level badge -->
             <div style="display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
@@ -704,7 +708,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <!-- /SLIDE 1 -->
 
           <!-- SLIDE 2: O DIAGNÓSTICO COMPLETO -->
-          <div class="diag-slide" style="padding-top:4px;">
+          <div class="diag-slide" id="diag-slide-1" style="padding-top:4px;">
 
             <!-- Back -->
             <button onclick="diagGoTo(0)" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:rgba(255,255,255,.32);font-size:12px;font-weight:600;cursor:pointer;padding:0;margin-bottom:20px;font-family:'Inter',sans-serif;">
@@ -752,9 +756,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           </div>
           <!-- /SLIDE 2 -->
-
-        </div>
-      </div>
 
       <!-- Navigation dots -->
       <div style="display:flex;justify-content:center;gap:10px;padding:18px 0 4px;">
@@ -1571,9 +1572,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   let _barsAnimated = false
 
   function diagGoTo(idx) {
-    const track = document.getElementById('diag-track')
-    if (!track) return
-    track.style.transform = `translateX(-${idx * 100}%)`
+    document.querySelectorAll('.diag-slide').forEach((s, i) => {
+      if (i === idx) {
+        s.style.display = 'block'
+        void s.offsetWidth  // force reflow so animation replays
+        s.classList.add('active')
+      } else {
+        s.classList.remove('active')
+        s.style.display = 'none'
+      }
+    })
     ;[0, 1].forEach(i => {
       const d = document.getElementById(`dd-${i}`)
       if (d) d.classList.toggle('active', i === idx)
