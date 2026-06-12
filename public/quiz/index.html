@@ -1435,11 +1435,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   function confirmAnswer() {
     const q = QUESTIONS[S.qIdx]
     if (!S.answers[q.id]) return
-    if (q.micro) {
-      showMicro(q.micro(S.name), nextStep)
-    } else {
-      nextStep()
-    }
+    nextStep()
   }
 
   function nextStep() {
