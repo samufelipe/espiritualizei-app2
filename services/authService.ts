@@ -189,7 +189,6 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
   if (!authData.user) throw new Error("Falha ao criar usuário no sistema de autenticação.");
 
   // 2. Preparar o payload do perfil (apenas campos que existem na tabela)
-  const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   const profilePayload: Record<string, any> = {
     id: authData.user.id,
     name: data.name.trim(),
@@ -208,7 +207,7 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     streak_days: 0,
     joined_date: new Date().toISOString(),
     subscription_status: 'trial',
-    subscription_renewal_at: trialEnd.toISOString(),
+    subscription_renewal_at: null, // trial starts only on first app access
   };
   
   // Campos opcionais - adicionar apenas se a coluna existir no banco
@@ -363,18 +362,46 @@ export const updateUserPassword = async (newPassword: string) => {
 
 export const isUserInTrial = (user: UserProfile): boolean => {
   if (user.isPremium) return false;
-  return (
-    user.subscriptionStatus === 'trial' &&
-    !!user.subscriptionRenewalAt &&
-    user.subscriptionRenewalAt > new Date()
-  );
+  if (user.subscriptionStatus !== 'trial') return false;
+  // null renewalAt = trial not yet activated but user has paid access
+  if (!user.subscriptionRenewalAt) return true;
+  return user.subscriptionRenewalAt > new Date();
 };
 
 export const trialDaysLeft = (user: UserProfile): number => {
   if (!isUserInTrial(user)) return 0;
-  const diff = user.subscriptionRenewalAt!.getTime() - Date.now();
+  if (!user.subscriptionRenewalAt) return 7; // not yet activated
+  const diff = user.subscriptionRenewalAt.getTime() - Date.now();
   return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 };
 
 export const hasFullAccess = (user: UserProfile): boolean =>
   !!user.isPremium || isUserInTrial(user);
+
+// Ativa o trial de 7 dias na primeira vez que o usuario acessa o app.
+// Idempotente: s so atualiza se subscription_renewal_at ainda for null.
+export const activateTrialIfNeeded = async (userId: string): Promise<void> => {
+  if (!supabase) return;
+  const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const { error } = await supabase
+    .from('profiles')
+    .update({ subscription_renewal_at: trialEnd.toISOString() })
+    .eq('id', userId)
+    .is('subscription_renewal_at', null);
+  if (error) {
+    console.warn('[activateTrialIfNeeded]', error.message);
+    return;
+  }
+  // Atualiza a sessao no localStorage para refletir o novo prazo
+  try {
+    const stored = localStorage.getItem(SESSION_KEY);
+    if (stored) {
+      const s = JSON.parse(stored);
+      if (s.user && !s.user.subscriptionRenewalAt) {
+        s.user.subscriptionRenewalAt = trialEnd;
+        localStorage.setItem(SESSION_KEY, safeStringify(s));
+      }
+    }
+  } catch (_) {}
+  console.log('[activateTrialIfNeeded] Trial de 7 dias ativado para', userId);
+};

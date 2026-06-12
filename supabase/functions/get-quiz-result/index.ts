@@ -106,6 +106,18 @@ function buildWeekPrompt(
     doubtful:  'duvida que sua oração pelos outros faça diferença',
   }
 
+  const SAINT_PATRON: Record<string, string> = {
+    anxiety:       'Santa Teresa de Avila (paz interior, doutrina contemplativa)',
+    sadness:       'Santa Teresinha do Menino Jesus (esperança pelo caminho pequeno)',
+    relationships: 'Sao Francisco de Sales (caridade, paciencia nas relacoes)',
+    laziness:      'Sao Tomas de Aquino (disciplina, perseveranca na rotina espiritual)',
+    dryness:       'Sao Joao da Cruz (noite escura, encontrar Deus no silencio)',
+    ignorance:     'Sao Joao Paulo II (aprofundamento da fe, nao ter medo)',
+    pride:         'Sao Francisco de Assis (perdao, mansidao, paz)',
+    lust:          'Sao Jose de Nazare (pureza, guarda do coracao)',
+  }
+  const patronSaint = SAINT_PATRON[answers?.challenge] || 'Nossa Senhora (mae e intercessora)'
+
   return `Você é um diretor espiritual católico.
 Gere os dias ${days} de um plano espiritual personalizado para ${displayName} (nível: ${displayLevel}).
 
@@ -118,6 +130,7 @@ Perfil:
 - Relação familiar: ${FAMILY_PT[answers?.family] || 'não informado'}
 - Abertura em oração: ${PRAYER_OPENNESS_PT[answers?.prayerOpenness] || 'não informado'}
 - Vida de intercessão: ${INTERCESSION_PT[answers?.intercession] || 'não informado'}
+- Santo patrono desta novena: ${patronSaint}
 Dimensões (0-100): Oração ${dimLabels.oracao} | Sacramento ${dimLabels.sacramento} | Formação ${dimLabels.formacao} | Comunidade ${dimLabels.comunidade} | Missão ${dimLabels.missao}
 
 Esta é a SEMANA ${weekNum}. Tema: "${weekThemeHint}". Foco: ${weekFocus} ("${weekFocusLabel}").
@@ -166,6 +179,7 @@ REGRAS CRÍTICAS:
 - NUNCA invente versículos, nunca altere o texto bíblico, nunca cite referência fora do BANCO. Copie exatamente.
 - NUNCA invente devoções: use apenas as da lista permitida.
 - Cada dia deve ter devoção, versículo e prática DIFERENTES dos outros dias da semana.
+- As intenções (intention) devem ressoar o carisma do santo patrono desta novena.
 - Linguagem acessível e fiel à fé católica.
 
 Retorne APENAS JSON válido:

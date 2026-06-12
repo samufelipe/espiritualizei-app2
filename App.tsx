@@ -20,7 +20,7 @@ import { Tab, UserProfile, RoutineItem, OnboardingData, PrayerIntention, Communi
 import { generateSpiritualRoutine } from './services/geminiService';
 import { fetchQuizSessionByEmail, fetchQuizSessionBySession, type QuizImport } from './services/quizImportService';
 import { requestNotificationPermission } from './services/notificationService';
-import { registerUser, loginUser, getSession, logoutUser, updateUserProfile, syncUserFromServer, isUserInTrial, trialDaysLeft, hasFullAccess, SUPABASE_URL, SUPABASE_KEY } from './services/authService';
+import { registerUser, loginUser, getSession, logoutUser, updateUserProfile, syncUserFromServer, isUserInTrial, trialDaysLeft, hasFullAccess, activateTrialIfNeeded, SUPABASE_URL, SUPABASE_KEY } from './services/authService';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard'; 
@@ -738,14 +738,13 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
               email={quizEmail}
               onComplete={async (data) => {
                 setViewState('generating');
+                let registeredSession: any = null;
                 try {
                   localStorage.setItem('espiritualizei_from_quiz', '1');
                   setIsFromQuiz(true);
 
                   let onboardingData = data;
                   try {
-                    // Alinhar o perfil à diagnose do quiz via stripe_session_id
-                    // (segredo de posse), sem leitura anônima da tabela.
                     const storedSession = localStorage.getItem('espiritualizei_quiz_stripe_session') || '';
                     const qi = storedSession ? await fetchQuizSessionBySession(storedSession) : null;
                     if (qi && qi.found) {
@@ -759,19 +758,31 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                   } catch (_) { /* não-bloqueante */ }
 
                   const session = await registerUser(onboardingData);
+                  registeredSession = session;
                   if (session && session.user) {
                     setUser(session.user);
-                    const result = await generateSpiritualRoutine(onboardingData);
-                    await saveUserRoutine(session.user.id, result.routine);
-                    setRoutineItems(result.routine);
-                    queueEngagementEmail(session.user.id, 'welcome', { userName: session.user.name });
+                    // Ativa o trial de 7 dias a partir deste primeiro acesso
+                    activateTrialIfNeeded(session.user.id).catch(() => {});
+                    // Abre o app imediatamente — não bloqueia na rotina
                     setViewState('app');
                     setShowTutorial(true);
+                    // Gera rotina em background sem bloquear a navegacao
+                    generateSpiritualRoutine(onboardingData)
+                      .then(async (result) => {
+                        await saveUserRoutine(session.user.id, result.routine).catch(() => {});
+                        setRoutineItems(result.routine);
+                      })
+                      .catch((e) => console.warn('[quiz-complete] rotina em background:', e));
+                    queueEngagementEmail(session.user.id, 'welcome', { userName: session.user.name });
                     fetchGlobalChallenge().then((global) => { if (global) setChallenges([global]); });
                   }
                 } catch (e: any) {
-                  setViewState('quiz_welcome');
-                  throw e; // QuizWelcome captura e exibe o erro
+                  // So reverte para a tela de senha se o proprio cadastro falhou
+                  if (!registeredSession) {
+                    setViewState('quiz_welcome');
+                    throw e;
+                  }
+                  console.warn('[quiz-complete] erro nao-critico pos-cadastro:', e);
                 }
               }}
               onLogin={async (loginEmail, password) => {

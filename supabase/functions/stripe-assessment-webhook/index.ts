@@ -11,7 +11,7 @@ const APP_ORIGIN = 'https://www.espiritualizei.com'
 // voltada ao usuario (sem travessao longo, sem "IA"/"PDF"/"prompt").
 function buildPurchaseWelcomeEmail(params: { firstName: string; createAccountUrl: string }): string {
   const { firstName, createAccountUrl } = params
-  const preview = `${firstName}, sua compra foi confirmada. Crie seu acesso para guardar tudo.`
+  const preview = `${firstName}, tudo certo. Agora crie sua senha para acessar seu diagnostico.`
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -37,36 +37,32 @@ function buildPurchaseWelcomeEmail(params: { firstName: string; createAccountUrl
     </div>
 
     <h1 style="font-size:23px;font-weight:800;margin:0 0 18px;line-height:1.3;color:#fff;text-align:center;">
-      ${firstName}, que alegria ter voce aqui.
+      ${firstName}, tudo certo por aqui.
     </h1>
 
     <p style="font-size:15px;color:rgba(255,255,255,.78);line-height:1.75;margin:0 0 22px;text-align:center;">
-      Voce deu um passo lindo pela sua vida espiritual. Seu acesso ja esta liberado e queremos que voce nunca mais dependa de uma aba aberta para encontrar o que e seu.
+      Seu diagnostico, seu plano de 21 dias e sua novena personalizada estao prontos e esperando por voce. Para acessar tudo, voce precisa criar uma senha permanente agora.
     </p>
 
-    <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.16);border-radius:14px;padding:18px 20px;margin-bottom:26px;">
-      <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(167,139,250,.7);margin:0 0 12px;">O que fica guardado na sua conta</p>
+    <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.22);border-radius:14px;padding:20px 22px;margin-bottom:26px;">
+      <p style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(167,139,250,.8);margin:0 0 14px;">Como funciona</p>
       <p style="font-size:14px;color:rgba(255,255,255,.82);line-height:2;margin:0;">
-        Seu Diagnostico completo<br>
-        Seu Plano de 21 Dias<br>
-        Sua Novena personalizada<br>
-        Suas Cartas para Deus
+        <span style="color:#34D399;font-weight:800;">1.</span> Clique no botao abaixo<br>
+        <span style="color:#34D399;font-weight:800;">2.</span> Seu e-mail ja vem preenchido<br>
+        <span style="color:#34D399;font-weight:800;">3.</span> Escolha uma senha e confirme<br>
+        <span style="color:#34D399;font-weight:800;">4.</span> Pronto: tudo liberado, para sempre
       </p>
     </div>
 
-    <p style="font-size:15px;color:rgba(255,255,255,.78);line-height:1.75;margin:0 0 28px;text-align:center;">
-      Crie seu acesso agora para abrir tudo quando e onde quiser, em qualquer aparelho.
-    </p>
-
     <div style="text-align:center;margin-bottom:22px;">
-      <a href="${createAccountUrl}" style="display:inline-block;background:linear-gradient(135deg,#10B981,#059669);color:#ffffff;text-decoration:none;padding:16px 36px;border-radius:14px;font-weight:800;font-size:16px;">
-        Criar meu acesso agora &rarr;
+      <a href="${createAccountUrl}" style="display:inline-block;background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#ffffff;text-decoration:none;padding:18px 40px;border-radius:14px;font-weight:800;font-size:17px;letter-spacing:.3px;">
+        Criar minha senha permanente &rarr;
       </a>
     </div>
 
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07);text-align:center;">
-      <p style="font-size:12px;color:rgba(255,255,255,.4);margin:0;line-height:1.7;">
-        E um so e-mail e senha para tudo. Se voce ja tiver uma conta, e so entrar com ela.
+    <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px 18px;margin-bottom:0;">
+      <p style="font-size:13px;color:rgba(255,255,255,.55);margin:0;line-height:1.7;text-align:center;">
+        O e-mail usado no quiz ja esta preenchido automaticamente.<br>Basta escolher sua senha e confirmar.
       </p>
     </div>
 
@@ -147,48 +143,49 @@ serve(async (req) => {
 
     console.log(`Quiz pago registrado: session=${session.id} quiz_session=${quizSessionId} email=${customerEmail} nome=${customerName}`)
 
-    // Cancelar sequência de recuperação — lead converteu, sai da jornada de abandono
-    if (customerEmail) {
-      const { error: cancelErr } = await supabase
-        .from('quiz_recovery_emails')
-        .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
-        .eq('email', customerEmail)
-        .eq('status', 'pending')
+    // ── Cancelar recuperacao + resolver quiz_session em paralelo (mais rapido)
+    const cancelRecovery = customerEmail
+      ? supabase
+          .from('quiz_recovery_emails')
+          .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+          .eq('email', customerEmail)
+          .eq('status', 'pending')
+          .then(({ error: cancelErr }) => {
+            if (cancelErr) console.warn('Aviso: falha ao cancelar recuperação:', cancelErr.message)
+            else console.log(`🚫 Recuperação cancelada para ${customerEmail} — lead converteu`)
+          })
+      : Promise.resolve()
 
-      if (cancelErr) {
-        console.warn('Aviso: falha ao cancelar recuperação:', cancelErr.message)
-      } else {
-        console.log(`🚫 Recuperação cancelada para ${customerEmail} — lead converteu`)
+    const resolveQuizSession = (async (): Promise<{ id: string; name: string | null; purchase_email_sent: boolean; stripe_session_id: string | null } | null> => {
+      try {
+        let found: any = null
+        if (quizSessionId) {
+          const { data } = await supabase.from('quiz_sessions')
+            .select('id,name,purchase_email_sent,stripe_session_id').eq('id', quizSessionId).maybeSingle()
+          if (data) found = data
+        }
+        if (!found) {
+          const { data } = await supabase.from('quiz_sessions')
+            .select('id,name,purchase_email_sent,stripe_session_id').eq('stripe_session_id', session.id).maybeSingle()
+          if (data) found = data
+        }
+        if (!found && customerEmail) {
+          const { data } = await supabase.from('quiz_sessions')
+            .select('id,name,purchase_email_sent,stripe_session_id')
+            .eq('email', customerEmail).order('created_at', { ascending: false }).limit(1).maybeSingle()
+          if (data) found = data
+        }
+        if (found && !found.stripe_session_id) {
+          await supabase.from('quiz_sessions').update({ stripe_session_id: session.id }).eq('id', found.id)
+        }
+        return found
+      } catch (e) {
+        console.warn('Aviso: falha ao resolver quiz_session:', (e as any)?.message)
+        return null
       }
-    }
+    })()
 
-    // ── Resolver a quiz_session (cascata leve) e garantir stripe_session_id
-    //    persistido (chave durável para a aba "Meus Materiais").
-    let qs: { id: string; name: string | null; purchase_email_sent: boolean; stripe_session_id: string | null } | null = null
-    try {
-      if (quizSessionId) {
-        const { data } = await supabase.from('quiz_sessions')
-          .select('id,name,purchase_email_sent,stripe_session_id').eq('id', quizSessionId).maybeSingle()
-        if (data) qs = data as any
-      }
-      if (!qs) {
-        const { data } = await supabase.from('quiz_sessions')
-          .select('id,name,purchase_email_sent,stripe_session_id').eq('stripe_session_id', session.id).maybeSingle()
-        if (data) qs = data as any
-      }
-      if (!qs && customerEmail) {
-        const { data } = await supabase.from('quiz_sessions')
-          .select('id,name,purchase_email_sent,stripe_session_id')
-          .eq('email', customerEmail).order('created_at', { ascending: false }).limit(1).maybeSingle()
-        if (data) qs = data as any
-      }
-      // Persistir stripe_session_id se ainda nulo (re-acesso + hub dependem dele)
-      if (qs && !qs.stripe_session_id) {
-        await supabase.from('quiz_sessions').update({ stripe_session_id: session.id }).eq('id', qs.id)
-      }
-    } catch (e) {
-      console.warn('Aviso: falha ao resolver quiz_session:', (e as any)?.message)
-    }
+    const [, qs] = await Promise.all([cancelRecovery, resolveQuizSession])
 
     // ── E-mail instantâneo de boas-vindas com link para criar o acesso.
     if (customerEmail && resendApiKey) {
@@ -224,7 +221,7 @@ serve(async (req) => {
             body: JSON.stringify({
               from: 'Espiritualizei <contato@espiritualizei.com>',
               to: [customerEmail],
-              subject: `${firstName}, sua compra foi confirmada. Crie seu acesso 🙏`,
+              subject: `${firstName}, tudo pronto. Agora crie sua senha para acessar tudo 🙏`,
               html: buildPurchaseWelcomeEmail({ firstName, createAccountUrl }),
             }),
           })
