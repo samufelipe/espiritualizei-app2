@@ -217,55 +217,88 @@
       width: 7px; height: 7px; border-radius: 50%; background: #A78BFA; display: inline-block;
     }
 
-    /* ── MINI VSL (vídeo) ───────────────────────────────────────── */
-    #s-vsl { background: #0D1520; }
+    /* ── VSL — Experiência imersiva ─────────────────────────────── */
+    #s-vsl { background: #000; position: relative; overflow: hidden; }
 
     .vsl-stage {
-      position: relative; width: 100%; max-width: 480px;
-      aspect-ratio: 9 / 16; max-height: 100vh;
-      margin: 0 auto; overflow: hidden; background: #0D1520;
+      position: relative; width: 100%; height: 100vh;
+      overflow: hidden; background: #000;
+    }
+    .vsl-stage video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    @media (min-width: 600px) {
+      #s-vsl {
+        display: flex; align-items: center; justify-content: center; min-height: 100vh;
+        background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(124,58,237,.14) 0%, #000 65%);
+      }
+      .vsl-stage {
+        width: auto; height: auto; max-width: 430px;
+        aspect-ratio: 9 / 16; max-height: 90vh; border-radius: 20px;
+        box-shadow: 0 0 80px rgba(167,139,250,.18), 0 0 160px rgba(124,58,237,.08);
+      }
     }
 
     .vsl-progress-wrap {
       position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-      height: 3px; background: rgba(255,255,255,.06);
+      height: 3px; background: rgba(255,255,255,.05);
     }
     .vsl-progress-fill {
-      height: 100%; background: #A78BFA;
+      height: 100%;
+      background: linear-gradient(90deg, #7C3AED, #A78BFA);
+      box-shadow: 0 0 10px rgba(167,139,250,.5);
       transition: width .25s linear;
     }
 
     .vsl-skip-btn {
-      display: none; position: fixed; top: 14px; right: 14px; z-index: 210;
-      background: rgba(13,21,32,.6); border: 1px solid rgba(255,255,255,.15);
-      color: rgba(255,255,255,.7); font-size: 12px; font-weight: 600;
-      padding: 7px 16px; border-radius: 20px; cursor: pointer;
-      font-family: 'Inter', sans-serif; transition: background .2s;
-      backdrop-filter: blur(8px);
+      display: none; position: fixed; bottom: 28px; right: 20px; z-index: 210;
+      background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.16);
+      color: rgba(255,255,255,.75); font-size: 13px; font-weight: 700;
+      padding: 11px 22px; border-radius: 50px; cursor: pointer;
+      font-family: 'Inter', sans-serif; align-items: center; gap: 6px;
+      transition: background .2s, color .2s, border-color .2s;
+      backdrop-filter: blur(14px);
     }
-    .vsl-skip-btn:hover { background: rgba(13,21,32,.85); color: #fff; }
+    .vsl-skip-btn:hover { background: rgba(0,0,0,.82); color: #fff; border-color: rgba(255,255,255,.3); }
 
-    /* Overlay "Ativar som" */
     .vsl-sound-overlay {
       position: absolute; inset: 0; z-index: 50;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 18px; cursor: pointer;
-      background: rgba(13,21,32,.45);
-      backdrop-filter: blur(1px);
-      transition: opacity .3s ease;
+      cursor: pointer; text-align: center; padding: 0 28px;
+      background: linear-gradient(to bottom, rgba(0,0,0,.72) 0%, rgba(10,12,18,.8) 45%, rgba(0,0,0,.72) 100%);
+      backdrop-filter: blur(3px);
+      transition: opacity .45s ease;
     }
-    .vsl-sound-btn {
-      display: flex; align-items: center; gap: 10px;
-      background: #fff; color: #1A2530;
-      font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 800;
-      padding: 16px 28px; border-radius: 50px;
-      box-shadow: 0 8px 40px rgba(0,0,0,.4);
-      animation: pulseSlow 2s ease-in-out infinite;
+
+    .vsl-overlay-logo {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 40px;
     }
+    .vsl-overlay-brand {
+      font-size: 12px; font-weight: 700; color: rgba(255,255,255,.45);
+      letter-spacing: 1.5px; text-transform: uppercase; font-family: 'Inter', sans-serif;
+    }
+
+    .vsl-overlay-greeting {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px; color: rgba(255,255,255,.7); font-weight: 500;
+      margin: 0 0 36px; line-height: 1.6;
+    }
+    .vsl-overlay-greeting strong { color: #fff; font-weight: 800; font-size: 18px; }
+
+    .vsl-play-btn {
+      width: 82px; height: 82px; border-radius: 50%; background: #fff;
+      display: flex; align-items: center; justify-content: center; padding-left: 4px;
+      margin-bottom: 26px;
+      box-shadow: 0 0 0 14px rgba(255,255,255,.07), 0 0 0 28px rgba(255,255,255,.035), 0 12px 40px rgba(0,0,0,.5);
+      animation: vslPlayPulse 2.6s ease-in-out infinite;
+    }
+    @keyframes vslPlayPulse {
+      0%,100% { box-shadow: 0 0 0 14px rgba(255,255,255,.07), 0 0 0 28px rgba(255,255,255,.035), 0 12px 40px rgba(0,0,0,.5); transform: scale(1); }
+      50%      { box-shadow: 0 0 0 18px rgba(255,255,255,.10), 0 0 0 36px rgba(255,255,255,.05), 0 12px 40px rgba(0,0,0,.5); transform: scale(1.04); }
+    }
+
     .vsl-sound-hint {
-      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
-      color: rgba(255,255,255,.85); text-align: center; padding: 0 32px;
-      text-shadow: 0 2px 8px rgba(0,0,0,.6);
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+      color: rgba(255,255,255,.6); letter-spacing: .3px;
     }
 
     /* ── Paywall redesign ── */
@@ -642,28 +675,33 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- TELA 4B — MINI VSL (vídeo real) -->
-<div id="s-vsl" class="screen" style="position:relative;z-index:1;">
+<!-- TELA 4B — VSL -->
+<div id="s-vsl" class="screen">
   <div class="vsl-progress-wrap"><div class="vsl-progress-fill" id="vsl-progress" style="width:0%"></div></div>
-  <button class="vsl-skip-btn" id="vsl-skip-btn" onclick="skipVSL()">Pular →</button>
+  <button class="vsl-skip-btn" id="vsl-skip-btn" onclick="skipVSL()">
+    Pular
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
 
-  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
-    <div class="vsl-stage">
-      <video id="vsl-video" playsinline muted preload="auto" poster="/quiz/vsl-poster.jpg"
-             style="width:100%;height:100%;object-fit:cover;background:#0D1520;">
-        <source src="/quiz/vsl.mp4" type="video/mp4">
-      </video>
+  <div class="vsl-stage">
+    <video id="vsl-video" playsinline muted preload="auto">
+      <source src="/quiz/vsl.mp4" type="video/mp4">
+    </video>
 
-      <!-- Overlay "Ativar som" -->
-      <div id="vsl-sound-overlay" class="vsl-sound-overlay" onclick="vslUnmute()">
-        <div class="vsl-sound-btn">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1A2530" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-          </svg>
-          <span>Tocar com som</span>
-        </div>
-        <p class="vsl-sound-hint">Seu diagnóstico está pronto. Toque para ouvir.</p>
+    <div id="vsl-sound-overlay" class="vsl-sound-overlay" onclick="vslUnmute()">
+      <div class="vsl-overlay-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#A78BFA">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <span class="vsl-overlay-brand">Espiritualizei</span>
       </div>
+      <p class="vsl-overlay-greeting">Seu diagnóstico está pronto,<br><strong id="vsl-name"></strong></p>
+      <div class="vsl-play-btn">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="#1A2530">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+      </div>
+      <p class="vsl-sound-hint">Toque para assistir com som</p>
     </div>
   </div>
 </div>
@@ -1818,46 +1856,49 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const overlay = document.getElementById('vsl-sound-overlay')
     const skipBtn = document.getElementById('vsl-skip-btn')
     const fill    = document.getElementById('vsl-progress')
+    const nameEl  = document.getElementById('vsl-name')
 
-    // Sem vídeo disponível → não trava o lead, vai direto à paywall
     if (!v) { _vslGoToPaywall(); return }
 
     show('s-vsl')
 
-    // reset visual
+    // Personalize overlay with lead's name
+    if (nameEl) nameEl.textContent = S.name || 'caminhante'
+
+    // Reset visual state (handles re-entry from back-navigation)
     fill.style.width = '0%'
     skipBtn.style.display = 'none'
-    if (overlay) overlay.style.display = 'flex'
+    if (overlay) {
+      overlay.style.opacity = '1'
+      overlay.style.pointerEvents = 'auto'
+      overlay.style.display = 'flex'
+    }
 
-    // autoplay mudo (permitido pelos navegadores)
+    // Autoplay muted — allowed by all browsers
     v.muted = true
     v.currentTime = 0
     const playP = v.play()
-    if (playP && playP.catch) playP.catch(() => {/* aguarda gesto do usuário */})
+    if (playP && playP.catch) playP.catch(() => {})
 
-    // progresso + revelar "Pular" só nos últimos segundos
+    // Progress bar + reveal skip near the end
     v.ontimeupdate = () => {
       if (!v.duration) return
       const pct = (v.currentTime / v.duration) * 100
       fill.style.width = pct + '%'
       if (v.duration - v.currentTime <= VSL_SKIP_WINDOW) {
-        skipBtn.style.display = 'block'
+        skipBtn.style.display = 'flex'
       }
     }
 
-    // terminou → paywall
     v.onended = () => _vslGoToPaywall()
-
-    // erro ao carregar o arquivo (ainda não existe) → paywall direto
     v.onerror = () => _vslGoToPaywall()
     const srcEl = v.querySelector('source')
     if (srcEl) srcEl.onerror = () => _vslGoToPaywall()
 
-    // backstop: se em 2.5s o vídeo não carregou nenhum dado (arquivo ausente),
-    // seguir para a paywall — nunca deixar o lead numa tela preta
+    // Backstop: 66 MB file needs extra load time — 8s before giving up
     setTimeout(() => {
       if (!_vslAdvanced && v.readyState === 0) _vslGoToPaywall()
-    }, 2500)
+    }, 8000)
   }
 
   function vslUnmute() {
@@ -1868,7 +1909,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     v.currentTime = 0
     const p = v.play()
     if (p && p.catch) p.catch(() => {})
-    if (overlay) overlay.style.display = 'none'
+    if (overlay) {
+      overlay.style.opacity = '0'
+      overlay.style.pointerEvents = 'none'
+      setTimeout(() => { overlay.style.display = 'none' }, 450)
+    }
   }
 
   function skipVSL() {
