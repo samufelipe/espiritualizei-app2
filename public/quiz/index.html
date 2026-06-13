@@ -1641,7 +1641,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         clearInterval(t)
       }
     }, 1400)
-    setTimeout(() => { clearInterval(t); startVSL() }, 7000)
+    _loadingTimer = setTimeout(() => { _loadingTimer = null; clearInterval(t); startVSL() }, 7000)
   }
 
   function calcScore(a) {
@@ -1888,7 +1888,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // ── MINI VSL (vídeo real) ───────────────────────────────────────
   // Janela (em segundos) antes do fim em que o botão "Pular" aparece.
   const VSL_SKIP_WINDOW = 20
-  let _vslAdvanced = false
+  let _vslAdvanced  = false
+  let _loadingTimer = null   // setTimeout do startVSL — precisa ser cancelável
 
   function _vslGoToPaywall() {
     if (_vslAdvanced) return
@@ -1902,6 +1903,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   function startVSL() {
+    // Guard: só exibe a VSL se o lead ainda está na tela de loading
+    // (timer pode disparar após o usuário pressionar Voltar)
+    const active = document.querySelector('.screen.active')
+    if (!active || active.id !== 's-loading') return
+
     _vslAdvanced = false
     const v       = document.getElementById('vsl-video')
     const overlay = document.getElementById('vsl-sound-overlay')
@@ -2129,6 +2135,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     window.addEventListener('popstate', function() {
       const active = document.querySelector('.screen.active')
       if (!active || active.id === 's-landing') return
+
+      // Cancelar timer de loading → impede VSL de aparecer após back button
+      if (_loadingTimer) { clearTimeout(_loadingTimer); _loadingTimer = null }
 
       // Parar vídeo caso esteja tocando
       try { const v = document.getElementById('vsl-video'); if (v) { v.pause(); v.currentTime = 0 } } catch(_) {}
