@@ -1890,6 +1890,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const VSL_SKIP_WINDOW = 20
   let _vslAdvanced  = false
   let _loadingTimer = null   // setTimeout do startVSL — precisa ser cancelável
+  let _vslBackstop  = null   // backstop interno do startVSL — também cancelável
 
   function _vslGoToPaywall() {
     if (_vslAdvanced) return
@@ -1953,7 +1954,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (srcEl) srcEl.onerror = () => _vslGoToPaywall()
 
     // Backstop: 66 MB file needs extra load time — 8s before giving up
-    setTimeout(() => {
+    _vslBackstop = setTimeout(() => {
+      _vslBackstop = null
       if (!_vslAdvanced && v.readyState === 0) _vslGoToPaywall()
     }, 8000)
   }
@@ -2131,19 +2133,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       history.replaceState({}, '', '/quiz')
     }
 
+    // Limpa todos os timers e handlers do VSL — chamado por popstate e pageshow
+    function _resetVSL() {
+      if (_loadingTimer) { clearTimeout(_loadingTimer); _loadingTimer = null }
+      if (_vslBackstop)  { clearTimeout(_vslBackstop);  _vslBackstop  = null }
+      try {
+        const v = document.getElementById('vsl-video')
+        if (v) {
+          v.pause(); v.currentTime = 0
+          v.onended = null; v.onerror = null; v.ontimeupdate = null
+          const srcEl = v.querySelector('source')
+          if (srcEl) srcEl.onerror = null
+        }
+      } catch(_) {}
+      _vslAdvanced = false
+    }
+
     // Botão Voltar do browser → reseta sempre para a landing
     window.addEventListener('popstate', function() {
       const active = document.querySelector('.screen.active')
       if (!active || active.id === 's-landing') return
 
-      // Cancelar timer de loading → impede VSL de aparecer após back button
-      if (_loadingTimer) { clearTimeout(_loadingTimer); _loadingTimer = null }
-
-      // Parar vídeo caso esteja tocando
-      try { const v = document.getElementById('vsl-video'); if (v) { v.pause(); v.currentTime = 0 } } catch(_) {}
-
-      // Resetar flags de controle de fluxo
-      _vslAdvanced = false
+      _resetVSL()
 
       // Voltar para landing
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
@@ -2152,6 +2163,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (wrap) wrap.style.display = 'none'
       history.replaceState({}, '', '/quiz')
       window.scrollTo(0, 0)
+    })
+
+    // bfcache: página restaurada do cache do browser (ex: botão Voltar do sistema)
+    // VSL e loading não devem ser restaurados — sempre voltar para a landing
+    window.addEventListener('pageshow', function(event) {
+      if (!event.persisted) return
+      const active = document.querySelector('.screen.active')
+      if (!active) return
+      if (active.id === 's-vsl' || active.id === 's-loading') {
+        _resetVSL()
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+        document.getElementById('s-landing').classList.add('active')
+        const wrap = document.getElementById('progress-bar-wrap')
+        if (wrap) wrap.style.display = 'none'
+        history.replaceState({}, '', '/quiz')
+        window.scrollTo(0, 0)
+      }
     })
   })()
   // ── Fim Roteamento SPA ───────────────────────────────────────────────────────

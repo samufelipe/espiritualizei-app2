@@ -30,6 +30,12 @@
   ],
   "headers": [
     {
+      "source": "/quiz",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
       "source": "/quiz/(.*).html",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
