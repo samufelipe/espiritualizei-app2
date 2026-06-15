@@ -38,6 +38,7 @@ const Profile = lazy(() => import('./components/Profile'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const KnowledgeBase = lazy(() => import('./components/KnowledgeBase'));
 const MeusMateriais = lazy(() => import('./components/MeusMateriais'));
+const MateriaisPage = lazy(() => import('./components/MateriaisPage'));
 
 const TabLoader = () => (
   <div className="h-full w-full flex flex-col items-center justify-center animate-fade-in text-slate-400 py-20 bg-brand-dark">
@@ -47,7 +48,7 @@ const TabLoader = () => (
 );
 
 const App: React.FC = () => {
-  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'quiz_welcome' | 'checkout' | 'verifying_payment' | 'welcome_premium' | 'app' | 'admin_login' | 'admin' | 'reset_password'>('landing');
+  const [viewState, setViewState] = useState<'landing' | 'login' | 'onboarding' | 'generating' | 'quiz_welcome' | 'checkout' | 'verifying_payment' | 'welcome_premium' | 'app' | 'admin_login' | 'admin' | 'reset_password' | 'materiais'>('landing');
   const [adminSecret, setAdminSecret] = useState('');
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.DASHBOARD);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -197,6 +198,13 @@ const App: React.FC = () => {
       return;
     }
 
+    // Portal de materiais pós-compra
+    if (path === '/materiais' || path === '/materiais/') {
+      console.log('📦 Rota /materiais detectada');
+      setViewState('materiais');
+      return;
+    }
+
     if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
       console.log('✅ Rota admin detectada!');
       if (checkAdminSession()) {
@@ -317,6 +325,10 @@ const App: React.FC = () => {
       const path = window.location.pathname;
       if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
         console.log('Pulando initSession - rota admin detectada');
+        return;
+      }
+      if (path === '/materiais' || path === '/materiais/') {
+        console.log('Pulando initSession - rota /materiais ativa');
         return;
       }
       if (paymentVerificationRef.current) {
@@ -1029,7 +1041,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
       )}
       
       {viewState === 'reset_password' && (
-        <ResetPassword 
+        <ResetPassword
           onSuccess={() => {
             window.history.pushState({}, '', '/login');
             setViewState('login');
@@ -1039,6 +1051,17 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
             setViewState('login');
           }}
         />
+      )}
+
+      {viewState === 'materiais' && (
+        <Suspense fallback={<TabLoader />}>
+          <MateriaisPage
+            onOpenApp={() => {
+              window.history.pushState({}, '', '/');
+              setViewState('landing');
+            }}
+          />
+        </Suspense>
       )}
       
       {xpToast.show && (

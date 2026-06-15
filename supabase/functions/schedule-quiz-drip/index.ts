@@ -72,7 +72,7 @@ function buildDayEmailHtml(params: {
   const isLastWeek = weekNumber === 3
   const progressPct = Math.round((dayNumber / 21) * 100)
   const novenaName  = NOVENA_NAMES[challenge] || 'Novena Personalizada'
-  const dashboardUrl = `https://www.espiritualizei.com/quiz/resultado?session=${stripeSessionId}`
+  const dashboardUrl = `https://www.espiritualizei.com/materiais`
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -131,9 +131,9 @@ function buildDayEmailHtml(params: {
   <div style="text-align:center;padding-top:28px;">
     <p style="font-size:11px;color:rgba(255,255,255,0.2);margin:0 0 6px;">Você recebe este e-mail porque adquiriu o Diagnóstico Espiritual do Espiritualizei.</p>
     <p style="font-size:11px;margin:0;">
-      <a href="${dashboardUrl}" style="color:rgba(167,139,250,0.5);text-decoration:underline;">Ver meu plano completo</a>
+      <a href="${dashboardUrl}" style="color:rgba(167,139,250,0.5);text-decoration:underline;">Ver meus materiais</a>
       &nbsp;&middot;&nbsp;
-      <a href="mailto:espiritualizeiapp@gmail.com?subject=Cancelar%20e-mails%20do%20desafio" style="color:rgba(255,255,255,0.2);text-decoration:underline;">Cancelar e-mails</a>
+      <a href="mailto:contato@espiritualizei.com?subject=Cancelar%20e-mails%20do%20desafio" style="color:rgba(255,255,255,0.2);text-decoration:underline;">Cancelar e-mails</a>
     </p>
   </div>
 

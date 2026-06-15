@@ -11,7 +11,7 @@ const APP_ORIGIN = 'https://www.espiritualizei.com'
 // voltada ao usuario (sem travessao longo, sem "IA"/"PDF"/"prompt").
 function buildPurchaseWelcomeEmail(params: { firstName: string; createAccountUrl: string }): string {
   const { firstName, createAccountUrl } = params
-  const preview = `${firstName}, tudo certo. Agora crie sua senha para acessar seu diagnostico.`
+  const preview = `${firstName}, seus materiais ja estao prontos. Crie sua senha para acessar tudo agora.`
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -23,7 +23,7 @@ function buildPurchaseWelcomeEmail(params: { firstName: string; createAccountUrl
 <div style="display:none;max-height:0;overflow:hidden;">${preview}</div>
 <div style="max-width:560px;margin:0 auto;padding:40px 20px;">
 
-  <div style="text-align:center;margin-bottom:36px;">
+  <div style="text-align:center;margin-bottom:32px;">
     <svg width="36" height="36" viewBox="0 0 24 24" fill="#A78BFA">
       <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
     </svg>
@@ -32,37 +32,45 @@ function buildPurchaseWelcomeEmail(params: { firstName: string; createAccountUrl
 
   <div style="background:#1A2530;border-radius:20px;padding:32px 28px;border:1px solid rgba(167,139,250,.15);">
 
+    <!-- Confirmacao -->
     <div style="text-align:center;margin-bottom:24px;">
-      <span style="display:inline-block;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.35);color:#34D399;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;border-radius:999px;">Pagamento confirmado</span>
+      <span style="display:inline-block;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.35);color:#34D399;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;border-radius:999px;">Compra confirmada</span>
     </div>
 
-    <h1 style="font-size:23px;font-weight:800;margin:0 0 18px;line-height:1.3;color:#fff;text-align:center;">
-      ${firstName}, tudo certo por aqui.
+    <h1 style="font-size:24px;font-weight:800;margin:0 0 14px;line-height:1.25;color:#fff;text-align:center;">
+      ${firstName}, seus materiais estao prontos.
     </h1>
 
-    <p style="font-size:15px;color:rgba(255,255,255,.78);line-height:1.75;margin:0 0 22px;text-align:center;">
-      Seu diagnostico, seu plano de 21 dias e sua novena personalizada estao prontos e esperando por voce. Para acessar tudo, voce precisa criar uma senha permanente agora.
+    <p style="font-size:15px;color:rgba(255,255,255,.72);line-height:1.78;margin:0 0 24px;text-align:center;">
+      Obrigado pela confianca. O que voce escolheu ja foi preparado e esta esperando por voce neste momento.
     </p>
 
-    <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.22);border-radius:14px;padding:20px 22px;margin-bottom:26px;">
-      <p style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(167,139,250,.8);margin:0 0 14px;">Como funciona</p>
-      <p style="font-size:14px;color:rgba(255,255,255,.82);line-height:2;margin:0;">
-        <span style="color:#34D399;font-weight:800;">1.</span> Clique no botao abaixo<br>
-        <span style="color:#34D399;font-weight:800;">2.</span> Seu e-mail ja vem preenchido<br>
-        <span style="color:#34D399;font-weight:800;">3.</span> Escolha uma senha e confirme<br>
-        <span style="color:#34D399;font-weight:800;">4.</span> Pronto: tudo liberado, para sempre
+    <!-- O que esta liberado -->
+    <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:20px 22px;margin-bottom:26px;">
+      <p style="font-size:10px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(167,139,250,.7);margin:0 0 14px;">O que esta liberado para voce</p>
+      <p style="font-size:14px;color:rgba(255,255,255,.82);line-height:2.1;margin:0;">
+        <span style="color:#A78BFA;">&#9632;</span> Diagnostico Espiritual completo<br>
+        <span style="color:#A78BFA;">&#9632;</span> Plano de 21 Dias personalizado<br>
+        <span style="color:#A78BFA;">&#9632;</span> Novena para o seu desafio real<br>
+        <span style="color:#A78BFA;">&#9632;</span> Cartas para Deus<br>
+        <span style="color:#34D399;font-weight:700;">&#9632;</span> <strong style="color:#34D399;">App Espiritualizei liberado</strong>
       </p>
     </div>
 
-    <div style="text-align:center;margin-bottom:22px;">
+    <!-- CTA principal -->
+    <div style="text-align:center;margin-bottom:20px;">
+      <p style="font-size:13px;color:rgba(255,255,255,.45);margin:0 0 14px;">
+        Para acessar tudo, crie uma senha de acesso agora. E rapido.
+      </p>
       <a href="${createAccountUrl}" style="display:inline-block;background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#ffffff;text-decoration:none;padding:18px 40px;border-radius:14px;font-weight:800;font-size:17px;letter-spacing:.3px;">
-        Criar minha senha permanente &rarr;
+        Criar minha senha e acessar &rarr;
       </a>
     </div>
 
-    <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px 18px;margin-bottom:0;">
-      <p style="font-size:13px;color:rgba(255,255,255,.55);margin:0;line-height:1.7;text-align:center;">
-        O e-mail usado no quiz ja esta preenchido automaticamente.<br>Basta escolher sua senha e confirmar.
+    <!-- Nota de rodape do card -->
+    <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:13px 16px;">
+      <p style="font-size:12px;color:rgba(255,255,255,.45);margin:0;line-height:1.7;text-align:center;">
+        Seu e-mail ja vem preenchido na pagina. Escolha uma senha, confirme, e tudo fica acessivel em segundos.
       </p>
     </div>
 
@@ -209,8 +217,8 @@ serve(async (req) => {
         const fullName  = (qs?.name || customerName || '').trim()
         const firstName = fullName.split(' ')[0] || 'Caminhante'
         const createAccountUrl =
-          `${APP_ORIGIN}/?source=quiz`
-          + `&email=${encodeURIComponent(customerEmail)}`
+          `${APP_ORIGIN}/materiais`
+          + `?email=${encodeURIComponent(customerEmail)}`
           + `&name=${encodeURIComponent(fullName)}`
           + `&session=${encodeURIComponent(session.id)}`
 
@@ -221,7 +229,7 @@ serve(async (req) => {
             body: JSON.stringify({
               from: 'Espiritualizei <contato@espiritualizei.com>',
               to: [customerEmail],
-              subject: `${firstName}, tudo pronto. Agora crie sua senha para acessar tudo 🙏`,
+              subject: `${firstName}, seus materiais estao prontos. Acesse agora`,
               html: buildPurchaseWelcomeEmail({ firstName, createAccountUrl }),
             }),
           })
