@@ -966,6 +966,17 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
             </div>
           )}
           {viewState === 'app' && renderContent()}
+
+          {viewState === 'materiais' && (
+            <Suspense fallback={<TabLoader />}>
+              <MateriaisPage
+                onOpenApp={() => {
+                  window.history.pushState({}, '', '/');
+                  setViewState('landing');
+                }}
+              />
+            </Suspense>
+          )}
       </main>
 
       {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!hasFullAccess(user)} isFromQuiz={isFromQuiz && !hasFullAccess(user)} hasMaterials={hasMaterials} /></div>}
@@ -1053,17 +1064,6 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
         />
       )}
 
-      {viewState === 'materiais' && (
-        <Suspense fallback={<TabLoader />}>
-          <MateriaisPage
-            onOpenApp={() => {
-              window.history.pushState({}, '', '/');
-              setViewState('landing');
-            }}
-          />
-        </Suspense>
-      )}
-      
       {xpToast.show && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[90] animate-fade-in">
           <div className="bg-gradient-to-r from-brand-violet to-purple-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2">
