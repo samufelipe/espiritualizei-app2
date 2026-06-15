@@ -738,7 +738,6 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
               email={quizEmail}
               onComplete={async (data) => {
                 setViewState('generating');
-                let registeredSession: any = null;
                 try {
                   localStorage.setItem('espiritualizei_from_quiz', '1');
                   setIsFromQuiz(true);
@@ -758,7 +757,6 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                   } catch (_) { /* não-bloqueante */ }
 
                   const session = await registerUser(onboardingData);
-                  registeredSession = session;
                   if (session && session.user) {
                     setUser(session.user);
                     // Ativa o trial de 7 dias a partir deste primeiro acesso
@@ -773,16 +771,17 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                         setRoutineItems(result.routine);
                       })
                       .catch((e) => console.warn('[quiz-complete] rotina em background:', e));
-                    queueEngagementEmail(session.user.id, 'welcome', { userName: session.user.name });
+                    queueEngagementEmail(session.user.id, 'welcome', { userName: session.user.name }).catch(() => {});
                     fetchGlobalChallenge().then((global) => { if (global) setChallenges([global]); });
+                  } else {
+                    // registerUser retornou sem usuario — volta para tela de senha
+                    setViewState('quiz_welcome');
+                    throw new Error('Nao foi possivel criar sua conta. Tente novamente.');
                   }
                 } catch (e: any) {
-                  // So reverte para a tela de senha se o proprio cadastro falhou
-                  if (!registeredSession) {
-                    setViewState('quiz_welcome');
-                    throw e;
-                  }
-                  console.warn('[quiz-complete] erro nao-critico pos-cadastro:', e);
+                  // Garante que o viewState nunca fique preso em "generating"
+                  setViewState('quiz_welcome');
+                  throw e;
                 }
               }}
               onLogin={async (loginEmail, password) => {
