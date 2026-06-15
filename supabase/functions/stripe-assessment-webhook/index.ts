@@ -11,7 +11,7 @@ const APP_ORIGIN = 'https://www.espiritualizei.com'
 // voltada ao usuario (sem travessao longo, sem "IA"/"PDF"/"prompt").
 function buildPurchaseWelcomeEmail(params: { firstName: string; createAccountUrl: string }): string {
   const { firstName, createAccountUrl } = params
-  const preview = `${firstName}, seus materiais ja estao prontos. Crie sua senha para acessar tudo agora.`
+  const preview = `${firstName}, seus materiais estao prontos. Siga os 3 passos abaixo para acessar tudo agora.`
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -23,61 +23,101 @@ function buildPurchaseWelcomeEmail(params: { firstName: string; createAccountUrl
 <div style="display:none;max-height:0;overflow:hidden;">${preview}</div>
 <div style="max-width:560px;margin:0 auto;padding:40px 20px;">
 
-  <div style="text-align:center;margin-bottom:32px;">
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="#A78BFA">
+  <!-- Logo -->
+  <div style="text-align:center;margin-bottom:28px;">
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="#A78BFA">
       <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
     </svg>
-    <p style="color:rgba(167,139,250,.6);font-size:10px;letter-spacing:2.5px;margin:6px 0 0;text-transform:uppercase;">Espiritualizei</p>
+    <p style="color:rgba(167,139,250,.55);font-size:10px;letter-spacing:2.5px;margin:5px 0 0;text-transform:uppercase;">Espiritualizei</p>
   </div>
 
+  <!-- Card principal -->
   <div style="background:#1A2530;border-radius:20px;padding:32px 28px;border:1px solid rgba(167,139,250,.15);">
 
-    <!-- Confirmacao -->
-    <div style="text-align:center;margin-bottom:24px;">
-      <span style="display:inline-block;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.35);color:#34D399;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;border-radius:999px;">Compra confirmada</span>
+    <!-- Badge de confirmacao -->
+    <div style="text-align:center;margin-bottom:22px;">
+      <span style="display:inline-block;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#34D399;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:6px 14px;border-radius:999px;">Compra confirmada</span>
     </div>
 
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 14px;line-height:1.25;color:#fff;text-align:center;">
+    <!-- Headline -->
+    <h1 style="font-size:22px;font-weight:800;margin:0 0 10px;line-height:1.3;color:#fff;text-align:center;">
       ${firstName}, seus materiais estao prontos.
     </h1>
-
-    <p style="font-size:15px;color:rgba(255,255,255,.72);line-height:1.78;margin:0 0 24px;text-align:center;">
-      Obrigado pela confianca. O que voce escolheu ja foi preparado e esta esperando por voce neste momento.
+    <p style="font-size:14px;color:rgba(255,255,255,.6);line-height:1.75;margin:0 0 24px;text-align:center;">
+      Obrigado pela confianca. Tudo que voce adquiriu ja foi preparado. Siga os 3 passos abaixo para acessar agora.
     </p>
 
-    <!-- O que esta liberado -->
-    <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:20px 22px;margin-bottom:26px;">
-      <p style="font-size:10px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(167,139,250,.7);margin:0 0 14px;">O que esta liberado para voce</p>
-      <p style="font-size:14px;color:rgba(255,255,255,.82);line-height:2.1;margin:0;">
-        <span style="color:#A78BFA;">&#9632;</span> Diagnostico Espiritual completo<br>
-        <span style="color:#A78BFA;">&#9632;</span> Plano de 21 Dias personalizado<br>
-        <span style="color:#A78BFA;">&#9632;</span> Novena para o seu desafio real<br>
-        <span style="color:#A78BFA;">&#9632;</span> Cartas para Deus<br>
-        <span style="color:#34D399;font-weight:700;">&#9632;</span> <strong style="color:#34D399;">App Espiritualizei liberado</strong>
+    <div style="height:1px;background:rgba(255,255,255,.06);margin-bottom:24px;"></div>
+
+    <!-- O QUE esta liberado -->
+    <p style="font-size:10px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(167,139,250,.65);margin:0 0 12px;">O que esta liberado para voce</p>
+    <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:12px;padding:16px 18px;margin-bottom:26px;">
+      <p style="font-size:13.5px;color:rgba(255,255,255,.8);line-height:2.1;margin:0;">
+        <span style="color:#A78BFA;font-size:10px;">&#9632;</span>&nbsp; Diagnostico Espiritual completo<br>
+        <span style="color:#A78BFA;font-size:10px;">&#9632;</span>&nbsp; Plano de 21 Dias personalizado<br>
+        <span style="color:#A78BFA;font-size:10px;">&#9632;</span>&nbsp; Novena para o seu desafio<br>
+        <span style="color:#A78BFA;font-size:10px;">&#9632;</span>&nbsp; Cartas para Deus<br>
+        <span style="color:#34D399;font-size:10px;">&#9632;</span>&nbsp; <strong style="color:#34D399;">App Espiritualizei liberado</strong>
       </p>
     </div>
 
-    <!-- CTA principal -->
-    <div style="text-align:center;margin-bottom:20px;">
-      <p style="font-size:13px;color:rgba(255,255,255,.45);margin:0 0 14px;">
-        Para acessar tudo, crie uma senha de acesso agora. E rapido.
-      </p>
-      <a href="${createAccountUrl}" style="display:inline-block;background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#ffffff;text-decoration:none;padding:18px 40px;border-radius:14px;font-weight:800;font-size:17px;letter-spacing:.3px;">
-        Criar minha senha e acessar &rarr;
+    <div style="height:1px;background:rgba(255,255,255,.06);margin-bottom:24px;"></div>
+
+    <!-- COMO ACESSAR: guia passo a passo -->
+    <p style="font-size:10px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(167,139,250,.65);margin:0 0 16px;">Como acessar seus materiais agora</p>
+
+    <!-- Passo 1 -->
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">
+      <div style="width:28px;height:28px;border-radius:50%;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="font-size:12px;font-weight:800;color:#A78BFA;">1</span>
+      </div>
+      <div>
+        <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 2px;">Clique no botao verde abaixo</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.45);margin:0;line-height:1.5;">Voce vai abrir a sua pagina exclusiva de materiais. Nao e o aplicativo, e uma pagina so sua.</p>
+      </div>
+    </div>
+
+    <!-- Passo 2 -->
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">
+      <div style="width:28px;height:28px;border-radius:50%;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="font-size:12px;font-weight:800;color:#A78BFA;">2</span>
+      </div>
+      <div>
+        <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 2px;">Seu e-mail ja vem preenchido automaticamente</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.45);margin:0;line-height:1.5;">Voce so precisa escolher uma senha e confirma-la. Use qualquer senha que voce vai lembrar.</p>
+      </div>
+    </div>
+
+    <!-- Passo 3 -->
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:26px;">
+      <div style="width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="font-size:12px;font-weight:800;color:#34D399;">3</span>
+      </div>
+      <div>
+        <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 2px;">Pronto: todos os seus materiais aparecem na tela</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.45);margin:0;line-height:1.5;">O acesso e permanente. Voce pode abrir quando quiser, do celular ou computador, so com o e-mail e a senha que criou agora.</p>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="text-align:center;margin-bottom:18px;">
+      <a href="${createAccountUrl}" style="display:inline-block;background:linear-gradient(135deg,#10B981,#059669);color:#ffffff;text-decoration:none;padding:18px 44px;border-radius:14px;font-weight:800;font-size:16px;letter-spacing:.2px;">
+        Acessar meus materiais agora &rarr;
       </a>
     </div>
 
-    <!-- Nota de rodape do card -->
-    <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:13px 16px;">
-      <p style="font-size:12px;color:rgba(255,255,255,.45);margin:0;line-height:1.7;text-align:center;">
-        Seu e-mail ja vem preenchido na pagina. Escolha uma senha, confirme, e tudo fica acessivel em segundos.
+    <!-- Nota informativa -->
+    <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px 16px;text-align:center;">
+      <p style="font-size:12px;color:rgba(255,255,255,.38);margin:0;line-height:1.7;">
+        Esta pagina e diferente do aplicativo Espiritualizei. E o seu espaco exclusivo para acessar os materiais da sua compra. Voce pode abrir quantas vezes quiser.
       </p>
     </div>
 
   </div>
 
-  <div style="text-align:center;padding-top:28px;">
-    <p style="font-size:11px;color:rgba(255,255,255,.2);margin:0;">Com carinho, equipe Espiritualizei &middot; contato@espiritualizei.com</p>
+  <!-- Footer -->
+  <div style="text-align:center;padding-top:26px;">
+    <p style="font-size:11px;color:rgba(255,255,255,.18);margin:0;">Com carinho, equipe Espiritualizei &middot; contato@espiritualizei.com</p>
   </div>
 
 </div>

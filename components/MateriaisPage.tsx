@@ -175,30 +175,65 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
   if (step === 'create' || step === 'login') {
     const isCreate = step === 'create';
     return (
-      <PageShell>
-        <div className="w-full max-w-sm space-y-6">
-          {/* Logo */}
-          <div className="text-center mb-2">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <HeartLogo />
-              <span className="font-bold text-white/80 text-sm tracking-wide">Espiritualizei</span>
+      <div className="min-h-screen bg-[#0F1419] text-white">
+
+        {/* Header minimalista */}
+        <div className="px-5 pt-6 pb-4 flex items-center gap-2">
+          <HeartLogo />
+          <span className="text-sm font-bold text-white/60 tracking-wide">Espiritualizei</span>
+        </div>
+
+        <div className="max-w-md mx-auto px-5 pb-16">
+
+          {/* Contexto: O QUE E ESTA PAGINA */}
+          <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-2xl px-4 py-3 mb-6 flex items-start gap-3">
+            <div className="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <CheckCircle2 size={14} className="text-emerald-400" />
             </div>
-            <h1 className="text-2xl font-black text-white leading-tight">
-              {isCreate
-                ? (firstName ? `${firstName}, crie sua senha` : 'Crie sua senha de acesso')
-                : 'Acessar meus materiais'}
-            </h1>
-            <p className="text-sm text-slate-400 mt-2 leading-relaxed">
-              {isCreate
-                ? 'Seus materiais estao prontos. Crie uma senha para acessar tudo.'
-                : 'Entre com seu e-mail e senha para ver seus materiais.'}
-            </p>
+            <div>
+              <p className="text-xs font-black text-emerald-300 uppercase tracking-wider mb-0.5">Pagina de acesso aos seus materiais</p>
+              <p className="text-xs text-emerald-200/70 leading-relaxed">
+                Esta pagina e exclusiva para voce acessar os materiais que adquiriu no Diagnostico Espiritual. Nao e o aplicativo Espiritualizei.
+              </p>
+            </div>
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-2xl font-black text-white leading-tight mb-1">
+            {isCreate
+              ? (firstName ? `${firstName}, crie sua senha de acesso` : 'Crie sua senha de acesso')
+              : 'Acesse seus materiais'}
+          </h1>
+          <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+            {isCreate
+              ? 'Escolha uma senha para guardar o acesso permanente aos seus materiais.'
+              : 'Use o e-mail e a senha que voce cadastrou para entrar.'}
+          </p>
+
+          {/* Preview dos materiais (contexto visual) */}
+          <div className="bg-white/3 border border-white/8 rounded-2xl p-4 mb-6">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">O que voce vai acessar aqui</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: 'Diagnostico Espiritual', color: 'text-brand-violet' },
+                { label: 'Plano de 21 Dias',       color: 'text-emerald-400' },
+                { label: 'Minha Novena',            color: 'text-amber-400'  },
+                { label: 'Cartas para Deus',        color: 'text-sky-400'    },
+              ].map(m => (
+                <div key={m.label} className="flex items-center gap-2">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${m.color.replace('text-', 'bg-')}`} />
+                  <span className={`text-xs font-semibold ${m.color}`}>{m.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Form */}
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">E-mail</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                E-mail usado na compra
+              </label>
               <input
                 type="email"
                 value={email}
@@ -210,7 +245,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
 
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
-                {isCreate ? 'Criar senha' : 'Senha'}
+                {isCreate ? 'Escolha uma senha' : 'Senha'}
               </label>
               <div className="relative">
                 <input
@@ -233,12 +268,12 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
 
             {isCreate && (
               <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Confirmar senha</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Confirme a senha</label>
                 <input
                   type={showPass ? 'text' : 'password'}
                   value={confirm}
                   onChange={e => setConfirm(e.target.value)}
-                  placeholder="Repita a senha"
+                  placeholder="Repita a senha escolhida"
                   onKeyDown={e => e.key === 'Enter' && handleCreate()}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-brand-violet/60 text-sm"
                 />
@@ -255,48 +290,53 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
             <button
               onClick={isCreate ? handleCreate : handleLogin}
               disabled={busy}
-              className="w-full bg-brand-violet hover:bg-brand-violet/90 active:scale-[.98] text-white font-black py-3.5 rounded-xl text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full bg-brand-violet hover:bg-brand-violet/90 active:scale-[.98] text-white font-black py-3.5 rounded-xl text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
             >
               {busy
                 ? <><Loader2 size={16} className="animate-spin" /> Aguarde...</>
                 : isCreate
-                  ? <><KeyRound size={16} /> Criar senha e acessar meus materiais</>
-                  : <><LogIn size={16} /> Entrar</>}
+                  ? <><KeyRound size={16} /> Salvar senha e ver meus materiais</>
+                  : <><LogIn size={16} /> Entrar e ver meus materiais</>}
             </button>
           </div>
 
           {/* Toggle + reset */}
-          <div className="text-center space-y-2">
+          <div className="text-center space-y-2 mt-5">
             {isCreate ? (
               <p className="text-xs text-slate-500">
-                Ja tem uma conta?{' '}
-                <button onClick={() => { setError(''); setPassword(''); setConfirm(''); setStep('login'); }} className="text-brand-violet font-bold underline">
+                Ja criou sua senha antes?{' '}
+                <button
+                  onClick={() => { setError(''); setPassword(''); setConfirm(''); setStep('login'); }}
+                  className="text-brand-violet font-bold underline"
+                >
                   Entrar com minha senha
                 </button>
               </p>
             ) : (
               <>
-                <button onClick={handleReset} disabled={busy} className="text-xs text-slate-500 underline hover:text-slate-300">
+                <button onClick={handleReset} disabled={busy} className="text-xs text-slate-500 underline hover:text-slate-300 block mx-auto">
                   Esqueci minha senha
                 </button>
-                {email && (
-                  <p className="text-xs text-slate-500 block">
-                    Primeira vez aqui?{' '}
-                    <button onClick={() => { setError(''); setPassword(''); setConfirm(''); setStep('create'); }} className="text-brand-violet font-bold underline">
-                      Criar minha senha
-                    </button>
-                  </p>
-                )}
+                <p className="text-xs text-slate-500">
+                  Primeira vez aqui?{' '}
+                  <button
+                    onClick={() => { setError(''); setPassword(''); setConfirm(''); setStep('create'); }}
+                    className="text-brand-violet font-bold underline"
+                  >
+                    Criar minha senha agora
+                  </button>
+                </p>
               </>
             )}
           </div>
 
-          <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600 pt-2">
+          <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600 mt-5">
             <Lock size={11} />
-            <span>Acesso seguro e permanente</span>
+            <span>Acesso exclusivo e permanente aos seus materiais</span>
           </div>
+
         </div>
-      </PageShell>
+      </div>
     );
   }
 
