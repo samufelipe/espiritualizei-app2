@@ -8,15 +8,6 @@ import { loginUser, registerUser, getSession, sendPasswordResetEmail, SUPABASE_U
 import { fetchQuizSessionByEmail } from '../services/quizImportService';
 import type { QuizImport } from '../services/quizImportService';
 
-// Três estados do fluxo de acesso
-// 'detect'      → verificando URL/sessão (loading inicial)
-// 'verifying'   → chamando verify-purchase-email no servidor
-// 'not_eligible'→ e-mail não tem compra confirmada no banco
-// 'create'      → elegível: formulário de criar senha (apenas via link do e-mail)
-// 'login'       → formulário de login (acesso direto sem link)
-// 'loading'     → buscando materiais após autenticação
-// 'materials'   → materiais liberados
-// 'reset_sent'  → link de recuperação enviado
 type Step = 'detect' | 'verifying' | 'not_eligible' | 'create' | 'login' | 'loading' | 'materials' | 'reset_sent';
 
 const QUIZ_BASE = 'https://www.espiritualizei.com/quiz';
@@ -42,8 +33,8 @@ async function verifyPurchase(email: string, stripeSessionId: string): Promise<V
   }
 }
 
-const HeartLogo = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="#A78BFA">
+const Logo = ({ size = 32 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="#A78BFA">
     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
   </svg>
 );
@@ -57,6 +48,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
   const [confirm, setConfirm]         = useState('');
   const [showPass, setShowPass]       = useState(false);
   const [error, setError]             = useState('');
+  const [info, setInfo]               = useState('');
   const [busy, setBusy]               = useState(false);
   const [materials, setMaterials]     = useState<QuizImport | null>(null);
   const [userFirstName, setUserFirstName] = useState('');
@@ -72,32 +64,27 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
       setFirstName(np.split(' ')[0] || '');
       setSessionParam(sp);
 
-      // Limpar URL imediatamente (não expõe dados na barra do navegador)
       window.history.replaceState({}, '', '/materiais');
 
-      // 1. Já tem sessão ativa → pular direto para materiais
       const existing = getSession();
       if (existing?.user?.id && existing.user.id !== 'guest' && Date.now() < existing.expiresAt) {
         loadMaterials(existing.user.email || ep);
         return;
       }
 
-      // 2. Sem link do e-mail (acesso direto) → somente login
       if (!ep || !sp) {
         setStep('login');
         return;
       }
 
-      // 3. Veio pelo link do e-mail → verificar elegibilidade no servidor
       setStep('verifying');
       const { eligible, hasAccount } = await verifyPurchase(ep, sp);
 
       if (!eligible) {
         setStep('not_eligible');
       } else if (hasAccount) {
-        // Já tem conta criada → vai direto para login com mensagem orientadora
         setStep('login');
-        setError('Voce ja criou sua senha de acesso. Entre com seu e-mail e senha abaixo.');
+        setInfo('Voce ja criou sua senha de acesso. Entre com seu e-mail e senha abaixo.');
       } else {
         setStep('create');
       }
@@ -122,10 +109,9 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
     if (!email || !password || !confirm) { setError('Preencha todos os campos.'); return; }
     if (password.length < 6) { setError('A senha precisa ter ao menos 6 caracteres.'); return; }
     if (password !== confirm) { setError('As senhas nao coincidem.'); return; }
-    setError('');
+    setError(''); setInfo('');
     setBusy(true);
 
-    // Double-check server-side antes de criar a conta (defesa em profundidade)
     const { eligible, hasAccount } = await verifyPurchase(email, sessionParam);
     if (!eligible) {
       setError('Nao foi possivel confirmar sua compra. Verifique o e-mail de confirmacao e tente novamente.');
@@ -133,10 +119,9 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
       return;
     }
     if (hasAccount) {
-      // Conta criada em outra aba ou device entre o load e o submit
       setPassword(''); setConfirm('');
       setStep('login');
-      setError('Voce ja criou sua senha de acesso. Entre com seu e-mail e senha abaixo.');
+      setInfo('Voce ja criou sua senha de acesso. Entre com seu e-mail e senha abaixo.');
       setBusy(false);
       return;
     }
@@ -160,11 +145,9 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
     } catch (e: any) {
       const msg = e?.message || '';
       if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('User already')) {
-        // Conta já existe: vai para login com mensagem clara
-        setError('');
         setPassword(''); setConfirm('');
         setStep('login');
-        setError('Voce ja criou sua senha antes. Entre com seu e-mail e senha abaixo.');
+        setInfo('Voce ja criou sua senha antes. Entre com seu e-mail e senha abaixo.');
       } else {
         setError(msg || 'Erro ao criar acesso. Tente novamente.');
       }
@@ -175,7 +158,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
 
   async function handleLogin() {
     if (!email || !password) { setError('Preencha e-mail e senha.'); return; }
-    setError('');
+    setError(''); setInfo('');
     setBusy(true);
     try {
       const session = await loginUser(email.trim(), password);
@@ -198,7 +181,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
 
   async function handleReset() {
     if (!email) { setError('Informe seu e-mail primeiro.'); return; }
-    setError('');
+    setError(''); setInfo('');
     setBusy(true);
     try {
       await sendPasswordResetEmail(email.trim());
@@ -210,239 +193,254 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
     }
   }
 
-  // ── RENDER STATES ─────────────────────────────────────────────────────────
+  // ── LOADING STATES ────────────────────────────────────────────────────────────
 
-  // Detect / Verifying
-  if (step === 'detect' || step === 'verifying') return (
-    <PageShell>
-      <Loader2 className="animate-spin text-brand-violet" size={32} />
-      <p className="text-sm text-slate-400 mt-4">
+  if (step === 'detect' || step === 'verifying' || step === 'loading') return (
+    <div className="min-h-screen bg-[#0A0E14] flex flex-col items-center justify-center gap-4">
+      <Logo size={36} />
+      <Loader2 className="animate-spin text-[#A78BFA]" size={24} />
+      <p className="text-sm text-slate-500">
         {step === 'verifying' ? 'Verificando sua compra...' : 'Carregando...'}
       </p>
-    </PageShell>
+    </div>
   );
 
-  // Loading materials
-  if (step === 'loading') return (
-    <PageShell>
-      <Loader2 className="animate-spin text-brand-violet" size={32} />
-      <p className="text-sm text-slate-400 mt-4">Carregando seus materiais...</p>
-    </PageShell>
-  );
+  // ── NOT ELIGIBLE ──────────────────────────────────────────────────────────────
 
-  // E-mail sem compra confirmada
   if (step === 'not_eligible') return (
-    <PageShell>
-      <div className="text-center max-w-xs">
-        <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+    <div className="min-h-screen bg-[#0A0E14] flex flex-col items-center justify-center px-5 py-12">
+      <div className="w-full max-w-sm text-center">
+        <div className="w-16 h-16 rounded-3xl bg-red-500/10 flex items-center justify-center mx-auto mb-5">
           <AlertCircle size={28} className="text-red-400" />
         </div>
         <h2 className="text-xl font-black text-white mb-2">Compra nao encontrada</h2>
-        <p className="text-sm text-slate-400 leading-relaxed mb-4">
+        <p className="text-sm text-slate-400 leading-relaxed mb-2">
           Nao encontramos uma compra confirmada para este link. Verifique se voce clicou no botao correto do e-mail de confirmacao.
         </p>
-        <p className="text-xs text-slate-500 leading-relaxed mb-6">
-          Se voce ja fez a compra e esta tendo problemas, fale com a gente pelo e-mail <strong className="text-slate-300">contato@espiritualizei.com</strong>
+        <p className="text-xs text-slate-500 leading-relaxed mb-8">
+          Precisa de ajuda? Fale com a gente em{' '}
+          <strong className="text-slate-300">contato@espiritualizei.com</strong>
         </p>
         <button
-          onClick={() => { setStep('login'); setError(''); }}
-          className="text-brand-violet text-sm font-bold underline"
+          onClick={() => { setStep('login'); setError(''); setInfo(''); }}
+          className="text-[#A78BFA] text-sm font-bold underline"
         >
           Ja tenho uma senha, entrar
         </button>
       </div>
-    </PageShell>
+    </div>
   );
 
-  // Reset enviado
+  // ── RESET SENT ────────────────────────────────────────────────────────────────
+
   if (step === 'reset_sent') return (
-    <PageShell>
-      <div className="text-center max-w-xs">
+    <div className="min-h-screen bg-[#0A0E14] flex flex-col items-center justify-center px-5 py-12">
+      <div className="w-full max-w-sm text-center">
         <CheckCircle2 size={48} className="text-emerald-400 mx-auto mb-4" />
         <h2 className="text-xl font-black text-white mb-2">E-mail enviado</h2>
-        <p className="text-sm text-slate-400 leading-relaxed">
+        <p className="text-sm text-slate-400 leading-relaxed mb-8">
           Verifique sua caixa de entrada e clique no link para criar uma nova senha. Depois volte aqui para entrar.
         </p>
         <button
           onClick={() => setStep('login')}
-          className="mt-6 text-brand-violet text-sm font-bold underline"
+          className="text-[#A78BFA] text-sm font-bold underline"
         >
           Voltar para o login
         </button>
       </div>
-    </PageShell>
+    </div>
   );
 
-  // ── AUTH FORMS (create | login) ─────────────────────────────────────────────
+  // ── AUTH FORMS (create | login) ───────────────────────────────────────────────
+
   if (step === 'create' || step === 'login') {
     const isCreate = step === 'create';
     return (
-      <div className="min-h-screen bg-[#0F1419] text-white">
+      <div className="min-h-screen bg-[#0A0E14] flex flex-col">
 
-        {/* Header */}
-        <div className="px-5 pt-6 pb-4 flex items-center gap-2">
-          <HeartLogo />
-          <span className="text-sm font-bold text-white/60 tracking-wide">Espiritualizei</span>
+        {/* Glow de fundo */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#A78BFA]/8 rounded-full blur-[120px]" />
         </div>
 
-        <div className="max-w-md mx-auto px-5 pb-16">
+        {/* Corpo centralizado */}
+        <div className="flex-1 flex flex-col items-center justify-center px-5 py-12 relative z-10">
 
-          {/* Contexto: o que é esta página */}
-          <div className="bg-emerald-500/8 border border-emerald-500/18 rounded-2xl px-4 py-3 mb-6 flex items-start gap-3">
-            <div className="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <ShieldCheck size={14} className="text-emerald-400" />
-            </div>
-            <div>
-              <p className="text-xs font-black text-emerald-300 uppercase tracking-wider mb-0.5">
-                Area exclusiva de materiais
-              </p>
-              <p className="text-xs text-emerald-200/65 leading-relaxed">
-                Esta pagina e o seu espaco privado para acessar os materiais da sua compra. Ela e diferente do aplicativo Espiritualizei.
-              </p>
-            </div>
+          {/* Logo + marca */}
+          <div className="flex flex-col items-center gap-2 mb-8">
+            <Logo size={40} />
+            <span className="text-xs font-bold text-white/40 tracking-[3px] uppercase">Espiritualizei</span>
           </div>
 
-          {/* Headline + sub */}
-          <h1 className="text-2xl font-black text-white leading-tight mb-1">
-            {isCreate
-              ? (firstName ? `${firstName}, crie sua senha de acesso` : 'Crie sua senha de acesso')
-              : 'Acessar meus materiais'}
-          </h1>
-          <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-            {isCreate
-              ? 'Voce esta criando uma senha permanente para acessar seus materiais. Use qualquer senha que voce va lembrar.'
-              : 'Entre com o e-mail e a senha que voce cadastrou para acessar seus materiais.'}
-          </p>
+          {/* Card principal */}
+          <div className="w-full max-w-sm">
 
-          {/* Preview dos materiais — contexto visual antes do form */}
-          <div className="bg-white/3 border border-white/8 rounded-2xl p-4 mb-6">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">O que voce vai acessar aqui</p>
-            <div className="grid grid-cols-2 gap-2.5">
-              {[
-                { label: 'Diagnostico Espiritual', color: 'bg-brand-violet',  text: 'text-brand-violet'  },
-                { label: 'Plano de 21 Dias',       color: 'bg-emerald-400',   text: 'text-emerald-400'   },
-                { label: 'Minha Novena',            color: 'bg-amber-400',     text: 'text-amber-400'     },
-                { label: 'Cartas para Deus',        color: 'bg-sky-400',       text: 'text-sky-400'       },
-              ].map(m => (
-                <div key={m.label} className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${m.color}`} />
-                  <span className={`text-xs font-semibold ${m.text}`}>{m.label}</span>
+            {/* Headline */}
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-black text-white leading-tight mb-1.5">
+                {isCreate
+                  ? (firstName ? `${firstName}, crie sua senha` : 'Crie sua senha de acesso')
+                  : 'Meus Materiais'}
+              </h1>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                {isCreate
+                  ? 'Uma senha permanente para acessar seus materiais quando quiser.'
+                  : 'Entre com o e-mail e senha que voce cadastrou.'}
+              </p>
+            </div>
+
+            {/* Banner de informacao (retornante ou outro) */}
+            {info && (
+              <div className="flex items-start gap-2.5 bg-[#A78BFA]/10 border border-[#A78BFA]/25 rounded-2xl p-3.5 mb-5">
+                <ShieldCheck size={15} className="text-[#A78BFA] flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#C4B5FD] leading-relaxed">{info}</p>
+              </div>
+            )}
+
+            {/* Aviso de area exclusiva */}
+            {!info && (
+              <div className="flex items-center gap-2 bg-white/3 border border-white/8 rounded-2xl px-3.5 py-2.5 mb-5">
+                <Lock size={11} className="text-emerald-400 flex-shrink-0" />
+                <p className="text-[11px] text-slate-500">
+                  Area exclusiva — diferente do aplicativo Espiritualizei
+                </p>
+              </div>
+            )}
+
+            {/* Campos */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                  {isCreate ? 'E-mail usado na compra' : 'E-mail'}
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); setError(''); }}
+                  placeholder="seu@email.com"
+                  readOnly={isCreate && !!email}
+                  className={`w-full bg-white/4 border border-white/8 rounded-2xl px-4 py-3.5 text-white placeholder-slate-600 focus:outline-none focus:border-[#A78BFA]/50 focus:bg-white/6 transition-all text-sm ${isCreate && email ? 'opacity-50 cursor-not-allowed' : ''}`}
+                />
+                {isCreate && email && (
+                  <p className="text-[10px] text-slate-600 mt-1 ml-1">Verificado e bloqueado para seguranca.</p>
+                )}
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                  {isCreate ? 'Escolha uma senha' : 'Senha'}
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => { setPassword(e.target.value); setError(''); }}
+                    placeholder={isCreate ? 'Minimo 6 caracteres' : 'Sua senha'}
+                    onKeyDown={e => e.key === 'Enter' && !isCreate && handleLogin()}
+                    className="w-full bg-white/4 border border-white/8 rounded-2xl px-4 py-3.5 pr-12 text-white placeholder-slate-600 focus:outline-none focus:border-[#A78BFA]/50 focus:bg-white/6 transition-all text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(s => !s)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    {showPass ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Form */}
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
-                E-mail usado na compra
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="seu@email.com"
-                readOnly={isCreate && !!email}
-                className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-brand-violet/60 text-sm ${isCreate && email ? 'opacity-60 cursor-not-allowed' : ''}`}
-              />
-              {isCreate && email && (
-                <p className="text-[11px] text-slate-500 mt-1 ml-1">E-mail verificado e bloqueado para seguranca.</p>
+              {isCreate && (
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                    Confirme a senha
+                  </label>
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    value={confirm}
+                    onChange={e => { setConfirm(e.target.value); setError(''); }}
+                    placeholder="Repita a senha escolhida"
+                    onKeyDown={e => e.key === 'Enter' && handleCreate()}
+                    className="w-full bg-white/4 border border-white/8 rounded-2xl px-4 py-3.5 text-white placeholder-slate-600 focus:outline-none focus:border-[#A78BFA]/50 focus:bg-white/6 transition-all text-sm"
+                  />
+                </div>
+              )}
+
+              {error && (
+                <div className="flex items-start gap-2.5 bg-red-500/8 border border-red-500/20 rounded-2xl p-3.5">
+                  <AlertCircle size={15} className="text-red-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-300 leading-relaxed">{error}</p>
+                </div>
+              )}
+
+              <button
+                onClick={isCreate ? handleCreate : handleLogin}
+                disabled={busy}
+                className="w-full bg-[#A78BFA] hover:bg-[#9370f0] active:scale-[.98] text-white font-black py-3.5 rounded-2xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-1"
+              >
+                {busy
+                  ? <><Loader2 size={16} className="animate-spin" /> Aguarde...</>
+                  : isCreate
+                    ? <><KeyRound size={16} /> Criar acesso e ver meus materiais</>
+                    : <><LogIn size={16} /> Entrar e ver meus materiais</>}
+              </button>
+            </div>
+
+            {/* Acoes secundarias */}
+            <div className="text-center space-y-3 mt-5">
+              {isCreate ? (
+                <p className="text-xs text-slate-600">
+                  Ja criou sua senha?{' '}
+                  <button
+                    onClick={() => { setError(''); setInfo(''); setPassword(''); setConfirm(''); setStep('login'); }}
+                    className="text-[#A78BFA] font-bold"
+                  >
+                    Entrar com minha senha
+                  </button>
+                </p>
+              ) : (
+                <>
+                  <button
+                    onClick={handleReset}
+                    disabled={busy}
+                    className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+                  >
+                    Esqueci minha senha
+                  </button>
+                  <p className="text-[11px] text-slate-700 leading-relaxed">
+                    Para criar seu acesso, clique no botao do e-mail de confirmacao de compra que voce recebeu.
+                  </p>
+                </>
               )}
             </div>
 
-            <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
-                {isCreate ? 'Escolha uma senha' : 'Senha'}
-              </label>
-              <div className="relative">
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder={isCreate ? 'Minimo 6 caracteres' : 'Sua senha'}
-                  onKeyDown={e => e.key === 'Enter' && !isCreate && handleLogin()}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-white placeholder-slate-500 focus:outline-none focus:border-brand-violet/60 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(s => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
-                >
-                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+            {/* Preview discreto dos materiais */}
+            <div className="mt-8 pt-6 border-t border-white/5">
+              <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center mb-3">
+                O que voce vai acessar
+              </p>
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+                {[
+                  { label: 'Diagnostico Espiritual', color: '#A78BFA' },
+                  { label: 'Plano de 21 Dias',       color: '#34D399' },
+                  { label: 'Minha Novena',            color: '#FBBF24' },
+                  { label: 'Cartas para Deus',        color: '#38BDF8' },
+                ].map(m => (
+                  <div key={m.label} className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: m.color }} />
+                    <span className="text-[11px] text-slate-500">{m.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {isCreate && (
-              <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Confirme a senha</label>
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  value={confirm}
-                  onChange={e => setConfirm(e.target.value)}
-                  placeholder="Repita a senha escolhida"
-                  onKeyDown={e => e.key === 'Enter' && handleCreate()}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-brand-violet/60 text-sm"
-                />
-              </div>
-            )}
-
-            {error && (
-              <div className="flex items-start gap-2.5 bg-red-500/10 border border-red-500/25 rounded-xl p-3">
-                <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-red-300 leading-relaxed">{error}</p>
-              </div>
-            )}
-
-            <button
-              onClick={isCreate ? handleCreate : handleLogin}
-              disabled={busy}
-              className="w-full bg-brand-violet hover:bg-brand-violet/90 active:scale-[.98] text-white font-black py-3.5 rounded-xl text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
-            >
-              {busy
-                ? <><Loader2 size={16} className="animate-spin" /> Aguarde...</>
-                : isCreate
-                  ? <><KeyRound size={16} /> Salvar senha e ver meus materiais</>
-                  : <><LogIn size={16} /> Entrar e ver meus materiais</>}
-            </button>
           </div>
-
-          {/* Acoes secundarias */}
-          <div className="text-center space-y-2 mt-5">
-            {isCreate ? (
-              <p className="text-xs text-slate-500">
-                Ja criou sua senha antes?{' '}
-                <button
-                  onClick={() => { setError(''); setPassword(''); setConfirm(''); setStep('login'); }}
-                  className="text-brand-violet font-bold underline"
-                >
-                  Entrar com minha senha
-                </button>
-              </p>
-            ) : (
-              <>
-                <button onClick={handleReset} disabled={busy} className="text-xs text-slate-500 underline hover:text-slate-300 block mx-auto">
-                  Esqueci minha senha
-                </button>
-                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                  Para criar seu acesso, clique no botao do e-mail de confirmacao de compra que voce recebeu.
-                </p>
-              </>
-            )}
-          </div>
-
-          <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600 mt-5">
-            <Lock size={11} />
-            <span>Acesso exclusivo e permanente aos seus materiais</span>
-          </div>
-
         </div>
       </div>
     );
   }
 
-  // ── MATERIALS VIEW ──────────────────────────────────────────────────────────
+  // ── MATERIALS VIEW ────────────────────────────────────────────────────────────
+
   const sid       = materials?.stripeSessionId;
   const name      = userFirstName || materials?.name?.split(' ')[0] || '';
   const challenge = materials?.quizData?.answers?.challenge || 'anxiety';
@@ -453,105 +451,123 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
       title: 'Diagnostico Completo',
       desc: 'Seu mapa espiritual com dons, raizes e proximos passos.',
       href: `${QUIZ_BASE}/resultado?session=${encodeURIComponent(sid)}`,
-      tint: 'from-brand-violet/15 to-purple-500/5 border-brand-violet/25',
-      iconColor: 'text-brand-violet',
+      accent: '#A78BFA',
+      bg: 'rgba(167,139,250,0.07)',
+      border: 'rgba(167,139,250,0.18)',
     },
     {
       icon: CalendarCheck,
       title: 'Plano de 21 Dias',
       desc: 'Intencao, oracao, pratica e versiculo para cada dia.',
       href: `${QUIZ_BASE}/resultado?session=${encodeURIComponent(sid)}`,
-      tint: 'from-emerald-500/15 to-green-500/5 border-emerald-500/25',
-      iconColor: 'text-emerald-400',
+      accent: '#34D399',
+      bg: 'rgba(52,211,153,0.07)',
+      border: 'rgba(52,211,153,0.18)',
     },
     {
       icon: Sparkles,
       title: 'Minha Novena',
       desc: '9 dias de oracao feitos para o seu desafio real.',
       href: `${QUIZ_BASE}/minha-novena.html?session=${encodeURIComponent(sid)}`,
-      tint: 'from-amber-400/15 to-yellow-500/5 border-amber-400/25',
-      iconColor: 'text-amber-400',
+      accent: '#FBBF24',
+      bg: 'rgba(251,191,36,0.07)',
+      border: 'rgba(251,191,36,0.18)',
     },
     {
       icon: PenLine,
       title: 'Cartas para Deus',
       desc: 'Convites diarios para escrever o seu coracao a Deus.',
       href: `${QUIZ_BASE}/cartas-para-deus.html?name=${encodeURIComponent(name)}&challenge=${encodeURIComponent(challenge)}&session=${encodeURIComponent(sid)}`,
-      tint: 'from-sky-400/15 to-cyan-500/5 border-sky-400/25',
-      iconColor: 'text-sky-400',
+      accent: '#38BDF8',
+      bg: 'rgba(56,189,248,0.07)',
+      border: 'rgba(56,189,248,0.18)',
     },
   ] : [];
 
   return (
-    <div className="min-h-screen bg-[#0F1419] text-white">
+    <div className="min-h-screen bg-[#0A0E14] text-white">
+
+      {/* Glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-[#A78BFA]/6 rounded-full blur-[100px]" />
+      </div>
 
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#0F1419]/90 backdrop-blur border-b border-white/5 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <HeartLogo />
-          <span className="font-bold text-white/70 text-sm">Espiritualizei</span>
+      <div className="sticky top-0 z-20 bg-[#0A0E14]/80 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Logo size={26} />
+            <span className="font-bold text-white/50 text-sm tracking-wide">Espiritualizei</span>
+          </div>
+          {onOpenApp && (
+            <button
+              onClick={onOpenApp}
+              className="text-xs font-bold text-[#A78BFA] hover:text-[#C4B5FD] transition-colors flex items-center gap-1"
+            >
+              Abrir o App <ArrowRight size={13} />
+            </button>
+          )}
         </div>
-        {onOpenApp && (
-          <button
-            onClick={onOpenApp}
-            className="text-xs font-bold text-brand-violet hover:text-brand-violet/80 transition-colors"
-          >
-            Abrir o App &rarr;
-          </button>
-        )}
       </div>
 
       {/* Hero */}
-      <div className="relative overflow-hidden px-4 pt-8 pb-6 max-w-2xl mx-auto">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-violet/15 via-transparent to-transparent pointer-events-none" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Lock size={11} className="text-emerald-400" />
-            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Acesso permanente</span>
-          </div>
-          <h1 className="text-2xl font-black text-white leading-tight">
-            {name ? `${name}, seus materiais estao aqui.` : 'Meus Materiais'}
-          </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-md leading-relaxed">
-            Tudo o que e seu, guardado na sua conta. Abra quando e onde quiser.
-          </p>
+      <div className="max-w-2xl mx-auto px-5 pt-10 pb-6 relative z-10">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[3px]">Acesso permanente</span>
         </div>
-        <div className="h-px bg-gradient-to-r from-transparent via-brand-violet/25 to-transparent mt-5" />
+        <h1 className="text-3xl font-black text-white leading-tight mb-2">
+          {name ? `${name}, seus materiais\nestao aqui.` : 'Meus Materiais'}
+        </h1>
+        <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
+          Tudo o que e seu, guardado na sua conta. Abra quando quiser.
+        </p>
+        <div className="h-px bg-gradient-to-r from-[#A78BFA]/20 via-[#A78BFA]/8 to-transparent mt-7" />
       </div>
 
-      {/* Grid ou estado vazio */}
-      <div className="max-w-2xl mx-auto px-4 pb-16">
+      {/* Grid */}
+      <div className="max-w-2xl mx-auto px-5 pb-16 relative z-10">
         {!sid ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-3xl bg-brand-violet/10 flex items-center justify-center mx-auto mb-5">
-              <Sparkles size={28} className="text-brand-violet" />
+          <div className="text-center py-20">
+            <div className="w-16 h-16 rounded-3xl bg-[#A78BFA]/10 flex items-center justify-center mx-auto mb-5">
+              <Sparkles size={28} className="text-[#A78BFA]" />
             </div>
             <h2 className="text-xl font-black text-white mb-2">Materiais nao encontrados</h2>
-            <p className="text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
-              Verifique se voce esta usando o mesmo e-mail da compra. Se precisar de ajuda, fale com a gente em <strong className="text-slate-300">contato@espiritualizei.com</strong>
+            <p className="text-sm text-slate-500 max-w-xs mx-auto leading-relaxed">
+              Verifique se voce esta usando o mesmo e-mail da compra. Se precisar de ajuda, escreva para{' '}
+              <strong className="text-slate-300">contato@espiritualizei.com</strong>
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {items.map(item => (
               <a
                 key={item.title}
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`group relative overflow-hidden rounded-3xl border p-5 bg-gradient-to-br ${item.tint} transition-all active:scale-[0.98] hover:shadow-lg cursor-pointer flex flex-col`}
+                className="group relative overflow-hidden rounded-3xl p-5 flex flex-col transition-all active:scale-[0.98]"
+                style={{
+                  background: item.bg,
+                  border: `1px solid ${item.border}`,
+                }}
               >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl -mr-8 -mt-8" />
-                <div className="flex items-start justify-between mb-4 relative z-10">
-                  <div className={`w-12 h-12 rounded-2xl bg-white/8 flex items-center justify-center ${item.iconColor}`}>
-                    <item.icon size={24} strokeWidth={2} />
+                <div className="flex items-start justify-between mb-5">
+                  <div
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center"
+                    style={{ background: `${item.accent}18` }}
+                  >
+                    <item.icon size={22} style={{ color: item.accent }} strokeWidth={2} />
                   </div>
-                  <ExternalLink size={16} className="text-white/30 group-hover:text-white/60 transition-colors" />
+                  <ExternalLink size={14} className="text-white/20 group-hover:text-white/50 transition-colors mt-1" />
                 </div>
-                <h3 className="font-black text-white text-base mb-1 relative z-10">{item.title}</h3>
-                <p className="text-xs text-white/55 leading-relaxed relative z-10 flex-1">{item.desc}</p>
-                <div className="flex items-center gap-1.5 mt-4 text-xs font-bold text-white/70 group-hover:text-white transition-colors relative z-10">
-                  Abrir <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                <h3 className="font-black text-white text-[15px] mb-1">{item.title}</h3>
+                <p className="text-xs text-white/45 leading-relaxed flex-1">{item.desc}</p>
+                <div
+                  className="flex items-center gap-1.5 mt-4 text-xs font-bold transition-colors"
+                  style={{ color: `${item.accent}aa` }}
+                >
+                  Abrir <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" style={{ color: item.accent }} />
                 </div>
               </a>
             ))}
@@ -559,25 +575,11 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
         )}
 
         {sid && (
-          <p className="text-center text-[11px] text-slate-600 mt-6 leading-relaxed">
-            Estes materiais abrem em uma nova aba. Ligados permanentemente ao seu e-mail.
+          <p className="text-center text-[11px] text-slate-700 mt-6">
+            Materiais abrem em nova aba. Ligados permanentemente ao seu e-mail.
           </p>
         )}
       </div>
-    </div>
-  );
-}
-
-function PageShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-[#0F1419] flex flex-col items-center justify-center px-5 py-12">
-      <div className="flex items-center gap-2 mb-10">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="#A78BFA">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-        </svg>
-        <span className="text-sm font-bold text-white/60 tracking-wide">Espiritualizei</span>
-      </div>
-      {children}
     </div>
   );
 }
