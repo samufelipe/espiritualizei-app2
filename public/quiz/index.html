@@ -328,47 +328,6 @@
     #sticky-buy-price s { color: rgba(255,255,255,.28); }
     #sticky-buy-price strong { color: #34D399; font-weight: 800; }
 
-    .vsl-sound-overlay {
-      position: absolute; inset: 0; z-index: 50;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      cursor: pointer; text-align: center; padding: 0 28px;
-      background: linear-gradient(to bottom, rgba(0,0,0,.72) 0%, rgba(10,12,18,.8) 45%, rgba(0,0,0,.72) 100%);
-      backdrop-filter: blur(3px);
-      transition: opacity .45s ease;
-    }
-
-    .vsl-overlay-logo {
-      display: flex; align-items: center; gap: 7px; margin-bottom: 40px;
-    }
-    .vsl-overlay-brand {
-      font-size: 12px; font-weight: 700; color: rgba(255,255,255,.45);
-      letter-spacing: 1.5px; text-transform: uppercase; font-family: 'Inter', sans-serif;
-    }
-
-    .vsl-overlay-greeting {
-      font-family: 'Inter', sans-serif;
-      font-size: 16px; color: rgba(255,255,255,.7); font-weight: 500;
-      margin: 0 0 36px; line-height: 1.6;
-    }
-    .vsl-overlay-greeting strong { color: #fff; font-weight: 800; font-size: 18px; }
-
-    .vsl-play-btn {
-      width: 82px; height: 82px; border-radius: 50%; background: #fff;
-      display: flex; align-items: center; justify-content: center; padding-left: 4px;
-      margin-bottom: 26px;
-      box-shadow: 0 0 0 14px rgba(255,255,255,.07), 0 0 0 28px rgba(255,255,255,.035), 0 12px 40px rgba(0,0,0,.5);
-      animation: vslPlayPulse 2.6s ease-in-out infinite;
-    }
-    @keyframes vslPlayPulse {
-      0%,100% { box-shadow: 0 0 0 14px rgba(255,255,255,.07), 0 0 0 28px rgba(255,255,255,.035), 0 12px 40px rgba(0,0,0,.5); transform: scale(1); }
-      50%      { box-shadow: 0 0 0 18px rgba(255,255,255,.10), 0 0 0 36px rgba(255,255,255,.05), 0 12px 40px rgba(0,0,0,.5); transform: scale(1.04); }
-    }
-
-    .vsl-sound-hint {
-      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
-      color: rgba(255,255,255,.6); letter-spacing: .3px;
-    }
-
     /* ── Paywall redesign ── */
     .offer-card {
       display: flex; align-items: center; gap: 14px;
@@ -766,25 +725,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </button>
 
   <div class="vsl-stage">
-    <video id="vsl-video" playsinline muted preload="auto">
+    <video id="vsl-video" playsinline preload="auto">
       <source src="/quiz/vsl.mp4" type="video/mp4">
     </video>
 
-    <div id="vsl-sound-overlay" class="vsl-sound-overlay" onclick="vslUnmute()">
-      <div class="vsl-overlay-logo">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#A78BFA">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-        </svg>
-        <span class="vsl-overlay-brand">Espiritualizei</span>
-      </div>
-      <p class="vsl-overlay-greeting">Seu diagnóstico está pronto,<br><strong id="vsl-name"></strong></p>
-      <div class="vsl-play-btn">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="#1A2530">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-      </div>
-      <p class="vsl-sound-hint">Toque para assistir com som</p>
-    </div>
+    <!-- Botão minimo de som — só aparece se o browser bloquear autoplay com audio -->
+    <button id="vsl-unmute-btn" onclick="vslUnmute()" style="display:none;position:absolute;bottom:70px;right:14px;z-index:20;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18);border-radius:50px;padding:8px 14px;color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;display:none;align-items:center;gap:6px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      Toque para som
+    </button>
   </div>
 </div>
 
@@ -1957,33 +1906,33 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (!active || active.id !== 's-loading') return
 
     _vslAdvanced = false
-    const v       = document.getElementById('vsl-video')
-    const overlay = document.getElementById('vsl-sound-overlay')
-    const skipBtn = document.getElementById('vsl-skip-btn')
-    const fill    = document.getElementById('vsl-progress')
-    const nameEl  = document.getElementById('vsl-name')
+    const v         = document.getElementById('vsl-video')
+    const unmuteBtn = document.getElementById('vsl-unmute-btn')
+    const skipBtn   = document.getElementById('vsl-skip-btn')
+    const fill      = document.getElementById('vsl-progress')
 
     if (!v) { _vslGoToPaywall(); return }
 
     show('s-vsl')
 
-    // Personalize overlay with lead's name
-    if (nameEl) nameEl.textContent = S.name || 'caminhante'
-
-    // Reset visual state (handles re-entry from back-navigation)
-    fill.style.width = '0%'
+    // Reset visual state
+    fill.style.width  = '0%'
     skipBtn.style.display = 'none'
-    if (overlay) {
-      overlay.style.opacity = '1'
-      overlay.style.pointerEvents = 'auto'
-      overlay.style.display = 'flex'
-    }
+    if (unmuteBtn) unmuteBtn.style.display = 'none'
 
-    // Autoplay muted — allowed by all browsers
-    v.muted = true
     v.currentTime = 0
+    v.muted = false  // tenta com som — o lead já interagiu com a página
+
     const playP = v.play()
-    if (playP && playP.catch) playP.catch(() => {})
+    if (playP) {
+      playP.catch(() => {
+        // Browser bloqueou autoplay com som (ex: Safari sem interação direta no vídeo)
+        // Cai silenciosamente em muted e mostra botão minimo para o lead ativar o som
+        v.muted = true
+        v.play().catch(() => {})
+        if (unmuteBtn) unmuteBtn.style.display = 'flex'
+      })
+    }
 
     // Progress bar + reveal skip near the end
     v.ontimeupdate = () => {
@@ -2008,18 +1957,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   function vslUnmute() {
-    const v = document.getElementById('vsl-video')
-    const overlay = document.getElementById('vsl-sound-overlay')
+    const v         = document.getElementById('vsl-video')
+    const unmuteBtn = document.getElementById('vsl-unmute-btn')
     if (!v) return
     v.muted = false
-    v.currentTime = 0
     const p = v.play()
     if (p && p.catch) p.catch(() => {})
-    if (overlay) {
-      overlay.style.opacity = '0'
-      overlay.style.pointerEvents = 'none'
-      setTimeout(() => { overlay.style.display = 'none' }, 450)
-    }
+    if (unmuteBtn) unmuteBtn.style.display = 'none'
   }
 
   function skipVSL() {
