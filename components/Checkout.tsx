@@ -147,7 +147,7 @@ const Checkout: React.FC<CheckoutProps> = ({ onSuccess, onVerifyPayment, userNam
                disabled={isVerifying}
                className="w-full mt-4 py-3 rounded-xl border border-brand-violet/30 text-brand-violet font-bold text-sm hover:bg-brand-violet/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
              >
-               {isVerifying ? <><Loader2 size={16} className="animate-spin" /> Verificando...</> : <><RefreshCw size={16} /> Já paguei — Verificar meu acesso</>}
+               {isVerifying ? <><Loader2 size={16} className="animate-spin" /> Verificando...</> : <><RefreshCw size={16} /> Já paguei: Verificar meu acesso</>}
              </button>
            )}
         </div>

@@ -302,7 +302,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
               <div className="flex items-center gap-2 bg-white/3 border border-white/8 rounded-2xl px-3.5 py-2.5 mb-5">
                 <Lock size={11} className="text-emerald-400 flex-shrink-0" />
                 <p className="text-[11px] text-slate-500">
-                  Area exclusiva — diferente do aplicativo Espiritualizei
+                  Area exclusiva. Diferente do aplicativo Espiritualizei
                 </p>
               </div>
             )}

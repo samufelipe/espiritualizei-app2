@@ -423,13 +423,13 @@ export const getRecoveryEmail = (params: {
     },
     2: {
       headline: `Você ainda está carregando ${challengeText}?`,
-      body: `${firstName}, esse peso não desaparece sozinho. O Plano de 21 Dias que criamos foi pensado especificamente para o desafio que você revelou — não um plano genérico, mas um caminho feito para o seu momento real. Ele está esperando por você.`,
+      body: `${firstName}, esse peso não desaparece sozinho. O Plano de 21 Dias que criamos foi pensado especificamente para o desafio que você revelou. Não é um plano genérico: é um caminho feito para o seu momento real. Ele está esperando por você.`,
       cta: 'Ver meu plano personalizado &rarr;',
-      ps: `R$19,90 — pagamento único, acesso permanente. Menos de R$1 por dia.`,
+      ps: `R$19,90. Pagamento único, acesso permanente. Menos de R$1 por dia.`,
     },
     3: {
       headline: 'Uma última coisa antes de você ir.',
-      body: `${firstName}, você fez as perguntas certas. Revelou onde está. Existe um caminho de 21 dias esperando por você — com intenção, oração e tarefa para cada dia, criados para o seu desafio específico. Não é uma promessa vaga. É um plano real para um começo real.`,
+      body: `${firstName}, você fez as perguntas certas. Revelou onde está. Existe um caminho de 21 dias esperando por você, com intenção, oração e tarefa para cada dia, criados para o seu desafio específico. Não é uma promessa vaga. É um plano real para um começo real.`,
       cta: 'Quero meu plano de 21 dias &rarr;',
       ps: `Garantia de 7 dias. Se não valer cada centavo, devolvemos tudo.`,
     },

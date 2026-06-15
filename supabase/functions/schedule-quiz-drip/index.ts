@@ -208,7 +208,7 @@ serve(async (req: any) => {
       })
     }
 
-    // Inserir — ignorar duplicatas (idempotente)
+    // Inserir: ignorar duplicatas (idempotente)
     const { error: insertErr } = await supabase
       .from('quiz_email_drip')
       .upsert(records, { onConflict: 'quiz_session_id,day_number', ignoreDuplicates: true })

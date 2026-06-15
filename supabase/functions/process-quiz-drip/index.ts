@@ -88,7 +88,7 @@ function buildDayEmailHtml(p: {
     </p>
 
     ${(dayNumber === 7 || dayNumber === 14) ? `<div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.18);border-radius:12px;padding:14px 16px;margin:0 0 24px;">
-      <p style="font-size:12.5px;color:rgba(255,255,255,.6);line-height:1.6;margin:0;">Voc&ecirc; sabia? Milhares de cat&oacute;licos rezam todos os dias no app do Espiritualizei, uns pelos outros. Quando seus 21 dias terminarem, voc&ecirc; n&atilde;o vai precisar caminhar sozinha.</p>
+      <p style="font-size:12.5px;color:rgba(255,255,255,.6);line-height:1.6;margin:0;">Voc&ecirc; sabia? Milhares de cat&oacute;licos rezam todos os dias no app do Espiritualizei, uns pelos outros. Quando seus 21 dias terminarem, voc&ecirc; n&atilde;o vai precisar caminhar sozinho.</p>
     </div>` : ''}
 
     <div style="text-align:center;">
@@ -115,9 +115,21 @@ function buildDayEmailHtml(p: {
 
 // ── E-mail de fechamento (Dia 21): oferta forte do app ─────────────────────────
 
-function buildDay21CloseHtml(name: string): string {
+const CHALLENGE_CONTINUIDADE: Record<string, string> = {
+  anxiety:       'A ansiedade nao avisa quando quer voltar',
+  sadness:       'A tristeza nao avisa quando quer voltar',
+  relationships: 'As feridas nos relacionamentos nao somem por conta propria',
+  laziness:      'A constancia precisa ser alimentada todo dia para existir',
+  dryness:       'O coracao seca facilmente quando nao tem estrutura de oracao',
+  ignorance:     'A fe precisa ser nutrida com continuidade para crescer',
+  pride:         'O perdao e uma caminhada, nao um momento unico',
+  lust:          'A libertacao e uma caminhada diaria, nao um destino final',
+}
+
+function buildDay21CloseHtml(name: string, challenge: string): string {
   const appUrl = 'https://www.espiritualizei.com/?from=drip21'
   const materiaisUrl = 'https://www.espiritualizei.com/materiais'
+  const continuidade = CHALLENGE_CONTINUIDADE[challenge] || 'O desafio pode voltar a qualquer momento'
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -145,13 +157,13 @@ function buildDay21CloseHtml(name: string): string {
     <div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:20px;"></div>
 
     <p style="font-size:15px;color:rgba(255,255,255,.78);line-height:1.75;margin:0 0 18px;">
-      Em 21 dias voc&ecirc; provou pra si mesma uma coisa: a paz &eacute; poss&iacute;vel quando existe um caminho.
+      Em 21 dias voc&ecirc; provou pra si: a paz &eacute; poss&iacute;vel quando existe um caminho.
     </p>
     <p style="font-size:15px;color:rgba(255,255,255,.78);line-height:1.75;margin:0 0 18px;">
-      Mas hoje &eacute; o dia 21. E amanh&atilde; &eacute; o dia 22. A ansiedade n&atilde;o avisa quando vai voltar, e o pior jeito de enfrentar isso &eacute; sozinha.
+      Mas hoje &eacute; o dia 21. E amanh&atilde; &eacute; o dia 22. ${continuidade}. O pior jeito de enfrentar isso &eacute; sozinho.
     </p>
     <p style="font-size:15px;color:rgba(255,255,255,.9);line-height:1.75;margin:0 0 28px;font-weight:600;">
-      No app do Espiritualizei a sua caminhada continua, e voc&ecirc; nunca mais reza sozinha: milhares de cat&oacute;licos rezando todos os dias, uns pelos outros.
+      No app do Espiritualizei a sua caminhada continua, e voc&ecirc; nunca mais reza sozinho: milhares de cat&oacute;licos rezando todos os dias, uns pelos outros.
     </p>
 
     <div style="background:rgba(167,139,250,.07);border:1.5px solid rgba(167,139,250,.2);border-radius:14px;padding:18px;margin-bottom:28px;">
@@ -243,7 +255,7 @@ serve(async (req: any) => {
         if (record.day_number === 21) {
           // Fechamento: oferta forte do app (continuação)
           subject = `${record.name}, você concluiu os 21 dias 🎉 e agora?`
-          html = buildDay21CloseHtml(record.name)
+          html = buildDay21CloseHtml(record.name, record.challenge || 'anxiety')
         } else {
           if (record.day_number === 1) {
             subject = `${record.name}, seu Desafio de 21 Dias começa hoje 🙏`

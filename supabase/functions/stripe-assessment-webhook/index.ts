@@ -200,26 +200,26 @@ serve(async (req) => {
           .eq('status', 'pending')
           .then(({ error: cancelErr }) => {
             if (cancelErr) console.warn('Aviso: falha ao cancelar recuperação:', cancelErr.message)
-            else console.log(`🚫 Recuperação cancelada para ${customerEmail} — lead converteu`)
+            else console.log(`🚫 Recuperacao cancelada para ${customerEmail}. Lead converteu.`)
           })
       : Promise.resolve()
 
-    const resolveQuizSession = (async (): Promise<{ id: string; name: string | null; purchase_email_sent: boolean; stripe_session_id: string | null } | null> => {
+    const resolveQuizSession = (async (): Promise<{ id: string; name: string | null; purchase_email_sent: boolean; stripe_session_id: string | null; drip_scheduled: boolean | null; quiz_data: any | null } | null> => {
       try {
         let found: any = null
         if (quizSessionId) {
           const { data } = await supabase.from('quiz_sessions')
-            .select('id,name,purchase_email_sent,stripe_session_id').eq('id', quizSessionId).maybeSingle()
+            .select('id,name,purchase_email_sent,stripe_session_id,drip_scheduled,quiz_data').eq('id', quizSessionId).maybeSingle()
           if (data) found = data
         }
         if (!found) {
           const { data } = await supabase.from('quiz_sessions')
-            .select('id,name,purchase_email_sent,stripe_session_id').eq('stripe_session_id', session.id).maybeSingle()
+            .select('id,name,purchase_email_sent,stripe_session_id,drip_scheduled,quiz_data').eq('stripe_session_id', session.id).maybeSingle()
           if (data) found = data
         }
         if (!found && customerEmail) {
           const { data } = await supabase.from('quiz_sessions')
-            .select('id,name,purchase_email_sent,stripe_session_id')
+            .select('id,name,purchase_email_sent,stripe_session_id,drip_scheduled,quiz_data')
             .eq('email', customerEmail).order('created_at', { ascending: false }).limit(1).maybeSingle()
           if (data) found = data
         }
@@ -289,7 +289,29 @@ serve(async (req) => {
         console.log(`E-mail pós-compra já enviado para ${customerEmail}. Pulando.`)
       }
     } else if (!resendApiKey) {
-      console.warn('RESEND_API_KEY ausente — e-mail instantâneo não enviado')
+      console.warn('RESEND_API_KEY ausente: e-mail instantaneo nao enviado')
+    }
+
+    // Acionar drip (fire-and-forget): garante cobertura para leads que nao visitaram a pagina de resultado
+    if (quizSessionId || qs) {
+      if (!qs?.drip_scheduled) {
+        fetch(`${supabaseUrl}/functions/v1/schedule-quiz-drip`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseServiceRole}`,
+            'apikey': supabaseServiceRole,
+          },
+          body: JSON.stringify({
+            quiz_session_id: qs?.id || quizSessionId,
+            stripe_session_id: session.id,
+            email: customerEmail,
+            name: qs?.name || customerName || '',
+            plan_data: null,
+            quiz_data: qs?.quiz_data || null,
+          }),
+        }).catch((e: any) => console.warn('Aviso: falha ao acionar schedule-quiz-drip:', e?.message))
+      }
     }
   }
 
