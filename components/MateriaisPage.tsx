@@ -21,8 +21,10 @@ type Step = 'detect' | 'verifying' | 'not_eligible' | 'create' | 'login' | 'load
 
 const QUIZ_BASE = 'https://www.espiritualizei.com/quiz';
 
-async function verifyPurchase(email: string, stripeSessionId: string): Promise<boolean> {
-  if (!email || !SUPABASE_URL) return false;
+interface VerifyResult { eligible: boolean; hasAccount: boolean }
+
+async function verifyPurchase(email: string, stripeSessionId: string): Promise<VerifyResult> {
+  if (!email || !SUPABASE_URL) return { eligible: false, hasAccount: false };
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-purchase-email`, {
       method: 'POST',
@@ -34,9 +36,9 @@ async function verifyPurchase(email: string, stripeSessionId: string): Promise<b
       body: JSON.stringify({ email: email.trim().toLowerCase(), stripe_session_id: stripeSessionId || undefined }),
     });
     const data = await res.json();
-    return data?.eligible === true;
+    return { eligible: data?.eligible === true, hasAccount: data?.hasAccount === true };
   } catch {
-    return false;
+    return { eligible: false, hasAccount: false };
   }
 }
 
@@ -88,12 +90,16 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
 
       // 3. Veio pelo link do e-mail → verificar elegibilidade no servidor
       setStep('verifying');
-      const eligible = await verifyPurchase(ep, sp);
+      const { eligible, hasAccount } = await verifyPurchase(ep, sp);
 
-      if (eligible) {
-        setStep('create');
-      } else {
+      if (!eligible) {
         setStep('not_eligible');
+      } else if (hasAccount) {
+        // Já tem conta criada → vai direto para login com mensagem orientadora
+        setStep('login');
+        setError('Voce ja criou sua senha de acesso. Entre com seu e-mail e senha abaixo.');
+      } else {
+        setStep('create');
       }
     })();
   }, []);
@@ -120,9 +126,17 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
     setBusy(true);
 
     // Double-check server-side antes de criar a conta (defesa em profundidade)
-    const eligible = await verifyPurchase(email, sessionParam);
+    const { eligible, hasAccount } = await verifyPurchase(email, sessionParam);
     if (!eligible) {
       setError('Nao foi possivel confirmar sua compra. Verifique o e-mail de confirmacao e tente novamente.');
+      setBusy(false);
+      return;
+    }
+    if (hasAccount) {
+      // Conta criada em outra aba ou device entre o load e o submit
+      setPassword(''); setConfirm('');
+      setStep('login');
+      setError('Voce ja criou sua senha de acesso. Entre com seu e-mail e senha abaixo.');
       setBusy(false);
       return;
     }
