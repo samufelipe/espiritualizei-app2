@@ -217,12 +217,15 @@ export const registerUser = async (data: OnboardingData): Promise<AuthSession> =
     last_routine_update: new Date().toISOString()
   };
 
-  // 3. Inserir o perfil básico primeiro
+  // 3. Inserir o perfil -- não-fatal: se falhar, o usuário de Auth já foi criado
   const { error: dbError } = await supabase.from('profiles').upsert([profilePayload]);
-  
   if (dbError) {
-    console.error("❌ Erro ao criar perfil no banco de dados:", dbError);
-    throw new Error(`Erro ao salvar dados do perfil: ${dbError.message}`);
+    console.warn("⚠️ Upsert completo do perfil falhou, tentando perfil minimal:", dbError.message);
+    const minimal = { id: authData.user.id, name: data.name.trim(), email };
+    const { error: minErr } = await supabase.from('profiles').upsert([minimal]);
+    if (minErr) {
+      console.error("❌ Upsert minimal também falhou (prosseguindo):", minErr.message);
+    }
   }
   
   // 4. Tentar adicionar campos opcionais (ignorar erros se colunas não existirem)

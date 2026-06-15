@@ -186,6 +186,134 @@ Retorne APENAS JSON válido:
 {"theme":"${weekThemeHint}","weekSummary":"Frase inspiradora de até 10 palavras.","lucideIcon":"${weekIconHint}","days":[{"day":${startDay},"intention":"...","prayer":"Lectio Divina","prayer_steps":["...","...","..."],"task":"...","task_steps":["...","...","..."],"verse":"Sl 23,1: O Senhor é o meu pastor; nada me faltará.","resource_search":"...","duration_minutes":15}]}`
 }
 
+function buildNovenaPrompt(
+  patronSaint: string,
+  challenge: string,
+  challengeLabel: string,
+  displayName: string,
+  displayLevel: string,
+): string {
+  const SAINT_DATA: Record<string, { invocation: string; charism: string; example_quote: string }> = {
+    anxiety: {
+      invocation: 'Santa Teresa de Avila, doutora da oracao e da paz interior',
+      charism: 'oracao mental, descanso em Deus, abandono das preocupacoes e confianca filial',
+      example_quote: 'Que nada te perturbe, que nada te cause medo; tudo passa, so Deus nao muda. A paciencia tudo alcanca; quem a Deus possui, nada lhe falta; so Deus basta.',
+    },
+    sadness: {
+      invocation: 'Santa Teresinha do Menino Jesus, doutora do caminho pequeno',
+      charism: 'confianca filial em Deus, alegria nas pequenas coisas, abandono amoroso e caminho da infancia espiritual',
+      example_quote: 'Quero passar meu tempo no ceu fazendo o bem na terra. Meu caminho e a confianca e o amor, nao o medo e a perfeicao forcada.',
+    },
+    relationships: {
+      invocation: 'Sao Francisco de Sales, doutor da caridade e da mansidao',
+      charism: 'mansidao no trato, caridade perseverante e paciencia nas relacoes humanas',
+      example_quote: 'Com uma colher de mel se consegue mais do que com um barril de vinagre. A mansidao e a virtude que nos torna semelhantes a Cristo.',
+    },
+    laziness: {
+      invocation: 'Sao Tomas de Aquino, doutor da disciplina e da sabedoria',
+      charism: 'ordem na vida espiritual, perseveranca e santificacao pelo esforco cotidiano',
+      example_quote: 'O homem que governa suas paixoes alcanca a paz. A humildade e o primeiro degrau da sabedoria; sem ela, nada se edifica.',
+    },
+    dryness: {
+      invocation: 'Sao Joao da Cruz, doutor da noite escura e da mistica',
+      charism: 'perseveranca na aridez, encontrar Deus no silencio e atravessar a purificacao com fe',
+      example_quote: 'Na tarde da vida, seremos julgados pelo amor. Em meio a escuridao, aprende a alma a confiar sem ver e a amar sem sentir.',
+    },
+    ignorance: {
+      invocation: 'Sao Joao Paulo II, papa da nova evangelizacao',
+      charism: 'coragem na fe, aprofundamento doutrinal e nao temer nenhum obstaculo em Cristo',
+      example_quote: 'Nao tenhais medo! Abri, escancarai as portas a Cristo. Ele sabe o que existe no interior do homem. So Ele o sabe.',
+    },
+    pride: {
+      invocation: 'Sao Francisco de Assis, patrono da paz e da reconciliacao',
+      charism: 'humildade radical, perdao, reconciliacao e alegria na pobreza interior',
+      example_quote: 'Senhor, fazei-me instrumento de Vossa paz. Onde houver odio, que eu leve o amor; onde houver ofensa, que eu leve o perdao.',
+    },
+    lust: {
+      invocation: 'Sao Jose de Nazare, guardiao do coracao puro',
+      charism: 'pureza, guarda dos sentidos, forca silenciosa e fidelidade interior a Deus',
+      example_quote: 'Sao Jose foi guardiao fiel porque seu coracao pertencia a Deus. A pureza nao e ausencia de desejo, mas vitoria do amor sobre si mesmo.',
+    },
+  }
+
+  const saint = SAINT_DATA[challenge] || {
+    invocation: 'Nossa Senhora, Mae e Intercessora',
+    charism: 'intercessao materna, confianca em Deus e consagracao',
+    example_quote: 'Fazei tudo o que Ele vos disser. (Jo 2,5)',
+  }
+
+  const patronSaintShort = patronSaint.split('(')[0].trim()
+
+  return `Voce e um diretor espiritual catolico. Gere uma novena liturgica autentica de 9 dias para ${displayName} (nivel espiritual: ${displayLevel}).
+
+Santo patrono: ${patronSaintShort}
+Invocacao: ${saint.invocation}
+Carisma do santo: ${saint.charism}
+Desafio espiritual: ${challengeLabel}
+
+PROGRESSAO LITURGICA DOS 9 DIAS:
+Dia 1: Abertura - invocar a presenca e protecao do santo
+Dia 2: Reconhecimento - nomear o peso do desafio com honestidade
+Dia 3: Contricao - pedir ao santo interceder pelo coracao arrependido
+Dia 4: Peticao especial - apresentar a intencao central da novena
+Dia 5: Receber a graca - disposicao para a mudanca pelo carisma do santo
+Dia 6: Pratica concreta - agir como o santo agiria nesta situacao
+Dia 7: Perseveranca - continuar mesmo quando e dificil
+Dia 8: Accao de gracas antecipada - agradecer com fe pelo que se pede
+Dia 9: Consagracao - entregar tudo e fechar com ato de confianca
+
+BANCO DE VERSICULOS (copie EXATAMENTE, sem alterar uma palavra):
+- "Mt 11,28: Vinde a mim, todos vos que estais cansados e sobrecarregados, e eu vos aliviarei."
+- "Jo 14,27: Deixo-vos a paz, dou-vos a minha paz; nao vo-la dou como o mundo a da."
+- "Fl 4,6: Nao andeis ansiosos por coisa alguma; em tudo, pela oracao, apresentai os vossos pedidos a Deus."
+- "1Pd 5,7: Lancai sobre ele toda a vossa ansiedade, porque ele tem cuidado de vos."
+- "Sl 23,1: O Senhor e o meu pastor; nada me faltara."
+- "Sl 46,11: Parai e sabei que eu sou Deus."
+- "Sl 34,19: O Senhor esta perto dos que tem o coracao atribulado."
+- "Is 41,10: Nao temas, porque eu estou contigo; nao te assustes, porque eu sou o teu Deus."
+- "Mt 6,33: Buscai primeiro o Reino de Deus e a sua justica, e tudo o mais vos sera dado em acrescimo."
+- "Jo 15,5: Eu sou a videira, vos os ramos; sem mim nada podeis fazer."
+- "Mt 5,4: Bem-aventurados os que choram, porque serao consolados."
+- "Sl 30,6: O choro pode durar uma noite, mas a alegria vem pela manha."
+- "Sl 51,12: Criai em mim, o Deus, um coracao puro."
+- "Ef 4,32: Sede bondosos uns para com os outros, perdoando-vos mutuamente, como Deus vos perdoou em Cristo."
+- "Cl 3,13: Suportai-vos uns aos outros e perdoai-vos mutuamente."
+- "Mt 6,14: Se perdoardes as pessoas as suas faltas, tambem vosso Pai celeste vos perdoara."
+- "1Cor 13,4: O amor e paciente, o amor e prestativo; nao e invejoso."
+- "Pr 3,5: Confia no Senhor de todo o teu coracao e nao te apoies na tua propria inteligencia."
+- "Sl 121,2: O meu socorro vem do Senhor, que fez o ceu e a terra."
+- "Mt 7,7: Pedi, e vos sera dado; buscai, e achareis; batei, e abrir-se-vos-a."
+- "2Cor 12,9: A minha graca te basta, pois a forca manifesta-se na fraqueza."
+- "Jo 8,12: Eu sou a luz do mundo; quem me segue nao andara nas trevas."
+- "Mt 11,29: Aprendei de mim, que sou manso e humilde de coracao."
+- "Lc 1,37: Para Deus nada e impossivel."
+
+Para cada dia, gere:
+- day: numero (1 a 9)
+- title: titulo do dia seguindo a progressao liturgica acima
+- patron_prayer: Invocacao ao santo em 2a pessoa, 2-3 frases piedosas e especificas (max 70 palavras). Comece com "O ${patronSaintShort}..." ou "Santo(a) ${patronSaintShort}..."
+- saint_quote: Citacao REAL e historicamente atribuida ao santo ou a um papa sobre ele (max 45 palavras). Use a citacao de exemplo ou variante fiel.
+- verse: UM versículo do banco acima, copiado EXATAMENTE no formato "Ref: Texto."
+- intention: Intencao pessoal em 1a pessoa, 1 frase curta ressoando o carisma do santo e o desafio (max 22 palavras)
+- meditation: 2-3 frases conectando explicitamente o carisma do santo ao desafio do fiel. Linguagem acessivel e profunda.
+- closing_intercession: Peticao final ao santo, 2 frases piedosas e diretas
+
+Retorne APENAS JSON valido:
+{"patronSaintName":"${patronSaintShort}","novenaTitle":"Novena a ${patronSaintShort}","days":[{"day":1,"title":"Abertura","patron_prayer":"...","saint_quote":"${saint.example_quote}","verse":"Sl 23,1: O Senhor e o meu pastor; nada me faltara.","intention":"...","meditation":"...","closing_intercession":"..."}]}`
+}
+
+function parseNovenaJson(raw: string | null): any | null {
+  if (!raw) return null
+  try {
+    const match = raw.match(/\{[\s\S]*\}/)
+    if (!match) { console.error('Novena: sem JSON'); return null }
+    return JSON.parse(match[0])
+  } catch (e: any) {
+    console.error('Novena: JSON invalido -', e.message)
+    return null
+  }
+}
+
 async function callClaude(apiKey: string, prompt: string): Promise<string | null> {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -264,32 +392,49 @@ async function generatePlan(quizData: any): Promise<any | null> {
   const w2 = GOAL_THEMES[answers?.goal]            || { theme: 'Aprofundamento da fé',   icon: 'lightbulb' }
   const w3 = STATE_THEMES[answers?.state]          || { theme: 'Integração com a vida',  icon: 'star'      }
 
-  console.log(`Gerando plano para ${displayName} (${displayLevel}) — 3 semanas em paralelo`)
+  console.log(`Gerando plano para ${displayName} (${displayLevel}) — 3 semanas + novena em paralelo`)
+
+  const SAINT_PATRON_MAP: Record<string, string> = {
+    anxiety:       'Santa Teresa de Avila',
+    sadness:       'Santa Teresinha do Menino Jesus',
+    relationships: 'Sao Francisco de Sales',
+    laziness:      'Sao Tomas de Aquino',
+    dryness:       'Sao Joao da Cruz',
+    ignorance:     'Sao Joao Paulo II',
+    pride:         'Sao Francisco de Assis',
+    lust:          'Sao Jose de Nazare',
+  }
+  const challenge = answers?.challenge || ''
+  const challengeLabel = CHALLENGE_PT[challenge] || challenge
+  const patronSaintForNovena = SAINT_PATRON_MAP[challenge] || 'Nossa Senhora'
 
   // Enriquecer com rótulo PT do desafio (o prompt usa isso, não a chave crua)
   const answersForPrompt = { ...answers, challengeLabel: CHALLENGE_PT[answers?.challenge] || answers?.challenge }
 
-  const [raw1, raw2, raw3] = await Promise.all([
+  const [raw1, raw2, raw3, rawNovena] = await Promise.all([
     callClaude(anthroKey, buildWeekPrompt(1,  1, 'desafio principal',   answersForPrompt.challengeLabel || 'regularidade', w1.theme, w1.icon, displayName, displayLevel, answersForPrompt, dims)),
     callClaude(anthroKey, buildWeekPrompt(2,  8, 'objetivo espiritual', answers?.goal      || 'crescimento',  w2.theme, w2.icon, displayName, displayLevel, answersForPrompt, dims)),
     callClaude(anthroKey, buildWeekPrompt(3, 15, 'fase de vida',        answers?.state     || 'cotidiano',    w3.theme, w3.icon, displayName, displayLevel, answersForPrompt, dims)),
+    callClaude(anthroKey, buildNovenaPrompt(patronSaintForNovena, challenge, challengeLabel, displayName, displayLevel)),
   ])
 
   const week1 = parseWeekJson(raw1, 1)
   const week2 = parseWeekJson(raw2, 2)
   const week3 = parseWeekJson(raw3, 3)
+  const novena = parseNovenaJson(rawNovena)
 
   if (!week1 && !week2 && !week3) { console.error('Todas as semanas falharam'); return null }
 
   const totalDays = [week1, week2, week3].reduce((acc, w) => acc + (w?.days?.length || 0), 0)
-  console.log(`✅ Plano gerado para ${displayName}: ${totalDays} dias`)
+  console.log(`Plano gerado para ${displayName}: ${totalDays} dias + novena ${novena ? 'OK' : 'FALHOU'}`)
 
   return {
     weeks: [
       week1 || { theme: w1.theme, weekSummary: 'Construa a base da sua rotina espiritual.', lucideIcon: w1.icon, days: [] },
-      week2 || { theme: w2.theme, weekSummary: 'Aprofunde sua relação com Deus.',            lucideIcon: w2.icon, days: [] },
-      week3 || { theme: w3.theme, weekSummary: 'Integre a fé com o seu cotidiano.',          lucideIcon: w3.icon, days: [] },
+      week2 || { theme: w2.theme, weekSummary: 'Aprofunde sua relacao com Deus.',            lucideIcon: w2.icon, days: [] },
+      week3 || { theme: w3.theme, weekSummary: 'Integre a fe com o seu cotidiano.',          lucideIcon: w3.icon, days: [] },
     ],
+    novena: novena || null,
   }
 }
 

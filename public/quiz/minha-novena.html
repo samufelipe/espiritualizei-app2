@@ -278,12 +278,14 @@
     pride:'Novena do Perdao',                lust:'Novena da Libertacao',
   }
 
-  let _days      = []
-  let _name      = ''
-  let _challenge = 'anxiety'
-  let _sessionId = null
-  let _currentDay = 1
-  let _completed  = new Set()
+  let _days           = []
+  let _name           = ''
+  let _challenge      = 'anxiety'
+  let _sessionId      = null
+  let _currentDay     = 1
+  let _completed      = new Set()
+  let _novenaTitle    = ''
+  let _patronSaintName = ''
 
   function getCompleted() {
     try { return new Set(JSON.parse(localStorage.getItem('esp_novena_progress') || '[]')) }
@@ -339,82 +341,187 @@
     dotsEl.innerHTML = items.join('')
   }
 
+  const PAI_NOSSO = `Pai nosso, que estais no ceu, santificado seja o vosso nome. Venha a nos o vosso reino. Seja feita a vossa vontade, assim na terra como no ceu. O pao nosso de cada dia nos dai hoje. Perdoai as nossas ofensas, assim como nos perdoamos a quem nos tem ofendido. E nao nos deixeis cair em tentacao, mas livrai-nos do mal. Amen.`
+  const AVE_MARIA = `Ave Maria, cheia de graca, o Senhor e convosco. Bendita sois vos entre as mulheres, e bendito e o fruto do vosso ventre, Jesus. Santa Maria, Mae de Deus, rogai por nos pecadores, agora e na hora da nossa morte. Amen.`
+  const GLORIA    = `Gloria ao Pai, ao Filho e ao Espirito Santo. Como era no principio, agora e sempre, pelos seculos dos seculos. Amen.`
+
   function renderDay(n) {
     _currentDay = n
     const day = _days[n - 1]
     if (!day) return
 
-    const novenaTitle = NOVENA_NAMES[_challenge] || 'Novena Personalizada'
-    const roman = toRoman(n)
-    const v     = parseVerse(day.verse)
-    const isDone = _completed.has(n)
+    const novenaTitle = _novenaTitle || NOVENA_NAMES[_challenge] || 'Novena Personalizada'
+    const roman   = toRoman(n)
+    const v       = parseVerse(day.verse)
+    const isDone  = _completed.has(n)
+    const isNew   = !!day.patron_prayer
 
     document.getElementById('day-counter').textContent = `${roman} de IX`
 
-    document.getElementById('day-content').innerHTML = `
+    const doneBtn = isDone
+      ? `<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;background:rgba(110,231,183,.06);border:1.5px solid rgba(110,231,183,.22);border-radius:16px;margin-bottom:20px;">
+           <i data-lucide="check-circle-2" style="width:18px;height:18px;color:#6EE7B7;flex-shrink:0;"></i>
+           <p style="font-size:14px;font-weight:700;color:#6EE7B7;margin:0;">Dia ${roman} concluido</p>
+         </div>`
+      : `<button onclick="markDone(${n})" style="width:100%;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:16px;padding:18px 24px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 32px rgba(16,185,129,.28);transition:all .2s;margin-bottom:20px;font-family:'Inter',sans-serif;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+           <i data-lucide="check-circle-2" style="width:20px;height:20px;"></i>
+           Concluir dia ${roman}
+         </button>`
 
-      <!-- Cabecalho contemplativo: titulo + algarismo romano -->
-      <div class="anim-fade-up" style="text-align:center;padding:28px 0 22px;">
-        <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,.45);margin-bottom:14px;">${novenaTitle}</p>
-        <div class="roman-numeral">${roman}</div>
-        <p style="font-size:11px;font-weight:600;color:rgba(255,255,255,.2);letter-spacing:1.5px;margin-top:6px;">${roman} de IX</p>
-      </div>
+    if (isNew) {
+      // Formato real da novena
+      document.getElementById('day-content').innerHTML = `
 
-      <!-- Versiculo em destaque — primeiro, como epigrafe -->
-      <div class="verse-epigraph anim-fade-up">
-        <p class="verse-epigraph-text">"${v.text || day.verse || ''}"</p>
-        ${v.ref ? `<p class="verse-epigraph-ref">${v.ref}</p>` : ''}
-      </div>
+        <!-- Cabecalho -->
+        <div class="anim-fade-up" style="text-align:center;padding:28px 0 22px;">
+          <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,.45);margin-bottom:14px;">${novenaTitle}</p>
+          <div class="roman-numeral">${roman}</div>
+          <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:0.5px;margin-top:8px;">${day.title || `${roman} de IX`}</p>
+        </div>
 
-      <!-- Intencao do dia -->
-      <div class="day-card violet anim-fade-up" style="margin-bottom:16px;">
-        <span class="section-overline" style="color:rgba(167,139,250,.65);">INTENCAO DO DIA</span>
-        <p class="intention-block">"${day.intention || ''}"</p>
-      </div>
-
-      <!-- Divisor sagrado -->
-      <div class="sacred-divider"><div class="sacred-divider-dot"></div></div>
-
-      <!-- Oracao do dia (sem botao YouTube) -->
-      <div class="day-card anim-fade-up" style="margin-bottom:14px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i data-lucide="heart" style="width:16px;height:16px;color:#A78BFA;"></i>
+        <!-- Invocacao ao santo -->
+        <div class="day-card violet anim-fade-up" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div style="width:32px;height:32px;border-radius:9px;background:rgba(167,139,250,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="star" style="width:14px;height:14px;color:#A78BFA;"></i>
+            </div>
+            <span class="section-overline" style="color:rgba(167,139,250,.75);">INVOCACAO AO SANTO</span>
           </div>
-          <div>
-            <span class="section-overline">ORACAO DO DIA</span>
-            <p style="font-size:15px;font-weight:700;color:rgba(255,255,255,.92);">${day.prayer || ''}</p>
+          <p style="font-size:14.5px;line-height:1.75;color:rgba(255,255,255,.88);font-style:italic;">${day.patron_prayer || ''}</p>
+        </div>
+
+        <!-- Citacao do santo -->
+        <div class="verse-epigraph anim-fade-up">
+          <p class="verse-epigraph-text">"${day.saint_quote || ''}"</p>
+          <p class="verse-epigraph-ref">${_patronSaintName || ''}</p>
+        </div>
+
+        <!-- Palavra do dia -->
+        <div class="day-card anim-fade-up" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:32px;height:32px;border-radius:9px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="book-open" style="width:14px;height:14px;color:#A78BFA;"></i>
+            </div>
+            <span class="section-overline">PALAVRA DO DIA</span>
+          </div>
+          <p style="font-size:14.5px;font-style:italic;color:rgba(255,255,255,.82);line-height:1.7;margin:0 0 6px;">"${v.text || day.verse || ''}"</p>
+          ${v.ref ? `<p style="font-size:11px;font-weight:700;color:rgba(167,139,250,.6);text-align:right;letter-spacing:.5px;">${v.ref}</p>` : ''}
+        </div>
+
+        <!-- Intencao do dia -->
+        <div class="day-card anim-fade-up" style="margin-bottom:16px;">
+          <span class="section-overline" style="color:rgba(167,139,250,.65);">INTENCAO DO DIA</span>
+          <p class="intention-block" style="margin-top:10px;">"${day.intention || ''}"</p>
+        </div>
+
+        <!-- Divisor sagrado -->
+        <div class="sacred-divider"><div class="sacred-divider-dot"></div></div>
+
+        <!-- Meditacao -->
+        <div class="day-card anim-fade-up" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:32px;height:32px;border-radius:9px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="flame" style="width:14px;height:14px;color:#A78BFA;"></i>
+            </div>
+            <span class="section-overline">MEDITACAO</span>
+          </div>
+          <p style="font-size:14.5px;line-height:1.75;color:rgba(255,255,255,.75);">${day.meditation || ''}</p>
+        </div>
+
+        <!-- Oracoes tradicionais -->
+        <div class="day-card anim-fade-up" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:32px;height:32px;border-radius:9px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="hand" style="width:14px;height:14px;color:#A78BFA;"></i>
+            </div>
+            <span class="section-overline">ORACOES TRADICIONAIS</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <div>
+              <p style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.55);margin:0 0 7px;">PAI NOSSO</p>
+              <p style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.7);font-style:italic;">${PAI_NOSSO}</p>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:16px;">
+              <p style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.55);margin:0 0 7px;">AVE MARIA</p>
+              <p style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.7);font-style:italic;">${AVE_MARIA}</p>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:16px;">
+              <p style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.55);margin:0 0 7px;">GLORIA AO PAI</p>
+              <p style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.7);font-style:italic;">${GLORIA}</p>
+            </div>
           </div>
         </div>
-        ${stepsHtml(day.prayer_steps, 'Dedique um momento de silencio para esta pratica, com calma e abertura de coracao.')}
-      </div>
 
-      <!-- Pratica do dia -->
-      <div class="day-card anim-fade-up" style="margin-bottom:28px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i data-lucide="pencil-line" style="width:16px;height:16px;color:#A78BFA;"></i>
+        <!-- Peticao final ao santo -->
+        <div class="day-card violet anim-fade-up" style="margin-bottom:28px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:32px;height:32px;border-radius:9px;background:rgba(167,139,250,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="heart" style="width:14px;height:14px;color:#A78BFA;"></i>
+            </div>
+            <span class="section-overline" style="color:rgba(167,139,250,.75);">PETICAO FINAL</span>
           </div>
-          <div>
-            <span class="section-overline">PRATICA DO DIA</span>
-            <p style="font-size:15px;font-weight:700;color:rgba(255,255,255,.92);">${day.task || ''}</p>
-          </div>
+          <p style="font-size:14.5px;line-height:1.75;color:rgba(255,255,255,.88);font-style:italic;">${day.closing_intercession || ''}</p>
         </div>
-        ${stepsHtml(day.task_steps, 'Realize esta pratica no seu ritmo, oferecendo cada momento a Deus.')}
-      </div>
 
-      <!-- Botao concluir -->
-      ${isDone
-        ? `<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;background:rgba(110,231,183,.06);border:1.5px solid rgba(110,231,183,.22);border-radius:16px;margin-bottom:20px;">
-             <i data-lucide="check-circle-2" style="width:18px;height:18px;color:#6EE7B7;flex-shrink:0;"></i>
-             <p style="font-size:14px;font-weight:700;color:#6EE7B7;">Dia ${roman} concluido</p>
-           </div>`
-        : `<button onclick="markDone(${n})" style="width:100%;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:16px;padding:18px 24px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 32px rgba(16,185,129,.28);transition:all .2s;margin-bottom:20px;font-family:'Inter',sans-serif;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
-             <i data-lucide="check-circle-2" style="width:20px;height:20px;"></i>
-             Concluir dia ${roman}
-           </button>`
-      }
-    `
+        ${doneBtn}
+      `
+    } else {
+      // Formato antigo (compatibilidade com planos ja gerados)
+      document.getElementById('day-content').innerHTML = `
+
+        <!-- Cabecalho contemplativo: titulo + algarismo romano -->
+        <div class="anim-fade-up" style="text-align:center;padding:28px 0 22px;">
+          <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,.45);margin-bottom:14px;">${novenaTitle}</p>
+          <div class="roman-numeral">${roman}</div>
+          <p style="font-size:11px;font-weight:600;color:rgba(255,255,255,.2);letter-spacing:1.5px;margin-top:6px;">${roman} de IX</p>
+        </div>
+
+        <!-- Versiculo em destaque, como epigrafe -->
+        <div class="verse-epigraph anim-fade-up">
+          <p class="verse-epigraph-text">"${v.text || day.verse || ''}"</p>
+          ${v.ref ? `<p class="verse-epigraph-ref">${v.ref}</p>` : ''}
+        </div>
+
+        <!-- Intencao do dia -->
+        <div class="day-card violet anim-fade-up" style="margin-bottom:16px;">
+          <span class="section-overline" style="color:rgba(167,139,250,.65);">INTENCAO DO DIA</span>
+          <p class="intention-block">"${day.intention || ''}"</p>
+        </div>
+
+        <!-- Divisor sagrado -->
+        <div class="sacred-divider"><div class="sacred-divider-dot"></div></div>
+
+        <!-- Oracao do dia -->
+        <div class="day-card anim-fade-up" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="heart" style="width:16px;height:16px;color:#A78BFA;"></i>
+            </div>
+            <div>
+              <span class="section-overline">ORACAO DO DIA</span>
+              <p style="font-size:15px;font-weight:700;color:rgba(255,255,255,.92);">${day.prayer || ''}</p>
+            </div>
+          </div>
+          ${stepsHtml(day.prayer_steps, 'Dedique um momento de silencio para esta pratica, com calma e abertura de coracao.')}
+        </div>
+
+        <!-- Pratica do dia -->
+        <div class="day-card anim-fade-up" style="margin-bottom:28px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i data-lucide="pencil-line" style="width:16px;height:16px;color:#A78BFA;"></i>
+            </div>
+            <div>
+              <span class="section-overline">PRATICA DO DIA</span>
+              <p style="font-size:15px;font-weight:700;color:rgba(255,255,255,.92);">${day.task || ''}</p>
+            </div>
+          </div>
+          ${stepsHtml(day.task_steps, 'Realize esta pratica no seu ritmo, oferecendo cada momento a Deus.')}
+        </div>
+
+        ${doneBtn}
+      `
+    }
 
     const btnPrev = document.getElementById('btn-prev')
     const btnNext = document.getElementById('btn-next')
@@ -536,20 +643,29 @@
 
       if (!data || !plan) throw new Error('Dados incompletos')
 
-      const allDays = []
-      if (plan.weeks && plan.weeks.length > 0) {
-        const week1Days = plan.weeks[0].days || []
-        for (const d of week1Days) {
-          allDays.push(d)
-          if (allDays.length >= 9) break
-        }
-      }
-
-      if (!allDays.length) throw new Error('Novena nao encontrada no plano')
-
-      _days      = allDays
       _name      = data.name || 'Caminhante'
       _challenge = (data.answers && data.answers.challenge) || 'anxiety'
+
+      // Usar novena dedicada (novo formato) se disponivel, senao fallback aos 9 primeiros dias
+      if (plan.novena && plan.novena.days && plan.novena.days.length > 0) {
+        _days            = plan.novena.days.slice(0, 9)
+        _novenaTitle     = plan.novena.novenaTitle || NOVENA_NAMES[_challenge] || 'Novena Personalizada'
+        _patronSaintName = plan.novena.patronSaintName || ''
+      } else {
+        const allDays = []
+        if (plan.weeks && plan.weeks.length > 0) {
+          const week1Days = plan.weeks[0].days || []
+          for (const d of week1Days) {
+            allDays.push(d)
+            if (allDays.length >= 9) break
+          }
+        }
+        if (!allDays.length) throw new Error('Novena nao encontrada no plano')
+        _days        = allDays
+        _novenaTitle = NOVENA_NAMES[_challenge] || 'Novena Personalizada'
+      }
+
+      if (!_days.length) throw new Error('Novena nao encontrada no plano')
       _completed = getCompleted()
 
       // configurar botao voltar no header
