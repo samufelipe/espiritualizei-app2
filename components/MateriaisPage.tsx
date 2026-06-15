@@ -1,16 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Eye, EyeOff, Heart, Loader2, LogIn, KeyRound,
+  Eye, EyeOff, Loader2, LogIn, KeyRound,
   Compass, CalendarCheck, Sparkles, PenLine,
-  ExternalLink, ArrowRight, Lock, AlertCircle, CheckCircle2,
+  ExternalLink, ArrowRight, Lock, AlertCircle, CheckCircle2, ShieldCheck,
 } from 'lucide-react';
-import { loginUser, registerUser, getSession, sendPasswordResetEmail } from '../services/authService';
+import { loginUser, registerUser, getSession, sendPasswordResetEmail, SUPABASE_URL, SUPABASE_KEY } from '../services/authService';
 import { fetchQuizSessionByEmail } from '../services/quizImportService';
 import type { QuizImport } from '../services/quizImportService';
 
-type Step = 'detect' | 'create' | 'login' | 'loading' | 'materials' | 'reset_sent';
+// Três estados do fluxo de acesso
+// 'detect'      → verificando URL/sessão (loading inicial)
+// 'verifying'   → chamando verify-purchase-email no servidor
+// 'not_eligible'→ e-mail não tem compra confirmada no banco
+// 'create'      → elegível: formulário de criar senha (apenas via link do e-mail)
+// 'login'       → formulário de login (acesso direto sem link)
+// 'loading'     → buscando materiais após autenticação
+// 'materials'   → materiais liberados
+// 'reset_sent'  → link de recuperação enviado
+type Step = 'detect' | 'verifying' | 'not_eligible' | 'create' | 'login' | 'loading' | 'materials' | 'reset_sent';
 
 const QUIZ_BASE = 'https://www.espiritualizei.com/quiz';
+
+async function verifyPurchase(email: string, stripeSessionId: string): Promise<boolean> {
+  if (!email || !SUPABASE_URL) return false;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-purchase-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+      body: JSON.stringify({ email: email.trim().toLowerCase(), stripe_session_id: stripeSessionId || undefined }),
+    });
+    const data = await res.json();
+    return data?.eligible === true;
+  } catch {
+    return false;
+  }
+}
 
 const HeartLogo = () => (
   <svg width="28" height="28" viewBox="0 0 24 24" fill="#A78BFA">
@@ -19,43 +47,55 @@ const HeartLogo = () => (
 );
 
 export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void }) {
-  const [step, setStep] = useState<Step>('detect');
-  const [email, setEmail] = useState('');
-  const [firstName, setFirstName] = useState('');
+  const [step, setStep]               = useState<Step>('detect');
+  const [email, setEmail]             = useState('');
+  const [firstName, setFirstName]     = useState('');
   const [sessionParam, setSessionParam] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [materials, setMaterials] = useState<QuizImport | null>(null);
+  const [password, setPassword]       = useState('');
+  const [confirm, setConfirm]         = useState('');
+  const [showPass, setShowPass]       = useState(false);
+  const [error, setError]             = useState('');
+  const [busy, setBusy]               = useState(false);
+  const [materials, setMaterials]     = useState<QuizImport | null>(null);
   const [userFirstName, setUserFirstName] = useState('');
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const ep    = params.get('email')   ? decodeURIComponent(params.get('email')!)   : '';
-    const np    = params.get('name')    ? decodeURIComponent(params.get('name')!)    : '';
-    const sp    = params.get('session') ? decodeURIComponent(params.get('session')!) : '';
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const ep = params.get('email')   ? decodeURIComponent(params.get('email')!)   : '';
+      const np = params.get('name')    ? decodeURIComponent(params.get('name')!)    : '';
+      const sp = params.get('session') ? decodeURIComponent(params.get('session')!) : '';
 
-    setEmail(ep);
-    setFirstName(np.split(' ')[0] || '');
-    setSessionParam(sp);
+      setEmail(ep);
+      setFirstName(np.split(' ')[0] || '');
+      setSessionParam(sp);
 
-    window.history.replaceState({}, '', '/materiais');
+      // Limpar URL imediatamente (não expõe dados na barra do navegador)
+      window.history.replaceState({}, '', '/materiais');
 
-    // If there's an active session, jump straight to materials
-    const existing = getSession();
-    if (existing?.user?.id && existing.user.id !== 'guest' && Date.now() < existing.expiresAt) {
-      loadMaterials(existing.user.email || ep);
-      return;
-    }
+      // 1. Já tem sessão ativa → pular direto para materiais
+      const existing = getSession();
+      if (existing?.user?.id && existing.user.id !== 'guest' && Date.now() < existing.expiresAt) {
+        loadMaterials(existing.user.email || ep);
+        return;
+      }
 
-    // New user with email param → create password form
-    if (ep) {
-      setStep('create');
-    } else {
-      setStep('login');
-    }
+      // 2. Sem link do e-mail (acesso direto) → somente login
+      if (!ep || !sp) {
+        setStep('login');
+        return;
+      }
+
+      // 3. Veio pelo link do e-mail → verificar elegibilidade no servidor
+      setStep('verifying');
+      const eligible = await verifyPurchase(ep, sp);
+
+      if (eligible) {
+        setStep('create');
+      } else {
+        setStep('not_eligible');
+      }
+    })();
   }, []);
 
   async function loadMaterials(userEmail: string) {
@@ -78,6 +118,15 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
     if (password !== confirm) { setError('As senhas nao coincidem.'); return; }
     setError('');
     setBusy(true);
+
+    // Double-check server-side antes de criar a conta (defesa em profundidade)
+    const eligible = await verifyPurchase(email, sessionParam);
+    if (!eligible) {
+      setError('Nao foi possivel confirmar sua compra. Verifique o e-mail de confirmacao e tente novamente.');
+      setBusy(false);
+      return;
+    }
+
     try {
       const fullName = firstName || email.split('@')[0];
       await registerUser({
@@ -97,9 +146,11 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
     } catch (e: any) {
       const msg = e?.message || '';
       if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('User already')) {
-        setError('Este e-mail ja tem um acesso. Entre com sua senha abaixo.');
+        // Conta já existe: vai para login com mensagem clara
+        setError('');
         setPassword(''); setConfirm('');
         setStep('login');
+        setError('Voce ja criou sua senha antes. Entre com seu e-mail e senha abaixo.');
       } else {
         setError(msg || 'Erro ao criar acesso. Tente novamente.');
       }
@@ -145,10 +196,19 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
     }
   }
 
-  // ── Renders ────────────────────────────────────────────────────────────────
+  // ── RENDER STATES ─────────────────────────────────────────────────────────
 
-  if (step === 'detect') return <PageShell><Loader2 className="animate-spin text-brand-violet" size={32} /></PageShell>;
+  // Detect / Verifying
+  if (step === 'detect' || step === 'verifying') return (
+    <PageShell>
+      <Loader2 className="animate-spin text-brand-violet" size={32} />
+      <p className="text-sm text-slate-400 mt-4">
+        {step === 'verifying' ? 'Verificando sua compra...' : 'Carregando...'}
+      </p>
+    </PageShell>
+  );
 
+  // Loading materials
   if (step === 'loading') return (
     <PageShell>
       <Loader2 className="animate-spin text-brand-violet" size={32} />
@@ -156,6 +216,31 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
     </PageShell>
   );
 
+  // E-mail sem compra confirmada
+  if (step === 'not_eligible') return (
+    <PageShell>
+      <div className="text-center max-w-xs">
+        <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+          <AlertCircle size={28} className="text-red-400" />
+        </div>
+        <h2 className="text-xl font-black text-white mb-2">Compra nao encontrada</h2>
+        <p className="text-sm text-slate-400 leading-relaxed mb-4">
+          Nao encontramos uma compra confirmada para este link. Verifique se voce clicou no botao correto do e-mail de confirmacao.
+        </p>
+        <p className="text-xs text-slate-500 leading-relaxed mb-6">
+          Se voce ja fez a compra e esta tendo problemas, fale com a gente pelo e-mail <strong className="text-slate-300">contato@espiritualizei.com</strong>
+        </p>
+        <button
+          onClick={() => { setStep('login'); setError(''); }}
+          className="text-brand-violet text-sm font-bold underline"
+        >
+          Ja tenho uma senha, entrar
+        </button>
+      </div>
+    </PageShell>
+  );
+
+  // Reset enviado
   if (step === 'reset_sent') return (
     <PageShell>
       <div className="text-center max-w-xs">
@@ -167,17 +252,20 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
         <button
           onClick={() => setStep('login')}
           className="mt-6 text-brand-violet text-sm font-bold underline"
-        >Voltar para o login</button>
+        >
+          Voltar para o login
+        </button>
       </div>
     </PageShell>
   );
 
+  // ── AUTH FORMS (create | login) ─────────────────────────────────────────────
   if (step === 'create' || step === 'login') {
     const isCreate = step === 'create';
     return (
       <div className="min-h-screen bg-[#0F1419] text-white">
 
-        {/* Header minimalista */}
+        {/* Header */}
         <div className="px-5 pt-6 pb-4 flex items-center gap-2">
           <HeartLogo />
           <span className="text-sm font-bold text-white/60 tracking-wide">Espiritualizei</span>
@@ -185,44 +273,46 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
 
         <div className="max-w-md mx-auto px-5 pb-16">
 
-          {/* Contexto: O QUE E ESTA PAGINA */}
-          <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-2xl px-4 py-3 mb-6 flex items-start gap-3">
+          {/* Contexto: o que é esta página */}
+          <div className="bg-emerald-500/8 border border-emerald-500/18 rounded-2xl px-4 py-3 mb-6 flex items-start gap-3">
             <div className="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <CheckCircle2 size={14} className="text-emerald-400" />
+              <ShieldCheck size={14} className="text-emerald-400" />
             </div>
             <div>
-              <p className="text-xs font-black text-emerald-300 uppercase tracking-wider mb-0.5">Pagina de acesso aos seus materiais</p>
-              <p className="text-xs text-emerald-200/70 leading-relaxed">
-                Esta pagina e exclusiva para voce acessar os materiais que adquiriu no Diagnostico Espiritual. Nao e o aplicativo Espiritualizei.
+              <p className="text-xs font-black text-emerald-300 uppercase tracking-wider mb-0.5">
+                Area exclusiva de materiais
+              </p>
+              <p className="text-xs text-emerald-200/65 leading-relaxed">
+                Esta pagina e o seu espaco privado para acessar os materiais da sua compra. Ela e diferente do aplicativo Espiritualizei.
               </p>
             </div>
           </div>
 
-          {/* Headline */}
+          {/* Headline + sub */}
           <h1 className="text-2xl font-black text-white leading-tight mb-1">
             {isCreate
               ? (firstName ? `${firstName}, crie sua senha de acesso` : 'Crie sua senha de acesso')
-              : 'Acesse seus materiais'}
+              : 'Acessar meus materiais'}
           </h1>
           <p className="text-sm text-slate-400 mb-6 leading-relaxed">
             {isCreate
-              ? 'Escolha uma senha para guardar o acesso permanente aos seus materiais.'
-              : 'Use o e-mail e a senha que voce cadastrou para entrar.'}
+              ? 'Voce esta criando uma senha permanente para acessar seus materiais. Use qualquer senha que voce va lembrar.'
+              : 'Entre com o e-mail e a senha que voce cadastrou para acessar seus materiais.'}
           </p>
 
-          {/* Preview dos materiais (contexto visual) */}
+          {/* Preview dos materiais — contexto visual antes do form */}
           <div className="bg-white/3 border border-white/8 rounded-2xl p-4 mb-6">
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">O que voce vai acessar aqui</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               {[
-                { label: 'Diagnostico Espiritual', color: 'text-brand-violet' },
-                { label: 'Plano de 21 Dias',       color: 'text-emerald-400' },
-                { label: 'Minha Novena',            color: 'text-amber-400'  },
-                { label: 'Cartas para Deus',        color: 'text-sky-400'    },
+                { label: 'Diagnostico Espiritual', color: 'bg-brand-violet',  text: 'text-brand-violet'  },
+                { label: 'Plano de 21 Dias',       color: 'bg-emerald-400',   text: 'text-emerald-400'   },
+                { label: 'Minha Novena',            color: 'bg-amber-400',     text: 'text-amber-400'     },
+                { label: 'Cartas para Deus',        color: 'bg-sky-400',       text: 'text-sky-400'       },
               ].map(m => (
                 <div key={m.label} className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${m.color.replace('text-', 'bg-')}`} />
-                  <span className={`text-xs font-semibold ${m.color}`}>{m.label}</span>
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${m.color}`} />
+                  <span className={`text-xs font-semibold ${m.text}`}>{m.label}</span>
                 </div>
               ))}
             </div>
@@ -239,8 +329,12 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-brand-violet/60 text-sm"
+                readOnly={isCreate && !!email}
+                className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-brand-violet/60 text-sm ${isCreate && email ? 'opacity-60 cursor-not-allowed' : ''}`}
               />
+              {isCreate && email && (
+                <p className="text-[11px] text-slate-500 mt-1 ml-1">E-mail verificado e bloqueado para seguranca.</p>
+              )}
             </div>
 
             <div>
@@ -253,7 +347,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder={isCreate ? 'Minimo 6 caracteres' : 'Sua senha'}
-                  onKeyDown={e => e.key === 'Enter' && (isCreate ? handleCreate() : handleLogin())}
+                  onKeyDown={e => e.key === 'Enter' && !isCreate && handleLogin()}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-white placeholder-slate-500 focus:outline-none focus:border-brand-violet/60 text-sm"
                 />
                 <button
@@ -300,7 +394,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
             </button>
           </div>
 
-          {/* Toggle + reset */}
+          {/* Acoes secundarias */}
           <div className="text-center space-y-2 mt-5">
             {isCreate ? (
               <p className="text-xs text-slate-500">
@@ -317,14 +411,8 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
                 <button onClick={handleReset} disabled={busy} className="text-xs text-slate-500 underline hover:text-slate-300 block mx-auto">
                   Esqueci minha senha
                 </button>
-                <p className="text-xs text-slate-500">
-                  Primeira vez aqui?{' '}
-                  <button
-                    onClick={() => { setError(''); setPassword(''); setConfirm(''); setStep('create'); }}
-                    className="text-brand-violet font-bold underline"
-                  >
-                    Criar minha senha agora
-                  </button>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Para criar seu acesso, clique no botao do e-mail de confirmacao de compra que voce recebeu.
                 </p>
               </>
             )}
@@ -340,7 +428,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
     );
   }
 
-  // ── Materials view ─────────────────────────────────────────────────────────
+  // ── MATERIALS VIEW ──────────────────────────────────────────────────────────
   const sid       = materials?.stripeSessionId;
   const name      = userFirstName || materials?.name?.split(' ')[0] || '';
   const challenge = materials?.quizData?.answers?.challenge || 'anxiety';
@@ -382,6 +470,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
 
   return (
     <div className="min-h-screen bg-[#0F1419] text-white">
+
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#0F1419]/90 backdrop-blur border-b border-white/5 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -416,7 +505,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
         <div className="h-px bg-gradient-to-r from-transparent via-brand-violet/25 to-transparent mt-5" />
       </div>
 
-      {/* Grid or empty */}
+      {/* Grid ou estado vazio */}
       <div className="max-w-2xl mx-auto px-4 pb-16">
         {!sid ? (
           <div className="text-center py-16">
@@ -425,7 +514,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
             </div>
             <h2 className="text-xl font-black text-white mb-2">Materiais nao encontrados</h2>
             <p className="text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
-              Verifique se voce esta usando o mesmo e-mail da compra. Se precisar de ajuda, fale com a gente em contato@espiritualizei.com
+              Verifique se voce esta usando o mesmo e-mail da compra. Se precisar de ajuda, fale com a gente em <strong className="text-slate-300">contato@espiritualizei.com</strong>
             </p>
           </div>
         ) : (
