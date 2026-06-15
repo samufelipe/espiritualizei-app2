@@ -63,6 +63,38 @@
     @keyframes microFade { 0% { opacity:0; transform:translateY(8px); } 30%,70% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-8px); } }
 
     .anim-fade-up { animation: fadeUp .45s cubic-bezier(.22,1,.36,1) forwards; }
+
+    /* ── Landing: entrada escalonada ─────────────────────────────── */
+    @keyframes lFadeUp {
+      from { opacity: 0; transform: translateY(26px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes accentGlow {
+      0%,100% { text-shadow: none; }
+      50%      { text-shadow: 0 0 48px rgba(167,139,250,.45), 0 0 16px rgba(124,58,237,.2); }
+    }
+    @keyframes ctaBreathe {
+      0%,100% { box-shadow: 0 8px 32px rgba(16,185,129,.32); }
+      50%      { box-shadow: 0 12px 52px rgba(16,185,129,.58), 0 0 0 6px rgba(16,185,129,.06); }
+    }
+    @keyframes arrowSlide {
+      0%,100% { transform: translateX(0); }
+      50%      { transform: translateX(4px); }
+    }
+    .l-a-1 { opacity:0; animation: lFadeUp .7s cubic-bezier(.22,1,.36,1) .05s forwards; }
+    .l-a-2 { opacity:0; animation: lFadeUp .7s cubic-bezier(.22,1,.36,1) .14s forwards; }
+    .l-a-3 { opacity:0; animation: lFadeUp .7s cubic-bezier(.22,1,.36,1) .26s forwards; }
+    .l-a-4 { opacity:0; animation: lFadeUp .7s cubic-bezier(.22,1,.36,1) .4s forwards; }
+    .l-a-5 { opacity:0; animation: lFadeUp .7s cubic-bezier(.22,1,.36,1) .54s forwards; }
+    .l-a-6 { opacity:0; animation: lFadeUp .7s cubic-bezier(.22,1,.36,1) .68s forwards; }
+    #landing-headline .hl-accent { animation: accentGlow 4.5s ease-in-out 1.4s infinite; }
+    #landing-cta-inner { display:inline-flex; align-items:center; gap:10px; }
+    #landing-cta-arrow { animation: arrowSlide 1.8s ease-in-out 1.6s infinite; }
+    @media (prefers-reduced-motion: reduce) {
+      .l-a-1,.l-a-2,.l-a-3,.l-a-4,.l-a-5,.l-a-6 { opacity:1; animation:none; }
+      #landing-headline .hl-accent { animation:none; }
+      #landing-cta-arrow { animation:none; }
+    }
     .anim-fade-in { animation: fadeIn .35s ease forwards; }
     .anim-pulse { animation: pulseSlow 2.4s ease-in-out infinite; }
     .anim-slide { animation: slideRight .35s cubic-bezier(.22,1,.36,1) forwards; }
@@ -140,6 +172,7 @@
       transition: all .2s ease; cursor: pointer; border: none;
       font-family: 'Inter', sans-serif; border-radius: 14px;
       min-height: 56px; width: 100%;
+      display: flex; align-items: center; justify-content: center;
     }
     .btn-primary:hover { background: #9370f5; box-shadow: 0 8px 40px rgba(167,139,250,.45); transform: translateY(-1px); }
     .btn-primary:active { transform: translateY(0) scale(.99); }
@@ -539,44 +572,58 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- TELA 0 — LANDING -->
 <div id="s-landing" class="screen active" style="position:relative;z-index:1;">
   <div class="flex flex-col items-center justify-center min-h-screen px-5 py-12 text-center">
-    <div class="anim-fade-up" style="max-width:420px;width:100%;">
+    <div style="max-width:420px;width:100%;">
 
       <!-- Logo -->
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:40px;">
+      <div class="l-a-1" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:36px;">
         <div class="anim-heartbeat">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="#A78BFA">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#A78BFA">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
         </div>
-        <span style="font-size:15px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;">Espiritualizei</span>
+        <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:.6px;">Espiritualizei</span>
       </div>
 
       <!-- Banner litúrgico (preenchido via JS) -->
-      <div id="seasonal-banner" style="margin-bottom:22px;margin-top:-16px;display:flex;justify-content:center;"></div>
+      <div class="l-a-2" id="seasonal-banner" style="margin-bottom:20px;margin-top:-10px;display:flex;justify-content:center;"></div>
 
       <!-- Headline -->
-      <h1 id="landing-headline" style="font-size:clamp(24px,6.5vw,36px);font-weight:900;line-height:1.22;margin-bottom:14px;letter-spacing:-.5px;text-wrap:balance;">
-        Você não precisa rezar mais. Precisa descobrir <span style="color:#A78BFA;">o que está bloqueando sua caminhada com Deus.</span>
+      <h1 id="landing-headline" class="l-a-3" style="font-size:clamp(26px,6.8vw,38px);font-weight:900;line-height:1.2;margin-bottom:16px;letter-spacing:-.6px;">
+        Você não precisa rezar mais.<br>
+        Precisa descobrir <span class="hl-accent" style="color:#A78BFA;">o que está bloqueando<br>sua caminhada com Deus.</span>
       </h1>
-      <p id="landing-sub" style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.58);line-height:1.72;margin-bottom:28px;">
-        Muitas pessoas tentam novenas, aplicativos e novos hábitos espirituais, mas continuam no mesmo lugar. Responda 6 perguntas e descubra seu diagnóstico espiritual, seus desafios atuais e o caminho mais adequado para fortalecer sua fé.
+
+      <p id="landing-sub" class="l-a-4" style="font-size:clamp(14px,4vw,15px);color:rgba(255,255,255,.52);line-height:1.75;margin-bottom:32px;max-width:340px;margin-left:auto;margin-right:auto;">
+        Muitas pessoas tentam novenas e novos hábitos espirituais, mas continuam no mesmo lugar. Responda 6 perguntas e descubra seu caminho real com Deus.
       </p>
 
-      <!-- Social proof honesta -->
-      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:40px;padding:8px 18px;margin-bottom:28px;display:inline-flex;align-items:center;gap:10px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span style="font-size:12px;color:rgba(255,255,255,.55);">Diagnóstico Espiritual · Plano Personalizado · Novena · Cartas para Deus · <strong style="color:rgba(255,255,255,.88);font-weight:700;">App Espiritualizei grátis</strong></span>
+      <!-- Entregaveis — sem borda, clean -->
+      <div class="l-a-5" style="margin-bottom:30px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.5px;">Inclui</span>
+        <span style="font-size:11px;color:rgba(167,139,250,.7);font-weight:600;">Diagnóstico</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.18);">·</span>
+        <span style="font-size:11px;color:rgba(167,139,250,.7);font-weight:600;">Plano Personalizado</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.18);">·</span>
+        <span style="font-size:11px;color:rgba(167,139,250,.7);font-weight:600;">Novena</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.18);">·</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.75);font-weight:700;">App grátis</span>
       </div>
 
-      <button id="landing-cta" class="btn-primary" onclick="show('s-name')" style="font-size:16px;font-weight:700;color:#1A2530;padding:18px 24px;">
-        Descobrir o Que Me Bloqueia
-      </button>
+      <div class="l-a-6">
+        <button id="landing-cta" class="btn-primary" onclick="show('s-name')" style="font-size:16px;font-weight:700;color:#1A2530;padding:18px 28px;animation:ctaBreathe 2.6s ease-in-out 1.2s infinite;">
+          <span id="landing-cta-inner">
+            Descobrir o Que Me Bloqueia
+            <svg id="landing-cta-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </button>
 
-      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px;flex-wrap:wrap;">
-        <div class="trust-row"><i data-lucide="shield-check"></i><span>Privado e seguro</span></div>
-        <div class="trust-row"><i data-lucide="clock"></i><span>2 minutos</span></div>
-        <div class="trust-row"><i data-lucide="heart"></i><span>Feito com amor</span></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px;flex-wrap:wrap;">
+          <div class="trust-row"><i data-lucide="shield-check"></i><span>Privado e seguro</span></div>
+          <div class="trust-row"><i data-lucide="clock"></i><span>2 minutos</span></div>
+          <div class="trust-row"><i data-lucide="heart"></i><span>Feito com amor</span></div>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -1209,11 +1256,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const el = document.getElementById('seasonal-banner')
     if (!el) return
     el.innerHTML = `
-      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:5px 16px 5px 10px;max-width:90%;flex-wrap:wrap;justify-content:center;">
-        <i data-lucide="${LITURGICAL.icon}" style="width:16px;height:16px;color:${LITURGICAL.color};flex-shrink:0;"></i>
-        <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${LITURGICAL.color};">${LITURGICAL.name}</span>
-        <span style="color:rgba(255,255,255,.2);font-size:10px;">·</span>
-        <span style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.4;">${LITURGICAL.tagline}</span>
+      <div style="display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;">
+        <i data-lucide="${LITURGICAL.icon}" style="width:13px;height:13px;color:${LITURGICAL.color};flex-shrink:0;opacity:.8;"></i>
+        <span style="font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:${LITURGICAL.color};opacity:.8;">${LITURGICAL.name}</span>
+        <span style="color:rgba(255,255,255,.15);font-size:10px;">·</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.35);line-height:1.4;">${LITURGICAL.tagline}</span>
       </div>
     `
     lucide.createIcons()
