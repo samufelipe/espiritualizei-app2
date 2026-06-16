@@ -3,6 +3,12 @@
     "api/generate-novena-pdf.js": {
       "maxDuration": 60,
       "memory": 1536
+    },
+    "api/quiz-result.js": {
+      "maxDuration": 60
+    },
+    "api/quiz-checkout.js": {
+      "maxDuration": 30
     }
   },
   "crons": [
