@@ -1484,6 +1484,38 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     window.scrollTo(0,0)
     const path = SCREEN_PATHS[id]
     if (path) _track(path, 'quiz_step', { screen: id })
+
+    // Eventos específicos de funil para Meta Pixel + GA4
+    if (id === 's-vsl') {
+      const eventId = 'vsl_view_' + Date.now()
+      if (typeof fbq !== 'undefined') {
+        fbq('track', 'ViewContent', {
+          content_name:     'VSL Revelacao Espiritual',
+          content_category: 'quiz',
+          content_ids:      ['diagnostico-espiritual'],
+          content_type:     'product',
+          value:            19.90,
+          currency:         'BRL',
+        }, { eventID: eventId })
+      }
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ event: 'quiz_vsl_view', page_path: path, event_id: eventId })
+    }
+
+    if (id === 's-paywall') {
+      const eventId = 'paywall_view_' + Date.now()
+      if (typeof fbq !== 'undefined') {
+        fbq('track', 'AddToCart', {
+          content_name: 'Diagnostico Espiritual + Plano de 21 Dias',
+          content_ids:  ['diagnostico-espiritual'],
+          content_type: 'product',
+          value:        19.90,
+          currency:     'BRL',
+        }, { eventID: eventId })
+      }
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ event: 'quiz_paywall_view', page_path: path, value: 19.90, currency: 'BRL', event_id: eventId })
+    }
   }
 
   function updateProgress(step, total) {
