@@ -1963,7 +1963,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // ── MINI VSL (vídeo real) ───────────────────────────────────────
   // Janela (em segundos) antes do fim em que o botão "Pular" aparece.
   const VSL_SKIP_WINDOW  = 20
-  const VSL_STALL_LIMIT  = 10000  // ms sem progresso antes de avançar automaticamente
+  const VSL_STALL_LIMIT  = 12000  // ms até aparecer o botão de pular (não avança mais auto)
+  const VSL_STALL_BAIL   = 90000  // ms — auto-avança só em abandono total (tab em bg)
   let _vslAdvanced       = false
   let _loadingTimer      = null   // setTimeout do startVSL — precisa ser cancelável
   let _vslBackstop       = null   // backstop interno do startVSL — também cancelável
@@ -2026,14 +2027,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
     window.addEventListener('beforeunload', _vslBeforeUnload)
 
-    // Helpers de stall
+    // Helpers de stall — FIX: não reinicia o timer se já estiver contando (evita race).
+    // Fase 1 (STALL_LIMIT): mostra botão de pular. Fase 2 (STALL_BAIL): auto-avança.
     const _scheduleStallFallback = () => {
       if (_vslAdvanced) return
-      if (_vslStallTimer) clearTimeout(_vslStallTimer)
       if (buf) buf.style.display = 'flex'
+      if (_vslStallTimer) return  // já contando — não reiniciar (era o bug principal)
       _vslStallTimer = setTimeout(() => {
         _vslStallTimer = null
-        if (!_vslAdvanced) _vslGoToPaywall()
+        if (_vslAdvanced) return
+        // Fase 1: mostra skip para o usuário decidir (não força avançar)
+        skipBtn.style.display = 'flex'
+        // Fase 2: bail de segurança — só dispara em abandono real (~90s parado)
+        _vslStallTimer = setTimeout(() => {
+          _vslStallTimer = null
+          if (!_vslAdvanced) _vslGoToPaywall()
+        }, VSL_STALL_BAIL)
       }, VSL_STALL_LIMIT)
     }
     const _clearStall = () => {
@@ -2062,9 +2071,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     v.oncanplay  = _clearStall
 
     // Progress bar + reveal skip near the end
+    // FIX: só limpa o stall quando o browser confirma que tem dados suficientes
+    // (readyState >= 3 = HAVE_FUTURE_DATA). Antes chamava _clearStall() em todo frame,
+    // inclusive nos últimos frames de cache antes do buffer esvaziar — cancelando o
+    // stall timer prematuramente e criando a race condition que pulava pro checkout.
     v.ontimeupdate = () => {
       if (!v.duration) return
-      _clearStall()  // se esta avancando, nao esta travado
+      if (v.readyState >= 3) _clearStall()
       const pct = (v.currentTime / v.duration) * 100
       fill.style.width = pct + '%'
       if (v.duration - v.currentTime <= VSL_SKIP_WINDOW && skipBtn.style.display === 'none') {
