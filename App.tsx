@@ -80,13 +80,25 @@ const App: React.FC = () => {
   const [materials, setMaterials] = useState<QuizImport | null>(null);
   const hasMaterials = !!materials?.stripeSessionId;
 
-  // Redirecionar usuários do quiz para fora da aba de Rotina.
-  // Só aplica quando nao tem premium: quem assina depois do quiz ganha acesso à Rotina.
+  // Quiz purchasers que ainda nao têm status 'trial' correto no state local
+  // ganham acesso enquanto o DB é corrigido em background.
+  const quizTrialActive = hasMaterials && !user.isPremium && user.subscriptionStatus !== 'expired';
+  const effectiveFullAccess = hasFullAccess(user) || quizTrialActive;
+  const effectiveDaysLeft = (() => {
+    const d = trialDaysLeft(user);
+    if (d > 0) return d;
+    if (quizTrialActive && user.subscriptionRenewalAt) {
+      return Math.max(1, Math.ceil((user.subscriptionRenewalAt.getTime() - Date.now()) / 86400000));
+    }
+    return 7; // trial ativo mas ainda nao ativado formalmente
+  })();
+
+  // Redirecionar usuários do quiz para fora da aba de Rotina apenas quando sem acesso.
   useEffect(() => {
-    if (isFromQuiz && !hasFullAccess(user) && currentTab === Tab.ROUTINE) {
+    if (isFromQuiz && !effectiveFullAccess && currentTab === Tab.ROUTINE) {
       setCurrentTab(Tab.DASHBOARD);
     }
-  }, [isFromQuiz, currentTab, user]);
+  }, [isFromQuiz, currentTab, effectiveFullAccess]);
 
   // Carregar "Meus Materiais" do usuário logado (compra ligada ao e-mail).
   // Roda quando entra no app com um usuário real; leitura autenticada via RLS.
@@ -94,7 +106,7 @@ const App: React.FC = () => {
     if (viewState !== 'app' || !user?.email || user.id === 'guest') return;
     let cancelled = false;
     fetchQuizSessionByEmail(user.email)
-      .then(res => {
+      .then(async (res) => {
         if (cancelled || !res?.found) return;
         // Fallback: se o banco ainda não gravou o stripe_session_id (corrida com
         // o webhook), usar o que veio pelo link do quiz.
@@ -103,6 +115,12 @@ const App: React.FC = () => {
           if (stored) res.stripeSessionId = stored;
         }
         setMaterials(res);
+        // Garantir que quiz purchasers com conta existente tenham trial ativo no DB
+        if (res.stripeSessionId && !user.isPremium && user.subscriptionStatus !== 'trial' && user.subscriptionStatus !== 'expired') {
+          await activateTrialIfNeeded(user.id).catch(() => {});
+          const updated = await syncUserFromServer(user.id, user.email).catch(() => null);
+          if (updated && !cancelled) setUser(updated);
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -533,7 +551,7 @@ const App: React.FC = () => {
     const activeChallenge = challenges.find(c => c.status === 'active');
     const needsPremium = (currentTab === Tab.KNOWLEDGE || currentTab === Tab.SOCIAL);
     
-    if (needsPremium && !hasFullAccess(user)) {
+    if (needsPremium && !effectiveFullAccess) {
        return (
           <div className="flex items-center justify-center p-6 h-full">
             <Paywall
@@ -717,7 +735,7 @@ const App: React.FC = () => {
         />
       )}
       
-      {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} isFromQuiz={isFromQuiz && !hasFullAccess(user)} hasMaterials={hasMaterials} /></div>}
+      {viewState === 'app' && <div className="flex-shrink-0 hidden md:block h-full"><Sidebar currentTab={currentTab} onTabChange={setCurrentTab} user={user} onLogout={handleLogout} isFromQuiz={isFromQuiz && !effectiveFullAccess} hasMaterials={hasMaterials} /></div>}
       
       <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative bg-brand-dark no-scrollbar">
           {viewState === 'landing' && (
@@ -806,7 +824,11 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                 if (session && session.user) {
                   localStorage.setItem('espiritualizei_from_quiz', '1');
                   setIsFromQuiz(true);
-                  setUser(session.user);
+                  // Ativa trial de 7 dias para quiz purchasers que entram com conta existente.
+                  // activateTrialIfNeeded é idempotente (só roda se renewal_at for null).
+                  await activateTrialIfNeeded(session.user.id).catch(() => {});
+                  const synced = await syncUserFromServer(session.user.id, loginEmail).catch(() => null);
+                  setUser(synced || session.user);
                   setQuizMode('create');
                   fetchUserRoutine(session.user.id).then((db) => { if (db && db.length > 0) setRoutineItems(db); });
                   fetchCommunityIntentions(session.user.id).then(setIntentions);
@@ -959,14 +981,18 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
             </div>
           )}
           
-          {viewState === 'app' && isUserInTrial(user) && (
-            <div className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 text-xs font-bold text-white shadow-lg transition-all ${trialDaysLeft(user) <= 2 ? 'bg-red-500' : trialDaysLeft(user) <= 4 ? 'bg-amber-500' : 'bg-brand-violet'}`}>
-              <span>{trialDaysLeft(user) === 1 ? 'Último dia de trial gratuito!' : `Trial gratuito: ${trialDaysLeft(user)} dias restantes`}</span>
+          {viewState === 'app' && quizTrialActive && (
+            <div className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2.5 text-xs font-bold text-white shadow-lg transition-all ${effectiveDaysLeft <= 1 ? 'bg-red-500' : effectiveDaysLeft <= 3 ? 'bg-amber-500' : 'bg-brand-violet'}`}>
+              <span>
+                {effectiveDaysLeft <= 1
+                  ? 'Ultimo dia de acesso gratuito!'
+                  : `Acesso gratuito: ${effectiveDaysLeft} dias restantes`}
+              </span>
               <button
                 onClick={() => setViewState('checkout')}
-                className="bg-white/20 hover:bg-white/30 text-white text-[10px] font-black px-3 py-1 rounded-full transition-colors ml-3 shrink-0"
+                className="bg-white/20 hover:bg-white/30 text-white text-[10px] font-black px-3 py-1 rounded-full transition-colors ml-3 shrink-0 whitespace-nowrap"
               >
-                Assinar Agora
+                Assinar agora
               </button>
             </div>
           )}
@@ -984,7 +1010,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
           )}
       </main>
 
-      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!hasFullAccess(user)} isFromQuiz={isFromQuiz && !hasFullAccess(user)} hasMaterials={hasMaterials} /></div>}
+      {viewState === 'app' && <div className="md:hidden"><Navigation currentTab={currentTab} onTabChange={setCurrentTab} showLockOnPremium={!effectiveFullAccess} isFromQuiz={isFromQuiz && !effectiveFullAccess} hasMaterials={hasMaterials} /></div>}
       
       {showTutorial && <Tutorial user={user} onComplete={() => {
         localStorage.setItem('espiritualizei_tutorial_completed', 'true');

@@ -388,20 +388,24 @@ export const activateTrialIfNeeded = async (userId: string): Promise<void> => {
   const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   const { error } = await supabase
     .from('profiles')
-    .update({ subscription_renewal_at: trialEnd.toISOString() })
+    .update({
+      subscription_renewal_at: trialEnd.toISOString(),
+      subscription_status: 'trial',
+    })
     .eq('id', userId)
     .is('subscription_renewal_at', null);
   if (error) {
     console.warn('[activateTrialIfNeeded]', error.message);
     return;
   }
-  // Atualiza a sessao no localStorage para refletir o novo prazo
+  // Atualiza a sessao no localStorage para refletir o novo prazo e status
   try {
     const stored = localStorage.getItem(SESSION_KEY);
     if (stored) {
       const s = JSON.parse(stored);
       if (s.user && !s.user.subscriptionRenewalAt) {
         s.user.subscriptionRenewalAt = trialEnd;
+        s.user.subscriptionStatus = 'trial';
         localStorage.setItem(SESSION_KEY, safeStringify(s));
       }
     }
