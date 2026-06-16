@@ -179,7 +179,7 @@ serve(async (req: any) => {
 
     const results = await Promise.allSettled(
       pending.map(async (record: any) => {
-        const ctaUrl = `https://www.espiritualizei.com/quiz?resume=${record.quiz_session_id}`
+        const ctaUrl = `https://www.espiritualizei.com/diagnostico?resume=${record.quiz_session_id}`
         const html   = buildRecoveryHtml({
           step:      record.sequence_step,
           name:      record.name,

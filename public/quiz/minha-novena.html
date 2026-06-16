@@ -565,7 +565,7 @@
     if (backBtn) {
       backBtn.onclick = () => {
         if (_sessionId) {
-          window.location.href = `/quiz/resultado?session=${encodeURIComponent(_sessionId)}`
+          window.location.href = `/resultado?session=${encodeURIComponent(_sessionId)}`
         } else {
           window.history.back()
         }
@@ -575,7 +575,7 @@
     // link para o plano completo
     const planBtn = document.getElementById('celebration-plan-btn')
     if (planBtn && _sessionId) {
-      planBtn.href = `/quiz/resultado?session=${encodeURIComponent(_sessionId)}`
+      planBtn.href = `/resultado?session=${encodeURIComponent(_sessionId)}`
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -612,7 +612,7 @@
     const sessionId = urlParams.get('session')
 
     if (!sessionId) {
-      window.location.href = '/quiz?error=access'
+      window.location.href = '/diagnostico?error=access'
       return
     }
 
@@ -672,7 +672,7 @@
       const backBtn = document.getElementById('back-btn')
       if (backBtn) {
         backBtn.onclick = () => {
-          window.location.href = `/quiz/resultado?session=${encodeURIComponent(sessionId)}`
+          window.location.href = `/resultado?session=${encodeURIComponent(sessionId)}`
         }
       }
 

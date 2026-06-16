@@ -71,7 +71,9 @@ self.addEventListener('fetch', (event) => {
   if (request.destination === 'document' ||
       url.pathname.endsWith('.html') ||
       url.pathname === '/' ||
-      url.pathname.startsWith('/quiz')) {
+      url.pathname.startsWith('/quiz') ||
+      url.pathname.startsWith('/diagnostico') ||
+      url.pathname === '/resultado') {
     return; // Deixa o browser buscar normalmente — sem interceptar
   }
   // ─────────────────────────────────────────────────────────────────────────

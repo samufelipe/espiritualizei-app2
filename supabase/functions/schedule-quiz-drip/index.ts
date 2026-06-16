@@ -225,7 +225,7 @@ serve(async (req: any) => {
     // Enviar Day 1 imediatamente
     if (resendKey) {
       const d1       = records[0]
-      const ctaUrl   = `https://www.espiritualizei.com/quiz/resultado?session=${stripe_session_id}&day=1`
+      const ctaUrl   = `https://www.espiritualizei.com/resultado?session=${stripe_session_id}&day=1`
       const emailHtml = buildDayEmailHtml({
         name:            firstName,
         dayNumber:       1,

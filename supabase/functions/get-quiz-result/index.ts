@@ -31,7 +31,7 @@ async function sendMetaCAPI(capiToken: string, email: string, stripeSessionId: s
         event_name:       'Purchase',
         event_time:       Math.floor(Date.now() / 1000),
         event_id:         eventId,
-        event_source_url: `https://www.espiritualizei.com/quiz/resultado?session=${stripeSessionId}`,
+        event_source_url: `https://www.espiritualizei.com/resultado?session=${stripeSessionId}`,
         action_source:    'website',
         user_data: {
           em: [hashedEmail],
@@ -443,7 +443,7 @@ async function generatePlan(quizData: any): Promise<any | null> {
 function buildEmailHtml(quizData: any, plan: any, stripeSessionId: string): string {
   const name      = quizData.name      || 'Caminhante'
   const levelName = quizData.levelName || 'Buscando'
-  const resultUrl = `https://www.espiritualizei.com/quiz/resultado?session=${stripeSessionId}`
+  const resultUrl = `https://www.espiritualizei.com/resultado?session=${stripeSessionId}`
 
   const firstWeek = plan?.weeks?.[0]
   const daysHtml  = (firstWeek?.days || []).slice(0, 3).map((d: any) => `

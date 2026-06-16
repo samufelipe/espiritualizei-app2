@@ -729,7 +729,7 @@ function saveAndNext(n) {
 
 function goHome() {
   if (_sessionId) {
-    window.location.href = `/quiz/resultado?session=${encodeURIComponent(_sessionId)}`;
+    window.location.href = `/resultado?session=${encodeURIComponent(_sessionId)}`;
   } else if (window.history.length > 1) {
     window.history.back();
   } else {

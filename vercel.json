@@ -23,18 +23,43 @@
       "destination": "https://www.espiritualizei.com/:path*",
       "has": [{ "type": "host", "value": "espiritualizei.com" }],
       "permanent": true
+    },
+    {
+      "source": "/quiz/resultado",
+      "destination": "/resultado",
+      "permanent": true
+    },
+    {
+      "source": "/quiz",
+      "destination": "/diagnostico",
+      "permanent": true
     }
   ],
   "rewrites": [
     { "source": "/sw.js", "destination": "/sw.js" },
     { "source": "/manifest.json", "destination": "/manifest.json" },
     { "source": "/favicon.ico", "destination": "/favicon.ico" },
+    { "source": "/diagnostico", "destination": "/quiz/index.html" },
+    { "source": "/resultado", "destination": "/quiz/resultado.html" },
+    { "source": "/diagnostico/:path*", "destination": "/quiz/index.html" },
     { "source": "/quiz", "destination": "/quiz/index.html" },
     { "source": "/quiz/resultado", "destination": "/quiz/resultado.html" },
     { "source": "/quiz/:path*", "destination": "/quiz/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/diagnostico",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/resultado",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
     {
       "source": "/quiz",
       "headers": [

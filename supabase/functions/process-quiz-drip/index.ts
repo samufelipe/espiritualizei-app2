@@ -248,7 +248,7 @@ serve(async (req: any) => {
     const results = await Promise.allSettled(
       pending.map(async (record: any) => {
         const weekNumber = Math.ceil(record.day_number / 7)
-        const ctaUrl     = `https://www.espiritualizei.com/quiz/resultado?session=${record.stripe_session_id}&day=${record.day_number}`
+        const ctaUrl     = `https://www.espiritualizei.com/resultado?session=${record.stripe_session_id}&day=${record.day_number}`
 
         let subject: string
         let html: string

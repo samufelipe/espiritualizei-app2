@@ -1464,12 +1464,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   const SCREEN_PATHS = {
-    's-name':    '/quiz/nome',
-    's-email':   '/quiz/email',
-    's-deepen':  '/quiz/aprofundamento',
-    's-loading': '/quiz/analisando',
-    's-vsl':     '/quiz/revelacao',
-    's-paywall': '/quiz/diagnostico',
+    's-name':    '/diagnostico/nome',
+    's-email':   '/diagnostico/email',
+    's-deepen':  '/diagnostico/aprofundamento',
+    's-loading': '/diagnostico/analisando',
+    's-vsl':     '/diagnostico/revelacao',
+    's-paywall': '/diagnostico/checkout',
   }
 
   function _track(path, eventName, extra) {
@@ -1537,7 +1537,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     `
     lucide.createIcons()
     updateProgress(S.qIdx + 1, TOTAL_STEPS)
-    _track('/quiz/pergunta-' + (S.qIdx + 1), 'quiz_question', { question_num: S.qIdx + 1 })
+    _track('/diagnostico/pergunta-' + (S.qIdx + 1), 'quiz_question', { question_num: S.qIdx + 1 })
   }
 
   function showMicro(html, cb) {
@@ -1581,7 +1581,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (!v || !v.includes('@')) { document.getElementById('email-input').focus(); return }
     S.email = v
     window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({ event: 'quiz_lead', page_path: '/quiz/email' })
+    window.dataLayer.push({ event: 'quiz_lead', page_path: '/diagnostico/email' })
     if (typeof fbq !== 'undefined') fbq('track', 'Lead')
     updateProgress(QUESTIONS.length + 1, TOTAL_STEPS)
     lucide.createIcons()
@@ -1633,7 +1633,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     `
     lucide.createIcons()
     updateProgress(QUESTIONS.length + 1 + S.deepIdx + 1, TOTAL_STEPS)
-    _track('/quiz/pergunta-' + (QUESTIONS.length + S.deepIdx + 1), 'quiz_question', { question_num: QUESTIONS.length + S.deepIdx + 1 })
+    _track('/diagnostico/pergunta-' + (QUESTIONS.length + S.deepIdx + 1), 'quiz_question', { question_num: QUESTIONS.length + S.deepIdx + 1 })
   }
 
   function selectDeepAnswer(val, el) {
@@ -2074,7 +2074,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     btn.disabled = true
     btn.textContent = 'Processando...'
     window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({ event: 'quiz_initiate_checkout', value: 19.90, currency: 'BRL', page_path: '/quiz/diagnostico' })
+    window.dataLayer.push({ event: 'quiz_initiate_checkout', value: 19.90, currency: 'BRL', page_path: '/diagnostico/checkout' })
     if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', { value: 19.90, currency: 'BRL' })
 
     const quizData = {
@@ -2216,9 +2216,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const path     = window.location.pathname
     const hasResume = new URLSearchParams(window.location.search).has('resume')
 
-    // Ao carregar em sub-rota sem ?resume, limpar URL para /quiz
-    if (path !== '/quiz' && path !== '/quiz/' && !hasResume) {
-      history.replaceState({}, '', '/quiz')
+    // Ao carregar em sub-rota sem ?resume, limpar URL para /diagnostico
+    if (path !== '/diagnostico' && path !== '/diagnostico/' && !hasResume) {
+      history.replaceState({}, '', '/diagnostico')
     }
 
     // Limpa todos os timers e handlers do VSL — chamado por popstate e pageshow
@@ -2251,7 +2251,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       document.getElementById('s-landing').classList.add('active')
       const wrap = document.getElementById('progress-bar-wrap')
       if (wrap) wrap.style.display = 'none'
-      history.replaceState({}, '', '/quiz')
+      history.replaceState({}, '', '/diagnostico')
       window.scrollTo(0, 0)
     })
 
@@ -2267,7 +2267,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         document.getElementById('s-landing').classList.add('active')
         const wrap = document.getElementById('progress-bar-wrap')
         if (wrap) wrap.style.display = 'none'
-        history.replaceState({}, '', '/quiz')
+        history.replaceState({}, '', '/diagnostico')
         window.scrollTo(0, 0)
       }
     })

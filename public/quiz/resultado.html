@@ -1125,8 +1125,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const name       = _data?.name || ''
     const sessionId  = new URLSearchParams(window.location.search).get('session') || ''
     const link       = sessionId
-      ? `https://www.espiritualizei.com/quiz/resultado?session=${sessionId}`
-      : 'https://www.espiritualizei.com/quiz'
+      ? `https://www.espiritualizei.com/resultado?session=${sessionId}`
+      : 'https://www.espiritualizei.com/diagnostico'
 
     const text = isCelebration
       ? `Acabei de concluir o Desafio de 21 Dias do Espiritualizei! 🙏 Foi uma jornada incrível de crescimento espiritual. Se você quer descobrir seu nível espiritual e receber um plano personalizado, acesse:\n\n${link}`
@@ -1236,7 +1236,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         // Purchase dispara antes do fetch: garante rastreio mesmo se servidor demorar
         if (!sessionStorage.getItem('esp_purchase_' + stripeSessionId)) {
           sessionStorage.setItem('esp_purchase_' + stripeSessionId, '1')
-          window.dataLayer.push({ event: 'quiz_purchase', value: 19.90, currency: 'BRL', page_path: '/quiz/resultado' })
+          window.dataLayer.push({ event: 'quiz_purchase', value: 19.90, currency: 'BRL', page_path: '/resultado' })
           if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL', content_name: 'Diagnóstico Espiritual', content_ids: ['diagnostico-espiritual'], content_type: 'product' }, { eventID: 'purchase_' + stripeSessionId })
         }
 
@@ -1271,7 +1271,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </p>
             <p style="font-size:12px;color:rgba(255,255,255,.3);">E-mail enviado para o endereco cadastrado no pagamento.</p>
             <div style="margin-top:28px;">
-              <a href="/quiz" style="display:inline-block;background:rgba(167,139,250,.15);border:1.5px solid rgba(167,139,250,.3);color:#A78BFA;font-size:13px;font-weight:600;padding:12px 24px;border-radius:12px;text-decoration:none;">
+              <a href="/diagnostico" style="display:inline-block;background:rgba(167,139,250,.15);border:1.5px solid rgba(167,139,250,.3);color:#A78BFA;font-size:13px;font-weight:600;padding:12px 24px;border-radius:12px;text-decoration:none;">
                 Voltar ao inicio
               </a>
             </div>

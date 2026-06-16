@@ -374,7 +374,7 @@ export const getQuizDayEmail = (params: {
       Você recebe este e-mail porque adquiriu o Diagnóstico Espiritual do Espiritualizei.
     </p>
     <p style="font-size:11px;color:rgba(255,255,255,0.2);margin:0;">
-      <a href="https://www.espiritualizei.com/quiz/resultado?session=${ctaUrl.split('session=')[1]?.split('&')[0] || ''}" style="color:rgba(167,139,250,0.5);text-decoration:underline;">Ver meu plano completo</a>
+      <a href="https://www.espiritualizei.com/resultado?session=${ctaUrl.split('session=')[1]?.split('&')[0] || ''}" style="color:rgba(167,139,250,0.5);text-decoration:underline;">Ver meu plano completo</a>
       &nbsp;·&nbsp;
       <a href="mailto:espiritualizeiapp@gmail.com?subject=Cancelar%20e-mails%20do%20desafio" style="color:rgba(255,255,255,0.2);text-decoration:underline;">Cancelar e-mails</a>
     </p>
