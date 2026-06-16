@@ -283,6 +283,41 @@
       transition: width .25s linear;
     }
 
+    /* Badge de retencao — visivel durante toda a VSL */
+    .vsl-anchor-badge {
+      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      z-index: 210; display: none; align-items: center; gap: 8px;
+      background: rgba(220,38,38,.92); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.2); border-radius: 50px;
+      padding: 7px 16px 7px 12px; font-size: 12px; font-weight: 700;
+      color: #fff; letter-spacing: .3px; white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(220,38,38,.45);
+      font-family: 'Inter', sans-serif;
+    }
+    .vsl-anchor-dot {
+      width: 7px; height: 7px; background: #fff; border-radius: 50%;
+      flex-shrink: 0;
+      animation: vslDotPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes vslDotPulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .35; transform: scale(.65); }
+    }
+
+    /* Overlay de buffering — aparece quando o video travar */
+    .vsl-buffering-overlay {
+      position: absolute; inset: 0; z-index: 15;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; background: rgba(0,0,0,.6); border-radius: inherit;
+    }
+    .vsl-buffering-spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255,255,255,.15);
+      border-top-color: #A78BFA; border-radius: 50%;
+      animation: vslSpin .8s linear infinite;
+    }
+    @keyframes vslSpin { to { transform: rotate(360deg); } }
+
     /* CTA que aparece nos últimos 20s da VSL */
     .vsl-cta-btn {
       display: none;
@@ -719,6 +754,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- TELA 4B — VSL -->
 <div id="s-vsl" class="screen">
   <div class="vsl-progress-wrap"><div class="vsl-progress-fill" id="vsl-progress" style="width:0%"></div></div>
+
+  <!-- Badge de retencao: ancora o lead enquanto o video roda -->
+  <div class="vsl-anchor-badge" id="vsl-anchor-badge">
+    <span class="vsl-anchor-dot"></span>
+    Seu plano personalizado sera liberado ao fim do video
+  </div>
+
   <button class="vsl-cta-btn" id="vsl-skip-btn" onclick="skipVSL()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     VER MEU PERFIL ESPIRITUAL
@@ -728,6 +770,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <video id="vsl-video" playsinline preload="auto">
       <source src="/quiz/vsl.mp4" type="video/mp4">
     </video>
+
+    <!-- Overlay de buffering: aparece quando o video trava, some quando retoma -->
+    <div class="vsl-buffering-overlay" id="vsl-buffering">
+      <div class="vsl-buffering-spinner"></div>
+      <p style="font-size:12px;color:rgba(255,255,255,.7);font-weight:600;margin:0;font-family:'Inter',sans-serif;">Carregando video...</p>
+    </div>
 
     <!-- Botão minimo de som — só aparece se o browser bloquear autoplay com audio -->
     <button id="vsl-unmute-btn" onclick="vslUnmute()" style="display:none;position:absolute;bottom:70px;right:14px;z-index:20;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18);border-radius:50px;padding:8px 14px;color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;display:none;align-items:center;gap:6px;">
@@ -1883,14 +1931,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   // ── MINI VSL (vídeo real) ───────────────────────────────────────
   // Janela (em segundos) antes do fim em que o botão "Pular" aparece.
-  const VSL_SKIP_WINDOW = 20
-  let _vslAdvanced  = false
-  let _loadingTimer = null   // setTimeout do startVSL — precisa ser cancelável
-  let _vslBackstop  = null   // backstop interno do startVSL — também cancelável
+  const VSL_SKIP_WINDOW  = 20
+  const VSL_STALL_LIMIT  = 10000  // ms sem progresso antes de avançar automaticamente
+  let _vslAdvanced       = false
+  let _loadingTimer      = null   // setTimeout do startVSL — precisa ser cancelável
+  let _vslBackstop       = null   // backstop interno do startVSL — também cancelável
+  let _vslStallTimer     = null   // timer de travamento: dispara após VSL_STALL_LIMIT
+  let _vslBeforeUnload   = null   // ref ao handler de beforeunload para poder remover
+
+  function _vslCleanup() {
+    if (_vslStallTimer) { clearTimeout(_vslStallTimer); _vslStallTimer = null }
+    if (_vslBeforeUnload) { window.removeEventListener('beforeunload', _vslBeforeUnload); _vslBeforeUnload = null }
+    const badge = document.getElementById('vsl-anchor-badge')
+    const buf   = document.getElementById('vsl-buffering')
+    if (badge) badge.style.display = 'none'
+    if (buf)   buf.style.display   = 'none'
+  }
 
   function _vslGoToPaywall() {
     if (_vslAdvanced) return
     _vslAdvanced = true
+    _vslCleanup()
     showPaywall()
     // Rola até o primeiro card de insight após a tela renderizar
     setTimeout(() => {
@@ -1920,6 +1981,35 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     skipBtn.style.display = 'none'
     if (unmuteBtn) unmuteBtn.style.display = 'none'
 
+    // Mostrar badge de retencao
+    const badge = document.getElementById('vsl-anchor-badge')
+    const buf   = document.getElementById('vsl-buffering')
+    if (badge) badge.style.display = 'flex'
+    if (buf)   buf.style.display   = 'none'
+
+    // Alerta de saida: impede fechamento acidental enquanto o video roda
+    _vslBeforeUnload = (e) => {
+      if (_vslAdvanced) return
+      e.preventDefault()
+      e.returnValue = 'Seu diagnostico espiritual sera perdido. Tem certeza que quer sair?'
+    }
+    window.addEventListener('beforeunload', _vslBeforeUnload)
+
+    // Helpers de stall
+    const _scheduleStallFallback = () => {
+      if (_vslAdvanced) return
+      if (_vslStallTimer) clearTimeout(_vslStallTimer)
+      if (buf) buf.style.display = 'flex'
+      _vslStallTimer = setTimeout(() => {
+        _vslStallTimer = null
+        if (!_vslAdvanced) _vslGoToPaywall()
+      }, VSL_STALL_LIMIT)
+    }
+    const _clearStall = () => {
+      if (_vslStallTimer) { clearTimeout(_vslStallTimer); _vslStallTimer = null }
+      if (buf) buf.style.display = 'none'
+    }
+
     v.currentTime = 0
     v.muted = false  // tenta com som — o lead já interagiu com a página
 
@@ -1934,9 +2024,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       })
     }
 
+    // Deteccao de stall/buffering mid-play
+    v.onwaiting  = _scheduleStallFallback
+    v.onstalled  = _scheduleStallFallback
+    v.onplaying  = _clearStall
+    v.oncanplay  = _clearStall
+
     // Progress bar + reveal skip near the end
     v.ontimeupdate = () => {
       if (!v.duration) return
+      _clearStall()  // se esta avancando, nao esta travado
       const pct = (v.currentTime / v.duration) * 100
       fill.style.width = pct + '%'
       if (v.duration - v.currentTime <= VSL_SKIP_WINDOW && skipBtn.style.display === 'none') {
@@ -1949,11 +2046,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const srcEl = v.querySelector('source')
     if (srcEl) srcEl.onerror = () => _vslGoToPaywall()
 
-    // Backstop: 66 MB file needs extra load time — 8s before giving up
+    // Backstop: arquivo pesado — 10s sem iniciar nada = avanca direto
     _vslBackstop = setTimeout(() => {
       _vslBackstop = null
-      if (!_vslAdvanced && v.readyState === 0) _vslGoToPaywall()
-    }, 8000)
+      if (!_vslAdvanced && (v.readyState === 0 || v.readyState === 1)) _vslGoToPaywall()
+    }, 10000)
   }
 
   function vslUnmute() {
@@ -2128,11 +2225,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     function _resetVSL() {
       if (_loadingTimer) { clearTimeout(_loadingTimer); _loadingTimer = null }
       if (_vslBackstop)  { clearTimeout(_vslBackstop);  _vslBackstop  = null }
+      _vslCleanup()
       try {
         const v = document.getElementById('vsl-video')
         if (v) {
           v.pause(); v.currentTime = 0
           v.onended = null; v.onerror = null; v.ontimeupdate = null
+          v.onwaiting = null; v.onstalled = null; v.onplaying = null; v.oncanplay = null
           const srcEl = v.querySelector('source')
           if (srcEl) srcEl.onerror = null
         }
