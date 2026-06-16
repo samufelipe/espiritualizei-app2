@@ -2060,8 +2060,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (_isMobile) {
       // Mobile: muted attr no HTML garante autoplay sem depender de gesture chain.
       // Barra de som fica visível — lead toca para ativar o áudio com gesto direto.
+      // NÃO chamar _vslGoToPaywall() no catch: play() pode ser rejeitado temporariamente
+      // enquanto o vídeo ainda está carregando (readyState 0/1). O backstop e onerror
+      // cuidam das falhas reais. Rejeição transitória não deve pular a VSL.
       if (unmuteBtn) unmuteBtn.style.display = 'flex'
-      v.play().catch(() => { _vslGoToPaywall() })
+      v.play().catch(() => {})
     } else {
       // Desktop: lead interagiu com o quiz — tenta autoplay com som
       v.muted = false
