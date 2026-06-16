@@ -55,9 +55,8 @@ serve(async (req: any) => {
   )
 
   try {
-    // Busca: e-mail com compra confirmada (stripe_session_id NOT NULL)
-    // Se stripe_session_id foi fornecido, também verifica que pertence a ESTE e-mail.
-    // Isso impede que alguém use o session_id de outra pessoa para se registrar.
+    // 1. Verifica compra confirmada (stripe_session_id NOT NULL)
+    //    Se stripe_session_id fornecido, confere que pertence a ESTE e-mail.
     let query = supabase
       .from('quiz_sessions')
       .select('id')
@@ -68,18 +67,32 @@ serve(async (req: any) => {
       query = query.eq('stripe_session_id', stripeSessionId)
     }
 
-    const { data, error } = await query.maybeSingle()
+    const { data: purchase, error: purchaseErr } = await query.maybeSingle()
 
-    if (error) {
-      console.error('[verify-purchase-email] DB error:', error.message)
-      return respond({ eligible: false })
+    if (purchaseErr) {
+      console.error('[verify-purchase-email] DB purchase error:', purchaseErr.message)
+      return respond({ eligible: false, hasAccount: false })
     }
 
-    console.log(`[verify-purchase-email] ${email} → eligible=${!!data}`)
-    return respond({ eligible: !!data })
+    if (!purchase) {
+      return respond({ eligible: false, hasAccount: false })
+    }
+
+    // 2. Verifica se o usuário já criou uma conta (perfil existe)
+    //    Assim a página sabe se deve mostrar "criar senha" ou "entrar".
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle()
+
+    const hasAccount = !!profile
+
+    console.log(`[verify-purchase-email] ${email} → eligible=true hasAccount=${hasAccount}`)
+    return respond({ eligible: true, hasAccount })
 
   } catch (e: any) {
     console.error('[verify-purchase-email] Unexpected error:', e?.message)
-    return respond({ eligible: false })
+    return respond({ eligible: false, hasAccount: false })
   }
 })
