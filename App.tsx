@@ -62,6 +62,7 @@ const App: React.FC = () => {
   const [errorToast, setErrorToast] = useState('');
   const [quizEmail, setQuizEmail] = useState('');
   const [quizName, setQuizName] = useState('');
+  const [quizMode, setQuizMode] = useState<'create' | 'login'>('create');
   const initializationRef = useRef(false);
   const paymentVerificationRef = useRef(false);
   const quizWelcomeRef = useRef(false);
@@ -748,6 +749,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
             <QuizWelcome
               name={quizName}
               email={quizEmail}
+              initialMode={quizMode}
               onComplete={async (data) => {
                 setViewState('generating');
                 try {
@@ -791,9 +793,11 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                     throw new Error('Nao foi possivel criar sua conta. Tente novamente.');
                   }
                 } catch (e: any) {
-                  // Garante que o viewState nunca fique preso em "generating"
+                  const msg = (e?.message || '').toLowerCase();
+                  if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('user already')) {
+                    setQuizMode('login');
+                  }
                   setViewState('quiz_welcome');
-                  throw e;
                 }
               }}
               onLogin={async (loginEmail, password) => {
@@ -803,6 +807,7 @@ onRegister={() => { window.history.pushState({}, '', '/onboarding/inicio'); setV
                   localStorage.setItem('espiritualizei_from_quiz', '1');
                   setIsFromQuiz(true);
                   setUser(session.user);
+                  setQuizMode('create');
                   fetchUserRoutine(session.user.id).then((db) => { if (db && db.length > 0) setRoutineItems(db); });
                   fetchCommunityIntentions(session.user.id).then(setIntentions);
                   fetchGlobalChallenge().then((global) => { if (global) setChallenges([global]); });

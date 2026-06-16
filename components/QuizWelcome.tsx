@@ -7,12 +7,13 @@ import BrandLogo from './BrandLogo';
 interface QuizWelcomeProps {
   name: string;
   email: string;
+  initialMode?: 'create' | 'login';
   onComplete: (data: OnboardingData) => Promise<void>;
   onLogin: (email: string, password: string) => Promise<void>;
 }
 
-const QuizWelcome: React.FC<QuizWelcomeProps> = ({ name, email, onComplete, onLogin }) => {
-  const [mode, setMode] = useState<'create' | 'login'>('create');
+const QuizWelcome: React.FC<QuizWelcomeProps> = ({ name, email, initialMode = 'create', onComplete, onLogin }) => {
+  const [mode, setMode] = useState<'create' | 'login'>(initialMode);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
