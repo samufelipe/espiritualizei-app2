@@ -766,7 +766,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </button>
 
   <div class="vsl-stage">
-    <video id="vsl-video" playsinline preload="auto">
+    <!-- muted no HTML garante autoplay em qualquer mobile browser sem depender de gesture chain -->
+    <video id="vsl-video" playsinline muted preload="auto">
       <source src="/quiz/vsl.mp4" type="video/mp4">
     </video>
 
@@ -776,11 +777,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p style="font-size:12px;color:rgba(255,255,255,.7);font-weight:600;margin:0;font-family:'Inter',sans-serif;">Carregando video...</p>
     </div>
 
-    <!-- Botão minimo de som — só aparece se o browser bloquear autoplay com audio -->
-    <button id="vsl-unmute-btn" onclick="vslUnmute()" style="display:none;position:absolute;bottom:70px;right:14px;z-index:20;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18);border-radius:50px;padding:8px 14px;color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;display:none;align-items:center;gap:6px;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-      Toque para som
-    </button>
+    <!-- Barra de ativacao de som — sempre visivel no inicio; toque ativa o audio -->
+    <div id="vsl-unmute-btn" onclick="vslUnmute()" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:20;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);border-top:1px solid rgba(255,255,255,.1);padding:14px 20px;cursor:pointer;align-items:center;justify-content:center;gap:12px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      <div>
+        <p style="font-size:14px;font-weight:700;color:#fff;margin:0;font-family:'Inter',sans-serif;">Toque para ativar o som</p>
+        <p style="font-size:11px;color:rgba(255,255,255,.45);margin:3px 0 0;font-family:'Inter',sans-serif;">O video ja esta em reproducao</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1963,8 +1967,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // ── MINI VSL (vídeo real) ───────────────────────────────────────
   // Janela (em segundos) antes do fim em que o botão "Pular" aparece.
   const VSL_SKIP_WINDOW  = 20
-  const VSL_STALL_LIMIT  = 12000  // ms até aparecer o botão de pular (não avança mais auto)
-  const VSL_STALL_BAIL   = 90000  // ms — auto-avança só em abandono total (tab em bg)
+  const _isMobile        = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1
+  const VSL_STALL_LIMIT  = _isMobile ? 20000 : 12000  // mobile: 20s antes do skip button
+  const VSL_STALL_BAIL   = _isMobile ? 150000 : 90000 // mobile: 2.5min bail (rede lenta)
   let _vslAdvanced       = false
   let _loadingTimer      = null   // setTimeout do startVSL — precisa ser cancelável
   let _vslBackstop       = null   // backstop interno do startVSL — também cancelável
@@ -2051,24 +2056,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     v.currentTime = 0
-    v.muted = false  // tenta com som — o lead já interagiu com a página
 
-    const playP = v.play()
-    if (playP) {
-      playP.catch(() => {
-        // Browser bloqueou autoplay com som (ex: Safari sem interação direta no vídeo)
-        // Cai silenciosamente em muted e mostra botão minimo para o lead ativar o som
-        v.muted = true
-        v.play().catch(() => {})
-        if (unmuteBtn) unmuteBtn.style.display = 'flex'
-      })
+    if (_isMobile) {
+      // Mobile: muted attr no HTML garante autoplay sem depender de gesture chain.
+      // Barra de som fica visível — lead toca para ativar o áudio com gesto direto.
+      if (unmuteBtn) unmuteBtn.style.display = 'flex'
+      v.play().catch(() => { _vslGoToPaywall() })
+    } else {
+      // Desktop: lead interagiu com o quiz — tenta autoplay com som
+      v.muted = false
+      const playP = v.play()
+      if (playP) {
+        playP.catch(() => {
+          v.muted = true
+          v.play().catch(() => {})
+          if (unmuteBtn) unmuteBtn.style.display = 'flex'
+        })
+      }
     }
 
-    // Deteccao de stall/buffering mid-play
+    // Deteccao de stall/buffering mid-play.
+    // IMPORTANTE: oncanplay NÃO limpa o stall timer — canplay dispara com apenas
+    // 1 frame de dados, no mobile isso cria um loop infinito de stall + canplay.
+    // Só onplaying (playback efetivamente retomado) e readyState >= 3 no timeupdate limpam.
     v.onwaiting  = _scheduleStallFallback
     v.onstalled  = _scheduleStallFallback
     v.onplaying  = _clearStall
-    v.oncanplay  = _clearStall
 
     // Progress bar + reveal skip near the end
     // FIX: só limpa o stall quando o browser confirma que tem dados suficientes
@@ -2090,11 +2103,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const srcEl = v.querySelector('source')
     if (srcEl) srcEl.onerror = () => _vslGoToPaywall()
 
-    // Backstop: arquivo pesado — 10s sem iniciar nada = avanca direto
+    // Backstop: sem nenhum dado carregado após limite = avanca para paywall.
+    // Mobile com 3G/4G pode demorar 20-30s só para abrir o arquivo.
+    const _backstopMs = _isMobile ? 30000 : 12000
     _vslBackstop = setTimeout(() => {
       _vslBackstop = null
       if (!_vslAdvanced && (v.readyState === 0 || v.readyState === 1)) _vslGoToPaywall()
-    }, 10000)
+    }, _backstopMs)
   }
 
   function vslUnmute() {
@@ -2102,8 +2117,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const unmuteBtn = document.getElementById('vsl-unmute-btn')
     if (!v) return
     v.muted = false
-    const p = v.play()
-    if (p && p.catch) p.catch(() => {})
+    // Se por algum motivo o vídeo estiver pausado, retoma (gesto direto do lead)
+    if (v.paused) { const p = v.play(); if (p && p.catch) p.catch(() => {}) }
     if (unmuteBtn) unmuteBtn.style.display = 'none'
   }
 
