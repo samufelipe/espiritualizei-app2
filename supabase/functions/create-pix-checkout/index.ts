@@ -57,6 +57,8 @@ serve(async (req) => {
         source: 'quiz',
       },
       date_of_expiration: expiresAtMp,
+      // MP chama esta URL ao aprovar o PIX — dispensa configuracao manual no dashboard
+      notification_url: `${supabaseUrl}/functions/v1/pix-webhook-handler`,
     }
 
     const mpRes = await fetch('https://api.mercadopago.com/v1/payments', {
