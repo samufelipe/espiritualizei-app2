@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/create-quiz-checkout`,
+      `${SUPABASE_URL}/functions/v1/create-mp-checkout`,
       {
         method: 'POST',
         headers: {

@@ -205,13 +205,15 @@ serve(async (req) => {
 
       const payment = await mpRes.json()
 
-      if (payment.status !== 'approved' || payment.payment_method_id !== 'pix') {
+      if (payment.status !== 'approved') {
         return new Response('ok', { status: 200 })
       }
 
       customerEmail = payment.payer?.email || ''
       customerName  = `${payment.payer?.first_name || ''} ${payment.payer?.last_name || ''}`.trim()
-      quizSessionId = payment.metadata?.quiz_session_id || null
+      quizSessionId = payment.metadata?.quiz_session_id
+        || payment.external_reference
+        || null
 
       // Busca registro local para nome correto e quiz_session_id
       const supabase = createClient(supabaseUrl, serviceRole)

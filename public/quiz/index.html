@@ -1019,21 +1019,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p class="pw-price-note">pagamento unico &middot; acesso permanente &middot; 45 dias de material</p>
 
       <!-- CTA Cartao -->
-      <button id="pay-btn" class="btn-primary" onclick="startCheckout('card')" style="font-size:15px;font-weight:800;color:#fff;padding:18px 24px;margin-bottom:8px;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;">
+      <button id="pay-btn" class="btn-primary" onclick="startCheckout()" style="font-size:15px;font-weight:800;color:#fff;padding:18px 24px;margin-bottom:8px;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;">
         <span>QUERO MEU ACESSO AOS MATERIAIS</span>
         <span style="font-size:11px;font-weight:500;opacity:.8;"><s style="opacity:.65;">R$210,00</s> por apenas R$19,90 - somente hoje</span>
       </button>
 
-      <!-- CTA PIX -->
-      <button id="pay-pix-btn" onclick="startCheckout('pix')" style="width:100%;background:linear-gradient(135deg,#00b37e,#00875a);border:none;border-radius:12px;padding:14px 24px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
-        <svg width="20" height="20" viewBox="0 0 512 512" fill="#fff"><path d="M112.57 391.19c20.056 0 38.928-7.808 53.12-22l76.693-76.692c5.385-5.385 14.765-5.377 20.14 0l76.991 76.991c14.192 14.192 33.064 22 53.12 22h15.498l-97.369 97.37c-29.49 29.49-77.314 29.49-106.804 0l-97.66-97.66h6.271zm286.084-271.38c-20.056 0-38.928 7.808-53.12 22l-76.991 76.991c-5.555 5.555-14.585 5.556-20.14 0l-76.693-76.692c-14.192-14.192-33.064-22-53.12-22h-6.271l97.66-97.66c29.49-29.49 77.314-29.49 106.804 0l97.369 97.369-15.498-.008zm51.477 83.788-50.922-50.922h-48.579c-13.538 0-26.261 5.267-35.832 14.837l-76.991 76.992c-8.636 8.636-19.992 13.021-31.808 13.021-11.815 0-23.171-4.385-31.807-13.021l-76.693-76.693c-9.571-9.571-22.294-14.837-35.832-14.837H14.868l-2.192 2.19c-29.49 29.49-29.49 77.315 0 106.805l2.192 2.19h36.719c13.538 0 26.261-5.267 35.832-14.837l76.693-76.693c8.303-8.302 19.795-13.02 31.807-13.02 12.013 0 23.505 4.718 31.808 13.02l76.991 76.992c9.571 9.571 22.294 14.837 35.832 14.837h48.579l50.922-50.922c7.807-7.956 7.807-20.082-.001-27.94z"/></svg>
-        <div style="text-align:left;">
-          <p style="font-size:14px;font-weight:800;color:#fff;margin:0;">Pagar com PIX</p>
-          <p style="font-size:11px;color:rgba(255,255,255,.75);margin:2px 0 0;">Aprovacao instantanea &middot; sem dados de cartao</p>
-        </div>
-      </button>
-
-      <p id="checkout-error" style="display:none;color:#f87171;font-size:13px;margin:6px 0 10px;text-align:center;"></p>
+<p id="checkout-error" style="display:none;color:#f87171;font-size:13px;margin:6px 0 10px;text-align:center;"></p>
 
       <div style="display:inline-flex;align-items:center;gap:7px;margin-bottom:14px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -1165,7 +1156,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <!-- Sticky CTA — aparece fixo enquanto o lead está no diagnóstico -->
   <div id="sticky-buy">
-    <button id="sticky-buy-btn" onclick="startCheckout('card')">
+    <button id="sticky-buy-btn" onclick="startCheckout()">
       QUERO MEU ACESSO AOS MATERIAIS
     </button>
     <p id="sticky-buy-price">
@@ -2142,20 +2133,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     _vslGoToPaywall()
   }
 
-  async function startCheckout(method) {
-    method = method || 'card'
-    const btn    = document.getElementById('pay-btn')
-    const pixBtn = document.getElementById('pay-pix-btn')
-
-    if (method === 'card') {
-      btn.disabled = true
-      btn.textContent = 'Processando...'
-    } else {
-      if (pixBtn) { pixBtn.disabled = true; pixBtn.style.opacity = '0.7' }
-    }
+  async function startCheckout() {
+    const btn = document.getElementById('pay-btn')
+    btn.disabled = true
+    btn.textContent = 'Processando...'
 
     window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({ event: 'quiz_initiate_checkout', value: 19.90, currency: 'BRL', page_path: '/diagnostico/checkout', payment_method: method })
+    window.dataLayer.push({ event: 'quiz_initiate_checkout', value: 19.90, currency: 'BRL', page_path: '/diagnostico/checkout' })
     if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', { value: 19.90, currency: 'BRL' })
 
     const quizData = {
@@ -2191,25 +2175,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       ])
       console.log('[checkout] quiz_session_id:', quiz_session_id)
 
-      // 2a. PIX — abre modal com QR code
-      if (method === 'pix') {
-        const pixRes = await fetch('/api/pix-checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: S.email, name: S.name, quiz_session_id })
-        })
-        let pixData
-        try { pixData = await pixRes.json() } catch(_) { pixData = {} }
-        if (!pixRes.ok || !pixData.paymentId) {
-          const msg = pixData.error || `Erro HTTP ${pixRes.status}`
-          throw new Error(msg)
-        }
-        if (pixBtn) { pixBtn.disabled = false; pixBtn.style.opacity = '1' }
-        _showPixModal(pixData, S.email)
-        return
-      }
-
-      // 2b. Cartao — Stripe Hosted Checkout
+      // 2. Mercado Pago Checkout Pro (cartao + PIX + boleto)
       console.log('[checkout] chamando /api/quiz-checkout...')
       const res = await fetch('/api/quiz-checkout', {
         method:'POST',
@@ -2231,110 +2197,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     } catch(e) {
       btn.disabled = false
       btn.textContent = S.ctaBtnText || 'Quero meu Plano e minha Novena →'
-      if (pixBtn) { pixBtn.disabled = false; pixBtn.style.opacity = '1' }
       console.error('[checkout] falha:', e.message)
       const errEl = document.getElementById('checkout-error')
       if (errEl) { errEl.textContent = `Nao foi possivel iniciar o pagamento: ${e.message}. Tente novamente.`; errEl.style.display = 'block' }
       else { alert(`Erro: ${e.message}`) }
     }
-  }
-
-  // ── PIX Modal ─────────────────────────────────────────────────────────────
-
-  let _pixPollingInterval = null
-
-  function _showPixModal(pixData, email) {
-    const modal      = document.getElementById('pix-modal')
-    const qrImg      = document.getElementById('pix-qr-image')
-    const codeEl     = document.getElementById('pix-code-text')
-    const waitingEl  = document.getElementById('pix-waiting-state')
-    const successEl  = document.getElementById('pix-success-state')
-    const errorEl    = document.getElementById('pix-error-state')
-    const expiredEl  = document.getElementById('pix-expired-msg')
-
-    // Reset states
-    waitingEl.style.display = 'flex'
-    successEl.style.display = 'none'
-    errorEl.style.display   = 'none'
-    if (expiredEl) expiredEl.style.display = 'none'
-
-    if (qrImg && pixData.pixQrCodeBase64) {
-      qrImg.src = `data:image/png;base64,${pixData.pixQrCodeBase64}`
-    }
-    if (codeEl) codeEl.textContent = pixData.pixCode || ''
-
-    const expiresAt = new Date(pixData.expiresAt)
-    _startPixTimer(expiresAt)
-
-    modal.style.display = 'flex'
-    _startPixPolling(pixData.paymentId, email)
-  }
-
-  function _startPixPolling(paymentId, email) {
-    if (_pixPollingInterval) clearInterval(_pixPollingInterval)
-
-    _pixPollingInterval = setInterval(async () => {
-      try {
-        const res  = await fetch(`/api/pix-status?paymentId=${encodeURIComponent(paymentId)}`)
-        const data = await res.json()
-
-        if (data.status === 'approved') {
-          clearInterval(_pixPollingInterval)
-          _pixPollingInterval = null
-          document.getElementById('pix-waiting-state').style.display = 'none'
-          document.getElementById('pix-success-state').style.display = 'flex'
-          window.dataLayer = window.dataLayer || []
-          window.dataLayer.push({ event: 'quiz_purchase_pix', value: 19.90, currency: 'BRL' })
-          if (typeof fbq !== 'undefined') fbq('track', 'Purchase', { value: 19.90, currency: 'BRL' })
-          setTimeout(() => {
-            window.location.href = `/materiais?pix_payment_id=${encodeURIComponent(paymentId)}&email=${encodeURIComponent(email || '')}`
-          }, 2000)
-        } else if (data.status === 'rejected' || data.status === 'cancelled') {
-          clearInterval(_pixPollingInterval)
-          _pixPollingInterval = null
-          document.getElementById('pix-waiting-state').style.display = 'none'
-          const errState = document.getElementById('pix-error-state')
-          const errMsg   = document.getElementById('pix-error-msg')
-          if (errMsg) errMsg.textContent = 'Pagamento recusado. Tente gerar um novo PIX ou use cartao.'
-          if (errState) errState.style.display = 'flex'
-        }
-      } catch(e) {
-        // erro de rede transiente — continua polling
-      }
-    }, 3000)
-  }
-
-  function _startPixTimer(expiresAt) {
-    const timerEl = document.getElementById('pix-timer')
-    if (!timerEl) return
-
-    const interval = setInterval(() => {
-      const remaining = expiresAt - Date.now()
-      if (remaining <= 0) {
-        clearInterval(interval)
-        if (_pixPollingInterval) clearInterval(_pixPollingInterval)
-        timerEl.textContent = 'PIX expirado'
-        const expiredEl = document.getElementById('pix-expired-msg')
-        if (expiredEl) expiredEl.style.display = 'block'
-        return
-      }
-      const min = Math.floor(remaining / 60000)
-      const sec = Math.floor((remaining % 60000) / 1000)
-      timerEl.textContent = `${min}:${sec.toString().padStart(2, '0')}`
-    }, 1000)
-  }
-
-  function pixCopyCode() {
-    const code = document.getElementById('pix-code-text')?.textContent || ''
-    navigator.clipboard.writeText(code).then(() => {
-      const btn = document.getElementById('pix-copy-btn')
-      if (btn) { btn.textContent = 'Copiado!'; setTimeout(() => { btn.textContent = 'Copiar codigo PIX' }, 2000) }
-    })
-  }
-
-  function pixCloseModal() {
-    document.getElementById('pix-modal').style.display = 'none'
-    if (_pixPollingInterval) { clearInterval(_pixPollingInterval); _pixPollingInterval = null }
   }
 
   // ── Resume URL: ?resume=QUIZ_SESSION_ID ──────────────────────────────────────
@@ -2477,65 +2344,5 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   initSeasonalBanner()
 </script>
 
-<!-- MODAL PIX -->
-<div id="pix-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#141d27;border:1px solid rgba(167,139,250,.2);border-radius:20px;padding:28px 24px;max-width:380px;width:100%;text-align:center;position:relative;max-height:90vh;overflow-y:auto;">
-
-    <!-- Fechar -->
-    <button onclick="pixCloseModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:rgba(255,255,255,.4);line-height:1;">&times;</button>
-
-    <!-- Estado: aguardando pagamento -->
-    <div id="pix-waiting-state" style="display:flex;flex-direction:column;align-items:center;">
-      <div style="display:inline-block;background:rgba(0,179,126,.1);border:1px solid rgba(0,179,126,.3);padding:5px 14px;border-radius:999px;margin-bottom:16px;">
-        <span style="font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#00b37e;">Pague com PIX</span>
-      </div>
-      <h3 style="font-size:18px;font-weight:800;color:#fff;margin:0 0 4px;">Escaneie o QR code</h3>
-      <p style="font-size:13px;color:rgba(255,255,255,.5);margin:0 0 18px;line-height:1.5;">Ou copie o codigo abaixo e cole no app do seu banco</p>
-
-      <img id="pix-qr-image" alt="QR Code PIX" style="width:180px;height:180px;border-radius:12px;border:2px solid rgba(255,255,255,.08);margin-bottom:16px;" />
-
-      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;width:100%;margin-bottom:10px;text-align:left;word-break:break-all;font-size:11px;font-family:monospace;color:rgba(255,255,255,.6);max-height:72px;overflow:auto;">
-        <span id="pix-code-text"></span>
-      </div>
-
-      <button id="pix-copy-btn" onclick="pixCopyCode()" style="background:#00b37e;color:#fff;border:none;border-radius:10px;padding:11px 22px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:18px;width:100%;">
-        Copiar codigo PIX
-      </button>
-
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-        <span style="font-size:12px;color:rgba(255,255,255,.4);">Expira em</span>
-        <span id="pix-timer" style="font-size:18px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;"></span>
-      </div>
-
-      <div id="pix-expired-msg" style="display:none;color:#f87171;font-size:13px;margin-top:8px;">
-        Este PIX expirou.
-        <button onclick="pixCloseModal()" style="background:none;border:none;color:#f87171;text-decoration:underline;cursor:pointer;font-size:13px;">Gerar novo PIX</button>
-      </div>
-
-      <p style="font-size:11px;color:rgba(255,255,255,.25);margin:14px 0 0;line-height:1.5;">Aguardando confirmacao do pagamento...</p>
-    </div>
-
-    <!-- Estado: pagamento confirmado -->
-    <div id="pix-success-state" style="display:none;flex-direction:column;align-items:center;padding:20px 0;">
-      <div style="width:64px;height:64px;background:rgba(16,185,129,.15);border:2px solid rgba(16,185,129,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <h3 style="font-size:20px;font-weight:800;color:#34D399;margin:0 0 8px;">Pagamento confirmado!</h3>
-      <p style="font-size:14px;color:rgba(255,255,255,.6);">Redirecionando para seus materiais...</p>
-    </div>
-
-    <!-- Estado: erro -->
-    <div id="pix-error-state" style="display:none;flex-direction:column;align-items:center;padding:20px 0;">
-      <div style="width:64px;height:64px;background:rgba(248,113,113,.1);border:2px solid rgba(248,113,113,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      </div>
-      <p id="pix-error-msg" style="font-size:14px;color:#f87171;margin:0 0 16px;line-height:1.5;"></p>
-      <button onclick="pixCloseModal()" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 24px;cursor:pointer;font-size:13px;">
-        Fechar e tentar novamente
-      </button>
-    </div>
-
-  </div>
-</div>
 </body>
 </html>
