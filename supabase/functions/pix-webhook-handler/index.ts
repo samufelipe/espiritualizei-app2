@@ -286,16 +286,19 @@ serve(async (req) => {
     let qs: any = null
     if (quizSessionId) {
       const { data } = await supabase.from('quiz_sessions')
-        .select('id,name,purchase_email_sent,drip_scheduled,quiz_data')
+        .select('id,email,name,purchase_email_sent,drip_scheduled,quiz_data')
         .eq('id', quizSessionId).maybeSingle()
       if (data) qs = data
     }
     if (!qs && customerEmail) {
       const { data } = await supabase.from('quiz_sessions')
-        .select('id,name,purchase_email_sent,drip_scheduled,quiz_data')
+        .select('id,email,name,purchase_email_sent,drip_scheduled,quiz_data')
         .eq('email', customerEmail).order('created_at', { ascending: false }).limit(1).maybeSingle()
       if (data) qs = data
     }
+    // Preferir o email original do quiz (antes de pre-preencher o payer do MP)
+    if (qs?.email) customerEmail = qs.email
+    if (qs?.name)  customerName  = qs.name
 
     // Envia email pos-compra
     if (customerEmail && resendApiKey) {

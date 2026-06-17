@@ -33,9 +33,6 @@ serve(async (req) => {
       })
     }
 
-    const firstName = (name || '').split(' ')[0] || 'Cliente'
-    const lastName  = (name || '').split(' ').slice(1).join(' ') || 'Espiritualizei'
-
     const preference = {
       items: [{
         title:       'Diagnostico Espiritual + Plano de 21 Dias',
@@ -43,11 +40,6 @@ serve(async (req) => {
         unit_price:  19.90,
         currency_id: 'BRL',
       }],
-      payer: {
-        email,
-        first_name: firstName,
-        last_name:  lastName,
-      },
       back_urls: {
         success: 'https://www.espiritualizei.com/materiais',
         failure: quiz_session_id
