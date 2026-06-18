@@ -64,6 +64,31 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
       setFirstName(np.split(' ')[0] || '');
       setSessionParam(sp);
 
+      // Detectar redirect de sucesso do MP Checkout Pro antes de limpar a URL
+      const mpStatus    = params.get('status');
+      const mpPaymentId = params.get('payment_id') || params.get('mp_payment_id');
+
+      if ((mpStatus === 'approved' || mpPaymentId) && !sessionStorage.getItem(`esp_purchase_${mpPaymentId}`)) {
+        sessionStorage.setItem(`esp_purchase_${mpPaymentId}`, '1');
+        if (typeof (window as any).fbq !== 'undefined') {
+          (window as any).fbq('track', 'Purchase', {
+            value:        19.90,
+            currency:     'BRL',
+            content_name: 'Diagnóstico Espiritual + Plano de 21 Dias',
+            content_ids:  ['diagnostico-espiritual'],
+            content_type: 'product',
+          }, { eventID: `mp_purchase_${mpPaymentId}` });
+        }
+        if ((window as any).dataLayer) {
+          (window as any).dataLayer.push({
+            event:          'quiz_purchase',
+            value:          19.90,
+            currency:       'BRL',
+            transaction_id: mpPaymentId,
+          });
+        }
+      }
+
       window.history.replaceState({}, '', '/materiais');
 
       const existing = getSession();
