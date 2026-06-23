@@ -551,15 +551,15 @@
     .wk-badge { margin-left: auto; font-size: 11px; font-weight: 700; color: rgba(167,139,250,.4); flex-shrink: 0; }
 
     /* ── PAYWALL EMBEDDED VSL ──────────────────────────────────────── */
-    #pw-vsl-wrap { position:relative; width:100%; background:#000; }
+    #pw-vsl-wrap { position:relative; width:100%; background:transparent; }
     /* Override: progress bar fica no topo do vídeo, não fixo na viewport */
-    #pw-vsl-wrap .vsl-progress-wrap { position:relative; top:auto; left:auto; right:auto; z-index:1; }
-    /* Vídeo sem corte — usa aspect ratio natural do arquivo */
-    #pw-vsl-wrap .vsl-stage { border-radius:0; overflow:hidden; }
-    #pw-vsl-video { width:100%; height:auto; display:block; }
+    #pw-vsl-wrap .vsl-progress-wrap { position:relative; top:auto; left:auto; right:auto; z-index:1; background:rgba(167,139,250,.08); }
+    /* Vídeo sem corte, fundo transparente para herdar cor da página */
+    #pw-vsl-wrap .vsl-stage { border-radius:0; overflow:hidden; background:transparent; }
+    #pw-vsl-video { width:100%; height:auto; display:block; background:transparent; }
     @media (min-width:700px) {
-      #pw-vsl-wrap { background:radial-gradient(ellipse 80% 60% at 50% 50%, rgba(124,58,237,.14) 0%, #000 65%); display:flex; flex-direction:column; align-items:center; padding:20px 20px 0; }
-      #pw-vsl-wrap .vsl-stage { max-width:680px; width:100%; border-radius:16px; box-shadow:0 0 80px rgba(167,139,250,.18), 0 0 160px rgba(124,58,237,.08); }
+      #pw-vsl-wrap { background:transparent; display:flex; flex-direction:column; align-items:center; padding:20px 20px 0; }
+      #pw-vsl-wrap .vsl-stage { max-width:680px; width:100%; border-radius:16px; box-shadow:0 0 60px rgba(167,139,250,.2), 0 0 120px rgba(124,58,237,.1); background:transparent; }
       #pw-vsl-wrap .vsl-progress-wrap { max-width:680px; width:100%; border-radius:2px; }
     }
     /* Tap-to-play overlay */
