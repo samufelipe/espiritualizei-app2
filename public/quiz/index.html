@@ -551,10 +551,20 @@
     .wk-badge { margin-left: auto; font-size: 11px; font-weight: 700; color: rgba(167,139,250,.4); flex-shrink: 0; }
 
     /* ── PAYWALL EMBEDDED VSL ──────────────────────────────────────── */
-    #pw-vsl-wrap { position:relative; width:100%; background:#000; overflow:hidden; }
-    #pw-vsl-wrap .vsl-progress-wrap { border-radius:0; }
-    #pw-vsl-wrap .vsl-stage { border-radius:0; max-height:240px; overflow:hidden; }
-    #pw-vsl-video { width:100%; display:block; object-fit:cover; }
+    #pw-vsl-wrap { position:relative; width:100%; background:#000; }
+    /* Override: progress bar fica no topo do vídeo, não fixo na viewport */
+    #pw-vsl-wrap .vsl-progress-wrap { position:relative; top:auto; left:auto; right:auto; z-index:1; }
+    /* Vídeo sem corte — usa aspect ratio natural do arquivo */
+    #pw-vsl-wrap .vsl-stage { border-radius:0; overflow:hidden; }
+    #pw-vsl-video { width:100%; height:auto; display:block; }
+    @media (min-width:700px) {
+      #pw-vsl-wrap { background:radial-gradient(ellipse 80% 60% at 50% 50%, rgba(124,58,237,.14) 0%, #000 65%); display:flex; flex-direction:column; align-items:center; padding:20px 20px 0; }
+      #pw-vsl-wrap .vsl-stage { max-width:680px; width:100%; border-radius:16px; box-shadow:0 0 80px rgba(167,139,250,.18), 0 0 160px rgba(124,58,237,.08); }
+      #pw-vsl-wrap .vsl-progress-wrap { max-width:680px; width:100%; border-radius:2px; }
+    }
+    /* Tap-to-play overlay */
+    #pw-vsl-tap-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.45); cursor:pointer; z-index:15; }
+    #pw-vsl-tap-overlay .pw-play-btn { width:64px; height:64px; border-radius:50%; background:rgba(167,139,250,.9); display:flex; align-items:center; justify-content:center; box-shadow:0 0 40px rgba(167,139,250,.5); }
 
     /* Locked content reveal */
     #pw-locked-content { opacity:0; pointer-events:none; transition:opacity 0.85s ease; }
@@ -841,6 +851,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <video id="pw-vsl-video" playsinline muted preload="auto">
         <source src="/quiz/vsl.mp4" type="video/mp4">
       </video>
+      <!-- Tap-to-play overlay: aparece apenas se autoplay falhar -->
+      <div id="pw-vsl-tap-overlay" style="display:none;" onclick="pwVslTapPlay()">
+        <div class="pw-play-btn">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+      </div>
       <div class="vsl-buffering-overlay" id="pw-vsl-buffering" style="display:none;">
         <div class="vsl-buffering-spinner"></div>
         <p style="font-size:12px;color:rgba(255,255,255,.5);margin:8px 0 0;">Carregando...</p>
@@ -2215,6 +2231,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }, 900)
   }
 
+  function pwVslTapPlay() {
+    const v   = document.getElementById('pw-vsl-video')
+    const tap = document.getElementById('pw-vsl-tap-overlay')
+    const un  = document.getElementById('pw-vsl-unmute-btn')
+    if (!v) return
+    if (tap) tap.style.display = 'none'
+    v.muted = false
+    v.play().catch(() => {
+      v.muted = true
+      v.play().then(() => { if (un) un.style.display = 'flex' }).catch(() => {})
+    })
+  }
+
   function initPaywallVideo() {
     const v = document.getElementById('pw-vsl-video')
     if (!v) { skipToContent(); return }
@@ -2222,29 +2251,41 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const fill   = document.getElementById('pw-vsl-progress')
     const buf    = document.getElementById('pw-vsl-buffering')
     const unmute = document.getElementById('pw-vsl-unmute-btn')
+    const tap    = document.getElementById('pw-vsl-tap-overlay')
 
     _pwRevealed = false
     v.currentTime = 0
 
+    // Backstop de segurança: revela conteúdo após 65s mesmo se o vídeo não carregar
     _pwRevealBackstop = setTimeout(() => { if (!_pwRevealed) skipToContent() }, 65000)
 
     v.ontimeupdate = () => {
       if (fill && v.duration) fill.style.width = ((v.currentTime / v.duration) * 100) + '%'
       if (!_pwRevealed && v.currentTime >= 42) skipToContent()
     }
-    v.onended  = () => { if (!_pwRevealed) skipToContent() }
+    v.onended   = () => { if (!_pwRevealed) skipToContent() }
     v.onwaiting = () => { if (buf) buf.style.display = 'flex' }
-    v.onplaying = () => { if (buf) buf.style.display = 'none' }
+    v.onplaying = () => { if (buf) buf.style.display = 'none'; if (tap) tap.style.display = 'none' }
     v.onstalled = () => { if (buf) buf.style.display = 'flex' }
+
+    const _showTapOverlay = () => {
+      if (buf) buf.style.display = 'none'
+      if (tap) tap.style.display = 'flex'
+      // NUNCA chama skipToContent() aqui — o backstop cuida do fallback
+    }
 
     if (_isMobile) {
       v.muted = true
-      v.play().then(() => { if (unmute) { unmute.style.display = 'flex' } }).catch(() => skipToContent())
+      v.play()
+        .then(() => { if (unmute) unmute.style.display = 'flex' })
+        .catch(_showTapOverlay)
     } else {
       v.muted = false
       v.play().catch(() => {
         v.muted = true
-        v.play().then(() => { if (unmute) { unmute.style.display = 'flex' } }).catch(() => skipToContent())
+        v.play()
+          .then(() => { if (unmute) unmute.style.display = 'flex' })
+          .catch(_showTapOverlay)
       })
     }
   }
