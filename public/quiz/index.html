@@ -549,6 +549,49 @@
     .wk-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(167,139,250,.52); margin-bottom: 3px; }
     .wk-theme { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9); line-height: 1.3; margin: 0; }
     .wk-badge { margin-left: auto; font-size: 11px; font-weight: 700; color: rgba(167,139,250,.4); flex-shrink: 0; }
+
+    /* ── PAYWALL EMBEDDED VSL ──────────────────────────────────────── */
+    #pw-vsl-wrap { position:relative; width:100%; background:#000; overflow:hidden; }
+    #pw-vsl-wrap .vsl-progress-wrap { border-radius:0; }
+    #pw-vsl-wrap .vsl-stage { border-radius:0; max-height:240px; overflow:hidden; }
+    #pw-vsl-video { width:100%; display:block; object-fit:cover; }
+
+    /* Locked content reveal */
+    #pw-locked-content { opacity:0; pointer-events:none; transition:opacity 0.85s ease; }
+    #pw-locked-content.revealed { opacity:1; pointer-events:auto; }
+
+    /* Access counter */
+    .pw-access-counter { display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 20px; background:rgba(16,185,129,.07); border:1px solid rgba(16,185,129,.2); border-radius:10px; margin-bottom:20px; font-size:13px; color:rgba(255,255,255,.68); }
+    .pw-access-counter strong { color:#10B981; }
+
+    /* Timer */
+    .pw-timer-wrap { text-align:center; margin-bottom:16px; }
+    .pw-timer-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,.35); margin-bottom:6px; }
+    .pw-timer-display { font-size:32px; font-weight:800; color:#F59E0B; font-variant-numeric:tabular-nums; letter-spacing:3px; }
+
+    /* CTA blocks */
+    .pw-cta-block { margin:28px 0; padding:22px 20px; background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(167,139,250,.05)); border:1.5px solid rgba(167,139,250,.28); border-radius:20px; }
+    .pw-cta-price-old { font-size:13px; color:rgba(255,255,255,.32); text-decoration:line-through; text-align:center; margin-bottom:2px; }
+    .pw-cta-price-main { font-size:38px; font-weight:900; color:#fff; text-align:center; line-height:1; margin-bottom:4px; }
+    .pw-cta-price-note { font-size:11px; color:rgba(255,255,255,.38); text-align:center; margin-bottom:16px; }
+    .pw-cta-context { font-size:13px; color:rgba(255,255,255,.58); text-align:center; margin-bottom:14px; line-height:1.55; }
+
+    /* Para quem é / não é / não precisa */
+    .pw-section-title { font-size:9px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase; color:rgba(167,139,250,.65); margin-bottom:14px; }
+    .pw-check-item { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; font-size:13px; color:rgba(255,255,255,.75); line-height:1.5; }
+    .pw-x-item { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; font-size:13px; color:rgba(255,255,255,.42); line-height:1.5; }
+    .pw-check-icon { width:18px; height:18px; flex-shrink:0; margin-top:1px; }
+    .pw-section-box { background:rgba(255,255,255,.03); border:1.5px solid rgba(255,255,255,.07); border-radius:16px; padding:18px 18px; margin-bottom:10px; }
+
+    /* Payment logos */
+    .pw-payment-logos { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
+    .pw-pay-badge { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:6px; padding:5px 10px; font-size:10px; font-weight:800; color:rgba(255,255,255,.45); letter-spacing:.5px; }
+
+    /* Exit intent overlay */
+    #pw-exit-intent { display:none; position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:9999; align-items:flex-end; justify-content:center; }
+    #pw-exit-intent.active { display:flex; }
+    .pw-exit-box { background:linear-gradient(180deg,#1A0A2E,#0D0617); border:1.5px solid rgba(167,139,250,.28); border-top-left-radius:20px; border-top-right-radius:20px; padding:28px 24px 40px; width:100%; max-width:460px; position:relative; animation:slideUpIn .35s cubic-bezier(.22,1,.36,1); }
+    @keyframes slideUpIn { from { transform:translateY(100%); } to { transform:translateY(0); } }
   </style>
 </head>
 <body>
@@ -790,12 +833,40 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- TELA 5 — PAYWALL -->
 <div id="s-paywall" class="screen" style="position:relative;z-index:1;">
+
+  <!-- ═══ MINI VSL (embedded at top of paywall) ═══ -->
+  <div id="pw-vsl-wrap">
+    <div class="vsl-progress-wrap"><div class="vsl-progress-fill" id="pw-vsl-progress" style="width:0%"></div></div>
+    <div class="vsl-stage">
+      <video id="pw-vsl-video" playsinline muted preload="auto">
+        <source src="/quiz/vsl.mp4" type="video/mp4">
+      </video>
+      <div class="vsl-buffering-overlay" id="pw-vsl-buffering" style="display:none;">
+        <div class="vsl-buffering-spinner"></div>
+        <p style="font-size:12px;color:rgba(255,255,255,.5);margin:8px 0 0;">Carregando...</p>
+      </div>
+      <div id="pw-vsl-unmute-btn" onclick="pwVslUnmute()" style="display:none;position:absolute;bottom:16px;right:16px;background:rgba(0,0,0,.75);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;z-index:10;align-items:center;gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        Toque para ativar o som
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONTEÚDO BLOQUEADO (revela aos 42s de vídeo) ═══ -->
+  <div id="pw-locked-content">
+
   <div style="max-width:460px;margin:0 auto;width:100%;padding:20px 16px 48px;">
 
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:24px 0 28px;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="#A78BFA"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
       <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">Espiritualizei</span>
+    </div>
+
+    <!-- Access counter -->
+    <div class="pw-access-counter">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span><strong id="pw-access-count">47</strong> pessoas acessaram o diagnostico hoje</span>
     </div>
 
     <!-- ═══ DIAGNOSTICO CAROUSEL — 2 SLIDES ═══ -->
@@ -934,6 +1005,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <!-- /CAROUSEL -->
 
+    <!-- CTA #1 -->
+    <div class="pw-cta-block anim-fade-up">
+      <div class="pw-timer-wrap">
+        <p class="pw-timer-label">OFERTA EXPIRA EM</p>
+        <div class="pw-timer-display" id="pw-timer-1">15:00</div>
+      </div>
+      <p class="pw-cta-context">Seu diagnostico esta pronto. Acesse seu plano personalizado agora por:</p>
+      <p class="pw-cta-price-old">R$210,00</p>
+      <p class="pw-cta-price-main">R$19,90</p>
+      <p class="pw-cta-price-note">pagamento unico &middot; acesso permanente</p>
+      <button onclick="startCheckout()" class="btn-primary" style="font-size:15px;font-weight:800;color:#fff;padding:18px 24px;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;">
+        <span>QUERO MEU PLANO AGORA</span>
+        <span style="font-size:11px;font-weight:500;opacity:.8;">Acesso imediato &middot; Garantia 7 dias</span>
+      </button>
+    </div>
+
+    <!-- PARA QUEM É / PARA QUEM NÃO É -->
+    <div class="anim-fade-up" style="margin-bottom:28px;">
+      <p class="pw-section-title">ESSE PLANO E PARA VOCE SE...</p>
+      <div class="pw-section-box">
+        <div id="pw-para-quem-e"></div>
+      </div>
+      <p class="pw-section-title" style="margin-top:20px;">NAO E PARA VOCE SE...</p>
+      <div class="pw-section-box">
+        <div id="pw-para-quem-nao"></div>
+      </div>
+    </div>
+
+    <!-- O QUE VOCÊ NÃO PRECISA TER -->
+    <div class="anim-fade-up" style="margin-bottom:28px;">
+      <p class="pw-section-title">PARA COMECAR, VOCE NAO PRECISA...</p>
+      <div class="pw-section-box">
+        <div id="pw-nao-precisa"></div>
+      </div>
+    </div>
+
     <!-- PRODUTO PRINCIPAL -->
     <div id="pw-product-anchor" class="anim-fade-up" style="margin-bottom:20px;">
       <p style="font-size:9px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:rgba(167,139,250,.65);margin-bottom:12px;">O QUE VOCE ESTA LEVANDO</p>
@@ -1000,6 +1107,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <p style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:3px;">dias de caminhada espiritual estruturada</p>
         <p style="font-size:12px;color:rgba(255,255,255,.4);line-height:1.5;">21 dias de plano + 9 dias de novena + 15 dias de cartas. Tudo criado para o seu desafio real.</p>
       </div>
+    </div>
+
+    <!-- CTA #2 -->
+    <div class="pw-cta-block anim-fade-up">
+      <div class="pw-timer-wrap">
+        <p class="pw-timer-label">OFERTA EXPIRA EM</p>
+        <div class="pw-timer-display" id="pw-timer-2">15:00</div>
+      </div>
+      <p class="pw-cta-context">45 dias de material personalizado para o seu desafio real, por um valor que nao se repete:</p>
+      <p class="pw-cta-price-old">R$210,00</p>
+      <p class="pw-cta-price-main">R$19,90</p>
+      <p class="pw-cta-price-note">pagamento unico &middot; acesso permanente</p>
+      <button onclick="startCheckout()" class="btn-primary" style="font-size:15px;font-weight:800;color:#fff;padding:18px 24px;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;">
+        <span>QUERO MEU PLANO AGORA</span>
+        <span style="font-size:11px;font-weight:500;opacity:.8;">Acesso imediato &middot; Garantia 7 dias</span>
+      </button>
     </div>
 
     <!-- VALUE STACK -->
@@ -1149,6 +1272,35 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
+    <!-- CTA #3 — FINAL -->
+    <div class="pw-cta-block anim-fade-up" style="margin-top:32px;">
+      <div class="pw-timer-wrap">
+        <p class="pw-timer-label">OFERTA EXPIRA EM</p>
+        <div class="pw-timer-display" id="pw-timer-3">15:00</div>
+      </div>
+      <div style="display:inline-flex;align-items:center;gap:7px;justify-content:center;width:100%;margin-bottom:14px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span style="font-size:12px;font-weight:700;color:#10B981;">Garantia incondicional de 7 dias</span>
+      </div>
+      <p class="pw-cta-context">Se nao transformar sua vida espiritual em 7 dias, devolvemos 100% do valor. Sem perguntas.</p>
+      <p class="pw-cta-price-old">R$210,00</p>
+      <p class="pw-cta-price-main">R$19,90</p>
+      <p class="pw-cta-price-note">pagamento unico &middot; acesso permanente &middot; 45 dias de material</p>
+      <button onclick="startCheckout()" class="btn-primary" style="font-size:16px;font-weight:800;color:#fff;padding:20px 24px;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;">
+        <span>QUERO MEU PLANO AGORA</span>
+        <span style="font-size:11px;font-weight:500;opacity:.8;">Acesso imediato &middot; Risco zero</span>
+      </button>
+      <div class="pw-payment-logos">
+        <span class="pw-pay-badge">VISA</span>
+        <span class="pw-pay-badge">MASTERCARD</span>
+        <span class="pw-pay-badge">PIX</span>
+        <span class="pw-pay-badge">BOLETO</span>
+        <span class="pw-pay-badge" style="display:inline-flex;align-items:center;gap:5px;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>SSL
+        </span>
+      </div>
+    </div>
+
     <!-- Footer -->
     <p style="text-align:center;font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(167,139,250,.28);padding-bottom:110px;">ESPIRITUALIZEI &middot; Feito com amor para a gloria de Deus</p>
 
@@ -1162,6 +1314,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <p id="sticky-buy-price">
       <s>R$210,00</s> por apenas <strong>R$19,90</strong> - somente hoje
     </p>
+  </div>
+
+  </div><!-- /pw-locked-content -->
+</div>
+
+<!-- Exit intent popup -->
+<div id="pw-exit-intent">
+  <div style="position:relative;width:100%;max-width:460px;">
+    <div class="pw-exit-box">
+      <button onclick="closeExitIntent()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(255,255,255,.3);font-size:24px;cursor:pointer;line-height:1;padding:0;">&#x2715;</button>
+      <p style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(167,139,250,.58);margin-bottom:12px;">ANTES DE SAIR</p>
+      <h3 style="font-size:19px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:10px;">Seu diagnostico vai expirar</h3>
+      <p style="font-size:13px;color:rgba(255,255,255,.58);line-height:1.6;margin-bottom:18px;">Voce respondeu o quiz e o plano foi criado para o seu desafio real. Se fechar agora, perde acesso ao seu diagnostico personalizado.</p>
+      <div class="pw-timer-wrap" style="margin-bottom:16px;">
+        <p class="pw-timer-label">OFERTA EXPIRA EM</p>
+        <div class="pw-timer-display" id="pw-timer-exit">15:00</div>
+      </div>
+      <button onclick="startCheckout(); closeExitIntent();" class="btn-primary" style="font-size:15px;font-weight:800;color:#fff;padding:18px 24px;display:block;width:100%;margin-bottom:12px;">
+        QUERO MANTER MEU PLANO
+      </button>
+      <button onclick="closeExitIntent()" style="display:block;width:100%;background:none;border:none;font-size:12px;color:rgba(255,255,255,.25);cursor:pointer;padding:8px;font-family:'Inter',sans-serif;">
+        Nao, desejo perder meu plano
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1722,7 +1898,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         clearInterval(t)
       }
     }, 1400)
-    _loadingTimer = setTimeout(() => { _loadingTimer = null; clearInterval(t); startVSL() }, 7000)
+    _loadingTimer = setTimeout(() => { _loadingTimer = null; clearInterval(t); showPaywall() }, 7000)
   }
 
   function calcScore(a) {
@@ -1962,8 +2138,192 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       payBtn.textContent = S.ctaBtnText
     }
 
+    // Populate personalized sections (Para Quem É / Não É / Não Precisa)
+    const _ch = a.challenge || 'anxiety'
+    const _checkIcon = `<svg class="pw-check-icon" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+    const _xIcon     = `<svg class="pw-check-icon" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+    const _purpIcon  = `<svg class="pw-check-icon" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+    const pqeEl = document.getElementById('pw-para-quem-e')
+    const pqnEl = document.getElementById('pw-para-quem-nao')
+    const npEl  = document.getElementById('pw-nao-precisa')
+    if (pqeEl) pqeEl.innerHTML = (PARA_QUEM_E[_ch] || PARA_QUEM_E.anxiety).map(t => `<div class="pw-check-item">${_checkIcon}<span>${t}</span></div>`).join('')
+    if (pqnEl) pqnEl.innerHTML = (PARA_QUEM_NAO[_ch] || PARA_QUEM_NAO.anxiety).map(t => `<div class="pw-x-item">${_xIcon}<span>${t}</span></div>`).join('')
+    if (npEl)  npEl.innerHTML  = (NAO_PRECISA[_ch] || NAO_PRECISA.anxiety).map(t => `<div class="pw-check-item">${_purpIcon}<span>${t}</span></div>`).join('')
+
+    initAccessCounter()
     lucide.createIcons()
     show('s-paywall')
+    initPaywallVideo()
+  }
+
+  // ── PAYWALL DATA: PARA QUEM É / NÃO É / NÃO PRECISA ─────────────────────────
+  const PARA_QUEM_E = {
+    anxiety:       ['Voce acorda com a mente acelerada antes mesmo de tentar rezar', 'Ja tentou novenas, rosarios, rotinas espirituais e a ansiedade volta', 'Quer um caminho concreto, nao mais dicas genericas de espiritualidade', 'Busca consistencia, nao perfeicao — 5 a 10 minutos por dia bastam para comecar'],
+    sadness:       ['Voce sente um vazio que nenhuma conquista consegue preencher', 'Ja se perguntou se ainda tem fe, mesmo querendo ter', 'Quer reencontrar sentido sem precisar fingir que esta bem', 'Busca passos simples para sair do lugar, um dia de cada vez'],
+    relationships: ['Os conflitos com quem voce ama drenam sua energia e sua paz', 'Voce quer amar mais, mas se pega irritado ou na defensiva', 'Ja tentou conversar, perdoar, recomecar — o ciclo sempre volta', 'Busca uma perspectiva espiritual concreta para seus relacionamentos'],
+    laziness:      ['Voce comeca com disposicao e para depois de 3 dias', 'Ja se prometeu mudar a rotina espiritual mais vezes do que lembra', 'Quer constancia real, nao disciplina perfeita', 'Busca um plano feito para quem recomeca, nao para quem nunca parou'],
+    dryness:       ['Voce reza, mas sente que as palavras nao chegam a lugar nenhum', 'A fe ainda esta la, mas a vida interior perdeu o gosto', 'Ja tentou novos metodos de oracao sem encontrar o que funcionava', 'Busca reencontrar Deus no silencio do dia a dia'],
+    ignorance:     ['Voce tem duvidas que envergo nham, como se boa fe nao bastasse', 'Quer entender mais sobre o que acredita, mas nao sabe por onde comecar', 'Sente que sua oracao seria mais profunda com mais conhecimento da fe', 'Busca clareza e seguranca para rezar sem travar'],
+    pride:         ['A magoa que voce carrega pesa mais do que qualquer pessoa de fora imagina', 'Voce ja tentou perdoar, mas o sentimento volta com forca', 'Quer ser livre dessa dor, mas nao sabe como deixar ir', 'Busca passos espirituais concretos para curar essa ferida'],
+    lust:          ['Voce luta sozinho, cai, recomeca e sente a culpa crescer', 'Ja tentou forca de vontade e nao funcionou por muito tempo', 'Quer um caminho de graca que nao dependa da sua perfeicao', 'Busca consistencia e liberdade interior, um dia de cada vez'],
+  }
+  const PARA_QUEM_NAO = {
+    anxiety:       ['Voce esta satisfeito com sua vida de oracao e nao busca mudanca', 'Prefere resultados imediatos sem compromisso diario'],
+    sadness:       ['Voce esta em paz com seu estado emocional e nao sente peso nisso', 'Busca solucoes instantaneas sem um processo gradual'],
+    relationships: ['Seus relacionamentos estao saudaveis e voce nao sente peso nessa area', 'Nao esta disposto a olhar para dentro antes de olhar para o outro'],
+    laziness:      ['Voce ja tem uma rotina espiritual solida e consistente', 'Busca perfeicao imediata e nao aceita recomec ar do zero'],
+    dryness:       ['Sua vida de oracao esta plena e voce sente a presenca de Deus diariamente', 'Nao aceita que o silencio tambem pode ser uma forma de Deus falar'],
+    ignorance:     ['Voce ja tem formacao teologica solida e estudo biblico aprofundado', 'Prefere aprender tudo antes de comecar qualquer pratica'],
+    pride:         ['Voce ja resolveu as magoas do passado e se sente verdadeiramente em paz', 'Nao esta pronto para olhar honestamente para essa ferida'],
+    lust:          ['Voce nao se identifica com esse peso no cotidiano', 'Busca uma solucao que nao envolva espiritualidade e oracao diaria'],
+  }
+  const NAO_PRECISA = {
+    anxiety:       ['Nao precisa ter disciplina de ferro', 'Nao precisa saber rezar do jeito certo', 'Nao precisa estar bem emocionalmente para comecar', 'Nao precisa de silencio perfeito ou lugar sagrado'],
+    sadness:       ['Nao precisa estar em paz para comecar', 'Nao precisa ter certeza de que sua fe esta intacta', 'Nao precisa conseguir rezar com concentracao logo de inicio', 'Nao precisa de energia nem motivacao para dar o primeiro passo'],
+    relationships: ['Nao precisa que a outra pessoa mude primeiro', 'Nao precisa perdoar completamente antes de comecar', 'Nao precisa entender tudo o que aconteceu no passado', 'Nao precisa de uma familia ou casamento perfeito'],
+    laziness:      ['Nao precisa de uma rotina fechada no horario', 'Nao precisa ter tentado e falhado apenas uma vez', 'Nao precisa de uma hora por dia — bastam 5 minutos', 'Nao precisa de condicoes perfeitas para comecar'],
+    dryness:       ['Nao precisa sentir nada ao rezar para comecar', 'Nao precisa entender por que a oracao esta seca', 'Nao precisa de um metodo novo ou especial', 'Nao precisa de certezas antes de abrir o coracao'],
+    ignorance:     ['Nao precisa ter feito curso de teologia', 'Nao precisa entender latim ou ter a Biblia decorada', 'Nao precisa ser praticante ha anos', 'Nao precisa ter resposta para as proprias duvidas'],
+    pride:         ['Nao precisa que a pessoa que magoou peca perdao primeiro', 'Nao precisa entender completamente o que aconteceu', 'Nao precisa conseguir perdoar antes de comecar', 'Nao precisa estar sem raiva para dar o primeiro passo'],
+    lust:          ['Nao precisa ter ficado dias sem cair para comecar', 'Nao precisa de confissao em dia para iniciar', 'Nao precisa resolver tudo antes de comecar a caminhar', 'Nao precisa de perfeicao — so de disposicao para tentar um dia de cada vez'],
+  }
+
+  // ── PAYWALL VIDEO ─────────────────────────────────────────────────────────────
+  let _pwRevealed = false
+  let _pwRevealBackstop = null
+
+  function pwVslUnmute() {
+    const v = document.getElementById('pw-vsl-video')
+    if (!v) return
+    v.muted = false
+    v.volume = 1
+    const btn = document.getElementById('pw-vsl-unmute-btn')
+    if (btn) btn.style.display = 'none'
+  }
+
+  function skipToContent() {
+    if (_pwRevealed) return
+    _pwRevealed = true
+    if (_pwRevealBackstop) { clearTimeout(_pwRevealBackstop); _pwRevealBackstop = null }
+    const locked = document.getElementById('pw-locked-content')
+    if (locked) locked.classList.add('revealed')
+    startOfferTimer()
+    initExitIntent()
+    setTimeout(() => {
+      const el = document.getElementById('diag-insight-1')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 900)
+  }
+
+  function initPaywallVideo() {
+    const v = document.getElementById('pw-vsl-video')
+    if (!v) { skipToContent(); return }
+
+    const fill   = document.getElementById('pw-vsl-progress')
+    const buf    = document.getElementById('pw-vsl-buffering')
+    const unmute = document.getElementById('pw-vsl-unmute-btn')
+
+    _pwRevealed = false
+    v.currentTime = 0
+
+    _pwRevealBackstop = setTimeout(() => { if (!_pwRevealed) skipToContent() }, 65000)
+
+    v.ontimeupdate = () => {
+      if (fill && v.duration) fill.style.width = ((v.currentTime / v.duration) * 100) + '%'
+      if (!_pwRevealed && v.currentTime >= 42) skipToContent()
+    }
+    v.onended  = () => { if (!_pwRevealed) skipToContent() }
+    v.onwaiting = () => { if (buf) buf.style.display = 'flex' }
+    v.onplaying = () => { if (buf) buf.style.display = 'none' }
+    v.onstalled = () => { if (buf) buf.style.display = 'flex' }
+
+    if (_isMobile) {
+      v.muted = true
+      v.play().then(() => { if (unmute) { unmute.style.display = 'flex' } }).catch(() => skipToContent())
+    } else {
+      v.muted = false
+      v.play().catch(() => {
+        v.muted = true
+        v.play().then(() => { if (unmute) { unmute.style.display = 'flex' } }).catch(() => skipToContent())
+      })
+    }
+  }
+
+  // ── COUNTDOWN TIMER ──────────────────────────────────────────────────────────
+  const _TIMER_KEY = 'esp_offer_expires'
+  const _TIMER_DUR = 15 * 60 * 1000
+
+  function startOfferTimer() {
+    let exp = parseInt(sessionStorage.getItem(_TIMER_KEY) || '0')
+    if (!exp || exp < Date.now()) {
+      exp = Date.now() + _TIMER_DUR
+      sessionStorage.setItem(_TIMER_KEY, String(exp))
+    }
+    const timerIds = ['pw-timer-1', 'pw-timer-2', 'pw-timer-3', 'pw-timer-exit']
+    function tick() {
+      const rem = Math.max(0, exp - Date.now())
+      const m   = Math.floor(rem / 60000)
+      const s   = Math.floor((rem % 60000) / 1000)
+      const str = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0')
+      timerIds.forEach(id => {
+        const el = document.getElementById(id)
+        if (el && rem > 0) el.textContent = str
+        else if (el) { el.textContent = 'EXPIRADO'; el.style.color = '#ef4444'; el.style.fontSize = '16px' }
+      })
+      if (rem <= 0) {
+        document.querySelectorAll('.pw-cta-price-main').forEach(el => { el.textContent = 'R$27,90' })
+        const pwFinal = document.querySelector('.pw-price-final')
+        if (pwFinal) pwFinal.textContent = 'R$27,90'
+        return
+      }
+      setTimeout(tick, 1000)
+    }
+    tick()
+  }
+
+  // ── EXIT INTENT ──────────────────────────────────────────────────────────────
+  let _exitShown = false
+
+  function initExitIntent() {
+    if (_exitShown) return
+    document.addEventListener('mouseleave', function _exitMouse(e) {
+      if (e.clientY > 10 || _exitShown) return
+      _exitShown = true
+      document.removeEventListener('mouseleave', _exitMouse)
+      showExitIntent()
+    })
+    try {
+      history.pushState(null, '', location.href)
+      window.addEventListener('popstate', function _exitPop() {
+        if (_exitShown) return
+        _exitShown = true
+        window.removeEventListener('popstate', _exitPop)
+        history.pushState(null, '', location.href)
+        showExitIntent()
+      }, { once: true })
+    } catch(e) {}
+  }
+
+  function showExitIntent() {
+    const el = document.getElementById('pw-exit-intent')
+    if (el) el.classList.add('active')
+  }
+
+  function closeExitIntent() {
+    const el = document.getElementById('pw-exit-intent')
+    if (el) el.classList.remove('active')
+  }
+
+  // ── ACCESS COUNTER ──────────────────────────────────────────────────────────
+  function initAccessCounter() {
+    const key = 'esp_access_count'
+    let count = parseInt(sessionStorage.getItem(key) || '0')
+    if (!count) {
+      count = Math.floor(Math.random() * 34) + 34
+      sessionStorage.setItem(key, String(count))
+    }
+    const el = document.getElementById('pw-access-count')
+    if (el) el.textContent = count
   }
 
   // ── MINI VSL (vídeo real) ───────────────────────────────────────
