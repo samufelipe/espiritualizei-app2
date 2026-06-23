@@ -565,6 +565,10 @@
     /* Tap-to-play overlay */
     #pw-vsl-tap-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.45); cursor:pointer; z-index:15; }
     #pw-vsl-tap-overlay .pw-play-btn { width:64px; height:64px; border-radius:50%; background:rgba(167,139,250,.9); display:flex; align-items:center; justify-content:center; box-shadow:0 0 40px rgba(167,139,250,.5); }
+    /* Hint acima do vídeo */
+    #pw-vsl-hint { text-align:center; padding:11px 20px; font-size:9.5px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:rgba(167,139,250,.82); background:rgba(167,139,250,.06); border-bottom:1px solid rgba(167,139,250,.12); display:flex; align-items:center; justify-content:center; gap:9px; }
+    .pw-hint-dot { width:6px; height:6px; border-radius:50%; background:#A78BFA; flex-shrink:0; animation:hintPulse 1.6s ease-in-out infinite; }
+    @keyframes hintPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.45;transform:scale(1.4)} }
 
     /* Locked content reveal */
     #pw-locked-content { opacity:0; pointer-events:none; transition:opacity 0.85s ease; }
@@ -843,6 +847,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- TELA 5 — PAYWALL -->
 <div id="s-paywall" class="screen" style="position:relative;z-index:1;">
+
+  <!-- Hint acima da VSL -->
+  <div id="pw-vsl-hint">
+    <span class="pw-hint-dot"></span>
+    Seu diagnóstico espiritual será liberado após este pequeno vídeo
+  </div>
 
   <!-- ═══ MINI VSL (embedded at top of paywall) ═══ -->
   <div id="pw-vsl-wrap">
@@ -1814,7 +1824,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (typeof fbq !== 'undefined') fbq('track', 'Lead')
     updateProgress(QUESTIONS.length + 1, TOTAL_STEPS)
     lucide.createIcons()
-    show('s-deepen')
+    startDeepQuestions()
   }
 
   function startDeepQuestions() {
@@ -2205,8 +2215,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   // ── PAYWALL VIDEO ─────────────────────────────────────────────────────────────
-  let _pwRevealed = false
+  let _pwRevealed      = false
   let _pwRevealBackstop = null
+  let _pwStallWatcher  = null
 
   function pwVslUnmute() {
     const v = document.getElementById('pw-vsl-video')
@@ -2221,6 +2232,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (_pwRevealed) return
     _pwRevealed = true
     if (_pwRevealBackstop) { clearTimeout(_pwRevealBackstop); _pwRevealBackstop = null }
+    if (_pwStallWatcher)   { clearInterval(_pwStallWatcher); _pwStallWatcher = null }
+    const hint = document.getElementById('pw-vsl-hint')
+    if (hint) hint.style.display = 'none'
     const locked = document.getElementById('pw-locked-content')
     if (locked) locked.classList.add('revealed')
     startOfferTimer()
@@ -2256,8 +2270,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     _pwRevealed = false
     v.currentTime = 0
 
-    // Backstop de segurança: revela conteúdo após 65s mesmo se o vídeo não carregar
-    _pwRevealBackstop = setTimeout(() => { if (!_pwRevealed) skipToContent() }, 65000)
+    // Backstop absoluto: 48s após iniciar o vídeo, libera o conteúdo de qualquer forma
+    _pwRevealBackstop = setTimeout(() => { if (!_pwRevealed) skipToContent() }, 48000)
+
+    // Stall detection: verifica a cada 3s se o currentTime progrediu.
+    // Após 9s sem progresso (3 ciclos), exibe overlay de "toque para continuar".
+    let _lastKnownTime = -1
+    let _stallCount    = 0
+    _pwStallWatcher = setInterval(() => {
+      if (_pwRevealed || v.paused || v.ended) return
+      if (v.currentTime === _lastKnownTime) {
+        _stallCount++
+        if (_stallCount >= 3) {
+          if (buf) buf.style.display = 'none'
+          if (tap) tap.style.display = 'flex'
+        }
+      } else {
+        _stallCount = 0
+        if (tap && !v.paused) tap.style.display = 'none'
+      }
+      _lastKnownTime = v.currentTime
+    }, 3000)
 
     v.ontimeupdate = () => {
       if (fill && v.duration) fill.style.width = ((v.currentTime / v.duration) * 100) + '%'
@@ -2265,14 +2298,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
     v.onended   = () => { if (!_pwRevealed) skipToContent() }
     v.onwaiting = () => { if (buf) buf.style.display = 'flex' }
-    v.onplaying = () => { if (buf) buf.style.display = 'none'; if (tap) tap.style.display = 'none' }
+    v.onplaying = () => {
+      if (buf) buf.style.display = 'none'
+      if (tap) tap.style.display = 'none'
+      _stallCount = 0
+    }
     v.onstalled = () => { if (buf) buf.style.display = 'flex' }
 
     const _showTapOverlay = () => {
       if (buf) buf.style.display = 'none'
       if (tap) tap.style.display = 'flex'
-      // NUNCA chama skipToContent() aqui — o backstop cuida do fallback
     }
+
+    // Força load explícito para mobile iniciar buffer imediatamente
+    v.load()
 
     if (_isMobile) {
       v.muted = true
