@@ -35,7 +35,7 @@ serve(async (req) => {
 
     const preference = {
       items: [{
-        title:       'Diagnostico Espiritual + Plano de 21 Dias',
+        title:       'Diagnostico Espiritual Personalizado + Plano de 45 Dias',
         quantity:    1,
         unit_price:  19.90,
         currency_id: 'BRL',
