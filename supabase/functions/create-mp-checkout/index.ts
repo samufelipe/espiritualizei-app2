@@ -40,6 +40,9 @@ serve(async (req) => {
         unit_price:  19.90,
         currency_id: 'BRL',
       }],
+      payment_methods: {
+        excluded_payment_types: [{ id: 'ticket' }],
+      },
       back_urls: {
         success: 'https://www.espiritualizei.com/materiais',
         failure: quiz_session_id

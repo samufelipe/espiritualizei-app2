@@ -1694,31 +1694,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (path) _track(path, 'quiz_step', { screen: id })
 
     // Eventos específicos de funil para Meta Pixel + GA4
-    if (id === 's-vsl') {
-      const eventId = 'vsl_view_' + Date.now()
+    if (id === 's-paywall') {
+      const eventId = 'paywall_view_' + Date.now()
       if (typeof fbq !== 'undefined') {
         fbq('track', 'ViewContent', {
-          content_name:     'VSL Revelacao Espiritual',
+          content_name:     'Diagnostico Espiritual Personalizado + Plano de 45 Dias',
           content_category: 'quiz',
           content_ids:      ['diagnostico-espiritual'],
           content_type:     'product',
           value:            19.90,
           currency:         'BRL',
-        }, { eventID: eventId })
-      }
-      window.dataLayer = window.dataLayer || []
-      window.dataLayer.push({ event: 'quiz_vsl_view', page_path: path, event_id: eventId })
-    }
-
-    if (id === 's-paywall') {
-      const eventId = 'paywall_view_' + Date.now()
-      if (typeof fbq !== 'undefined') {
-        fbq('track', 'AddToCart', {
-          content_name: 'Diagnostico Espiritual + Plano de 21 Dias',
-          content_ids:  ['diagnostico-espiritual'],
-          content_type: 'product',
-          value:        19.90,
-          currency:     'BRL',
         }, { eventID: eventId })
       }
       window.dataLayer = window.dataLayer || []
@@ -2237,6 +2222,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (hint) hint.style.display = 'none'
     const locked = document.getElementById('pw-locked-content')
     if (locked) locked.classList.add('revealed')
+    const _acId = 'add_to_cart_' + Date.now()
+    if (typeof fbq !== 'undefined') {
+      fbq('track', 'AddToCart', {
+        content_name: 'Diagnostico Espiritual Personalizado + Plano de 45 Dias',
+        content_ids:  ['diagnostico-espiritual'],
+        content_type: 'product',
+        value:        19.90,
+        currency:     'BRL',
+      }, { eventID: _acId })
+    }
+    if (window.dataLayer) {
+      window.dataLayer.push({ event: 'quiz_add_to_cart', value: 19.90, currency: 'BRL' })
+    }
     startOfferTimer()
     initExitIntent()
     setTimeout(() => {
@@ -2580,7 +2578,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'quiz_initiate_checkout', value: 19.90, currency: 'BRL', page_path: '/diagnostico/checkout' })
-    if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', { value: 19.90, currency: 'BRL' })
+    if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', {
+      value:        19.90,
+      currency:     'BRL',
+      content_name: 'Diagnostico Espiritual Personalizado + Plano de 45 Dias',
+      content_ids:  ['diagnostico-espiritual'],
+      content_type: 'product',
+      num_items:    1,
+    })
 
     const quizData = {
       name: S.name, email: S.email,

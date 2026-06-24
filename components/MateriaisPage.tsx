@@ -74,7 +74,7 @@ export default function MateriaisPage({ onOpenApp }: { onOpenApp?: () => void })
           (window as any).fbq('track', 'Purchase', {
             value:        19.90,
             currency:     'BRL',
-            content_name: 'Diagnóstico Espiritual + Plano de 21 Dias',
+            content_name: 'Diagnostico Espiritual Personalizado + Plano de 45 Dias',
             content_ids:  ['diagnostico-espiritual'],
             content_type: 'product',
           }, { eventID: `mp_purchase_${mpPaymentId}` });
